@@ -40,6 +40,7 @@ class Account
 
         if (!$hasIdentification
             && ($hasID ? (!is_numeric($id) || $id <= 0) : !is_email($email))) {
+            $this->exists = false;
             $this->object = null;
         } else {
             if ($hasIdentification) {
@@ -106,14 +107,14 @@ class Account
                 $this->object = new stdClass();
                 $this->object->application_id = $applicationID;
             }
-            // Standalone
-            $this->team = new AccountTeam($this);
-            $this->files = new AccountFiles($this);
-            $this->affiliate = new AccountAffiliate($this);
-            $this->cooperation = new AccountCooperation($this);
-            $this->communication = new AccountCommunication($this);
-            $this->offer = new AccountOffer($this);
         }
+        // Standalone
+        $this->team = new AccountTeam($this);
+        $this->files = new AccountFiles($this);
+        $this->affiliate = new AccountAffiliate($this);
+        $this->cooperation = new AccountCooperation($this);
+        $this->communication = new AccountCommunication($this);
+        $this->offer = new AccountOffer($this);
     }
 
     public function exists(): bool

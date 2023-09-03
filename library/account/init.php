@@ -35,7 +35,6 @@ require_once '/var/www/.structure/library/account/api/objects/product/AccountPur
 require_once '/var/www/.structure/library/account/api/objects/product/AccountReviews.php';
 require_once '/var/www/.structure/library/account/api/objects/product/ProductGiveaway.php';
 require_once '/var/www/.structure/library/account/api/objects/product/RegisteredBuyers.php';
-require_once '/var/www/.structure/library/account/api/objects/product/ProductDownload.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountOffer.php';
 require_once '/var/www/.structure/library/account/api/objects/product/WebsiteProduct.php';
 require_once '/var/www/.structure/library/account/api/objects/product/PaymentProcessor.php';

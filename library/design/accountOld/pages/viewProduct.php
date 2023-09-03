@@ -23,7 +23,7 @@ function loadViewProduct(?Account $account, $isLoggedIn, Application $applicatio
             $image = $productFound->image;
             $legal = $productFound->legal_information;
             $isFree = $productFound->price === null;
-            $developmentDays = get_date_days_difference($productFound->release_date);
+            $developmentDays = get_date_days_difference($productFound->creation_date);
             $hasPurchased = $productFound->price === null
                 || $isLoggedIn && $account->getPurchases()->owns($productID)->isPositiveOutcome();
 

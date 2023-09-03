@@ -192,4 +192,31 @@ class AccountDownloads
             1
         ));
     }
+
+    public function find($token): MethodReply
+    {
+        global $product_downloads_table;
+        $query = get_sql_query(
+            $product_downloads_table,
+            null,
+            array(
+                array("token", $token),
+                array("deletion_date", null),
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
+            ),
+            null,
+            1
+        );
+
+        if (!empty($query)) {
+            $query = $query[0];
+            $query->account = new Account(Account::IGNORE_APPLICATION, $query->account_id);
+            return new MethodReply(true, null, $query);
+        } else {
+            return new MethodReply(false);
+        }
+    }
 }

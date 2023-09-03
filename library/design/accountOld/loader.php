@@ -185,21 +185,17 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                     $token = get_form_get("token");
 
                     if (!empty($token)) {
-                        $download = new ProductDownload($token);
+                        $download = $account->getDownloads()->find($token);
 
-                        if ($download->found()) {
-                            $tokenAccount = $download->getAccount();
+                        if ($download->isPositiveOutcome()) {
+                            $download = $download->getObject();
+                            $tokenAccount = $download->account;
 
-                            if ($tokenAccount->exists()) {
-                                $download = $download->getProperties();
-
-                                if (!$tokenAccount->getDownloads()->sendFileDownload(
+                            if (!$tokenAccount->exists()
+                                || !$tokenAccount->getDownloads()->sendFileDownload(
                                     $download->product_id,
                                     $download->token
                                 )->isPositiveOutcome()) {
-                                    exit();
-                                }
-                            } else {
                                 exit();
                             }
                         } else {
