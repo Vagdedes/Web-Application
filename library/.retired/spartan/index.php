@@ -155,6 +155,6 @@ if (strlen($message) > 0) {
 
     <?php } ?>
 </div>
-<?php include("/var/www/.structure/design/footer/footer.php"); ?>
+<?php include("/var/www/.structure/library/design/accountOld/footer/footer.php"); ?>
 </body>
 </html>

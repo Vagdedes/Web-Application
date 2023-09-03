@@ -61,14 +61,14 @@ function load_page_intro(?Account $account, $isLoggedIn, $loadIntro, $loadNaviga
            </style>";
     }
     if ($loadNavigation) {
-        include("/var/www/.structure/design/footer/footerNavigation.php");
+        include("/var/www/.structure/library/design/accountOld/footer/footerNavigation.php");
     }
 }
 
 function load_page_footer($loadFooter)
 {
     if ($loadFooter) {
-        include("/var/www/.structure/design/footer/footer.php");
+        include("/var/www/.structure/library/design/accountOld/footer/footer.php");
     }
     echo "</body></html>";
 }

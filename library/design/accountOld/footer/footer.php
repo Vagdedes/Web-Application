@@ -6,7 +6,7 @@
         if ($directorySlashCount > 3) {
             ?>
             <?php if ($directorySlashCount > 4) { ?>
-                <a href="../" class="button" style="margin-bottom: 8px; padding: 15px;">PREVIOUS PAGE</a>
+                <a href="../../../../design" class="button" style="margin-bottom: 8px; padding: 15px;">PREVIOUS PAGE</a>
             <?php } else { ?>
                 <a href="https://vagdedes.com/contact" class="button" style="margin-bottom: 8px; padding: 15px;">CONTACT US</a>
             <?php } ?>

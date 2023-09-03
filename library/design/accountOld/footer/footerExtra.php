@@ -10,7 +10,7 @@
 	?>
 	</div>
 	<div class="footer_bottom">
-		@<?php echo date("Y") . " " . htmlspecialchars($object->name); ?>
+		@<?php echo date("Y") . " footerExtra.php" . htmlspecialchars($object->name); ?>
 		<br>
 		<div style="font-size: 12px;">
 			All rights reserved.

@@ -112,7 +112,7 @@ if ($usernameString >= 3 && $usernameString <= 32
     </div>
 </div>
 
-<?php include("/var/www/.structure/design/footer/footer.php"); ?>
+<?php include("/var/www/.structure/library/design/accountOld/footer/footer.php"); ?>
 </body>
 
 </html>
