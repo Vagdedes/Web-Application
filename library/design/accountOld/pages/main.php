@@ -51,9 +51,9 @@ function loadMain(?Account $account, $isLoggedIn, Application $application)
 
     // Separator
 
-    $offer = $application->getProductOffer($account);
+    $offer = $account->getOffer()->find();
 
-    if ($offer->found()) {
+    if ($offer->isPositiveOutcome()) {
         $offer = $offer->getObject();
         echo "<div class='area' id='darker'>";
 

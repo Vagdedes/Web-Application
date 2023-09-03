@@ -63,7 +63,7 @@ class WebsiteFunctionality
         if (!empty($query)) {
             $id = $query[0]->id;
 
-            if ($this->account !== null) {
+            if ($this->account !== null && $this->account->exists()) {
                 if ($this->account->getModerations()->getBlockedFunctionality($id)->isPositiveOutcome()) {
                     return new MethodReply(
                         false,
@@ -94,7 +94,7 @@ class WebsiteFunctionality
 
     public function addUserCooldown($duration): MethodReply
     {
-        if ($this->account !== null) {
+        if ($this->account !== null && $this->account->exists()) {
             $this->account->getCooldowns()->add($this->name, $duration);
             return new MethodReply(true);
         } else {

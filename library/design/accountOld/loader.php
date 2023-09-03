@@ -86,7 +86,7 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
         $session = $application->getWebsiteSession();
         $sessionObject = $session->getSession();
         $account = $sessionObject->getObject();
-        $isLoggedIn = $sessionObject->isPositiveOutcome();
+        $isLoggedIn = $sessionObject->isPositiveOutcome() && $account->exists();
 
         $directory = get_final_directory();
         load_page_html_head(unstuck_words_from_capital_letters($directory), $application);
@@ -131,9 +131,9 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                 $argumentSize = sizeof($arguments);
                 $id = $arguments[$argumentSize - 1];
                 $isNumericID = is_numeric($id);
-                $offer = $application->getProductOffer($account, $isNumericID ? $id : null, false);
+                $offer = $account->getOffer()->find($isNumericID ? $id : null, false);
 
-                if (!$offer->found()) {
+                if (!$offer->isPositiveOutcome()) {
                     load_account_page_message("Website Error", "This offer does not exist or is not currently available.");
                 } else {
                     $offer = $offer->getObject();

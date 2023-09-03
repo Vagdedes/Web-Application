@@ -6,6 +6,16 @@ class WebsiteProduct
 
     public function __construct($applicationID, $documentation = true, $productID = null)
     {
+        $hasProductID = $productID !== null;
+
+        if ($hasProductID) {
+            $functionality = new WebsiteFunctionality(
+                $applicationID,
+                WebsiteFunctionality::VIEW_PRODUCT,
+                null
+            );
+            $functionalityOutcome = $functionality->getResult();
+        }
         $cacheKey = array(
             $this,
             $documentation,
@@ -18,7 +28,6 @@ class WebsiteProduct
             return;
         }
         global $products_table;
-        $hasProductID = $productID !== null;
         $array = get_sql_query($products_table,
             null,
             array(

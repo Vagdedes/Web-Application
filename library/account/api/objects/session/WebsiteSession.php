@@ -138,7 +138,7 @@ class WebsiteSession
             );
             clear_memory(array(self::class), true);
         }
-        return new MethodReply(false);
+        return new MethodReply(false, null, new Account($this->applicationID, 0));
     }
 
     public function createSession(Account $account): MethodReply

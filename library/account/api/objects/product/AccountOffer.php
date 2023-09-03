@@ -1,33 +1,37 @@
 <?php
 
-class ProductOffer
+class AccountOffer
 {
-    private ?object $object;
+    private Account $account;
 
-    public function __construct($applicationID, ?Account $account, $offerID, $checkOwnership)
+    public function __construct($account)
     {
+        $this->account = $account;
+    }
+
+    public function find($offerID = null, $checkOwnership = true, $accountID = null): MethodReply
+    {
+        $applicationID = $this->account->getDetail("application_id");
         $functionality = new WebsiteFunctionality(
             $applicationID,
             WebsiteFunctionality::VIEW_OFFER,
-            $account
+            $this->account
         );
         $functionalityOutcome = $functionality->getResult();
 
-        if (!$functionalityOutcome->isPositiveOutcome()) {
-            $this->object = null;
-        } else {
-            $this->object = null;
+        if ($functionalityOutcome->isPositiveOutcome()) {
             $validProducts = new WebsiteProduct($applicationID);
 
             if ($validProducts->found()) {
                 global $product_offers_table;
-                $hasOffer = $offerID !== null;
+                $hasAccount = $accountID !== null;
+                $hasOffer = !$hasAccount && $offerID !== null;
                 set_sql_cache("1 minute");
                 $offers = get_sql_query(
                     $product_offers_table,
                     null,
                     array(
-                        array("application_id", $applicationID),
+                        $hasAccount ? array("account_id", $accountID) : array("application_id", $applicationID),
                         array("deletion_date", null),
                         $hasOffer ? array("id", $offerID) : ""
                     ),
@@ -42,11 +46,11 @@ class ProductOffer
                 if (!empty($offers)) {
                     global $website_url, $product_offer_divisions_table;
                     $validProducts = $validProducts->getResults();
-                    $isObject = is_object($account);
-                    $purchases = $isObject ? $account->getPurchases()->getCurrent() : array();
+                    $isObject = $this->account->exists();
+                    $purchases = $isObject ? $this->account->getPurchases()->getCurrent() : array();
 
                     foreach ($offers as $offer) {
-                        if ((!$isObject || !$checkOwnership || $offer->required_product === null || $account->getPurchases()->owns($offer->required_product))
+                        if ((!$isObject || !$checkOwnership || $offer->required_product === null || $this->account->getPurchases()->owns($offer->required_product))
                             && ($isObject || $offer->requires_account === null)) {
                             $query = get_sql_query(
                                 $product_offer_divisions_table,
@@ -96,7 +100,7 @@ class ProductOffer
                                                 $ownedProducts++;
 
                                                 if ($ownedProducts == $includedProductsAmount) {
-                                                    return;
+                                                    return new MethodReply(false);
                                                 } else {
                                                     break;
                                                 }
@@ -105,22 +109,14 @@ class ProductOffer
                                     }
                                 }
                             }
-                            $this->object = $offer;
-                            break;
+                            return new MethodReply(true, null, $offer);
                         }
                     }
                 }
             }
+        } else {
+            return new MethodReply(false, $functionalityOutcome->getMessage());
         }
-    }
-
-    public function getObject(): ?object
-    {
-        return $this->object;
-    }
-
-    public function found(): bool
-    {
-        return $this->object !== null;
+        return new MethodReply(false);
     }
 }

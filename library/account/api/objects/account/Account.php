@@ -3,6 +3,7 @@
 class Account
 {
     private $object;
+    private bool $exists;
     private AccountSettings $settings;
     private AccountActions $actions;
     private AccountHistory $history;
@@ -28,6 +29,7 @@ class Account
     private AccountCooperation $cooperation;
     private AccountAffiliate $affiliate;
     private AccountVerification $verification;
+    private AccountOffer $offer;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -77,6 +79,7 @@ class Account
             );
 
             if (!empty($query)) {
+                $this->exists = true;
                 $this->object = $query[0];
                 $this->email = new AccountEmail($this);
                 $this->settings = new AccountSettings($this);
@@ -99,7 +102,9 @@ class Account
                 $this->correlation = new AccountCorrelation($this);
                 $this->verification = new AccountVerification($this);
             } else {
-                $this->object = null;
+                $this->exists = false;
+                $this->object = new stdClass();
+                $this->object->application_id = $applicationID;
             }
             // Standalone
             $this->team = new AccountTeam($this);
@@ -107,12 +112,13 @@ class Account
             $this->affiliate = new AccountAffiliate($this);
             $this->cooperation = new AccountCooperation($this);
             $this->communication = new AccountCommunication($this);
+            $this->offer = new AccountOffer($this);
         }
     }
 
     public function exists(): bool
     {
-        return $this->object !== null;
+        return $this->exists;
     }
 
     public function getDetail($detail)
@@ -269,5 +275,10 @@ class Account
     public function getVerification(): AccountVerification
     {
         return $this->verification;
+    }
+
+    public function getOffer(): AccountOffer
+    {
+        return $this->offer;
     }
 }

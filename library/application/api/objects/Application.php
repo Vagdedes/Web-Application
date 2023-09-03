@@ -21,11 +21,6 @@ class Application
         return new WebsiteProduct($this->id, $documentation, $productID);
     }
 
-    public function getProductOffer(?Account $account, $offerID = null, $checkOwnership = true): ProductOffer
-    {
-        return new ProductOffer($this->id, $account, $offerID, $checkOwnership);
-    }
-
     public function getProductGiveaway(): ProductGiveaway
     {
         return new ProductGiveaway($this->id);

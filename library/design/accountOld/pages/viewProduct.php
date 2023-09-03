@@ -125,9 +125,9 @@ function loadViewProduct(?Account $account, $isLoggedIn, Application $applicatio
                     $overviewContents .= "</ul></div>";
                 }
             } else {
-                $offer = $application->getProductOffer($account, $offer == -1 ? null : $offer);
+                $offer = $account->getOffer()->find($offer == -1 ? null : $offer);
 
-                if ($offer->found()) {
+                if ($offer->isPositiveOutcome()) {
                     $offer = $offer->getObject();
 
                     foreach ($offer->divisions as $divisions) {
