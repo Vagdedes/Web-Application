@@ -23,12 +23,12 @@ class WebsiteProduct
             null,
             array(
                 array("application_id", $applicationID),
-                array("release_date", "IS NOT", null),
-                array("deletion_date", "IS", null),
+                array("deletion_date", null),
                 $hasProductID ? array("id", $productID) : ""
             ),
-            array(
-                "ASC",
+            $hasProductID ? null
+                : array(
+                "DESC",
                 "priority"
             )
         );

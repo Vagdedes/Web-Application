@@ -31,7 +31,11 @@ class ProductOffer
                         array("deletion_date", null),
                         $hasOffer ? array("id", $offerID) : ""
                     ),
-                    null,
+                    $hasOffer ? null
+                        : array(
+                        "DESC",
+                        "priority"
+                    ),
                     $hasOffer ? 1 : 0
                 );
 
@@ -42,7 +46,7 @@ class ProductOffer
                     $purchases = $isObject ? $account->getPurchases()->getCurrent() : array();
 
                     foreach ($offers as $offer) {
-                        if ((!$isObject || !$checkOwnership || $offer->required_ownership === null || $account->getPurchases()->owns($offer->required_ownership))
+                        if ((!$isObject || !$checkOwnership || $offer->required_product === null || $account->getPurchases()->owns($offer->required_product))
                             && ($isObject || $offer->requires_account === null)) {
                             $query = get_sql_query(
                                 $product_offer_divisions_table,
