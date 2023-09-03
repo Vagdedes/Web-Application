@@ -19,7 +19,7 @@ class ProductOffer
             $this->object = null;
             $validProducts = new WebsiteProduct($applicationID);
 
-            if ($validProducts->hasResults()) {
+            if ($validProducts->found()) {
                 global $product_offers_table;
                 $hasOffer = $offerID !== null;
                 set_sql_cache("1 minute");

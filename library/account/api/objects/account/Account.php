@@ -27,6 +27,7 @@ class Account
     private AccountCorrelation $correlation;
     private AccountCooperation $cooperation;
     private AccountAffiliate $affiliate;
+    private AccountVerification $verification;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -96,6 +97,7 @@ class Account
                 $this->reviews = new AccountReviews($this);
                 $this->patreon = new AccountPatreon($this);
                 $this->correlation = new AccountCorrelation($this);
+                $this->verification = new AccountVerification($this);
             } else {
                 $this->object = null;
             }
@@ -262,5 +264,10 @@ class Account
     public function getAffiliate(): AccountAffiliate
     {
         return $this->affiliate;
+    }
+
+    public function getVerification(): AccountVerification
+    {
+        return $this->verification;
     }
 }

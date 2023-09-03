@@ -112,7 +112,7 @@ class PaymentProcessor
             $isIndividual = $account !== null;
             $products = $application->getProduct(false);
 
-            if ($products->hasResults()) {
+            if ($products->found()) {
                 $products = $products->getResults();
                 $productCount = sizeof($products);
                 $date = get_current_date();

@@ -18,7 +18,7 @@ function loadMain(?Account $account, $isLoggedIn, Application $application)
     echo "<div class='area' id='darker'>";
     $validProducts = $application->getProduct(false);
 
-    if ($validProducts->hasResults()) {
+    if ($validProducts->found()) {
         echo "<div class='product_list'><ul>";
 
         foreach ($validProducts->getResults() as $product) {

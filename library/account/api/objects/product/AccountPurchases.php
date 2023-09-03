@@ -24,7 +24,7 @@ class AccountPurchases
         $applicationID = $this->account->getDetail("application_id");
         $products = new WebsiteProduct($applicationID, false);
 
-        if ($products->hasResults()) {
+        if ($products->found()) {
             foreach ($products->getResults() as $product) {
                 if ($product->price === null
                     || $product->required_permission !== null && $this->account->getPermissions()->hasPermission($product->required_permission)) {
@@ -65,7 +65,7 @@ class AccountPurchases
                         $clearMemory = true;
                         $product = new WebsiteProduct($applicationID, true, $row->product_id);
 
-                        if ($product->hasResults()) {
+                        if ($product->found()) {
                             $this->account->getEmail()->send("productExpiration",
                                 array(
                                     "productName" => $product->getFirstResult()->name,
@@ -117,7 +117,7 @@ class AccountPurchases
                     $clearMemory = true;
                     $product = new WebsiteProduct($applicationID, true, $row->product_id);
 
-                    if ($product->hasResults()) {
+                    if ($product->found()) {
                         $this->account->getEmail()->send("productExpiration",
                             array(
                                 "productName" => $product->getFirstResult()->name,
@@ -194,7 +194,7 @@ class AccountPurchases
         }
         $product = new WebsiteProduct($this->account->getDetail("application_id"), true, $productID);
 
-        if (!$product->hasResults()) {
+        if (!$product->found()) {
             return new MethodReply(false, "This product does not exist.");
         }
         $product = $product->getFirstResult();
@@ -371,12 +371,12 @@ class AccountPurchases
         $applicationID = $this->account->getDetail("application_id");
         $currentProduct = new WebsiteProduct($applicationID, true, $productID);
 
-        if (!$currentProduct->hasResults()) {
+        if (!$currentProduct->found()) {
             return new MethodReply(false, "Failed to find current product.");
         }
         $newProduct = new WebsiteProduct($applicationID, true, $newProductID);
 
-        if (!$newProduct->hasResults()) {
+        if (!$newProduct->found()) {
             return new MethodReply(false, "Failed to find new product.");
         }
         $purchase = $this->owns($productID);

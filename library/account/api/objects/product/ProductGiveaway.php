@@ -149,7 +149,7 @@ class ProductGiveaway
             $productID = $object->product_id;
             $foundProduct = new WebsiteProduct($this->applicationID, false, $productID);
 
-            if (!$foundProduct->hasResults()) {
+            if (!$foundProduct->found()) {
                 return new MethodReply(false);
             }
             $foundProduct = $foundProduct->getFirstResult();
@@ -228,7 +228,7 @@ class ProductGiveaway
                 $giveaway = $giveaways[0];
                 $productWon = new WebsiteProduct($this->applicationID, false, $giveaway->product_id);
 
-                if (!$productWon->hasResults()) {
+                if (!$productWon->found()) {
                     return new MethodReply(false);
                 }
                 global $giveaway_winners_table;

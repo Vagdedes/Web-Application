@@ -221,7 +221,7 @@ class WebsiteProduct
         return array_shift($this->products);
     }
 
-    public function hasResults(): bool
+    public function found(): bool
     {
         return !empty($this->products);
     }

@@ -10,7 +10,7 @@ function loadViewProduct(?Account $account, $isLoggedIn, Application $applicatio
         global $website_url;
         $productFound = $application->getProduct(true, $productID);
 
-        if ($productFound->hasResults()) {
+        if ($productFound->found()) {
             $productFound = $productFound->getFirstResult();
             $name = $productFound->name;
             $nameURL = str_replace(" ", "-", $name);

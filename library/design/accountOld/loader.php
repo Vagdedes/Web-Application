@@ -8,7 +8,7 @@ function load_page_html_head($title, Application $application)
     $validProducts = $application->getProduct(false);
     $metaDescription = "Vagdedes Services Store";
 
-    if ($validProducts->hasResults()) {
+    if ($validProducts->found()) {
         $validProductNames = array();
 
         foreach ($validProducts->getResults() as $validProductObject) {

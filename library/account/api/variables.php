@@ -67,15 +67,20 @@ $correlation_requests_table = "correlation.requests";
 $correlation_types_table = "correlation.types";
 
 // Files
-$files_documents_table = "files.documents";
-$files_sharing_table = "files.sharing";
-$files_types_table = "files.types";
-$files_downloads_table = "files.downloads";
+$file_documents_table = "file.documents";
+$file_sharing_table = "file.sharing";
+$file_types_table = "file.types";
+$file_downloads_table = "file.downloads";
 
 // Team
 $team_invitations_table = "team.invitations";
 $team_modifications_table = "team.modifications";
 $team_teams_table = "team.teams";
+
+// Verification
+$verification_instant_table = "verification.instant";
+$verification_password_table = "verification.password";
+$verification_types_table = "verification.types";
 
 // E.T.C
 $website_url = "https://vagdedes.com/account";
