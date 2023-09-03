@@ -1,8 +1,8 @@
 <?php
 
-class AccountUpload
+class AccountFiles
 {
-    private Account $account;
+    private ?Account $account;
     //todo introduce constants that are null application-id
 
     public function __construct($account)

@@ -1,5 +1,7 @@
 <?php
 
+// Here we add objects that are not related to account-id and are therefore completely standalone
+
 class Application
 {
     private ?int $id;

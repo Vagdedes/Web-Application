@@ -66,10 +66,11 @@ $correlation_instants_table = "correlation.instant";
 $correlation_requests_table = "correlation.requests";
 $correlation_types_table = "correlation.types";
 
-// Upload
-$upload_documents_table = "upload.documents";
-$upload_sharing_table = "upload.sharing";
-$upload_types_table = "upload.types";
+// Files
+$files_documents_table = "files.documents";
+$files_sharing_table = "files.sharing";
+$files_types_table = "files.types";
+$files_downloads_table = "files.downloads";
 
 // Team
 $team_invitations_table = "team.invitations";

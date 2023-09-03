@@ -23,7 +23,7 @@ class Account
     private AccountPatreon $patreon;
     private AccountCommunication $communication;
     private AccountTeam $team;
-    private AccountUpload $upload;
+    private AccountFiles $files;
     private AccountCorrelation $correlation;
     private AccountCooperation $cooperation;
     private AccountAffiliate $affiliate;
@@ -95,15 +95,16 @@ class Account
                 $this->phoneNumber = new AccountPhoneNumber($this);
                 $this->reviews = new AccountReviews($this);
                 $this->patreon = new AccountPatreon($this);
-                $this->communication = new AccountCommunication($this);
-                $this->team = new AccountTeam($this);
-                $this->upload = new AccountUpload($this);
                 $this->correlation = new AccountCorrelation($this);
-                $this->cooperation = new AccountCooperation($this);
-                $this->affiliate = new AccountAffiliate($this);
             } else {
                 $this->object = null;
             }
+            // Standalone
+            $this->team = new AccountTeam($this);
+            $this->files = new AccountFiles($this);
+            $this->affiliate = new AccountAffiliate($this);
+            $this->cooperation = new AccountCooperation($this);
+            $this->communication = new AccountCommunication($this);
         }
     }
 
@@ -243,9 +244,9 @@ class Account
         return $this->team;
     }
 
-    public function getUpload(): AccountUpload
+    public function getFiles(): AccountFiles
     {
-        return $this->upload;
+        return $this->files;
     }
 
     public function getCorrelation(): AccountCorrelation

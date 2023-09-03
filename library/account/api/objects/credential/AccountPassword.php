@@ -4,6 +4,8 @@ class AccountPassword
 {
     private Account $account;
 
+    private const tooManyChanges = 3;
+
     public function __construct($account)
     {
         $this->account = $account;
@@ -26,20 +28,20 @@ class AccountPassword
         $accountID = $this->account->getDetail("id");
         $array = get_sql_query(
             $change_password_table,
-            array(),
+            null,
             array(
                 array("account_id", $accountID),
                 array("completion_date", null),
                 array("expiration_date", ">", $date)
             ),
             null,
-            4
+            self::tooManyChanges + 1
         );
 
-        if (sizeof($array) >= 3) {
+        if (sizeof($array) >= self::tooManyChanges) {
             return new MethodReply(false, "Too many change password requests, try again later.");
         }
-        $token = random_string(1024);
+        $token = random_string(512);
 
         if (!sql_insert(
             $change_password_table,
@@ -77,9 +79,11 @@ class AccountPassword
         }
         global $change_password_table;
         $date = get_current_date();
+        $locallyLoggedIn = $this->account->getActions()->isLocallyLoggedIn();
+        $isLocallyLoggedIn = $locallyLoggedIn->isPositiveOutcome();
         $array = get_sql_query(
             $change_password_table,
-            array("id"),
+            $isLocallyLoggedIn ? array("id", "account_id") : array("id"),
             array(
                 array("token", $token),
                 array("completion_date", null),
@@ -92,6 +96,13 @@ class AccountPassword
         if (empty($array)) {
             return new MethodReply(false, "This change password token is invalid or has expired.");
         }
+        $array = $array[0];
+        $locallyLoggedIn = $this->account->getActions()->isLocallyLoggedIn();
+
+        if ($isLocallyLoggedIn
+            && $locallyLoggedIn->getObject()->getDetail("id") !== $array->account_id) {
+            return new MethodReply(false, "This change password token is invalid.");
+        }
         $password = encrypt_password($password);
 
         if (!$password) {
@@ -101,7 +112,7 @@ class AccountPassword
             $change_password_table,
             array("completion_date" => $date),
             array(
-                array("id", $array[0]->id),
+                array("id", $array->id),
             ),
             null,
             1

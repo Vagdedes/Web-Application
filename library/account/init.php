@@ -52,7 +52,7 @@ require_once '/var/www/.structure/library/account/api/objects/management/Account
 // Credential
 require_once '/var/www/.structure/library/account/api/objects/credential/AccountAccounts.php';
 require_once '/var/www/.structure/library/account/api/objects/credential/AccountPassword.php';
-require_once '/var/www/.structure/library/account/api/objects/credential/AccountUpload.php';
+require_once '/var/www/.structure/library/account/api/objects/credential/AccountFiles.php';
 
 // Communication
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountEmail.php';

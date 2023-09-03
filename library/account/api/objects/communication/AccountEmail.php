@@ -169,7 +169,7 @@ class AccountEmail
         );
 
         if (empty($array)) {
-            $token = random_string(1024);
+            $token = random_string(512);
 
             if (!sql_insert(
                 $email_verifications_table,

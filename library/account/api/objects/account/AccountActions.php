@@ -83,15 +83,18 @@ class AccountActions
         return new MethodReply(false, "Could not find session to log out user.");
     }
 
-    public function isLocallyLoggedIn(): bool
+    public function isLocallyLoggedIn(): MethodReply
     {
         $session = new WebsiteSession($this->account->getDetail("application_id"));
 
         if ($session->getSession()->isPositiveOutcome()) {
             $session = $session->getSession()->getObject();
-            return $this->account->getDetail("id") == $session->getDetail("id");
+
+            if ($this->account->getDetail("id") == $session->getDetail("id")) {
+                return new MethodReply(true, null, $session);
+            }
         }
-        return false;
+        return new MethodReply(false);
     }
 
     public function deleteAccount($permanently = false): MethodReply
