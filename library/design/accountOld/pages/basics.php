@@ -6,9 +6,7 @@ function account_product_prompt(?Account $account, $isLoggedIn, $productObject):
     $free = "<b>FREE</b>";
 
     if ($isLoggedIn) {
-        $productGiveaway = new ProductGiveaway($account->getDetail("application_id"));
-
-        if ($productGiveaway->hasWon($account, $productObject->id)) {
+        if ($account->getGiveaway()->hasWon($productObject->id)) {
             return "Won From Giveaway";
         } else if ($productObject->price === null) {
             return !empty($productObject->downloads)

@@ -21,11 +21,10 @@ class AccountPurchases
         $array = array();
         $date = get_current_date();
         $challengeArray = false;
-        $applicationID = $this->account->getDetail("application_id");
-        $products = new WebsiteProduct($applicationID, false);
+        $products = $this->account->getProduct()->find(null, false);
 
-        if ($products->found()) {
-            foreach ($products->getResults() as $product) {
+        if ($products->isPositiveOutcome()) {
+            foreach ($products->getObject() as $product) {
                 if ($product->price === null
                     || $product->required_permission !== null && $this->account->getPermissions()->hasPermission($product->required_permission)) {
                     $object = new stdClass();
@@ -63,12 +62,12 @@ class AccountPurchases
                 if (!$challengeArray || !array_key_exists($row->product_id, $array)) {
                     if ($row->expiration_date !== null && $row->expiration_date < $date) {
                         $clearMemory = true;
-                        $product = new WebsiteProduct($applicationID, true, $row->product_id);
+                        $product = $this->account->getProduct()->find($row->product_id);
 
-                        if ($product->found()) {
+                        if ($product->isPositiveOutcome()) {
                             $this->account->getEmail()->send("productExpiration",
                                 array(
-                                    "productName" => $product->getFirstResult()->name,
+                                    "productName" => $product->getObject()[0]->name,
                                 )
                             );
                         }
@@ -79,7 +78,7 @@ class AccountPurchases
             }
 
             if ($clearMemory) {
-                clear_memory(array(self::class, RegisteredBuyers::class), true);
+                clear_memory(array(self::class), true);
             } else {
                 global $sql_max_cache_time;
                 set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
@@ -108,19 +107,18 @@ class AccountPurchases
 
         if (!empty($query)) {
             $clearMemory = false;
-            $applicationID = $this->account->getDetail("application_id");
 
             foreach ($query as $key => $row) {
                 if ($row->expiration_notification === null) {
                     $row->expiration_notification = 1;
                     $query[$key] = $row;
                     $clearMemory = true;
-                    $product = new WebsiteProduct($applicationID, true, $row->product_id);
+                    $product = $this->account->getProduct()->find($row->product_id);
 
-                    if ($product->found()) {
+                    if ($product->isPositiveOutcome()) {
                         $this->account->getEmail()->send("productExpiration",
                             array(
-                                "productName" => $product->getFirstResult()->name,
+                                "productName" => $product->getObject()[0]->name,
                             )
                         );
                     }
@@ -128,7 +126,7 @@ class AccountPurchases
             }
 
             if ($clearMemory) {
-                clear_memory(array(self::class, RegisteredBuyers::class), true);
+                clear_memory(array(self::class), true);
             }
         }
         return $query;
@@ -192,12 +190,11 @@ class AccountPurchases
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
         }
-        $product = new WebsiteProduct($this->account->getDetail("application_id"), true, $productID);
+        $product = $this->account->getProduct()->find($productID, false);
 
-        if (!$product->found()) {
-            return new MethodReply(false, "This product does not exist.");
+        if (!$product->isPositiveOutcome()) {
+            return new MethodReply(false, $product->getMessage());
         }
-        $product = $product->getFirstResult();
         $purchase = $this->owns($productID);
 
         if ($purchase->isPositiveOutcome()) {
@@ -219,6 +216,7 @@ class AccountPurchases
             return new MethodReply(false, "This transaction has already been processed for this product.");
         }
         $hasCoupon = $coupon !== null;
+        $product = $product[0];
         $price = $product->price;
 
         if ($hasCoupon) {
@@ -267,7 +265,7 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        clear_memory(array(self::class, RegisteredBuyers::class), true);
+        clear_memory(array(self::class), true);
 
         if (!$this->account->getHistory()->add("buy_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -345,7 +343,7 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        clear_memory(array(self::class, RegisteredBuyers::class), true);
+        clear_memory(array(self::class), true);
 
         if (!$this->account->getHistory()->add("remove_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -368,16 +366,15 @@ class AccountPurchases
         if ($productID === $newProductID) {
             return new MethodReply(false, "Cannot exchange purchase with the same product.");
         }
-        $applicationID = $this->account->getDetail("application_id");
-        $currentProduct = new WebsiteProduct($applicationID, true, $productID);
+        $currentProduct = $this->account->getProduct()->find($productID, false);
 
-        if (!$currentProduct->found()) {
-            return new MethodReply(false, "Failed to find current product.");
+        if (!$currentProduct->isPositiveOutcome()) {
+            return new MethodReply(false, $currentProduct->getMessage());
         }
-        $newProduct = new WebsiteProduct($applicationID, true, $newProductID);
+        $newProduct = $this->account->getProduct()->find($newProductID, false);
 
-        if (!$newProduct->found()) {
-            return new MethodReply(false, "Failed to find new product.");
+        if (!$newProduct->isPositiveOutcome()) {
+            return new MethodReply(false, $newProduct->getMessage());
         }
         $purchase = $this->owns($productID);
 
@@ -431,7 +428,7 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database (3).");
         }
-        clear_memory(array(self::class, RegisteredBuyers::class), true);
+        clear_memory(array(self::class), true);
 
         if (!$this->account->getHistory()->add("exchange_product", $productID, $newProductID)) {
             return new MethodReply(false, "Failed to update user history.");
@@ -439,8 +436,8 @@ class AccountPurchases
         if ($sendEmail) {
             $this->account->getEmail()->send("productExchange",
                 array(
-                    "currentProductName" => $currentProduct->getFirstResult()->name,
-                    "newProductName" => $newProduct->getFirstResult()->name
+                    "currentProductName" => $currentProduct->getObject()[0]->name,
+                    "newProductName" => $newProduct->getObject()[0]->name
                 )
             );
         }

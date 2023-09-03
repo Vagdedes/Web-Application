@@ -30,6 +30,8 @@ class Account
     private AccountAffiliate $affiliate;
     private AccountVerification $verification;
     private AccountOffer $offer;
+    private AccountProduct $product;
+    private AccountGiveaway $giveaway;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -90,7 +92,6 @@ class Account
                 $this->purchases = new AccountPurchases($this);
                 $this->cooldowns = new AccountCooldowns($this);
                 $this->accounts = new AccountAccounts($this);
-                $this->downloads = new AccountDownloads($this);
                 $this->permissions = new AccountPermissions($this);
                 $this->moderations = new AccountModerations($this);
                 $this->password = new AccountPassword($this);
@@ -109,12 +110,15 @@ class Account
             }
         }
         // Standalone
+        $this->downloads = new AccountDownloads($this);
         $this->team = new AccountTeam($this);
         $this->files = new AccountFiles($this);
         $this->affiliate = new AccountAffiliate($this);
         $this->cooperation = new AccountCooperation($this);
         $this->communication = new AccountCommunication($this);
         $this->offer = new AccountOffer($this);
+        $this->product = new AccountProduct($this);
+        $this->giveaway = new AccountGiveaway($this);
     }
 
     public function exists(): bool
@@ -281,5 +285,15 @@ class Account
     public function getOffer(): AccountOffer
     {
         return $this->offer;
+    }
+
+    public function getProduct(): AccountProduct
+    {
+        return $this->product;
+    }
+
+    public function getGiveaway(): AccountGiveaway
+    {
+        return $this->giveaway;
     }
 }

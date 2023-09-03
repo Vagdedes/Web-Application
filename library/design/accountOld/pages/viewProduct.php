@@ -8,10 +8,10 @@ function loadViewProduct(?Account $account, $isLoggedIn, Application $applicatio
 
     if (is_numeric($productID) && $productID > 0) {
         global $website_url;
-        $productFound = $application->getProduct(true, $productID);
+        $productFound = $account->getProduct()->find($productID);
 
-        if ($productFound->found()) {
-            $productFound = $productFound->getFirstResult();
+        if ($productFound->isPositiveOutcome()) {
+            $productFound = $productFound->getObject()[0];
             $name = $productFound->name;
             $nameURL = str_replace(" ", "-", $name);
 
@@ -96,7 +96,8 @@ function loadViewProduct(?Account $account, $isLoggedIn, Application $applicatio
                 $productCompatibilities = $productFound->compatibilities;
 
                 if (!empty($productCompatibilities)) {
-                    $validProducts = $application->getProduct()->getResults();
+                    $validProducts = $account->getProduct()->find();
+                    $validProducts = $validProducts->getObject();
 
                     if (sizeof($validProducts) > 1) { // One because we already are quering one
                         $overviewContents .= "<div class='area_title'>Works With</div><div class='product_list'><ul>";

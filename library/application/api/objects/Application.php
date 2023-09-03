@@ -16,16 +16,6 @@ class Application
         return $this->id;
     }
 
-    public function getProduct($documentation = true, $productID = null): WebsiteProduct
-    {
-        return new WebsiteProduct($this->id, $documentation, $productID);
-    }
-
-    public function getProductGiveaway(): ProductGiveaway
-    {
-        return new ProductGiveaway($this->id);
-    }
-
     public function getAccount($id, $email = null, $identification = null, $checkDeletion = true): Account
     {
         return new Account($this->id, $id, $email, $identification, $checkDeletion);

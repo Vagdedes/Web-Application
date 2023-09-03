@@ -12,110 +12,112 @@ class AccountOffer
     public function find($offerID = null, $checkOwnership = true, $accountID = null): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
-        $functionality = new WebsiteFunctionality(
-            $applicationID,
-            WebsiteFunctionality::VIEW_OFFER,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult();
+        $hasAccount = $accountID !== null;
+        $hasOffer = !$hasAccount && $offerID !== null;
 
-        if ($functionalityOutcome->isPositiveOutcome()) {
-            $validProducts = new WebsiteProduct($applicationID);
+        if ($hasOffer) {
+            $functionality = new WebsiteFunctionality(
+                $applicationID,
+                WebsiteFunctionality::VIEW_OFFER,
+                $this->account
+            );
+            $functionalityOutcome = $functionality->getResult();
 
-            if ($validProducts->found()) {
-                global $product_offers_table;
-                $hasAccount = $accountID !== null;
-                $hasOffer = !$hasAccount && $offerID !== null;
-                set_sql_cache("1 minute");
-                $offers = get_sql_query(
-                    $product_offers_table,
-                    null,
-                    array(
-                        $hasAccount ? array("account_id", $accountID) : array("application_id", $applicationID),
-                        array("deletion_date", null),
-                        $hasOffer ? array("id", $offerID) : ""
-                    ),
-                    $hasOffer ? null
-                        : array(
-                        "DESC",
-                        "priority"
-                    ),
-                    $hasOffer ? 1 : 0
-                );
+            if (!$functionalityOutcome->isPositiveOutcome()) {
+                return new MethodReply(false, $functionalityOutcome->getMessage());
+            }
+        }
+        $validProducts = $this->account->getProduct()->find();
 
-                if (!empty($offers)) {
-                    global $website_url, $product_offer_divisions_table;
-                    $validProducts = $validProducts->getResults();
-                    $isObject = $this->account->exists();
-                    $purchases = $isObject ? $this->account->getPurchases()->getCurrent() : array();
+        if ($validProducts->isPositiveOutcome()) {
+            global $product_offers_table;
+            set_sql_cache("1 minute");
+            $offers = get_sql_query(
+                $product_offers_table,
+                null,
+                array(
+                    $hasAccount ? array("account_id", $accountID) : array("application_id", $applicationID),
+                    array("deletion_date", null),
+                    $hasOffer ? array("id", $offerID) : ""
+                ),
+                $hasOffer ? null
+                    : array(
+                    "DESC",
+                    "priority"
+                ),
+                $hasOffer ? 1 : 0
+            );
 
-                    foreach ($offers as $offer) {
-                        if ((!$isObject || !$checkOwnership || $offer->required_product === null || $this->account->getPurchases()->owns($offer->required_product))
-                            && ($isObject || $offer->requires_account === null)) {
-                            $query = get_sql_query(
-                                $product_offer_divisions_table,
-                                array("family", "name", "description", "no_html"),
-                                array(
-                                    array("offer_id", $offer->id),
-                                    array("deletion_date", null)
-                                )
-                            );
+            if (!empty($offers)) {
+                global $website_url, $product_offer_divisions_table;
+                $validProducts = $validProducts->getObject();
+                $accountExists = $this->account->exists();
+                $purchases = $accountExists ? $this->account->getPurchases()->getCurrent() : array();
 
-                            if (!empty($query)) {
-                                $divisions = array();
+                foreach ($offers as $offer) {
+                    if ((!$accountExists || !$checkOwnership || $offer->required_product === null || $this->account->getPurchases()->owns($offer->required_product))
+                        && ($accountExists || $offer->requires_account === null)) {
+                        $query = get_sql_query(
+                            $product_offer_divisions_table,
+                            array("family", "name", "description", "no_html"),
+                            array(
+                                array("offer_id", $offer->id),
+                                array("deletion_date", null)
+                            )
+                        );
 
-                                foreach ($query as $division) {
-                                    foreach ($validProducts as $product) {
-                                        $division->description = str_replace("%%__product_" . $product->id . "_name__%%", $product->name, $division->description);
-                                        $division->description = str_replace("%%__product_" . $product->id . "_URL__%%", $product->url, $division->description);
-                                        $division->description = str_replace("%%__product_" . $product->id . "_combined__%%", "<a href='{$product->url}'>{$product->name}</a>", $division->description);
-                                    }
+                        if (!empty($query)) {
+                            $divisions = array();
 
-                                    if (array_key_exists($division->family, $divisions)) {
-                                        $divisions[$division->family][] = $division;
-                                    } else {
-                                        $divisions[$division->family] = array($division);
-                                    }
+                            foreach ($query as $division) {
+                                foreach ($validProducts as $product) {
+                                    $division->description = str_replace("%%__product_" . $product->id . "_name__%%", $product->name, $division->description);
+                                    $division->description = str_replace("%%__product_" . $product->id . "_URL__%%", $product->url, $division->description);
+                                    $division->description = str_replace("%%__product_" . $product->id . "_combined__%%", "<a href='{$product->url}'>{$product->name}</a>", $division->description);
                                 }
-                                $offer->divisions = $divisions;
-                            } else {
-                                $offer->divisions = $query;
+
+                                if (array_key_exists($division->family, $divisions)) {
+                                    $divisions[$division->family][] = $division;
+                                } else {
+                                    $divisions[$division->family] = array($division);
+                                }
                             }
-                            $offer->url = $website_url . "/viewOffer/?id=" . $offer->id;
+                            $offer->divisions = $divisions;
+                        } else {
+                            $offer->divisions = $query;
+                        }
+                        $offer->url = $website_url . "/viewOffer/?id=" . $offer->id;
 
-                            if ($offer->included_products !== null) {
-                                $offer->included_products = explode("|", $offer->included_products);
-                            } else {
-                                $offer->included_products = array();
-                            }
-                            if ($checkOwnership) {
-                                $includedProductsAmount = sizeof($offer->included_products);
+                        if ($offer->included_products !== null) {
+                            $offer->included_products = explode("|", $offer->included_products);
+                        } else {
+                            $offer->included_products = array();
+                        }
+                        if ($checkOwnership) {
+                            $includedProductsAmount = sizeof($offer->included_products);
 
-                                if ($includedProductsAmount > 0) {
-                                    $ownedProducts = 0;
+                            if ($includedProductsAmount > 0) {
+                                $ownedProducts = 0;
 
-                                    foreach ($offer->included_products as $productID) {
-                                        foreach ($purchases as $purchase) {
-                                            if ($productID == $purchase->product_id) {
-                                                $ownedProducts++;
+                                foreach ($offer->included_products as $productID) {
+                                    foreach ($purchases as $purchase) {
+                                        if ($productID == $purchase->product_id) {
+                                            $ownedProducts++;
 
-                                                if ($ownedProducts == $includedProductsAmount) {
-                                                    return new MethodReply(false);
-                                                } else {
-                                                    break;
-                                                }
+                                            if ($ownedProducts == $includedProductsAmount) {
+                                                return new MethodReply(false);
+                                            } else {
+                                                break;
                                             }
                                         }
                                     }
                                 }
                             }
-                            return new MethodReply(true, null, $offer);
                         }
+                        return new MethodReply(true, null, $offer);
                     }
                 }
             }
-        } else {
-            return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         return new MethodReply(false);
     }

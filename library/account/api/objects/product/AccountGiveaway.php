@@ -1,15 +1,15 @@
 <?php
 
-class ProductGiveaway
+class AccountGiveaway
 {
-    private ?int $applicationID;
+    private Account $account;
 
-    public function __construct($applicationID)
+    public function __construct($account)
     {
-        $this->applicationID = $applicationID;
+        $this->account = $account;
     }
 
-    public function hasWon(Account $account, $productID): bool
+    public function hasWon($productID): bool
     {
         global $giveaway_winners_table;
         set_sql_cache(null, self::class);
@@ -17,7 +17,7 @@ class ProductGiveaway
             $giveaway_winners_table,
             array("giveaway_id"),
             array(
-                array("account_id", $account->getDetail("id"))
+                array("account_id", $this->account->getDetail("id"))
             )
         );
 
@@ -44,7 +44,7 @@ class ProductGiveaway
         return false;
     }
 
-    private function create($amount, $duration): bool
+    private function create($productID, $amount, $duration): bool
     {
         global $product_giveaways_table;
         $array = get_sql_query($product_giveaways_table,
@@ -60,7 +60,8 @@ class ProductGiveaway
             $array = get_sql_query($product_giveaways_table,
                 array("product_id"),
                 array(
-                    array("completion_date", "IS NOT", null)
+                    array("completion_date", "IS NOT", null),
+                    $productID !== null ? array("product_id", $productID) : ""
                 ),
                 array(
                     "DESC",
@@ -70,59 +71,63 @@ class ProductGiveaway
             ); // get last successful giveaway
 
             if (!empty($array)) {
-                $nextProductID = null;
-                $validProducts = new WebsiteProduct($this->applicationID, false);
-                $validProducts = $validProducts->getResults();
+                if ($productID === null) {
+                    $nextProductID = null;
+                    $validProducts = $this->account->getProduct()->find(null, false);
 
-                if (!empty($validProducts)) {
-                    $productID = $array[0]->product_id; // get product of last successful giveaway
-                    $queueNext = false;
+                    if ($validProducts->isPositiveOutcome()) {
+                        $validProducts = $validProducts->getObject();
+                        $productID = $array[0]->product_id; // get product of last successful giveaway
+                        $queueNext = false;
 
-                    // Search for next product to give away
-                    foreach ($validProducts as $arrayKey => $product) {
-                        if ($product->price !== null
-                            && $product->show_in_list !== null
-                            && !empty($product->downloads)) {
-                            $loopID = $product->id;
+                        // Search for next product to give away
+                        foreach ($validProducts as $arrayKey => $product) {
+                            if ($product->price !== null
+                                && $product->show_in_list !== null
+                                && !empty($product->downloads)) {
+                                $loopID = $product->id;
 
-                            if ($loopID == $productID) {
-                                $queueNext = true;
-                            } else if ($queueNext) {
-                                $nextProductID = $loopID;
-                                break;
-                            }
-                        } else {
-                            unset($validProducts[$arrayKey]);
-                        }
-                    }
-
-                    // Reset loop if search reached limits
-                    if ($nextProductID == null) {
-                        foreach ($validProducts as $product) {
-                            $loopID = $product->id;
-
-                            if ($loopID != $productID) {
-                                $nextProductID = $loopID;
-                                break;
+                                if ($loopID == $productID) {
+                                    $queueNext = true;
+                                } else if ($queueNext) {
+                                    $nextProductID = $loopID;
+                                    break;
+                                }
+                            } else {
+                                unset($validProducts[$arrayKey]);
                             }
                         }
-                    }
 
-                    if ($nextProductID !== null) {
-                        // Insert to the database
-                        global $product_giveaways_table;
+                        // Reset loop if search reached limits
+                        if ($nextProductID == null) {
+                            foreach ($validProducts as $product) {
+                                $loopID = $product->id;
 
-                        if (sql_insert($product_giveaways_table,
-                            array(
-                                "product_id" => $nextProductID,
-                                "amount" => $amount,
-                                "creation_date" => get_current_date(),
-                                "expiration_date" => get_future_date($duration)
-                            )
-                        )) {
-                            clear_memory(array(self::class), true);
-                            return true;
+                                if ($loopID != $productID) {
+                                    $nextProductID = $loopID;
+                                    break;
+                                }
+                            }
                         }
+                    }
+                } else {
+                    $nextProductID = $productID;
+                }
+
+                if ($nextProductID !== null) {
+                    // Insert to the database
+                    global $product_giveaways_table;
+
+                    if (sql_insert($product_giveaways_table,
+                        array(
+                            "product_id" => $nextProductID,
+                            "amount" => $amount,
+                            "creation_date" => get_current_date(),
+                            "expiration_date" => get_future_date($duration)
+                        )
+                    )) {
+                        clear_memory(array(self::class), true);
+                        return true;
                     }
                 }
             }
@@ -130,7 +135,7 @@ class ProductGiveaway
         return false;
     }
 
-    public function getCurrent($create = false, $amount = 1, $duration = "14 days"): MethodReply
+    public function getCurrent($create = false, $productID = null, $amount = 1, $duration = "14 days"): MethodReply
     {
         global $product_giveaways_table;
         set_sql_cache(null, self::class);
@@ -147,12 +152,12 @@ class ProductGiveaway
         if (!empty($array)) { // Search for existing valid last giveaway
             $object = $array[0];
             $productID = $object->product_id;
-            $foundProduct = new WebsiteProduct($this->applicationID, false, $productID);
+            $foundProduct = $this->account->getProduct()->find($productID, false);
 
-            if (!$foundProduct->found()) {
+            if (!$foundProduct->isPositiveOutcome()) {
                 return new MethodReply(false);
             }
-            $foundProduct = $foundProduct->getFirstResult();
+            $foundProduct = $foundProduct->getObject()[0];
             $object->product = $foundProduct;
 
             if ($create) {
@@ -160,7 +165,7 @@ class ProductGiveaway
 
                 // Separator
                 if ($date > $object->expiration_date) {
-                    $functionality = new WebsiteFunctionality($this->applicationID, WebsiteFunctionality::RUN_PRODUCT_GIVEAWAY);
+                    $functionality = new WebsiteFunctionality($this->account->getDetail("application_id"), WebsiteFunctionality::RUN_PRODUCT_GIVEAWAY);
 
                     if ($functionality->getResult()->isPositiveOutcome()) {
                         global $accounts_table;
@@ -177,7 +182,7 @@ class ProductGiveaway
                             null,
                             1
                         );
-                        $this->create($amount, $duration);
+                        $this->create($productID, $amount, $duration);
 
                         // Search for available accounts for the giveaway
                         $accounts = get_sql_query(
@@ -185,7 +190,7 @@ class ProductGiveaway
                             array("id"),
                             array(
                                 array("deletion_date", null),
-                                array("application_id", $this->applicationID)
+                                array("application_id", $this->account->getDetail("application_id"))
                             )
                         ); // Search for available accounts
                         $size = sizeof($accounts);
@@ -197,17 +202,17 @@ class ProductGiveaway
                 }
             }
             return new MethodReply(true, null, $object);
-        } else if ($create && $this->create($amount, $duration)) {
-            // Create new one if non-existent
-            return $this->getCurrent();
+        } else if ($create && $this->create($productID, $amount, $duration)) {
+            // Create new one if non-existent and set create to 'false' to prevent loops
+            return $this->getCurrent(false, $productID, $amount, $duration);
         } else {
             return new MethodReply(false);
         }
     }
 
-    public function getLast(): MethodReply
+    public function getLast($productID = null): MethodReply
     {
-        $functionality = new WebsiteFunctionality($this->applicationID, WebsiteFunctionality::VIEW_PRODUCT_GIVEAWAY);
+        $functionality = new WebsiteFunctionality($this->account->getDetail("application_id"), WebsiteFunctionality::VIEW_PRODUCT_GIVEAWAY);
 
         if ($functionality->getResult()->isPositiveOutcome()) {
             global $product_giveaways_table;
@@ -215,7 +220,8 @@ class ProductGiveaway
             $giveaways = get_sql_query($product_giveaways_table,
                 array("id", "product_id"),
                 array(
-                    array("completion_date", "IS NOT", null)
+                    array("completion_date", "IS NOT", null),
+                    $productID !== null ? array("product_id", $productID) : ""
                 ),
                 array(
                     "DESC",
@@ -226,9 +232,9 @@ class ProductGiveaway
 
             if (!empty($giveaways)) { // Find the last successful giveaway
                 $giveaway = $giveaways[0];
-                $productWon = new WebsiteProduct($this->applicationID, false, $giveaway->product_id);
+                $productWon = $this->account->getProduct()->find($giveaway->product_id, false);
 
-                if (!$productWon->found()) {
+                if (!$productWon->isPositiveOutcome()) {
                     return new MethodReply(false);
                 }
                 global $giveaway_winners_table;
@@ -243,7 +249,7 @@ class ProductGiveaway
 
                 if (!empty($winners)) {
                     foreach ($winners as $arrayKey => $winner) {
-                        $account = new Account($this->applicationID, $winner->account_id);
+                        $account = new Account($this->account->getDetail("application_id"), $winner->account_id);
 
                         if ($account->exists()
                             && !$account->getModerations()->getReceivedAction(WebsiteModeration::ACCOUNT_BAN)->isPositiveOutcome()
@@ -257,7 +263,7 @@ class ProductGiveaway
                 return new MethodReply(
                     true,
                     null,
-                    array($winners, $productWon->getFirstResult())
+                    array($winners, $productWon->getObject()[0])
                 );
             }
         }
@@ -280,7 +286,7 @@ class ProductGiveaway
                 $winnerPosition = rand(0, $accountsAmount - 1);
 
                 if (isset($accountsArray[$winnerPosition])) { // Check if it exists as it may have been removed
-                    $account = new Account($this->applicationID, $accountsArray[$winnerPosition]->id, null, null, false); // Get object before unsetting it
+                    $account = new Account($this->account->getDetail("application_id"), $accountsArray[$winnerPosition]->id, null, null, false); // Get object before unsetting it
                     unset($accountsArray[$winnerPosition]); // Unset object to pick a different winner in the next potential loop
 
                     // add the product to the winner's account

@@ -112,10 +112,10 @@ class PaymentProcessor
         try {
             $application = new Application($this->applicationID);
             $isIndividual = $account !== null;
-            $products = $application->getProduct(false);
+            $products = $application->getAccount(0)->getProduct()->find(null, false);
 
-            if ($products->found()) {
-                $products = $products->getResults();
+            if ($products->isPositiveOutcome()) {
+                $products = $products->getObject();
                 $productCount = sizeof($products);
                 $date = get_current_date();
                 $transactionLists = array();

@@ -33,9 +33,9 @@ require_once '/var/www/.structure/library/account/api/objects/session/TwoFactorA
 require_once '/var/www/.structure/library/account/api/objects/product/AccountDownloads.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountPurchases.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountReviews.php';
-require_once '/var/www/.structure/library/account/api/objects/product/ProductGiveaway.php';
+require_once '/var/www/.structure/library/account/api/objects/product/AccountGiveaway.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountOffer.php';
-require_once '/var/www/.structure/library/account/api/objects/product/WebsiteProduct.php';
+require_once '/var/www/.structure/library/account/api/objects/product/AccountProduct.php';
 require_once '/var/www/.structure/library/account/api/objects/product/PaymentProcessor.php';
 require_once '/var/www/.structure/library/account/api/objects/product/ProductCoupon.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountAffiliate.php';

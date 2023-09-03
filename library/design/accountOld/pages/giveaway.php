@@ -1,8 +1,8 @@
 <?php
 
-function loadGiveaway()
+function loadGiveaway(Account $account)
 {
-    $productGiveaway = new ProductGiveaway(null);
+    $productGiveaway = $account->getGiveaway();
     $currentGiveaway = $productGiveaway->getCurrent();
 
     if ($currentGiveaway->isPositiveOutcome()) { // Check if current giveaway exists

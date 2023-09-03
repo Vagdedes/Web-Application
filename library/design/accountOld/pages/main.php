@@ -16,12 +16,12 @@ function loadMain(?Account $account, $isLoggedIn, Application $application)
     // Separator
 
     echo "<div class='area' id='darker'>";
-    $validProducts = $application->getProduct(false);
+    $validProducts = $account->getProduct()->find(null, false);
 
-    if ($validProducts->found()) {
+    if ($validProducts->isPositiveOutcome()) {
         echo "<div class='product_list'><ul>";
 
-        foreach ($validProducts->getResults() as $product) {
+        foreach ($validProducts->getObject() as $product) {
             $image = $product->image;
 
             if ($image !== null
@@ -67,7 +67,7 @@ function loadMain(?Account $account, $isLoggedIn, Application $application)
 
     // Separator
 
-    loadGiveaway();
+    loadGiveaway($account);
 }
 
 ?>

@@ -3,15 +3,15 @@ require_once '/var/www/.structure/library/base/form.php';
 require_once '/var/www/.structure/library/base/requirements/account_systems.php';
 require_once '/var/www/.structure/library/design/accountOld/pages/basics.php';
 
-function load_page_html_head($title, Application $application)
+function load_page_html_head(Account $account, $title)
 {
-    $validProducts = $application->getProduct(false);
+    $validProducts = $account->getProduct()->find();
     $metaDescription = "Vagdedes Services Store";
 
-    if ($validProducts->found()) {
+    if ($validProducts->isPositiveOutcome()) {
         $validProductNames = array();
 
-        foreach ($validProducts->getResults() as $validProductObject) {
+        foreach ($validProducts->getObject() as $validProductObject) {
             if ($validProductObject->show_in_list !== null) {
                 $validProductNames[] = strip_tags($validProductObject->name);
             }
@@ -79,7 +79,7 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
 
     if (has_memory_limit(array(get_client_ip_address(), "website"), 60, "1 minute")) {
         $title = "Website Error";
-        load_page_html_head($title, $application);
+        load_page_html_head($application->getAccount(0), $title);
         load_page_intro(null, false, $loadIntro, true);
         load_account_page_message($title, "Please stop refreshing the page so frequently");
     } else {
@@ -89,11 +89,11 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
         $isLoggedIn = $sessionObject->isPositiveOutcome() && $account->exists();
 
         $directory = get_final_directory();
-        load_page_html_head(unstuck_words_from_capital_letters($directory), $application);
+        load_page_html_head($account, unstuck_words_from_capital_letters($directory));
         load_page_intro($account, $isLoggedIn, $loadIntro, $loadNavigation);
 
         if ($isLoggedIn) {
-            $ban = $account->getModerations()->getReceivedAction("ban");
+            $ban = $account->getModerations()->getReceivedAction(WebsiteModeration::ACCOUNT_BAN);
 
             if ($ban->isPositiveOutcome()) {
                 if ($loadIntro || $loadFooter) {

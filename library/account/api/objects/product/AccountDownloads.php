@@ -56,13 +56,12 @@ class AccountDownloads
                 return new MethodReply(false, $functionalityOutcome->getMessage());
             }
         }
-        $product = new WebsiteProduct($this->account->getDetail("application_id"), true, $productID);
-        $productObject = $product->getFirstResult();
+        $product = $this->account->getProduct()->find($productID);
 
-        if ($productObject === null) {
-            return new MethodReply(false, "Product not found.");
+        if (!$product->isPositiveOutcome()) {
+            return new MethodReply(false, $product->getMessage());
         }
-        $fileProperties = $this->findDownloadableFile($productObject->downloads);
+        $fileProperties = $this->findDownloadableFile($product->getObject()[0]->downloads);
 
         if (!$fileProperties->isPositiveOutcome()) {
             return new MethodReply(false, $fileProperties->getMessage());
