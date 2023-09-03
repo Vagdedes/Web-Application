@@ -1,0 +1,89 @@
+body {
+    background-color: #90a4ae;
+	background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/.images/background.png");
+}
+
+::-webkit-input-placeholder { /* Edge */
+  color: #424242;
+}
+
+:-ms-input-placeholder { /* Internet Explorer */
+  color: #424242;
+}
+
+::placeholder {
+  color: #424242;
+}
+
+.navigation ul {
+	background-color: #4caf50;
+	border-color: #795548;
+}
+
+.navigation ul li, .navigation ul li a {
+	color: #313131;
+}
+
+.navigation ul li:hover, .navigation ul li a:hover {
+	color: black;
+}
+
+.area, .area25, .area33, .area50 {
+    background-color: #90a4ae;
+	opacity: 0.9;
+}
+
+.area div, .area25 div, .area33 div, .area50 div {
+	opacity: 1.0;
+}
+
+.area#darker, .area25#darker, .area33#darker, .area50#darker {
+    background-color: #78909c;
+}
+
+.area#darker_scroll, .area25#darker_scroll, .area33#darker_scroll, .area50#darker_scroll {
+    background-color: #78909c;
+}
+
+.area_title, .area25 .area_title, .area33 .area_title, .area50 .area_title {
+	color: #212121;
+}
+
+.area_text, .area25 .area_text, .area33 .area_text, .area50 .area_text {
+	color: #424242;
+}
+
+.drawn_x, .question_mark {
+	color: #424242;
+}
+
+.area_list ul li {
+	background-color: #fbc02d;
+    color: #313131;
+    box-shadow: none;
+}
+
+.area_list_title {
+	color: #212121;
+}
+
+.button, .img_button {
+	box-shadow: none;
+}
+
+input,
+textarea,
+select {
+    background-color: #fbc02d;
+    color: #212121;
+}
+
+input[type=text],
+input[type=password],
+textarea,
+select {
+    border: none;
+}
