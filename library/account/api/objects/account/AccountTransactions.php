@@ -79,7 +79,7 @@ class AccountTransactions
 
     private function process($transaction)
     {
-        $paymentProcessor = new PaymentProcessor();
+        $paymentProcessor = new PaymentProcessor($this->account->getDetail("application_id"));
         $paymentProcessor = $paymentProcessor->getSource($transaction);
 
         if (!empty($paymentProcessor)) {

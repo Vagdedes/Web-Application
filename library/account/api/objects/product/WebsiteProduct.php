@@ -48,7 +48,8 @@ class WebsiteProduct
                    $product_transaction_search_table,
                    $product_updates_table,
                    $product_identification_table,
-                   $product_divisions_table;
+                   $product_divisions_table,
+                   $product_purchases_table;
 
             foreach ($array as $arrayKey => $object) {
                 $productID = $object->id;
@@ -79,7 +80,14 @@ class WebsiteProduct
                     unset($array[$arrayKey]);
                     continue;
                 }
-                $object->registered_buyers = new RegisteredBuyers($productID);
+                $object->registered_buyers = sizeof(get_sql_query(
+                    $product_purchases_table,
+                    array("id"),
+                    array(
+                        array("product_id", $productID),
+                        array("deletion_date", null)
+                    )
+                ));
                 $object->registered_buyers = $object->registered_buyers->get();
                 $object->currency = "EUR";
                 $object->url = $website_url . "/viewProduct/?id=" . $productID;

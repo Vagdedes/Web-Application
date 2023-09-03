@@ -50,4 +50,9 @@ class Application
     {
         return new WebsiteModeration($this->id, $name);
     }
+
+    public function getPaymentProcessor(): PaymentProcessor
+    {
+        return new PaymentProcessor($this->id);
+    }
 }

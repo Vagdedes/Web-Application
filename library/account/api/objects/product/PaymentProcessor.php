@@ -2,6 +2,7 @@
 
 class PaymentProcessor
 {
+    private ?int $applicationID;
     private const
         queue_key = array(
         "queue",
@@ -15,8 +16,9 @@ class PaymentProcessor
         STRIPE = AccountAccounts::STRIPE_EMAIL,
         ALL_TYPES = array(self::PAYPAL, self::STRIPE);
 
-    public function __construct()
+    public function __construct($applicationID)
     {
+        $this->applicationID = $applicationID;
     }
 
     public function getSource($transaction, $returnIncomplete = false): ?array
@@ -108,7 +110,7 @@ class PaymentProcessor
         global $refresh_transactions_function;
 
         try {
-            $application = new Application(null);
+            $application = new Application($this->applicationID);
             $isIndividual = $account !== null;
             $products = $application->getProduct(false);
 
