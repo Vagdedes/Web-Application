@@ -1,6 +1,6 @@
 <?php
 
-function loadChangeName(?Account $account, $isLoggedIn)
+function loadChangeName(Account $account, $isLoggedIn)
 {
     if (!$isLoggedIn) {
         redirect_to_account_page(null, false, null);

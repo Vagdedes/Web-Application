@@ -15,12 +15,8 @@ class AccountAccounts
 
     public function add($type, $credential, $deletePreviousIfSurpassing = 0): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::ADD_ACCOUNT,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::ADD_ACCOUNT, true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -122,7 +118,7 @@ class AccountAccounts
         if (!$this->account->getHistory()->add("add_account", null, $credential)) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $functionality->addUserCooldown("5 seconds");
+        $functionality->addUserCooldown(AccountFunctionality::ADD_ACCOUNT, "2 seconds");
 
         if ($deletePreviousIfSurpassing > 0
             && sizeof($this->getAdded($type, $deletePreviousIfSurpassing + 1)) > $deletePreviousIfSurpassing
@@ -147,12 +143,8 @@ class AccountAccounts
 
     public function remove($type, $idOrCredential = null, $limit = 0): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::REMOVE_ACCOUNT,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::REMOVE_ACCOUNT, true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -189,12 +181,15 @@ class AccountAccounts
             return new MethodReply(false, "Failed to interact with the database.");
         }
         clear_memory(array(self::class), true);
-        $functionality->addUserCooldown("30 seconds");
+        $functionality->addUserCooldown(AccountFunctionality::REMOVE_ACCOUNT, "2 seconds");
         return new MethodReply(true, "Successfully deleted account.");
     }
 
     public function getAdded($id = null, $limit = 0): array
     {
+        if (!$this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_ACCOUNTS)->isPositiveOutcome()) {
+            return array();
+        }
         global $alternate_accounts_table;
         set_sql_cache(null, self::class);
         $array = get_sql_query(

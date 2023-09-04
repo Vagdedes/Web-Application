@@ -50,7 +50,9 @@ class AccountGiveaway
         $array = get_sql_query($product_giveaways_table,
             array("id"),
             array(
-                array("completion_date", null)
+                array("application_id", $this->account->getDetail("application_id")),
+                array("completion_date", null),
+                $productID !== null ? array("product_id", $productID) : ""
             ),
             null,
             1
@@ -60,8 +62,8 @@ class AccountGiveaway
             $array = get_sql_query($product_giveaways_table,
                 array("product_id"),
                 array(
-                    array("completion_date", "IS NOT", null),
-                    $productID !== null ? array("product_id", $productID) : ""
+                    array("application_id", $this->account->getDetail("application_id")),
+                    array("completion_date", "IS NOT", null)
                 ),
                 array(
                     "DESC",
@@ -120,6 +122,7 @@ class AccountGiveaway
 
                     if (sql_insert($product_giveaways_table,
                         array(
+                            "application_id" => $this->account->getDetail("application_id"),
                             "product_id" => $nextProductID,
                             "amount" => $amount,
                             "creation_date" => get_current_date(),
@@ -143,6 +146,7 @@ class AccountGiveaway
             $product_giveaways_table,
             array("id", "product_id", "expiration_date", "amount"),
             array(
+                array("application_id", $this->account->getDetail("application_id")),
                 array("completion_date", null)
             ),
             null,
@@ -165,9 +169,7 @@ class AccountGiveaway
 
                 // Separator
                 if ($date > $object->expiration_date) {
-                    $functionality = new WebsiteFunctionality($this->account->getDetail("application_id"), WebsiteFunctionality::RUN_PRODUCT_GIVEAWAY);
-
-                    if ($functionality->getResult()->isPositiveOutcome()) {
+                    if ($this->account->getFunctionality()->getResult(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
                         global $accounts_table;
                         $objectID = $object->id;
 
@@ -212,14 +214,13 @@ class AccountGiveaway
 
     public function getLast($productID = null): MethodReply
     {
-        $functionality = new WebsiteFunctionality($this->account->getDetail("application_id"), WebsiteFunctionality::VIEW_PRODUCT_GIVEAWAY);
-
-        if ($functionality->getResult()->isPositiveOutcome()) {
+        if ($this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
             global $product_giveaways_table;
             set_sql_cache(null, self::class);
             $giveaways = get_sql_query($product_giveaways_table,
                 array("id", "product_id"),
                 array(
+                    array("application_id", $this->account->getDetail("application_id")),
                     array("completion_date", "IS NOT", null),
                     $productID !== null ? array("product_id", $productID) : ""
                 ),
@@ -252,8 +253,8 @@ class AccountGiveaway
                         $account = new Account($this->account->getDetail("application_id"), $winner->account_id);
 
                         if ($account->exists()
-                            && !$account->getModerations()->getReceivedAction(WebsiteModeration::ACCOUNT_BAN)->isPositiveOutcome()
-                            && !$account->getModerations()->getBlockedFunctionality(WebsiteFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
+                            && !$account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN)->isPositiveOutcome()
+                            && !$account->getModerations()->getBlockedFunctionality(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
                             $winners[$arrayKey] = $account->getDetail("name");
                         } else {
                             unset($winners[$arrayKey]);
@@ -290,8 +291,8 @@ class AccountGiveaway
                     unset($accountsArray[$winnerPosition]); // Unset object to pick a different winner in the next potential loop
 
                     // add the product to the winner's account
-                    if (!$account->getModerations()->getBlockedFunctionality(WebsiteFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()
-                        && !$account->getModerations()->getReceivedAction(WebsiteModeration::ACCOUNT_BAN)->isPositiveOutcome()
+                    if (!$account->getModerations()->getBlockedFunctionality(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()
+                        && !$account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN)->isPositiveOutcome()
                         && $account->getPurchases()->add($productID)->isPositiveOutcome()) {
                         $ordinalNumber = $oneWinner ? null : add_ordinal_number($winnerCounter);
 

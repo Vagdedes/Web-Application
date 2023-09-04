@@ -1,6 +1,6 @@
 <?php
 
-function loadChangePassword(?Account $account, $isLoggedIn, Application $application)
+function loadChangePassword(Account $account, $isLoggedIn, Application $application)
 {
     $token = get_form_get("token");
 

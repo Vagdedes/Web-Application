@@ -11,12 +11,8 @@ class AccountEmail
 
     public function requestVerification($email): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::CHANGE_EMAIL,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_EMAIL, true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -48,19 +44,15 @@ class AccountEmail
         $resultOutcome = $result->isPositiveOutcome();
 
         if ($resultOutcome) {
-            $functionality->addUserCooldown("1 minute");
+            $functionality->addUserCooldown(AccountFunctionality::CHANGE_EMAIL, "1 minute");
         }
         return new MethodReply($resultOutcome, $result->getMessage());
     }
 
     public function completeVerification($token): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::COMPLETE_EMAIL_VERIFICATION,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult();
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_EMAIL_VERIFICATION);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -131,12 +123,7 @@ class AccountEmail
             "account",
             false
         );
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::CHANGE_EMAIL,
-            $this->account
-        );
-        $functionality->addUserCooldown("1 day");
+        $functionality->addUserCooldown(AccountFunctionality::CHANGE_EMAIL, "1 day");
         return new MethodReply(true, "Your email verification has been successfully completed.");
     }
 

@@ -16,19 +16,16 @@ class AccountActions
         if (!$parameter->getOutcome()->isPositiveOutcome()) {
             return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::LOG_IN,
-            $this->account
-        );
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::LOG_IN, true);
 
-        if (!$functionality->getResult(false)->isPositiveOutcome()) {
-            return new MethodReply(false, $functionality->getResult());
+        if (!$functionalityOutcome->isPositiveOutcome()) {
+            return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         if (!is_valid_password($password, $this->account->getDetail("password"))) {
             return new MethodReply(false, "Incorrect account password");
         }
-        $punishment = $this->account->getModerations()->getReceivedAction(WebsiteModeration::ACCOUNT_BAN);
+        $punishment = $this->account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
         if ($punishment->isPositiveOutcome()) {
             return new MethodReply(false, $punishment->getMessage());
@@ -58,25 +55,23 @@ class AccountActions
         if (!$session->isPositiveOutcome()) {
             return new MethodReply(false, $session->getMessage());
         }
+        $functionality->addUserCooldown(AccountFunctionality::LOG_IN, "2 seconds");
         return new MethodReply(true);
     }
 
     public function logOut(): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::LOG_OUT,
-            $this->account
-        );
-        $functionality = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::LOG_OUT, true);
 
-        if (!$functionality->isPositiveOutcome()) {
-            return new MethodReply(false, $functionality->getMessage());
+        if (!$functionalityOutcome->isPositiveOutcome()) {
+            return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         $session = new WebsiteSession($this->account->getDetail("application_id"));
         $session = $session->deleteSession($this->account->getDetail("id"));
 
         if ($session->isPositiveOutcome()) {
+            $functionality->addUserCooldown(AccountFunctionality::LOG_OUT, "2 seconds");
             $session->getObject()->getHistory()->add("log_out");
             return new MethodReply(true, "User logged out successfully.");
         }
@@ -99,12 +94,7 @@ class AccountActions
 
     public function deleteAccount($permanently = false): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::DELETE_ACCOUNT,
-            $this->account
-        );
-        $functionality = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::DELETE_ACCOUNT);
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
@@ -155,12 +145,8 @@ class AccountActions
 
     public function changeName($name): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::CHANGE_NAME,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_NAME, true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -206,7 +192,7 @@ class AccountActions
             return new MethodReply(false, "Failed to interact with the database.");
         }
         $this->account->setDetail("name", $name);
-        $functionality->addUserCooldown("1 day");
+        $functionality->addUserCooldown(AccountFunctionality::CHANGE_NAME, "1 day");
         $this->account->getEmail()->send("nameChanged",
             array(
                 "newName" => $name

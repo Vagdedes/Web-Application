@@ -1,6 +1,6 @@
 <?php
 
-function loadChangeEmail(?Account $account, $isLoggedIn)
+function loadChangeEmail(Account $account, $isLoggedIn)
 {
     if (!$isLoggedIn) {
         $token = get_form_get("token");

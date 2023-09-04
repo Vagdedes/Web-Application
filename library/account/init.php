@@ -43,8 +43,7 @@ require_once '/var/www/.structure/library/account/api/objects/product/AccountAff
 // Management
 require_once '/var/www/.structure/library/account/api/objects/management/AccountModerations.php';
 require_once '/var/www/.structure/library/account/api/objects/management/AccountPermissions.php';
-require_once '/var/www/.structure/library/account/api/objects/management/WebsiteFunctionality.php';
-require_once '/var/www/.structure/library/account/api/objects/management/WebsiteModeration.php';
+require_once '/var/www/.structure/library/account/api/objects/management/AccountFunctionality.php';
 require_once '/var/www/.structure/library/account/api/objects/management/AccountRole.php';
 
 // Credential

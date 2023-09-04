@@ -32,12 +32,8 @@ class AccountDownloads
 
     public function sendFileDownload($productID, $requestedByToken = null): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::DOWNLOAD_PRODUCT,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::DOWNLOAD_PRODUCT,true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -45,12 +41,7 @@ class AccountDownloads
         $hasToken = $requestedByToken !== null;
 
         if ($hasToken) {
-            $functionalityAlternative = new WebsiteFunctionality(
-                $this->account->getDetail("application_id"),
-                WebsiteFunctionality::AUTO_UPDATER,
-                $this->account
-            );
-            $functionalityAlternative = $functionalityAlternative->getResult();
+            $functionalityAlternative = $functionality->getResult(AccountFunctionality::AUTO_UPDATER);
 
             if (!$functionalityAlternative->isPositiveOutcome()) {
                 return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -72,7 +63,7 @@ class AccountDownloads
             return new MethodReply(false, "Verify your email before downloading.");
         }
         global $product_downloads_table;
-        $functionality->addUserCooldown("3 seconds");
+        $functionality->addUserCooldown(AccountFunctionality::DOWNLOAD_PRODUCT, "2 seconds");
         $downloadTokenLength = 8;
         $newToken = strtoupper(random_string($downloadTokenLength));
 
@@ -95,7 +86,7 @@ class AccountDownloads
         if (!file_exists($originalFile)) {
             return new MethodReply(false, "Failed to find original file.");
         }
-        $fileCopy = "/var/www/vagdedes/.temporary/" . $fileProperties->file_name . $newToken . "." . $fileProperties->file_type;
+        $fileCopy = "/var/www/" . get_potential_directory() . "/.temporary/" . $fileProperties->file_name . $newToken . "." . $fileProperties->file_type;
 
         if (!copy($originalFile, $fileCopy)) {
             $errors = error_get_last();

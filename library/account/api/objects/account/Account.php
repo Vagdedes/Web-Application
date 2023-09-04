@@ -32,6 +32,7 @@ class Account
     private AccountOffer $offer;
     private AccountProduct $product;
     private AccountGiveaway $giveaway;
+    private AccountFunctionality $functionality;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -93,7 +94,6 @@ class Account
                 $this->cooldowns = new AccountCooldowns($this);
                 $this->accounts = new AccountAccounts($this);
                 $this->permissions = new AccountPermissions($this);
-                $this->moderations = new AccountModerations($this);
                 $this->password = new AccountPassword($this);
                 $this->objectives = new AccountObjectives($this);
                 $this->identification = new AccountIdentification($this);
@@ -119,6 +119,8 @@ class Account
         $this->offer = new AccountOffer($this);
         $this->product = new AccountProduct($this);
         $this->giveaway = new AccountGiveaway($this);
+        $this->moderations = new AccountModerations($this);
+        $this->functionality = new AccountFunctionality($this);
     }
 
     public function exists(): bool
@@ -295,5 +297,10 @@ class Account
     public function getGiveaway(): AccountGiveaway
     {
         return $this->giveaway;
+    }
+
+    public function getFunctionality(): AccountFunctionality
+    {
+        return $this->functionality;
     }
 }

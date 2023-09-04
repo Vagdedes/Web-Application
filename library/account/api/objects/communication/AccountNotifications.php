@@ -12,13 +12,7 @@ class AccountNotifications
 
     public function add($color, $type, $information, $duration): bool
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::ADD_NOTIFICATION,
-            $this->account
-        );
-
-        if (!$functionality->getResult(false)->isPositiveOutcome()) {
+        if (!$this->account->getFunctionality()->getResult(AccountFunctionality::ADD_NOTIFICATION)->isPositiveOutcome()) {
             return false;
         }
         global $account_notifications_table;
@@ -42,13 +36,7 @@ class AccountNotifications
     public function get($type = null, $limit = 0, $complete = false,
                         $email = false, $phoneMessage = false): array
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::GET_NOTIFICATION,
-            $this->account
-        );
-
-        if (!$functionality->getResult()->isPositiveOutcome()) {
+        if (!$this->account->getFunctionality()->getResult(AccountFunctionality::GET_NOTIFICATION)->isPositiveOutcome()) {
             return array();
         }
         global $account_notifications_table;

@@ -776,7 +776,7 @@ function sendProductFile1($productID, $token = null)
                     $fileType = explode(".", $fileName);
                     $fileType = "." . $fileType[sizeof1($fileType) - 1];
                     $fileRawName = str_replace1($fileType, "", $fileName);
-                    $fileCopy = "/var/www/vagdedes/.temporary/" . $fileRawName . $newToken . $fileType;
+                    $fileCopy = "/var/www/.../.temporary/" . $fileRawName . $newToken . $fileType;
                     $originalFile = "/var/www/.structure/downloadable/"
                         . 1($productObject->early_version !== null && isPatreonSubscriber1($account) ?
                             $fileRawName . "Early" . $fileType :

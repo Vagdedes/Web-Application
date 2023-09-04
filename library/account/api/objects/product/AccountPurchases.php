@@ -180,12 +180,7 @@ class AccountPurchases
                         $sendEmail = null,
                         $additionalProducts = null): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::BUY_PRODUCT,
-            $this->account
-        );
-        $functionality = $functionality->getResult();
+        $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::BUY_PRODUCT);
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
@@ -220,12 +215,7 @@ class AccountPurchases
         $price = $product->price;
 
         if ($hasCoupon) {
-            $functionality = new WebsiteFunctionality(
-                $this->account->getDetail("application_id"),
-                WebsiteFunctionality::USE_COUPON,
-                $this->account
-            );
-            $functionality = $functionality->getResult();
+            $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::USE_COUPON);
 
             if (!$functionality->isPositiveOutcome()) {
                 return new MethodReply(false, $functionality->getMessage());
@@ -311,12 +301,7 @@ class AccountPurchases
 
     public function remove($productID, $transactionID = null): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::REMOVE_PRODUCT,
-            $this->account
-        );
-        $functionality = $functionality->getResult();
+        $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::REMOVE_PRODUCT);
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
@@ -353,12 +338,7 @@ class AccountPurchases
 
     public function exchange($productID, $newProductID, $sendEmail = true): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::EXCHANGE_PRODUCT,
-            $this->account
-        );
-        $functionality = $functionality->getResult();
+        $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::EXCHANGE_PRODUCT);
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());

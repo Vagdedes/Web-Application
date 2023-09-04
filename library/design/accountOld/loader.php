@@ -26,7 +26,7 @@ function load_page_html_head(Account $account, $title)
         <head>
             <title>Vagdedes Services | $title</title>
             <meta name='description' content='$metaDescription'>
-        	<link rel='shortcut icon' type='image/png' href='/var/www/vagdedes/.images/icon.png'>
+        	<link rel='shortcut icon' type='image/png' href='https://" . get_domain() . "/.images/icon.png'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
             <link rel='stylesheet' href='https://vagdedes.com/.css/universal.css?id=$randomNumber>'>
             <script src='https://www.google.com/recaptcha/api.js'></script>
@@ -93,7 +93,7 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
         load_page_intro($account, $isLoggedIn, $loadIntro, $loadNavigation);
 
         if ($isLoggedIn) {
-            $ban = $account->getModerations()->getReceivedAction(WebsiteModeration::ACCOUNT_BAN);
+            $ban = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
             if ($ban->isPositiveOutcome()) {
                 if ($loadIntro || $loadFooter) {
@@ -114,7 +114,7 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                 break;
             case "viewProduct":
                 require_once '/var/www/.structure/library/design/accountOld/pages/viewProduct.php';
-                loadViewProduct($account, $isLoggedIn, $application);
+                loadViewProduct($account, $isLoggedIn);
                 break;
             case "changeEmail":
                 require_once '/var/www/.structure/library/design/accountOld/pages/changeEmail.php';
@@ -166,7 +166,7 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                 break;
             case "addAccount":
                 require_once '/var/www/.structure/library/design/accountOld/pages/addAccount.php';
-                loadAddAccount($account, $isLoggedIn, $application);
+                loadAddAccount($account, $isLoggedIn);
                 break;
             case "downloadFile":
                 $id = get_form_get("id");
@@ -235,7 +235,7 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
             default:
                 require_once '/var/www/.structure/library/design/accountOld/pages/main.php';
                 require_once '/var/www/.structure/library/design/accountOld/pages/giveaway.php';
-                loadMain($account, $isLoggedIn, $application);
+                loadMain($account, $isLoggedIn);
                 break;
         }
     }

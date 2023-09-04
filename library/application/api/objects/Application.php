@@ -1,6 +1,6 @@
 <?php
 
-// Here we add objects that are not related to account-id and are therefore completely standalone
+// Here we add objects that are completely standalone
 
 class Application
 {
@@ -29,16 +29,6 @@ class Application
     public function getWebsiteSession(): WebsiteSession
     {
         return new WebsiteSession($this->id);
-    }
-
-    public function getWebsiteFunctionality($name, $account = null): WebsiteFunctionality
-    {
-        return new WebsiteFunctionality($this->id, $name, $account);
-    }
-
-    public function getWebsiteModeration($name): WebsiteModeration
-    {
-        return new WebsiteModeration($this->id, $name);
     }
 
     public function getPaymentProcessor(): PaymentProcessor

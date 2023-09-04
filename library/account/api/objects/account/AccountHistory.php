@@ -43,12 +43,7 @@ class AccountHistory
 
     public function get($columns = null, $limit = 0): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::VIEW_HISTORY,
-            $this->account
-        );
-        $functionality = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_HISTORY);
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());

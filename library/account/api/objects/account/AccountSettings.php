@@ -36,12 +36,8 @@ class AccountSettings
 
     public function modify($option, $value): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::MODIFY_OPTION,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::MODIFY_OPTION, true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -85,19 +81,15 @@ class AccountSettings
         )) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $functionality->addUserCooldown("3 seconds");
+        $functionality->addUserCooldown(AccountFunctionality::MODIFY_OPTION, "2 seconds");
         clear_memory(array(self::class), true);
         return new MethodReply(true);
     }
 
     public function toggle($option): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::MODIFY_OPTION,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::MODIFY_OPTION,true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -154,7 +146,7 @@ class AccountSettings
                 return new MethodReply(false, "Failed to update user history.");
             }
         }
-        $functionality->addUserCooldown("3 seconds");
+        $functionality->addUserCooldown(AccountFunctionality::MODIFY_OPTION, "2 seconds");
         clear_memory(array(self::class), true);
         return new MethodReply(
             true,

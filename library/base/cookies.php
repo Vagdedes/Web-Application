@@ -18,3 +18,11 @@ function get_cookie($name)
 {
     return $_COOKIE[$name] ?? null;
 }
+
+function set_cookie_to_value_if_not($name, $value, $time): bool
+{
+    if (!cookie_exists($name) || $_COOKIE[$name] !== $value) {
+        return add_cookie($name, $value, $time);
+    }
+    return false;
+}

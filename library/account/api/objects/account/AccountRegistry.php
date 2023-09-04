@@ -7,10 +7,11 @@ class AccountRegistry
 
     public function __construct($applicationID, $email, $password, $name)
     {
-        $functionality = new WebsiteFunctionality($applicationID, WebsiteFunctionality::REGISTER_ACCOUNT);
+        $functionality = new Account($applicationID, 0);
+        $functionality = $functionality->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);
 
-        if (!$functionality->getResult()->isPositiveOutcome()) {
-            $this->outcome = new MethodReply(false, $functionality->getResult());
+        if (!$functionality->isPositiveOutcome()) {
+            $this->outcome = new MethodReply(false, $functionality->getMessage());
             return;
         }
         $parameter = new ParameterVerification($email, ParameterVerification::TYPE_EMAIL, 5, 384);

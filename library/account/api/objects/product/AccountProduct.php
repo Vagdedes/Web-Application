@@ -16,12 +16,8 @@ class AccountProduct
         $hasProduct = !$hasAccount && $productID !== null;
 
         if ($hasProduct) {
-            $functionality = new WebsiteFunctionality(
-                $applicationID,
-                WebsiteFunctionality::VIEW_PRODUCT,
-                $this->account
-            );
-            $functionalityOutcome = $functionality->getResult();
+            $functionality = $this->account->getFunctionality();
+            $functionalityOutcome = $functionality->getResult(AccountFunctionality::VIEW_PRODUCT);
 
             if (!$functionalityOutcome->isPositiveOutcome()) {
                 return new MethodReply(false, $functionalityOutcome->getMessage());

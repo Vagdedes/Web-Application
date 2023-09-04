@@ -1,6 +1,6 @@
 <?php
 
-function loadAddAccount(?Account $account, $isLoggedIn, Application $application)
+function loadAddAccount(Account $account, $isLoggedIn)
 {
     if (!$isLoggedIn) {
         redirect_to_account_page(null, false, "You must be logged in to add an account.");
@@ -12,7 +12,7 @@ function loadAddAccount(?Account $account, $isLoggedIn, Application $application
             array(
                 array("manual", "IS NOT", null),
                 array("deletion_date", null),
-                array("application_id", $application->getID())
+                array("application_id", $account->getDetail("application_id"))
             )
         );
 

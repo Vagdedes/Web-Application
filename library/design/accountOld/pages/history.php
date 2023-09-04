@@ -1,6 +1,6 @@
 <?php
 
-function loadHistory(?Account $account, $isLoggedIn)
+function loadHistory(Account $account, $isLoggedIn)
 {
     if (!$isLoggedIn) {
         redirect_to_account_page(null, false, null);

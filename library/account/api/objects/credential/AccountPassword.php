@@ -13,12 +13,8 @@ class AccountPassword
 
     public function requestChange(): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::CHANGE_PASSWORD,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult();
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_PASSWORD, true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -56,7 +52,7 @@ class AccountPassword
         if (!$this->account->getHistory()->add("request_change_password")) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $functionality->addUserCooldown("15 minutes");
+        $functionality->addUserCooldown(AccountFunctionality::CHANGE_PASSWORD, "1 minute");
         $this->account->getEmail()->send("changePassword",
             array(
                 "token" => $token,
@@ -67,12 +63,8 @@ class AccountPassword
 
     public function completeChange($token, $password): MethodReply
     {
-        $functionality = new WebsiteFunctionality(
-            $this->account->getDetail("application_id"),
-            WebsiteFunctionality::CHANGE_PASSWORD,
-            $this->account
-        );
-        $functionalityOutcome = $functionality->getResult(true);
+        $functionality = $this->account->getFunctionality();
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_CHANGE_PASSWORD, true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -127,6 +119,7 @@ class AccountPassword
         if (!$this->account->getHistory()->add("complete_change_password")) {
             return new MethodReply(false, "Failed to update user history.");
         }
+        $functionality->addUserCooldown(AccountFunctionality::CHANGE_PASSWORD, "1 hour");
         $this->account->getEmail()->send("passwordChanged");
         return new MethodReply(true, "Successfully changed your password.");
     }

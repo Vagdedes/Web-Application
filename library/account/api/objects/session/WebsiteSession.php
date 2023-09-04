@@ -5,6 +5,7 @@ class WebsiteSession
     private ?int $applicationID;
 
     public const session_key_name = "vagdedes_account_session",
+        session_notification_key = "vagdedes_account_notification",
         session_token_length = 128,
         session_account_refresh_expiration = "2 days",
         session_account_total_expiration = "15 days",
@@ -98,10 +99,10 @@ class WebsiteSession
                         null,
                         1
                     ); // Extend expiration date of session
-                    $punishment = $account->getModerations()->getReceivedAction(WebsiteModeration::ACCOUNT_BAN);
+                    $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
                     if ($punishment->isPositiveOutcome()) {
-                        return new MethodReply(false, $punishment->getMessage());
+                        return new MethodReply(true, $punishment->getMessage(), $account);
                     } else if ($object->ip_address == get_client_ip_address()
                         || $account->getPermissions()->isAdministrator()) { // Check if IP address is the same or the user is an administrator
                         return new MethodReply(true, null, $account);
@@ -160,7 +161,7 @@ class WebsiteSession
             );
 
             if (empty($array)) { // Check if session exists
-                $punishment = $account->getModerations()->getReceivedAction(WebsiteModeration::ACCOUNT_BAN);
+                $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
                 if ($punishment->isPositiveOutcome()) {
                     return new MethodReply(false, $punishment->getMessage());

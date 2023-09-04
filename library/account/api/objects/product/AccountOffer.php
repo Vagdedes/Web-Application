@@ -16,15 +16,10 @@ class AccountOffer
         $hasOffer = !$hasAccount && $offerID !== null;
 
         if ($hasOffer) {
-            $functionality = new WebsiteFunctionality(
-                $applicationID,
-                WebsiteFunctionality::VIEW_OFFER,
-                $this->account
-            );
-            $functionalityOutcome = $functionality->getResult();
+            $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_OFFER);
 
-            if (!$functionalityOutcome->isPositiveOutcome()) {
-                return new MethodReply(false, $functionalityOutcome->getMessage());
+            if (!$functionality->isPositiveOutcome()) {
+                return new MethodReply(false, $functionality->getMessage());
             }
         }
         $validProducts = $this->account->getProduct()->find();

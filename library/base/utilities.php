@@ -19,6 +19,12 @@ function get_server_identifier(): int
 
 // File
 
+function get_potential_directory(): string
+{
+    $directory = explode(".", get_domain());
+    return $directory[sizeof($directory) - 2];
+}
+
 function get_final_directory()
 {
     $array = explode("/", getcwd());
@@ -133,6 +139,35 @@ function send_file_download($file, $exit = true)
     ob_clean();
     flush();
     readfile($file);
+
+    if ($exit) {
+        exit();
+    }
+}
+
+function copy_and_send_file_download($file, $exit = true)
+{
+    if (json_decode($file)) {
+        $fileCopy = "/var/www/" . get_potential_directory() . "/.temporary/data.json";
+
+        if (@file_put_contents($fileCopy, $file) === false) {
+            return "Failed to write to file.";
+        }
+    } else {
+        $fileCopy = "/var/www/" . get_potential_directory() . "/.temporary/" . $file;
+
+        if (!copy($file, $fileCopy)) {
+            $errors = error_get_last();
+            return isset($errors["message"]) ?
+                "Failed to prepare file copy: " . $errors["message"] :
+                "Failed to prepare file copy.";
+        }
+    }
+    if (!file_exists($fileCopy)) {
+        return "Failed to find copied file.";
+    }
+    send_file_download($fileCopy, false);
+    unlink($fileCopy);
 
     if ($exit) {
         exit();
