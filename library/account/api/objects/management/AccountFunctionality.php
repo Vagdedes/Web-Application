@@ -93,8 +93,8 @@ class AccountFunctionality
         if (!empty($query)) {
             $id = $query[0]->id;
 
-            if ($this->account !== null && $this->account->exists()) {
-                if ($this->account->getModerations()->getBlockedFunctionality($id)->isPositiveOutcome()) {
+            if ($this->account->exists()) {
+                if ($this->getReceivedAction($id)->isPositiveOutcome()) {
                     return new MethodReply(
                         false,
                         "You are blocked from using this functionality.",
@@ -124,7 +124,7 @@ class AccountFunctionality
 
     public function addUserCooldown($name, $duration): MethodReply
     {
-        if ($this->account !== null && $this->account->exists()) {
+        if ($this->account->exists()) {
             $this->account->getCooldowns()->add($name, $duration);
             return new MethodReply(true);
         } else {

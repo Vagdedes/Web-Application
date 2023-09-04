@@ -30,7 +30,7 @@ class AccountDownloads
             new MethodReply(false, "No download available for you currently.");
     }
 
-    public function sendFileDownload($productID, $requestedByToken = null): MethodReply
+    public function sendFileDownload($productID, $requestedByToken = null, $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::DOWNLOAD_PRODUCT,true);
@@ -63,7 +63,10 @@ class AccountDownloads
             return new MethodReply(false, "Verify your email before downloading.");
         }
         global $product_downloads_table;
-        $functionality->addUserCooldown(AccountFunctionality::DOWNLOAD_PRODUCT, "2 seconds");
+
+        if ($cooldown !== null) {
+            $functionality->addUserCooldown(AccountFunctionality::DOWNLOAD_PRODUCT, $cooldown);
+        }
         $downloadTokenLength = 8;
         $newToken = strtoupper(random_string($downloadTokenLength));
 

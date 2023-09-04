@@ -268,9 +268,9 @@ class PaymentProcessor
                                                 );
                                             }
                                         } else {
-                                            global $alternate_accounts_table;
+                                            global $added_accounts_table;
                                             $account = get_sql_query(
-                                                $alternate_accounts_table,
+                                                $added_accounts_table,
                                                 array("account_id"),
                                                 array(
                                                     array("accepted_account_id", $transactionType),
@@ -339,11 +339,11 @@ class PaymentProcessor
                             );
 
                             if (!empty($ownerships)) {
-                                global $alternate_accounts_table;
+                                global $added_accounts_table;
 
                                 foreach ($ownerships as $ownership) {
                                     $query = get_sql_query(
-                                        $alternate_accounts_table,
+                                        $added_accounts_table,
                                         array("account_id"),
                                         array(
                                             array("credential", $ownership->user),

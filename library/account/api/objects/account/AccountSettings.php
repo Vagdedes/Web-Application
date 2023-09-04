@@ -34,7 +34,7 @@ class AccountSettings
         return $option !== null && $option !== false;
     }
 
-    public function modify($option, $value): MethodReply
+    public function modify($option, $value, $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::MODIFY_OPTION, true);
@@ -81,15 +81,17 @@ class AccountSettings
         )) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $functionality->addUserCooldown(AccountFunctionality::MODIFY_OPTION, "2 seconds");
+        if ($cooldown !== null) {
+            $functionality->addUserCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
+        }
         clear_memory(array(self::class), true);
         return new MethodReply(true);
     }
 
-    public function toggle($option): MethodReply
+    public function toggle($option, $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
-        $functionalityOutcome = $functionality->getResult(AccountFunctionality::MODIFY_OPTION,true);
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::MODIFY_OPTION, true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -146,7 +148,9 @@ class AccountSettings
                 return new MethodReply(false, "Failed to update user history.");
             }
         }
-        $functionality->addUserCooldown(AccountFunctionality::MODIFY_OPTION, "2 seconds");
+        if ($cooldown !== null) {
+            $functionality->addUserCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
+        }
         clear_memory(array(self::class), true);
         return new MethodReply(
             true,

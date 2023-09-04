@@ -19,7 +19,7 @@ class AccountHistory
                 "action_id" => $action,
                 "ip_address" => get_client_ip_address(),
                 "user_agent" => get_user_agent(),
-                "date" => get_current_date(),
+                "creation_date" => get_current_date(),
                 "old_data" => $oldData,
                 "new_data" => $newData
             )

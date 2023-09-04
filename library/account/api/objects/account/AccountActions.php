@@ -4,6 +4,8 @@ class AccountActions
 {
     private Account $account;
 
+    private const log_in_out_cooldown = "3 seconds";
+
     public function __construct($account)
     {
         $this->account = $account;
@@ -55,7 +57,7 @@ class AccountActions
         if (!$session->isPositiveOutcome()) {
             return new MethodReply(false, $session->getMessage());
         }
-        $functionality->addUserCooldown(AccountFunctionality::LOG_IN, "2 seconds");
+        $functionality->addUserCooldown(AccountFunctionality::LOG_IN, self::log_in_out_cooldown);
         return new MethodReply(true);
     }
 
@@ -71,7 +73,7 @@ class AccountActions
         $session = $session->deleteSession($this->account->getDetail("id"));
 
         if ($session->isPositiveOutcome()) {
-            $functionality->addUserCooldown(AccountFunctionality::LOG_OUT, "2 seconds");
+            $functionality->addUserCooldown(AccountFunctionality::LOG_OUT, self::log_in_out_cooldown);
             $session->getObject()->getHistory()->add("log_out");
             return new MethodReply(true, "User logged out successfully.");
         }
@@ -143,7 +145,7 @@ class AccountActions
         }
     }
 
-    public function changeName($name): MethodReply
+    public function changeName($name, $cooldown = "1 day"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_NAME, true);
@@ -192,7 +194,10 @@ class AccountActions
             return new MethodReply(false, "Failed to interact with the database.");
         }
         $this->account->setDetail("name", $name);
-        $functionality->addUserCooldown(AccountFunctionality::CHANGE_NAME, "1 day");
+
+        if ($cooldown !== null) {
+            $functionality->addUserCooldown(AccountFunctionality::CHANGE_NAME, $cooldown);
+        }
         $this->account->getEmail()->send("nameChanged",
             array(
                 "newName" => $name

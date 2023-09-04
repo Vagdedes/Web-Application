@@ -11,7 +11,7 @@ class AccountPassword
         $this->account = $account;
     }
 
-    public function requestChange(): MethodReply
+    public function requestChange($cooldown = "1 minute"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_PASSWORD, true);
@@ -52,7 +52,9 @@ class AccountPassword
         if (!$this->account->getHistory()->add("request_change_password")) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $functionality->addUserCooldown(AccountFunctionality::CHANGE_PASSWORD, "1 minute");
+        if ($cooldown !== null) {
+            $functionality->addUserCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
+        }
         $this->account->getEmail()->send("changePassword",
             array(
                 "token" => $token,
@@ -61,10 +63,10 @@ class AccountPassword
         return new MethodReply(true, "An email has been sent to you to change your password.");
     }
 
-    public function completeChange($token, $password): MethodReply
+    public function completeChange($token, $password, $cooldown = "1 hour"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
-        $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_CHANGE_PASSWORD, true);
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_CHANGE_PASSWORD);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -119,7 +121,9 @@ class AccountPassword
         if (!$this->account->getHistory()->add("complete_change_password")) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $functionality->addUserCooldown(AccountFunctionality::CHANGE_PASSWORD, "1 hour");
+        if ($cooldown !== null) {
+            $functionality->addUserCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
+        }
         $this->account->getEmail()->send("passwordChanged");
         return new MethodReply(true, "Successfully changed your password.");
     }

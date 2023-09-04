@@ -254,7 +254,7 @@ class AccountGiveaway
 
                         if ($account->exists()
                             && !$account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN)->isPositiveOutcome()
-                            && !$account->getModerations()->getBlockedFunctionality(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
+                            && !$account->getFunctionality()->getReceivedAction(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
                             $winners[$arrayKey] = $account->getDetail("name");
                         } else {
                             unset($winners[$arrayKey]);
@@ -291,7 +291,7 @@ class AccountGiveaway
                     unset($accountsArray[$winnerPosition]); // Unset object to pick a different winner in the next potential loop
 
                     // add the product to the winner's account
-                    if (!$account->getModerations()->getBlockedFunctionality(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()
+                    if (!$account->getFunctionality()->getReceivedAction(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()
                         && !$account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN)->isPositiveOutcome()
                         && $account->getPurchases()->add($productID)->isPositiveOutcome()) {
                         $ordinalNumber = $oneWinner ? null : add_ordinal_number($winnerCounter);

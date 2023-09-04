@@ -9,7 +9,7 @@ class AccountEmail
         $this->account = $account;
     }
 
-    public function requestVerification($email): MethodReply
+    public function requestVerification($email, $cooldown = "1 minute"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_EMAIL, true);
@@ -44,12 +44,14 @@ class AccountEmail
         $resultOutcome = $result->isPositiveOutcome();
 
         if ($resultOutcome) {
-            $functionality->addUserCooldown(AccountFunctionality::CHANGE_EMAIL, "1 minute");
+            if ($cooldown !== null) {
+                $functionality->addUserCooldown(AccountFunctionality::CHANGE_EMAIL, $cooldown);
+            }
         }
         return new MethodReply($resultOutcome, $result->getMessage());
     }
 
-    public function completeVerification($token): MethodReply
+    public function completeVerification($token, $cooldown = "1 day"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_EMAIL_VERIFICATION);
@@ -123,7 +125,9 @@ class AccountEmail
             "account",
             false
         );
-        $functionality->addUserCooldown(AccountFunctionality::CHANGE_EMAIL, "1 day");
+        if ($cooldown !== null) {
+            $functionality->addUserCooldown(AccountFunctionality::CHANGE_EMAIL, $cooldown);
+        }
         return new MethodReply(true, "Your email verification has been successfully completed.");
     }
 

@@ -208,10 +208,11 @@ class AccountProduct
                             $product_identification_table,
                             array(
                                 "accepted_account_id",
-                                "accepted_platform_product_id"
+                                "accepted_account_product_id"
                             ),
                             array(
                                 array("product_id", $productID),
+                                array("deletion_date", null)
                             )
                         );
 
@@ -219,7 +220,7 @@ class AccountProduct
                             $identifications = array();
 
                             foreach ($object->identification as $identification) {
-                                $identifications[$identification->accepted_account_id] = $identification->accepted_platform_product_id;
+                                $identifications[$identification->accepted_account_id] = $identification->accepted_account_product_id;
                             }
                             $object->identification = $identifications;
                         }

@@ -13,7 +13,7 @@ class AccountAccounts
         $this->account = $account;
     }
 
-    public function add($type, $credential, $deletePreviousIfSurpassing = 0): MethodReply
+    public function add($type, $credential, $deletePreviousIfSurpassing = 0, $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::ADD_ACCOUNT, true);
@@ -33,7 +33,7 @@ class AccountAccounts
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false, "This account type does not exist.");
         }
-        global $alternate_accounts_table;
+        global $added_accounts_table;
         $acceptedAccount = $acceptedAccount->getObject();
 
         if (!$isNumeric) {
@@ -82,7 +82,7 @@ class AccountAccounts
         );
         $accountID = $this->account->getDetail("id");
         $query = get_sql_query(
-            $alternate_accounts_table,
+            $added_accounts_table,
             array("account_id"),
             array(
                 array("credential", $credential),
@@ -104,7 +104,7 @@ class AccountAccounts
         $date = get_current_date();
 
         if (!sql_insert(
-            $alternate_accounts_table,
+            $added_accounts_table,
             array(
                 "account_id" => $accountID,
                 "accepted_account_id" => $type,
@@ -118,12 +118,14 @@ class AccountAccounts
         if (!$this->account->getHistory()->add("add_account", null, $credential)) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $functionality->addUserCooldown(AccountFunctionality::ADD_ACCOUNT, "2 seconds");
+        if ($cooldown !== null) {
+            $functionality->addUserCooldown(AccountFunctionality::ADD_ACCOUNT, $cooldown);
+        }
 
         if ($deletePreviousIfSurpassing > 0
             && sizeof($this->getAdded($type, $deletePreviousIfSurpassing + 1)) > $deletePreviousIfSurpassing
             && !set_sql_query(
-                $alternate_accounts_table,
+                $added_accounts_table,
                 array("deletion_date" => $date),
                 array(
                     array("account_id", $accountID),
@@ -141,7 +143,7 @@ class AccountAccounts
         return new MethodReply(true, "Successfully stored account.");
     }
 
-    public function remove($type, $idOrCredential = null, $limit = 0): MethodReply
+    public function remove($type, $idOrCredential = null, $limit = 0, $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::REMOVE_ACCOUNT, true);
@@ -155,7 +157,7 @@ class AccountAccounts
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false, "This account type does not exist.");
         }
-        global $alternate_accounts_table;
+        global $added_accounts_table;
 
         if (!$isNumeric) {
             $type = $acceptedAccount->getObject()->id;
@@ -164,7 +166,7 @@ class AccountAccounts
         $isCredential = $hasID && !is_numeric($idOrCredential);
 
         if (!set_sql_query(
-            $alternate_accounts_table,
+            $added_accounts_table,
             array("deletion_date" => get_current_date()),
             array(
                 $hasID ? array(($isCredential ? "credential" : "id"), $idOrCredential) : "",
@@ -181,7 +183,10 @@ class AccountAccounts
             return new MethodReply(false, "Failed to interact with the database.");
         }
         clear_memory(array(self::class), true);
-        $functionality->addUserCooldown(AccountFunctionality::REMOVE_ACCOUNT, "2 seconds");
+
+        if ($cooldown !== null) {
+            $functionality->addUserCooldown(AccountFunctionality::REMOVE_ACCOUNT, $cooldown);
+        }
         return new MethodReply(true, "Successfully deleted account.");
     }
 
@@ -190,10 +195,10 @@ class AccountAccounts
         if (!$this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_ACCOUNTS)->isPositiveOutcome()) {
             return array();
         }
-        global $alternate_accounts_table;
+        global $added_accounts_table;
         set_sql_cache(null, self::class);
         $array = get_sql_query(
-            $alternate_accounts_table,
+            $added_accounts_table,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -231,10 +236,10 @@ class AccountAccounts
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false);
         }
-        global $alternate_accounts_table;
+        global $added_accounts_table;
         set_sql_cache(null, self::class);
         $array = get_sql_query(
-            $alternate_accounts_table,
+            $added_accounts_table,
             array("credential"),
             array(
                 array("account_id", $this->account->getDetail("id")),

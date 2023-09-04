@@ -111,12 +111,12 @@ function addAccount1($acceptedAccount, $credential, $account = null, $deletePrev
                     : "Someone else has already added this account";
             }
             $credential = reverse_extra_sql_encode1($credential);
-            global $alternate_accounts_table;
+            global $added_accounts_table;
             $date = date("Y-m-d H:i:s");
 
             if (sql_insert_old(array("account_id", "accepted_account_id", "credential", "creation_date"),
                 array1($accountID, $acceptedAccountID, $credential, $date),
-                $alternate_accounts_table)) {
+                $added_accounts_table)) {
                 addHistory1($accountID, "add_account", null, $credential);
                 addCooldown1($accountID, $key, get_future_date("1 day"));
                 $platforms = getPlatforms1($accountID, false);
@@ -142,7 +142,7 @@ function addAccount1($acceptedAccount, $credential, $account = null, $deletePrev
                     $amount = sizeof(getAlternateAccounts1($account, $acceptedAccountID, $limit + 1));
 
                     if 1($amount > $limit) {
-                        sql_query("UPDATE " . $alternate_accounts_table
+                        sql_query("UPDATE " . $added_accounts_table
                             . " SET deletion_date = '$date'"
                             . " WHERE account_id = '$accountID' AND accepted_account_id = '$acceptedAccountID' AND deletion_date IS NULL"
                             . " ORDER BY id ASC LIMIT " . 1($amount - $limit) . ";");

@@ -6,10 +6,7 @@ $account_history_table = "account.history";
 $account_sessions_table = "account.sessions";
 $email_verifications_table = "account.emailVerifications";
 $account_cooldowns_table = "account.cooldowns";
-$alternate_accounts_table = "account.alternateAccounts";
 $instant_logins_table = "account.instantLogins";
-$account_permissions_table = "account.permissions";
-$account_roles_table = "account.roles";
 $account_identification_table = "account.identification";
 $account_notifications_table = "account.notifications";
 $account_settings_table = "account.settings";
@@ -21,6 +18,8 @@ $functionalities_table = "management.functionalities";
 $moderations_table = "management.moderations";
 $executed_moderations_table = "management.executedModerations";
 $blocked_functionalities_table = "management.blockedFunctionalities";
+$account_permissions_table = "management.accountPermissions";
+$account_roles_table = "management.accountRoles";
 
 // Product
 $products_table = "product.products";
@@ -61,6 +60,7 @@ $cooperation_choices_table = "cooperation.choices";
 $cooperation_selections_table = "cooperation.selections";
 
 // Correlation
+$added_accounts_table = "correlation.addedAccounts";
 $accepted_accounts_table = "correlation.accounts";
 $correlation_instants_table = "correlation.instant";
 $correlation_requests_table = "correlation.requests";
@@ -81,6 +81,10 @@ $team_teams_table = "team.teams";
 $verification_instant_table = "verification.instant";
 $verification_password_table = "verification.password";
 $verification_types_table = "verification.types";
+
+// Translation
+$translation_languages_table = "translation.languages";
+$translation_text_table = "translation.text";
 
 // E.T.C
 $website_url = "https://vagdedes.com/account";
