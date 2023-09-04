@@ -5,7 +5,6 @@ $change_password_table = "account.changePassword";
 $account_history_table = "account.history";
 $account_sessions_table = "account.sessions";
 $email_verifications_table = "account.emailVerifications";
-$account_cooldowns_table = "account.cooldowns";
 $instant_logins_table = "account.instantLogins";
 $account_identification_table = "account.identification";
 $account_notifications_table = "account.notifications";
@@ -20,6 +19,7 @@ $executed_moderations_table = "management.executedModerations";
 $blocked_functionalities_table = "management.blockedFunctionalities";
 $account_permissions_table = "management.accountPermissions";
 $account_roles_table = "management.accountRoles";
+$account_cooldowns_table = "management.cooldowns";
 
 // Product
 $products_table = "product.products";
@@ -87,4 +87,4 @@ $translation_languages_table = "translation.languages";
 $translation_text_table = "translation.text";
 
 // E.T.C
-$website_url = "https://vagdedes.com/account";
+$website_url = "https://" . get_domain() . "/account";
