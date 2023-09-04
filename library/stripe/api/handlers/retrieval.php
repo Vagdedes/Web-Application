@@ -33,7 +33,7 @@ function get_stripe_transaction($transactionID)
 {
     global $stripe_successful_transactions_table;
     $query = sql_query("SELECT details FROM $stripe_successful_transactions_table WHERE transaction_id = '$transactionID' LIMIT 1;");
-    return $query != null && $query->num_rows > 0 ? json_decode($query->fetch_assoc()[0]) : null;
+    return $query != null && $query->num_rows > 0 ? json_decode($query->fetch_assoc()["details"]) : null;
 }
 
 function get_failed_stripe_transactions($findFromArray = null, $limit = 0, $date = null): array

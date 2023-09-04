@@ -21,8 +21,10 @@ function get_cookie($name)
 
 function set_cookie_to_value_if_not($name, $value, $time): bool
 {
-    if (!cookie_exists($name) || $_COOKIE[$name] !== $value) {
+    if (!cookie_exists($name) || $_COOKIE[$name] != $value) {
         return add_cookie($name, $value, $time);
+    } else {
+        add_cookie($name, $value, $time);
     }
     return false;
 }

@@ -40,6 +40,17 @@ function load_page_intro(?Account $account, $isLoggedIn, $loadIntro, $loadNaviga
         ? $account->getNotifications()->get(null, 1, true)
         : get_form_get("message");
 
+    if (empty($notification)) {
+        $notification = "We use the necessary cookies to offer you access to our system.";
+
+        if (!set_cookie_to_value_if_not(
+            string_to_integer($notification),
+            true,
+            WebsiteSession::session_cookie_expiration
+        )) {
+            $notification = null;
+        }
+    }
     if (!empty($notification)) {
         if (is_object($notification[0])) {
             $notification = $notification[0]->information;

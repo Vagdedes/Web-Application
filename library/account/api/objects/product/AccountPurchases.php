@@ -211,7 +211,7 @@ class AccountPurchases
             return new MethodReply(false, "This transaction has already been processed for this product.");
         }
         $hasCoupon = $coupon !== null;
-        $product = $product[0];
+        $product = $product->getObject()[0];
         $price = $product->price;
 
         if ($hasCoupon) {
