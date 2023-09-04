@@ -76,7 +76,10 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
             $numericPLan ? array("id", $planID) : "",
             $numericPLan ? "" : array("name", $planID),
             array("deletion_date", null),
-            array("launch_date", "IS NOT", null)
+            null,
+            array("expiration_date", "IS", null, 0),
+            array("expiration_date", ">", $currentDate),
+            null
         ),
         null,
         1
@@ -257,41 +260,46 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
     // Load blacklisted emails
     global $email_blacklist_table, $email_failed_executions_table;
     $query = get_sql_query($email_blacklist_table,
-        array("email_address", "ignore_case", "contains"),
+        array("email_address", "ignore_case", "identification_method"),
         array(
             array("deletion_date", null)
         )
     );
-    $blacklisted = array();
-    $hasBlacklisted = false;
-
-    if (!empty($query)) {
-        $hasBlacklisted = true;
-
-        foreach ($query as $row) {
-            $credential = $row->email_address;
-            $blacklisted[$row->ignore_case !== null ? strtolower($credential) : $credential] = $row;
-        }
-    }
+    $hasBlacklisted = !empty($query);
 
     // Send emails
     foreach ($total as $credential) {
         if ($hasBlacklisted) {
-            $execute = true;
+            foreach ($query as $properties) {
+                $credentialCopy = $credential;
 
-            foreach ($blacklisted as $credentialChild => $properties) {
-                $credentialCopy = $properties->ignore_case !== null ? strtolower($credentialChild) : $credentialChild;
-
-                if ($properties->contains !== null ?
-                    (strpos($credentialCopy, $credential) !== false) :
-                    ($credential === $credentialCopy)) {
-                    $execute = false;
-                    break;
+                if ($properties->ignore_case) {
+                    $credential = strtolower($credential);
                 }
-            }
-
-            if (!$execute) {
-                continue;
+                switch (trim($properties->identification_method)) {
+                    case "startsWith":
+                        if (starts_with($credentialCopy, $properties->email_address)) {
+                            continue 3;
+                        }
+                        break;
+                    case "endsWith":
+                        if (ends_with($credentialCopy, $properties->email_address)) {
+                            continue 3;
+                        }
+                        break;
+                    case "equals":
+                        if ($credentialCopy == $properties->email_address) {
+                            continue 3;
+                        }
+                        break;
+                    case "contains":
+                        if (strpos($credentialCopy, $properties->email_address) !== false) {
+                            continue 3;
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         $customContents = $contents;

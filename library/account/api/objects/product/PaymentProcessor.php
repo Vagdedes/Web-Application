@@ -189,7 +189,7 @@ class PaymentProcessor
                                         $actualTransactionValue = $actualTransactionValue[1];
                                         $expectedTransactionValue = $transactionSearchProperties->transaction_value;
                                     }
-                                    switch ($transactionSearchProperties->identification_method) {
+                                    switch (trim($transactionSearchProperties->identification_method)) {
                                         case "startsWith":
                                             if (!starts_with($actualTransactionValue, $expectedTransactionValue)) {
                                                 $skip = true;

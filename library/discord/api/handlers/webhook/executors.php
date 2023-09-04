@@ -74,7 +74,10 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
             $numericPLan ? array("id", $planID) : "",
             $numericPLan ? "" : array("name", $planID),
             array("deletion_date", null),
-            array("launch_date", "IS NOT", null)
+            null,
+            array("expiration_date", "IS", null, 0),
+            array("expiration_date", ">", $currentDate),
+            null
         ),
         null,
         1
@@ -315,39 +318,43 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
     // Load blacklisted webhook URLs
     global $discord_webhook_blacklist_table, $discord_webhook_failed_executions_table;
     $query = get_sql_query($discord_webhook_blacklist_table,
-        array("webhook_url", "contains"),
+        array("webhook_url", "identification_method"),
         array(
             array("deletion_date", null)
         )
     );
-    $blacklisted = array();
-    $hasBlacklisted = false;
-
-    if (!empty($query)) {
-        $hasBlacklisted = true;
-
-        foreach ($query as $row) {
-            $credential = $row->webhook_url;
-            $blacklisted[$credential] = $row;
-        }
-    }
+    $hasBlacklisted = !empty($query);
 
     // Send to webhook URLs
     foreach ($total as $credential) {
+        $credential = strtolower($credential);
+
         if ($hasBlacklisted) {
-            $execute = true;
-
-            foreach ($blacklisted as $credentialChild => $properties) {
-                if ($properties->contains !== null ?
-                    (strpos($credentialChild, $credential) !== false) :
-                    ($credential === $credentialChild)) {
-                    $execute = false;
-                    break;
+            foreach ($query as $properties) {
+                switch (trim($properties->identification_method)) {
+                    case "startsWith":
+                        if (starts_with($credential, $properties->webhook_url)) {
+                            continue 3;
+                        }
+                        break;
+                    case "endsWith":
+                        if (ends_with($credential, $properties->webhook_url)) {
+                            continue 3;
+                        }
+                        break;
+                    case "equals":
+                        if ($credential == $properties->webhook_url) {
+                            continue 3;
+                        }
+                        break;
+                    case "contains":
+                        if (strpos($credential, $properties->webhook_url) !== false) {
+                            continue 3;
+                        }
+                        break;
+                    default:
+                        break;
                 }
-            }
-
-            if (!$execute) {
-                continue;
             }
         }
         $execution = send_discord_webhook(

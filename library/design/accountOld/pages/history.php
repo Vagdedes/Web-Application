@@ -8,7 +8,7 @@ function loadHistory(Account $account, $isLoggedIn)
         echo "<div class='area'>
                     <div class='area_title'>Recent History</div>";
         $history = $account->getHistory()->get(
-            array("action_id", "date"),
+            array("action_id", "creation_date"),
             50
         );
 
@@ -24,7 +24,7 @@ function loadHistory(Account $account, $isLoggedIn)
 
                 foreach ($history as $row) {
                     $action = str_replace("_", "-", $row->action_id);
-                    $fullDate = $row->date;
+                    $fullDate = $row->creation_date;
                     $date = substr($fullDate, 0, 10);
                     $time = substr($fullDate, 10, -3);
                     echo "<li><div class='main'>$action</div><div>$date</div><div>$time</div></li>";

@@ -15,9 +15,7 @@ require_once '/var/www/.structure/library/account/api/objects/abstract/AccountPa
 
 // Account
 require_once '/var/www/.structure/library/account/api/objects/account/AccountRegistry.php';
-require_once '/var/www/.structure/library/account/api/objects/account/AcceptedAccount.php';
 require_once '/var/www/.structure/library/account/api/objects/account/Account.php';
-require_once '/var/www/.structure/library/account/api/objects/account/AccountCooldowns.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountHistory.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountSettings.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountTransactions.php';
@@ -45,6 +43,7 @@ require_once '/var/www/.structure/library/account/api/objects/management/Account
 require_once '/var/www/.structure/library/account/api/objects/management/AccountPermissions.php';
 require_once '/var/www/.structure/library/account/api/objects/management/AccountFunctionality.php';
 require_once '/var/www/.structure/library/account/api/objects/management/AccountRole.php';
+require_once '/var/www/.structure/library/account/api/objects/management/AccountCooldowns.php';
 
 // Credential
 require_once '/var/www/.structure/library/account/api/objects/credential/AccountAccounts.php';
@@ -58,5 +57,8 @@ require_once '/var/www/.structure/library/account/api/objects/communication/Acco
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountPhoneNumber.php';
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountTeam.php';
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountCommunication.php';
-require_once '/var/www/.structure/library/account/api/objects/communication/AccountCorrelation.php';
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountCooperation.php';
+
+// Correlation
+require_once '/var/www/.structure/library/account/api/objects/correlation/AcceptedAccount.php';
+require_once '/var/www/.structure/library/account/api/objects/correlation/AccountCorrelation.php';

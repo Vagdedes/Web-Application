@@ -74,7 +74,10 @@ function send_phone_message_by_plan($planID, $phonePointer, $details = null, $co
             $numericPLan ? array("id", $planID) : "",
             $numericPLan ? "" : array("name", $planID),
             array("deletion_date", null),
-            array("launch_date", "IS NOT", null)
+            null,
+            array("expiration_date", "IS", null, 0),
+            array("expiration_date", ">", $currentDate),
+            null
         ),
         null,
         1
@@ -251,39 +254,41 @@ function send_phone_message_by_plan($planID, $phonePointer, $details = null, $co
     // Load blacklisted phone numbers
     global $phone_blacklist_table, $phone_failed_executions_table;
     $query = get_sql_query($phone_blacklist_table,
-        array("phone_number", "contains"),
+        array("phone_number", "identification_method"),
         array(
             array("deletion_date", null)
         )
     );
-    $blacklisted = array();
-    $hasBlacklisted = false;
-
-    if (!empty($query)) {
-        $hasBlacklisted = true;
-
-        foreach ($query as $row) {
-            $credential = $row->phone_number;
-            $blacklisted[$credential] = $row;
-        }
-    }
+    $hasBlacklisted = !empty($query);
 
     // Send to phone numbers
     foreach ($total as $credential) {
         if ($hasBlacklisted) {
-            $execute = true;
-
-            foreach ($blacklisted as $credentialChild => $properties) {
-                if ($properties->contains !== null ?
-                    (strpos($credentialChild, $credential) !== false) :
-                    ($credential === $credentialChild)) {
-                    $execute = false;
-                    break;
+            foreach ($query as $properties) {
+                switch (trim($properties->identification_method)) {
+                    case "startsWith":
+                        if (starts_with($credential, $properties->phone_number)) {
+                            continue 3;
+                        }
+                        break;
+                    case "endsWith":
+                        if (ends_with($credential, $properties->phone_number)) {
+                            continue 3;
+                        }
+                        break;
+                    case "equals":
+                        if ($credential == $properties->phone_number) {
+                            continue 3;
+                        }
+                        break;
+                    case "contains":
+                        if (strpos($credential, $properties->phone_number) !== false) {
+                            continue 3;
+                        }
+                        break;
+                    default:
+                        break;
                 }
-            }
-
-            if (!$execute) {
-                continue;
             }
         }
         $execution = send_phone_message($credential, $contents);
