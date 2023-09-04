@@ -86,5 +86,14 @@ $verification_types_table = "verification.types";
 $translation_languages_table = "translation.languages";
 $translation_text_table = "translation.text";
 
+// Balance
+$balance_accepted_currencies_table = "balance.acceptedCurrencies";
+$balance_denied_currencies_table = "balance.deniedCurrencies";
+$balance_allowed_currencies_table = "balance.allowedCurrencies";
+$balance_wallets_table = "balance.wallets";
+$balance_requests_table = "balance.requests";
+$balance_transfers_table = "balance.transfers";
+$balance_instant_transfers_table = "balance.instantTransfers";
+
 // E.T.C
 $website_url = "https://" . get_domain() . "/account";

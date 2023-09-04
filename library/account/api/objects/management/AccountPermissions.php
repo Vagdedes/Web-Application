@@ -181,6 +181,7 @@ class AccountPermissions
     public function hasPermission($permission, $store = false, ?Account $accountAgainst = null): bool
     {
         if ($accountAgainst !== null
+            && $accountAgainst->getDetail("id") !== $this->account->getDetail("id")
             && $this->getPriority() <= $accountAgainst->getPermissions()->getPriority()) {
             return false;
         }
