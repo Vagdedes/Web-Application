@@ -345,7 +345,7 @@ class GameCloudVerification
                 "creation_date" => $date
             ),
             array(
-                "id" => $query[0]->id
+                array("id", $query[0]->id)
             ),
             null,
             1

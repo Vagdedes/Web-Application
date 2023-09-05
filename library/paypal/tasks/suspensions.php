@@ -1,6 +1,6 @@
 <?php
 
-function identify_paypal_suspended_transactions($transactions)
+function identify_paypal_suspended_transactions($transactions): array
 {
     if (is_array($transactions)) {
         if (!empty($transactions)) {

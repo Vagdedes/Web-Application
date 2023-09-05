@@ -1,6 +1,6 @@
 <?php
 
-function update_paypal_storage($startDays, $endDays, $checkFailures)
+function update_paypal_storage($startDays, $endDays, $checkFailures): bool
 {
     $processedData = false;
 
@@ -176,10 +176,10 @@ function process_successful_paypal_transaction($transactionID): bool
         && isset($transaction["PAYMENTSTATUS"])
         && isset($transaction["ACK"])
         && $transaction["ACK"] === "Success") {
-        global $paypal_successful_transactions_table;
 
         switch ($transaction["PAYMENTSTATUS"]) {
             case "Completed":
+                global $paypal_successful_transactions_table;
                 if (sql_insert(
                     $paypal_successful_transactions_table,
                     array(
