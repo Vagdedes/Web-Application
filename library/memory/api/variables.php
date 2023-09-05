@@ -21,6 +21,6 @@ $memory_performance_metrics_table = "memory.performanceMetrics";
 $memory_processes_table = "memory.processes";
 
 $memory_clearance_past = 60; // 1 minute
-$memory_clearance_row_limit = 10;
+$memory_clearance_row_limit = 50;
 
 

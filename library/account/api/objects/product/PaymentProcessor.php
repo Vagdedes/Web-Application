@@ -9,7 +9,7 @@ class PaymentProcessor
         PaymentProcessor::class
     );
     public const
-        days_of_processing = "1 day",
+        days_of_processing = "5 days", // This due to the banking system delay of 2-5 business days
         incomplete_account_sources = array(AccountAccounts::POLYMART_URL),
         limit = 1000,
         PAYPAL = AccountAccounts::PAYPAL_EMAIL,

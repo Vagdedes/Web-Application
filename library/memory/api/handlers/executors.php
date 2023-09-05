@@ -1,4 +1,18 @@
 <?php
+$memory_object_cache = array();
+
+function memory_get_object_cache($key): IndividualMemoryBlock
+{
+    global $memory_object_cache;
+
+    if (!array_key_exists($key, $memory_object_cache)) {
+        $memory = new IndividualMemoryBlock($key);
+        $memory_object_cache[$key] = $memory;
+        return $memory;
+    } else {
+        return $memory_object_cache[$key];
+    }
+}
 
 function has_memory_limit($key, $countLimit, $futureTime = null): bool
 {
@@ -9,7 +23,7 @@ function has_memory_limit($key, $countLimit, $futureTime = null): bool
 
         if ($futureTime !== null) {
             global $memory_reserved_names;
-            $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[1] . $key);
+            $memoryBlock = memory_get_object_cache($memory_reserved_names[1] . $key);
             $object = $memoryBlock->get();
 
             if ($object !== null && isset($object->original_expiration) && isset($object->count)) {
@@ -39,7 +53,7 @@ function has_memory_cooldown($key, $futureTime = null, $set = true, $force = fal
 
         if ($futureTime !== null) {
             global $memory_reserved_names;
-            $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[0] . $key);
+            $memoryBlock = memory_get_object_cache($memory_reserved_names[0] . $key);
 
             if (!$force && $memoryBlock->exists()) {
                 return true;
@@ -61,7 +75,7 @@ function get_key_value_pair($key, $temporaryRedundancyValue = null)
 
     if ($key !== false) {
         global $memory_reserved_names;
-        $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[2] . $key);
+        $memoryBlock = memory_get_object_cache($memory_reserved_names[2] . $key);
         $object = $memoryBlock->get();
 
         if ($object !== null) {
@@ -83,7 +97,7 @@ function set_key_value_pair($key, $value = null, $futureTime = null): bool
 
         if ($futureTime !== null) {
             global $memory_reserved_names;
-            $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[2] . $key);
+            $memoryBlock = memory_get_object_cache($memory_reserved_names[2] . $key);
             return $memoryBlock->set($value, $futureTime);
         }
     }
@@ -94,22 +108,71 @@ function set_key_value_pair($key, $value = null, $futureTime = null): bool
 
 function clear_memory($keys, $abstractSearch = false, $localSegments = null)
 {
+    global $memory_object_cache;
     $hasLocalSegments = $localSegments !== null;
 
     if (!$hasLocalSegments) {
         global $memory_clearance_table;
-        $tracker = random_number();
+        $serialize = serialize($keys);
+        $tracker = (string_to_integer($serialize) * 31) + boolean_to_integer($abstractSearch);
 
-        if (sql_insert(
+        if (empty(get_sql_query(
+            $memory_clearance_table,
+            array("tracker"),
+            array(
+                array("tracker", $tracker),
+            ),
+            null,
+            1
+        ))) {
+            if (sql_insert(
+                $memory_clearance_table,
+                array(
+                    "tracker" => $tracker,
+                    "creation" => time(),
+                    "array" => $serialize,
+                    "abstract_search" => $abstractSearch
+                )
+            )) {
+                $sql = true;
+                $delete = false;
+            } else {
+                $sql = false;
+                // No need to implement delete, never reached
+            }
+        } else if (set_sql_query(
             $memory_clearance_table,
             array(
-                "tracker" => $tracker,
                 "creation" => time(),
-                "array" => serialize($keys),
+                "array" => $serialize,
                 "abstract_search" => $abstractSearch
-            )
+            ),
+            array(
+                array("tracker", $tracker),
+            ),
+            null,
+            1
         )) {
+            $sql = true;
+            $delete = true;
+        } else {
+            $sql = false;
+            // No need to implement delete, never reached
+        }
+
+        if ($sql) {
             global $memory_clearance_tracking_table;
+
+            if ($delete) {
+                delete_sql_query(
+                    $memory_clearance_tracking_table,
+                    array(
+                        array("tracker", $tracker),
+                    ),
+                    null,
+                    1
+                );
+            }
             sql_insert(
                 $memory_clearance_tracking_table,
                 array(
@@ -147,18 +210,27 @@ function clear_memory($keys, $abstractSearch = false, $localSegments = null)
                         foreach ($keys as $key) {
                             if (strpos($memoryKey, $key) !== false) {
                                 $memoryBlock->clear();
+                                unset($memory_object_cache[$segment]);
                             }
                         }
                     }
                 }
             }
         } else {
-            foreach ($keys as $key) {
-                foreach ($memory_reserved_names as $name) {
-                    $memoryBlock = new IndividualMemoryBlock($key . $name);
-                    $memoryBlock->clear();
-                }
+            foreach ($memory_reserved_names as $name) {
+                $name .= $key;
+                $memoryBlock = new IndividualMemoryBlock($name);
+                $memoryBlock->clear();
+                unset($memory_object_cache[$name]);
             }
+        }
+    } else {
+        $segments = is_array($localSegments) ? $localSegments : get_memory_segment_ids();
+
+        foreach ($segments as $segment) {
+            $memoryBlock = new IndividualMemoryBlock($segment);
+            $memoryBlock->clear();
+            unset($memory_object_cache[$segment]);
         }
     }
 }

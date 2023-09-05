@@ -3,9 +3,12 @@ $memory_trackers_query = get_sql_query(
     $memory_clearance_table,
     array("tracker", "array", "abstract_search"),
     array(
-        array("creation", ">", time() - $memory_clearance_past)
+        array("creation", ">", time() - $memory_clearance_past),
     ),
-    null,
+    array(
+        "DESC",
+        "id"
+    ),
     $memory_clearance_row_limit
 );
 
@@ -42,4 +45,3 @@ if (!empty($memory_trackers_query)) {
         }
     }
 }
-$memory_client_identifier = string_to_integer(getHostName());

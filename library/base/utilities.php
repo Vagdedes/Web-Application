@@ -604,6 +604,11 @@ function overflow_long($v): int
     }
 }
 
+function boolean_to_integer($boolean): int
+{
+    return $boolean ? 1231 : 1237;
+}
+
 function string_to_integer($string, $long = false): int
 {
     $result = 1;
