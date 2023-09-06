@@ -44,7 +44,7 @@ if (strlen($private_key) == $private_key_length
 				$uuid = $sql_connection->real_escape_string($uuid);
 				$query = sql_query("SELECT * FROM statistics WHERE uuid = '$uuid' AND gameplay_id = '$gameplay' AND subdomain = '$subdomain';");
 
-				if ($query != null && $query->num_rows > 0) {
+				if (isset($query->num_rows) && $query->num_rows > 0) {
 					$exists = true;
 				}
 			} else {

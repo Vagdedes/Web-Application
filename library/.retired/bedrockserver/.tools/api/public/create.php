@@ -21,7 +21,8 @@ if (strlen($name) > 0 && strlen($name) <= $name_length
 		$queryIP = get("access_address", "=", $ip_address, "websites");
 		$queryLimit = getWebsiteLimit($object);
 
-		if ($queryID != null && $queryID->num_rows >= $queryLimit || $queryIP != null && $queryIP->num_rows >= $queryLimit) {
+		if (isset($queryID->num_rows) && $queryID->num_rows >= $queryLimit
+            || isset($queryIP->num_rows) && $queryIP->num_rows >= $queryLimit) {
 			echo "limit";
 		} else if (!is_alpha_numeric($subdomain)) {
 			echo "alphanumeric" . $separator . "subdomain";

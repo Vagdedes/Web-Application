@@ -12,7 +12,7 @@ function getLocalVariable($key, $futureTime = null, $value = "")
         if ($key !== null) {
             $query = sql_query("SELECT value_pair, expiration_time FROM " . $localVariablesTable . " WHERE id = '$key' LIMIT 1;");
 
-            if ($query != null && $query->num_rows === 1) {
+            if (isset($query->num_rows) && $query->num_rows === 1) {
                 if ($futureTime !== null) {
                     $row = $query->fetch_assoc();
                     $expirationTime = $row["expiration_time"];
@@ -57,7 +57,7 @@ function hasMemoryLimit1($key, $countLimit, $futureTime = null, $clear = false, 
     if ($key !== null) {
         $query = sql_query("SELECT id, count FROM " . $keyLimitsTable . " WHERE id = '$key' AND (expiration_time IS NULL OR expiration_time >= '" . time() . "') LIMIT 1;");
 
-        if ($query != null && $query->num_rows === 1) {
+        if (isset($query->num_rows) && $query->num_rows === 1) {
             $row = $query->fetch_assoc();
             $count = $row["count"];
 
@@ -106,7 +106,7 @@ function hasMemoryCooldown1($key, $futureTime = null, $clear = false, $set = tru
     if ($key !== null) {
         $query = sql_query("SELECT id FROM " . $keyCooldownsTable . " WHERE id = '$key' AND (expiration_time IS NULL OR expiration_time >= '" . time() . "') LIMIT 1;");
 
-        if ($query != null && $query->num_rows === 1) {
+        if (isset($query->num_rows) && $query->num_rows === 1) {
             return true;
         }
         if ($set) {
@@ -152,7 +152,7 @@ function getKeyValuePair1($key, $temporaryRedundancyValue = null, $clear = false
     if ($key !== null) {
         $query = sql_query("SELECT value_pair FROM " . $keyValuePairsTable . " WHERE id = '$key' AND expiration_time >= '" . time() . "' LIMIT 1;");
 
-        if ($query != null && $query->num_rows === 1) {
+        if (isset($query->num_rows) && $query->num_rows === 1) {
             if ($clear) {
                 clearMemor1y($keyValuePairsTable);
             }

@@ -17,7 +17,7 @@ function get_all_stripe_transactions($limit = 0, $details = true, $date = null):
         . " ORDER BY id DESC"
         . ($limit > 0 ? " LIMIT " . $limit . ";" : ";"));
 
-    if ($query != null && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         $transactions = array();
 
         while ($row = $query->fetch_assoc()) {
@@ -33,7 +33,7 @@ function get_stripe_transaction($transactionID)
 {
     global $stripe_successful_transactions_table;
     $query = sql_query("SELECT details FROM $stripe_successful_transactions_table WHERE transaction_id = '$transactionID' LIMIT 1;");
-    return $query != null && $query->num_rows > 0 ? json_decode($query->fetch_assoc()["details"]) : null;
+    return isset($query->num_rows) && $query->num_rows > 0 ? json_decode($query->fetch_assoc()["details"]) : null;
 }
 
 function get_failed_stripe_transactions($findFromArray = null, $limit = 0, $date = null): array
@@ -44,7 +44,7 @@ function get_failed_stripe_transactions($findFromArray = null, $limit = 0, $date
         . " ORDER BY id DESC"
         . ($limit > 0 ? " LIMIT " . $limit . ";" : ";"));
 
-    if ($query != null && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         $hasFindFromArray = $findFromArray !== null;
         $array = array();
         $numericalArray = $hasFindFromArray && isset($findFromArray[0]);
@@ -70,7 +70,7 @@ function find_stripe_transactions_by_id($transactionID): array
     global $stripe_successful_transactions_table;
     $query = sql_query("SELECT transaction_id, details FROM $stripe_successful_transactions_table WHERE transaction_id = '$transactionID' LIMIT 1;");
 
-    if ($query != null && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         $row = $query->fetch_assoc();
         $transactions = array();
         $transactions[$row["transaction_id"]] = json_decode($row["details"]);
@@ -96,7 +96,7 @@ function find_stripe_transactions_by_data_pair($keyValueArray, $limit = 0, $sqlO
             . " ORDER BY id DESC"
             . ($limit > 0 ? " LIMIT " . $limit : "") . ";");
 
-        if ($query != null && $query->num_rows > 0) {
+        if (isset($query->num_rows) && $query->num_rows > 0) {
             while ($row = $query->fetch_assoc()) {
                 $transactionID = $row["transaction_id"];
                 $transactions[$transactionID] = json_decode($row["details"]);
@@ -107,7 +107,7 @@ function find_stripe_transactions_by_data_pair($keyValueArray, $limit = 0, $sqlO
             . "ORDER BY id DESC"
             . ($limit > 0 ? " LIMIT " . $limit : "") . ";");
 
-        if ($query != null && $query->num_rows > 0) {
+        if (isset($query->num_rows) && $query->num_rows > 0) {
             $keyValueArraySize = sizeof($keyValueArray);
 
             while ($row = $query->fetch_assoc()) {
@@ -142,7 +142,7 @@ function mark_failed_stripe_transaction($transactionID, $checkExistence = true):
     if (!$process) {
         $query = sql_query("SELECT id FROM $stripe_failed_transactions_table WHERE transaction_id = '$transactionID';");
 
-        if ($query != null && $query->num_rows > 0) {
+        if (isset($query->num_rows) && $query->num_rows > 0) {
             $process = true;
         }
     }
@@ -166,7 +166,7 @@ function mark_successful_stripe_transaction($transactionID, $transaction, $check
     if (!$process) {
         $query = sql_query("SELECT id FROM $stripe_successful_transactions_table WHERE transaction_id = '$transactionID';");
 
-        if ($query != null && $query->num_rows > 0) {
+        if (isset($query->num_rows) && $query->num_rows > 0) {
             $process = true;
         }
     }

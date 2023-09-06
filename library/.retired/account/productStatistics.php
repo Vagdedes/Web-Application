@@ -16,7 +16,7 @@ function getProductStatistics($productID = null)
     $enabled = true;
     $query = $enabled ? sql_query("SELECT version, ram, cpu, plugins, ip_address, port, motd FROM $server_specifications_table" . ($hasProductID ? " WHERE product_id = '$productID';" : ";")) : null;
 
-    if ($query == null || $query->num_rows == 0) {
+    if (!isset($query->num_rows) || $query->num_rows === 0) {
         set_key_value_pair($cacheKey, false, "");
         return false;
     }
@@ -70,7 +70,7 @@ function getProductStatistics($productID = null)
     if ($hasDownloads) {
         $uniqueQuery = sql_query("SELECT resource_id FROM competition.spigotmc_premium_anticheats;");
 
-        if (is_object($uniqueQuery) && $uniqueQuery != null && $uniqueQuery->num_rows > 0 && $spigotMC_json != null && is_object($spigotMC_json)) {
+        if (isset($uniqueQuery->num_rows) && $uniqueQuery->num_rows > 0 && $spigotMC_json != null && is_object($spigotMC_json)) {
             $ownDownloads = isset($spigotMC_json->stats->downloads) ? $spigotMC_json->stats->downloads : 0;
             $allDownloads = 0;
 
@@ -104,7 +104,7 @@ function getProductStatistics($productID = null)
 
     $versions = $object->server->versions_by_percentage;
 
-    if ($query != null && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         while ($row = $query->fetch_assoc()) {
             $object->server->count++;
 

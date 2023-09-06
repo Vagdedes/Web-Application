@@ -19,7 +19,7 @@ function update_paypal_storage($startDays, $endDays, $checkFailures): bool
                  ) as $table) {
             $query = sql_query("SELECT id, transaction_id FROM $table;");
 
-            if ($query != null && $query->num_rows > 0) {
+            if (isset($query->num_rows) && $query->num_rows > 0) {
                 $array = array();
 
                 while ($row = $query->fetch_assoc()) {
@@ -49,7 +49,7 @@ function update_paypal_storage($startDays, $endDays, $checkFailures): bool
         $queuedTransactions = array();
         $query = sql_query("SELECT id, transaction_id FROM $paypal_transactions_queue_table WHERE completed IS NULL;");
 
-        if ($query != null && $query->num_rows > 0) {
+        if (isset($query->num_rows) && $query->num_rows > 0) {
             while ($row = $query->fetch_assoc()) {
                 $transactionID = $row["transaction_id"];
 

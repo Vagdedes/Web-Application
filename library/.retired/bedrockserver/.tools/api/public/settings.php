@@ -20,7 +20,8 @@ if (strlen($private_key) == $private_key_length && in_array($key, $settings) && 
 					if (is_alpha_numeric($value)) {
 						$query = get("subdomain", "=", $value, "websites");
 
-						if ($query != null && $query->num_rows > 0 || in_array($value, $blacklisted_subdomains)) {
+						if (isset($query->num_rows) && $query->num_rows > 0
+                            || in_array($value, $blacklisted_subdomains)) {
 							echo "taken";
 							return;
 						}

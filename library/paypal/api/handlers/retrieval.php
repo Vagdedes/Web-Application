@@ -16,7 +16,7 @@ function get_all_paypal_transactions($limit = 0, $date = null): array
         . " ORDER BY id DESC"
         . ($limit > 0 ? " LIMIT " . $limit . ";" : ";"));
 
-    if ($query != null && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         while ($row = $query->fetch_assoc()) {
             $transactions[$row["transaction_id"]] = json_decode($row["details"]);
         }
@@ -29,7 +29,7 @@ function find_paypal_transactions_by_id($transactionID): array
     global $paypal_successful_transactions_table;
     $query = sql_query("SELECT transaction_id, details FROM $paypal_successful_transactions_table WHERE transaction_id = '$transactionID' LIMIT 1;");
 
-    if ($query != null && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         $row = $query->fetch_assoc();
         $transactions = array();
         $transactions[$row["transaction_id"]] = json_decode($row["details"]);
@@ -45,7 +45,7 @@ function find_paypal_transactions_by_contains($contains, $limit = 0): array
     $transactions = array();
     $query = sql_query("SELECT transaction_id, details FROM $paypal_successful_transactions_table WHERE details LIKE '%$contains%' ORDER BY id DESC" . ($limit > 0 ? " LIMIT " . $limit : "") . ";");
 
-    if ($query != null && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         while ($row = $query->fetch_assoc()) {
             $transactions[$row["transaction_id"]] = json_decode($row["details"]);
         }
@@ -69,7 +69,7 @@ function find_paypal_transactions_by_data_pair($keyValueArray, $limit = 0, $sqlO
             . " ORDER BY id DESC"
             . ($limit > 0 ? " LIMIT " . $limit : "") . ";");
 
-        if ($query != null && $query->num_rows > 0) {
+        if (isset($query->num_rows) && $query->num_rows > 0) {
             while ($row = $query->fetch_assoc()) {
                 $transactionID = $row["transaction_id"];
                 $transactions[$transactionID] = json_decode($row["details"]);
@@ -80,7 +80,7 @@ function find_paypal_transactions_by_data_pair($keyValueArray, $limit = 0, $sqlO
             . "ORDER BY id DESC"
             . ($limit > 0 ? " LIMIT " . $limit : "") . ";");
 
-        if ($query != null && $query->num_rows > 0) {
+        if (isset($query->num_rows) && $query->num_rows > 0) {
             $keyValueArraySize = sizeof($keyValueArray);
 
             while ($row = $query->fetch_assoc()) {
@@ -112,7 +112,7 @@ function queue_paypal_transaction($transactionID): bool
     global $paypal_transactions_queue_table;
     $query = sql_query("SELECT id FROM $paypal_transactions_queue_table WHERE transaction_id = '$transactionID';");
 
-    if ($query == null || $query->num_rows == 0) {
+    if (!isset($query->num_rows) || $query->num_rows === 0) {
         return sql_insert(
                 $paypal_transactions_queue_table,
                 array("transaction_id" => $transactionID),
@@ -129,7 +129,7 @@ function process_failed_paypal_transaction($transactionID, $checkExistence = tru
     if (!$process) {
         $query = sql_query("SELECT id FROM $paypal_failed_transactions_table WHERE transaction_id = '$transactionID';");
 
-        if ($query != null && $query->num_rows > 0) {
+        if (isset($query->num_rows) && $query->num_rows > 0) {
             $process = true;
         }
     }
@@ -153,7 +153,7 @@ function get_failed_paypal_transactions($findFromArray = null, $limit = 0, $date
         . " ORDER BY id DESC"
         . ($limit > 0 ? " LIMIT " . $limit . ";" : ";"));
 
-    if ($query != null && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         $hasFindFromArray = $findFromArray !== null;
         $array = array();
         $numericalArray = $hasFindFromArray && isset($findFromArray[0]);

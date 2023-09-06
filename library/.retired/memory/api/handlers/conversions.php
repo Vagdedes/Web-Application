@@ -10,7 +10,7 @@ function getIdFromKeyStorage($key, $table, $create = true)
     global $keyStorageTable;
     $query = sql_query("SELECT id FROM " . $keyStorageTable . " WHERE key_value = '" . $key . "' LIMIT 1;");
 
-    if ($query != null && $query->num_rows === 1) {
+    if (isset($query->num_rows) && $query->num_rows === 1) {
         $id = $query->fetch_assoc()["id"];
         sql_query("UPDATE " . $keyStorageTable . " SET last_access_time = '" . time() . "' WHERE id = '" . $id . "';");
         return $id;
@@ -24,7 +24,7 @@ function getIdFromKeyStorage($key, $table, $create = true)
             $tableMaxCooldownTimeInSeconds_Extended = round((strtotime("+" . $timeInText) - $currentTime) * 1.25);
             $query = sql_query("SELECT id FROM " . $keyStorageTable . " WHERE last_access_time < '" . strtotime("-" . $tableMaxCooldownTimeInSeconds_Extended . " seconds") . "' ORDER BY id ASC LIMIT 1;");
 
-            if ($query != null && $query->num_rows === 1) {
+            if (isset($query->num_rows) && $query->num_rows === 1) {
                 $id = $query->fetch_assoc()["id"];
                 sql_query("UPDATE " . $keyStorageTable . " SET key_value = '" . $key . "', last_access_time = '" . $currentTime . "' WHERE id = '" . $id . "';");
                 return $id;
@@ -36,7 +36,7 @@ function getIdFromKeyStorage($key, $table, $create = true)
         } else { // Reset table when the maximum integer has been reached
             $query = sql_query("SELECT id FROM " . $keyStorageTable . " ORDER BY id DESC LIMIT 1");
 
-            if ($query != null && $query->num_rows === 1) {
+            if (isset($query->num_rows) && $query->num_rows === 1) {
                 global $max32bitInteger;
 
                 if ($query->fetch_assoc()["id"] === $max32bitInteger) {

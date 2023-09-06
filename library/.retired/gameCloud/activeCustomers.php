@@ -39,7 +39,7 @@ function getActiveCustomers($productID, $limit = 0)
                 : "SELECT license_id, platform_id FROM $account_purchases_table WHERE product_id = '$productID' AND deletion_date IS NULL;"
         );
 
-        if ($query != null && $query->num_rows > 0) {
+        if (isset($query->num_rows) && $query->num_rows > 0) {
             while ($row = $query->fetch_assoc()) {
                 $rowKey = $row["license_id"] . "-" . $row["platform_id"];
 
@@ -58,14 +58,14 @@ function getActiveCustomers($productID, $limit = 0)
 
     $query = sql_query("SELECT account_id FROM $product_purchases_table WHERE product_id = '$productID' AND deletion_date IS NULL;");
 
-    if ($query != null && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         global $platformsTable;
 
         while ($row = $query->fetch_assoc()) {
             $accountID = $row["account_id"];
             $childQuery = sql_query("SELECT platform_id, accepted_account_id FROM $platformsTable WHERE account_id = '$accountID' AND deletion_date IS NULL LIMIT 1;");
 
-            if ($childQuery != null && $childQuery->num_rows > 0) {
+            if (isset($childQuery->num_rows) && $childQuery->num_rows > 0) {
                 $breakLoop = false;
 
                 while ($childRow = $childQuery->fetch_assoc()) {

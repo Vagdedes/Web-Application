@@ -281,7 +281,7 @@ function get_sql_query($table, $select = null, $where = null, $order = null, $li
 
 function sql_query_row($query): ?object
 {
-    return is_object($query) && $query->num_rows > 0 ? $query->fetch_assoc() : null;
+    return isset($query->num_rows) && $query->num_rows > 0 ? $query->fetch_assoc() : null;
 }
 
 /**
@@ -499,7 +499,7 @@ function get_sql_overhead_rows($table, $minimum = 1, $column = "id"): array
     $query = sql_query("SELECT " . $column . " FROM " . $table . " ORDER BY " . $column . " ASC;");
     $array = array();
 
-    if ($query === null || $query->num_rows === 0) {
+    if (!isset($query->num_rows) || $query->num_rows === 0) {
         for ($i = 1; $i <= $minimum; $i++) {
             $array[] = $i;
         }
@@ -531,7 +531,7 @@ function get_sql_database_tables($database): array
     $array = array();
     $query = sql_query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" . $database . "';");
 
-    if (is_object($query) && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         while ($row = $query->fetch_assoc()) {
             $array[] = $row["TABLE_NAME"];
         }
@@ -544,7 +544,7 @@ function get_sql_database_schemas(): array
     $array = array();
     $query = sql_query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA;");
 
-    if (is_object($query) && $query->num_rows > 0) {
+    if (isset($query->num_rows) && $query->num_rows > 0) {
         while ($row = $query->fetch_assoc()) {
             $array[] = $row["SCHEMA_NAME"];
         }

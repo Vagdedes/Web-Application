@@ -24,7 +24,7 @@ if (strlen($private_key) == $private_key_length && ($action == "add" && strlen($
 					$table = "anticheat";
 					$query = get("subdomain", "=", $subdomain, $table);
 
-					if ($query != null && $query->num_rows > 0) {
+					if (isset($query->num_rows) && $query->num_rows > 0) {
 						sql_query("UPDATE $table SET logs = '$logs', violations = '$violations', false_positives = '$false_positives', punishments = '$punishments' WHERE subdomain = '$subdomain';");
 					} else {
 						sql_insert_old(array("subdomain", "logs", "violations", "false_positives", "punishments", "reports"),
@@ -46,7 +46,7 @@ if (strlen($private_key) == $private_key_length && ($action == "add" && strlen($
 					$table = "anticheat";
 					$query = get("subdomain", "=", $subdomain, $table);
 
-					if ($query != null && $query->num_rows > 0) {
+					if (isset($query->num_rows) && $query->num_rows > 0) {
 						sql_query("UPDATE $table SET logs = '$logs', violations = '$violations', false_positives = '$false_positives', punishments = '$punishments', reports = '$reports' WHERE subdomain = '$subdomain';");
 					} else {
 						sql_insert_old(array("subdomain", "logs", "violations", "false_positives", "punishments", "reports"),

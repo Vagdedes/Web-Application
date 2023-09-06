@@ -80,7 +80,7 @@ if (is_numeric($id) && $id < 0) {
             // Separator
             $specificQuery = sql_query("SELECT number, expiration_date FROM $license_management_table WHERE type = 'file';");
 
-            if ($specificQuery != null & $specificQuery->num_rows > 0) {
+            if (isset($specificQuery->num_rows) & $specificQuery->num_rows > 0) {
                 $date = date("Y-m-d H:i:s");
 
                 while ($row = $specificQuery->fetch_assoc()) {
@@ -160,7 +160,7 @@ if (is_numeric($id) && $id < 0) {
             if ($size > 0) {
                 $query = sql_query("SELECT ip_address, motd FROM minecraft.serverSpecifications WHERE motd IS NOT NULL ORDER BY id DESC;");
 
-                if ($query != null && $query->num_rows > 0) {
+                if (isset($query->num_rows) && $query->num_rows > 0) {
                     while ($row = $query->fetch_assoc()) {
                         $rowServer = $row["ip_address"];
 
@@ -184,7 +184,7 @@ if (is_numeric($id) && $id < 0) {
             // Separator
             $query = sql_query("SELECT license_id, file_id FROM accessTimeouts WHERE license_id IS NOT NULL OR file_id IS NOT NULL");
 
-            if ($query != null && $query->num_rows > 0) {
+            if (isset($query->num_rows) && $query->num_rows > 0) {
                 while ($row = $query->fetch_assoc()) {
                     $license_id = $row["license_id"];
 
@@ -322,7 +322,7 @@ if (is_numeric($id) && $id < 0) {
             // Separator
             $query = sql_query("SELECT version, plugin FROM minecraft.connectionCount WHERE license_id = '$id';");
 
-            if ($query != null && $query->num_rows > 0) {
+            if (isset($query->num_rows) && $query->num_rows > 0) {
                 while ($row = $query->fetch_assoc()) {
                     $fullVersion = $row["version"] . "(" . $row["plugin"] .")";
 
