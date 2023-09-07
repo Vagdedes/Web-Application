@@ -52,7 +52,7 @@ function redirect_to_account_page(?Account $account, $isLoggedIn, $message)
         $hasURLMessage = false;
 
         if (!empty($message)) {
-            $account->getNotifications()->add("form", "green", $message, "1 minute");
+            $account->getNotifications()->add(AccountNotifications::FORM, "green", $message, "1 minute");
         }
     } else {
         $hasURLMessage = !empty($message);

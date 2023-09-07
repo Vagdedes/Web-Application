@@ -14,7 +14,7 @@ function loadChangePassword(Account $account, $isLoggedIn, Application $applicat
                 $result = $result->getMessage();
 
                 if (!empty($result)) {
-                    $account->getNotifications()->add("form", "green", $result, "1 minute");
+                    $account->getNotifications()->add(AccountNotifications::FORM, "green", $result, "1 minute");
                 }
                 redirect_to_url("?");
             } else {
@@ -39,7 +39,7 @@ function loadChangePassword(Account $account, $isLoggedIn, Application $applicat
             $result = $result->getMessage();
 
             if (!empty($result)) {
-                $account->getNotifications()->add("form", "green", $result, "1 minute");
+                $account->getNotifications()->add(AccountNotifications::FORM, "green", $result, "1 minute");
             }
             redirect_to_url("?");
         }
@@ -64,7 +64,7 @@ function loadChangePassword(Account $account, $isLoggedIn, Application $applicat
                     $result = $result->getMessage();
 
                     if (!empty($result)) {
-                        $account->getNotifications()->add("form", "green", $result, "1 minute");
+                        $account->getNotifications()->add(AccountNotifications::FORM, "green", $result, "1 minute");
                     }
                     redirect_to_url("?");
                 } else {

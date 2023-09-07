@@ -39,7 +39,7 @@ function load_page_html_head(Account $account, $title)
 function load_page_intro(?Account $account, $isLoggedIn, $loadIntro, $loadNavigation)
 {
     $notification = $isLoggedIn
-        ? $account->getNotifications()->get(null, 1, true)
+        ? $account->getNotifications()->get(AccountNotifications::FORM, 1, true)
         : get_form_get("message");
 
     if (empty($notification)) {
