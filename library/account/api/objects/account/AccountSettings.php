@@ -82,7 +82,7 @@ class AccountSettings
             return new MethodReply(false, "Failed to update user history.");
         }
         if ($cooldown !== null) {
-            $functionality->addUserCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
         }
         clear_memory(array(self::class), true);
         return new MethodReply(true);
@@ -149,7 +149,7 @@ class AccountSettings
             }
         }
         if ($cooldown !== null) {
-            $functionality->addUserCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
         }
         clear_memory(array(self::class), true);
         return new MethodReply(

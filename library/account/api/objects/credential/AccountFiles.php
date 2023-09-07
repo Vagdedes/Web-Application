@@ -9,4 +9,42 @@ class AccountFiles
     {
         $this->account = $account;
     }
+
+    public function getType() {
+
+    }
+
+    // Separator
+
+    public function upload() {
+
+    }
+
+    public function delete() {
+
+    }
+
+    public function getOwned() {
+
+    }
+
+    public function getShared() {
+
+    }
+
+    // Separator
+
+    public function share() {
+
+    }
+
+    public function unshare() {
+
+    }
+
+    // Separator
+
+    public function download() {
+
+    }
 }

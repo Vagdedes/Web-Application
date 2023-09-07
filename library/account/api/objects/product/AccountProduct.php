@@ -25,7 +25,6 @@ class AccountProduct
         }
         $cacheKey = array(
             $this,
-            $applicationID,
             $documentation,
             $productID,
         );
@@ -54,7 +53,8 @@ class AccountProduct
                        $product_updates_table,
                        $product_identification_table,
                        $product_divisions_table,
-                       $product_purchases_table;
+                       $product_purchases_table,
+                       $product_reviews_table;
                 $accountExists = $this->account->exists();
 
                 foreach ($array as $arrayKey => $object) {
@@ -87,6 +87,14 @@ class AccountProduct
                             unset($array[$arrayKey]);
                             continue;
                         }
+                        $object->reviews = get_sql_query(
+                            $product_reviews_table,
+                            array("account_id", "ratio", "name", "description", "creation_date"),
+                            array(
+                                array("product_id", $productID),
+                                array("deletion_date", null),
+                            )
+                        );
                         $object->registered_buyers = sizeof(get_sql_query(
                             $product_purchases_table,
                             array("id"),
@@ -236,5 +244,13 @@ class AccountProduct
         }
         $isEmpty = empty($array);
         return new MethodReply(!$isEmpty, $isEmpty ? "Product not found." : null, $array);
+    }
+
+    public function create() {
+        //todo
+    }
+
+    public function delete() {
+        //todo
     }
 }

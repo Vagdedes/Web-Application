@@ -5,6 +5,11 @@ class AccountActions
     private Account $account;
 
     private const log_in_out_cooldown = "3 seconds";
+    public const
+        NAME = "name",
+        FIRST_NAME = "first_name",
+        MIDDLE_NAME = "middle_name",
+        LAST_NAME = "last_name";
 
     public function __construct($account)
     {
@@ -57,7 +62,7 @@ class AccountActions
         if (!$session->isPositiveOutcome()) {
             return new MethodReply(false, $session->getMessage());
         }
-        $functionality->addUserCooldown(AccountFunctionality::LOG_IN, self::log_in_out_cooldown);
+        $functionality->addInstantCooldown(AccountFunctionality::LOG_IN, self::log_in_out_cooldown);
         return new MethodReply(true);
     }
 
@@ -73,7 +78,7 @@ class AccountActions
         $session = $session->deleteSession($this->account->getDetail("id"));
 
         if ($session->isPositiveOutcome()) {
-            $functionality->addUserCooldown(AccountFunctionality::LOG_OUT, self::log_in_out_cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::LOG_OUT, self::log_in_out_cooldown);
             $session->getObject()->getHistory()->add("log_out");
             return new MethodReply(true, "User logged out successfully.");
         }
@@ -145,7 +150,7 @@ class AccountActions
         }
     }
 
-    public function changeName($name, $cooldown = "1 day"): MethodReply
+    public function changeName($name, $type = self::NAME, $cooldown = "1 day"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_NAME, true);
@@ -164,7 +169,7 @@ class AccountActions
         if (!$parameter->getOutcome()->isPositiveOutcome()) {
             return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
-        if ($name === $this->account->getDetail("name")) {
+        if ($name === $this->account->getDetail($type)) {
             return new MethodReply(false, "You already have this name.");
         }
         global $accounts_table;
@@ -173,7 +178,7 @@ class AccountActions
             $accounts_table,
             array("id"),
             array(
-                array("name", $name),
+                array($type, $name),
                 array("deletion_date", null),
                 array("application_id", $this->account->getDetail("application_id"))
             ),
@@ -182,21 +187,13 @@ class AccountActions
         ))) {
             return new MethodReply(false, "This name is already taken.");
         }
-        if (!set_sql_query(
-            $accounts_table,
-            array("name" => $name),
-            array(
-                array("id", $this->account->getDetail("id"))
-            ),
-            null,
-            1
-        )) {
-            return new MethodReply(false, "Failed to interact with the database.");
-        }
-        $this->account->setDetail("name", $name);
+        $change = $this->account->setDetail($type, $name);
 
+        if (!$change->isPositiveOutcome()) {
+            return new MethodReply(false, $change->getMessage());
+        }
         if ($cooldown !== null) {
-            $functionality->addUserCooldown(AccountFunctionality::CHANGE_NAME, $cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::CHANGE_NAME, $cooldown);
         }
         $this->account->getEmail()->send("nameChanged",
             array(

@@ -1,4 +1,6 @@
 <?php
+
+
 require_once '/var/www/.structure/library/base/form.php';
 require_once '/var/www/.structure/library/base/requirements/account_systems.php';
 require_once '/var/www/.structure/library/design/accountOld/pages/basics.php';

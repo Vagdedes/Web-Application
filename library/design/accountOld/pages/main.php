@@ -1,5 +1,6 @@
 <?php
 
+
 function loadMain(Account $account, $isLoggedIn)
 {
     global $website_url;

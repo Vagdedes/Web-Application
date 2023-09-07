@@ -1,5 +1,6 @@
 <?php
 
+
 function loadViewProduct(Account $account, $isLoggedIn)
 {
     $productArguments = explode(".", get_form_get("id"));

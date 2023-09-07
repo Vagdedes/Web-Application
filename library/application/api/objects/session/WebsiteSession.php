@@ -21,7 +21,8 @@ class WebsiteSession
         return $this->applicationID;
     }
 
-    public function getTwoFactorAuthentication(): TwoFactorAuthentication {
+    public function getTwoFactorAuthentication(): TwoFactorAuthentication
+    {
         return new TwoFactorAuthentication($this);
     }
 

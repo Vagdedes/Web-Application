@@ -45,7 +45,7 @@ class AccountEmail
 
         if ($resultOutcome) {
             if ($cooldown !== null) {
-                $functionality->addUserCooldown(AccountFunctionality::CHANGE_EMAIL, $cooldown);
+                $functionality->addInstantCooldown(AccountFunctionality::CHANGE_EMAIL, $cooldown);
             }
         }
         return new MethodReply($resultOutcome, $result->getMessage());
@@ -126,7 +126,7 @@ class AccountEmail
             false
         );
         if ($cooldown !== null) {
-            $functionality->addUserCooldown(AccountFunctionality::CHANGE_EMAIL, $cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::CHANGE_EMAIL, $cooldown);
         }
         return new MethodReply(true, "Your email verification has been successfully completed.");
     }
@@ -215,7 +215,7 @@ class AccountEmail
                 $type === "account"
             )
             && send_email_by_plan(
-                "account-" . $case,
+                $this->account->getDetail("application_id") . "-" . $case,
                 $this->account->getDetail("email_address"),
                 $detailsArray,
                 $unsubscribe

@@ -2,6 +2,7 @@
 
 // Here we add objects that are completely standalone
 
+
 class Application
 {
     private ?int $id;
@@ -34,5 +35,10 @@ class Application
     public function getPaymentProcessor(): PaymentProcessor
     {
         return new PaymentProcessor($this->id);
+    }
+
+    public function getLanguageTranslation(): LanguageTranslation
+    {
+        return new LanguageTranslation($this->id);
     }
 }

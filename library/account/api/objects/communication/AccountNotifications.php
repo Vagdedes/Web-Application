@@ -2,15 +2,21 @@
 
 class AccountNotifications
 {
-
     private Account $account;
+
+    public const FORM = 1;
 
     public function __construct($account)
     {
         $this->account = $account;
     }
 
-    public function add($color, $type, $information, $duration): bool
+    public function getType()
+    {
+
+    }
+
+    public function add($type, $color, $information, $duration): bool
     {
         if (!$this->account->getFunctionality()->getResult(AccountFunctionality::ADD_NOTIFICATION)->isPositiveOutcome()) {
             return false;

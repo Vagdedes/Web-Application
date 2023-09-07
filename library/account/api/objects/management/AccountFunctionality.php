@@ -122,10 +122,20 @@ class AccountFunctionality
         );
     }
 
-    public function addUserCooldown($name, $duration): MethodReply
+    public function addInstantCooldown($name, $duration): MethodReply
     {
         if ($this->account->exists()) {
-            $this->account->getCooldowns()->add($name, $duration);
+            $this->account->getCooldowns()->addInstant($name, $duration);
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false);
+        }
+    }
+
+    public function addBufferCooldown($name, $threshold, $duration): MethodReply
+    {
+        if ($this->account->exists()) {
+            $this->account->getCooldowns()->addBuffer($name, $threshold, $duration);
             return new MethodReply(true);
         } else {
             return new MethodReply(false);
@@ -169,7 +179,7 @@ class AccountFunctionality
                 "account_id" => $accountID,
                 "executed_by" => $this->account->getDetail("id"),
                 "functionality_id" => $functionality,
-                "reason" => $reason,
+                "creation_reason" => $reason,
                 "creation_date" => get_current_date(),
                 "expiration_date" => ($duration ? get_future_date($duration) : null),
             )
@@ -263,7 +273,7 @@ class AccountFunctionality
         );
         return empty($array) ?
             new MethodReply(false) :
-            new MethodReply(true, $array[0]["reason"], $array[0]);
+            new MethodReply(true, $array[0]["creation_reason"], $array[0]);
     }
 
     public function hasExecutedAction($functionality, $active = true): bool

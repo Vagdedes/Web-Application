@@ -130,7 +130,7 @@ class AccountModerations
                 "account_id" => $accountID,
                 "executed_by" => $this->account->getDetail("id"),
                 "moderation_id" => $moderation,
-                "reason" => $reason,
+                "creation_reason" => $reason,
                 "creation_date" => get_current_date(),
                 "expiration_date" => ($duration ? get_future_date($duration) : null),
             )
@@ -224,7 +224,7 @@ class AccountModerations
         );
         return empty($array) ?
             new MethodReply(false) :
-            new MethodReply(true, $array[0]["reason"], $array[0]);
+            new MethodReply(true, $array[0]["creation_reason"], $array[0]);
     }
 
     public function hasExecutedAction($moderation, $active = true): bool

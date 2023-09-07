@@ -426,7 +426,7 @@ class PaymentProcessor
                     "creation_date" => $date
                 )
             )) {
-            send_email_by_plan("account-generalPurchase", $email);
+            send_email_by_plan($this->applicationID . "-generalPurchase", $email);
         }
     }
 }

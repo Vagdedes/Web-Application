@@ -65,14 +65,12 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
     global $discord_webhook_plans_table;
 
     // Find plan
-    $numericPLan = is_numeric($planID);
     set_sql_cache("1 minute");
     $query = get_sql_query(
         $discord_webhook_plans_table,
         null,
         array(
-            $numericPLan ? array("id", $planID) : "",
-            $numericPLan ? "" : array("name", $planID),
+            array("name", $planID),
             array("deletion_date", null),
             null,
             array("expiration_date", "IS", null, 0),

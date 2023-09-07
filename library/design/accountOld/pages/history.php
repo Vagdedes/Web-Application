@@ -1,5 +1,6 @@
 <?php
 
+
 function loadHistory(Account $account, $isLoggedIn)
 {
     if (!$isLoggedIn) {

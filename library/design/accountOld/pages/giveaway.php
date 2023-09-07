@@ -1,5 +1,6 @@
 <?php
 
+
 function loadGiveaway(Account $account)
 {
     $productGiveaway = $account->getGiveaway();

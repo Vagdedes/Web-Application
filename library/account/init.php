@@ -4,9 +4,6 @@
 require_once '/var/www/.structure/library/account/api/connect.php';
 require_once '/var/www/.structure/library/account/api/variables.php';
 
-// Schedulers
-require_once '/var/www/.structure/library/account/api/schedulers/refreshTransactions.php';
-
 // Abstract
 require_once '/var/www/.structure/library/account/api/objects/abstract/MinecraftPlatform.php';
 require_once '/var/www/.structure/library/account/api/objects/abstract/MethodReply.php';
@@ -14,8 +11,6 @@ require_once '/var/www/.structure/library/account/api/objects/abstract/Parameter
 require_once '/var/www/.structure/library/account/api/objects/abstract/AccountPatreon.php';
 
 // Account
-require_once '/var/www/.structure/library/account/api/objects/account/AccountRegistry.php';
-require_once '/var/www/.structure/library/account/api/objects/account/Account.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountHistory.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountSettings.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountTransactions.php';
@@ -23,20 +18,14 @@ require_once '/var/www/.structure/library/account/api/objects/account/AccountAct
 require_once '/var/www/.structure/library/account/api/objects/account/AccountObjectives.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountIdentification.php';
 
-// Session
-require_once '/var/www/.structure/library/account/api/objects/session/WebsiteSession.php';
-require_once '/var/www/.structure/library/account/api/objects/session/TwoFactorAuthentication.php';
-
 // Product
-require_once '/var/www/.structure/library/account/api/objects/product/AccountDownloads.php';
+require_once '/var/www/.structure/library/account/api/objects/product/AccountProductDownloads.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountPurchases.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountReviews.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountGiveaway.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountOffer.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountProduct.php';
-require_once '/var/www/.structure/library/account/api/objects/product/PaymentProcessor.php';
 require_once '/var/www/.structure/library/account/api/objects/product/ProductCoupon.php';
-require_once '/var/www/.structure/library/account/api/objects/product/AccountAffiliate.php';
 
 // Management
 require_once '/var/www/.structure/library/account/api/objects/management/AccountModerations.php';
@@ -62,3 +51,7 @@ require_once '/var/www/.structure/library/account/api/objects/communication/Acco
 // Correlation
 require_once '/var/www/.structure/library/account/api/objects/correlation/AcceptedAccount.php';
 require_once '/var/www/.structure/library/account/api/objects/correlation/AccountCorrelation.php';
+
+// Finance
+require_once '/var/www/.structure/library/account/api/objects/finance/AccountWallet.php';
+require_once '/var/www/.structure/library/account/api/objects/finance/AccountAffiliate.php';

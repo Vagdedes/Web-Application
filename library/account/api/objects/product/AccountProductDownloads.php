@@ -1,6 +1,6 @@
 <?php
 
-class AccountDownloads
+class AccountProductDownloads
 {
     private Account $account;
 
@@ -65,7 +65,7 @@ class AccountDownloads
         global $product_downloads_table;
 
         if ($cooldown !== null) {
-            $functionality->addUserCooldown(AccountFunctionality::DOWNLOAD_PRODUCT, $cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::DOWNLOAD_PRODUCT, $cooldown);
         }
         $downloadTokenLength = 8;
         $newToken = strtoupper(random_string($downloadTokenLength));
@@ -124,7 +124,7 @@ class AccountDownloads
             unlink($fileCopy);
             return new MethodReply(false, "Failed to update user history.");
         }
-        clear_memory(array(self::class, AccountDownloads::class), true);
+        clear_memory(array(self::class, AccountProductDownloads::class), true);
         send_file_download($fileCopy, false);
         unlink($fileCopy);
         exit();

@@ -13,7 +13,7 @@ class Account
     private AccountAccounts $accounts;
     private AccountPermissions $permissions;
     private AccountModerations $moderations;
-    private AccountDownloads $downloads;
+    private AccountProductDownloads $downloads;
     private AccountPassword $password;
     private AccountEmail $email;
     private AccountObjectives $objectives;
@@ -33,6 +33,7 @@ class Account
     private AccountProduct $product;
     private AccountGiveaway $giveaway;
     private AccountFunctionality $functionality;
+    private AccountWallet $wallet;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -110,7 +111,7 @@ class Account
             }
         }
         // Standalone
-        $this->downloads = new AccountDownloads($this);
+        $this->downloads = new AccountProductDownloads($this);
         $this->team = new AccountTeam($this);
         $this->files = new AccountFiles($this);
         $this->affiliate = new AccountAffiliate($this);
@@ -121,6 +122,7 @@ class Account
         $this->giveaway = new AccountGiveaway($this);
         $this->moderations = new AccountModerations($this);
         $this->functionality = new AccountFunctionality($this);
+        $this->wallet = new AccountWallet($this);
     }
 
     public function exists(): bool
@@ -194,7 +196,7 @@ class Account
         return $this->accounts;
     }
 
-    public function getDownloads(): AccountDownloads
+    public function getDownloads(): AccountProductDownloads
     {
         return $this->downloads;
     }
@@ -302,5 +304,10 @@ class Account
     public function getFunctionality(): AccountFunctionality
     {
         return $this->functionality;
+    }
+
+    public function getWallet(): AccountWallet
+    {
+        return $this->wallet;
     }
 }

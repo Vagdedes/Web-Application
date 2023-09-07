@@ -468,10 +468,10 @@ function hasCooldown1($account, $action)
 function addCooldown1($account, $action, $expirationDate)
 {
     $accountID = getAccountID1($account);
-    global $account_cooldowns_table;
+    global $account_instant_cooldowns_table;
     sql_insert_old(array("account_id", "action_id", "expiration_date"),
         array1($accountID, $action, $expirationDate),
-        $account_cooldowns_table);
+        $account_instant_cooldowns_table);
 }
 
 // Separator

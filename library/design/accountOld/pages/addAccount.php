@@ -1,5 +1,6 @@
 <?php
 
+
 function loadAddAccount(Account $account, $isLoggedIn)
 {
     if (!$isLoggedIn) {
@@ -27,7 +28,7 @@ function loadAddAccount(Account $account, $isLoggedIn)
                 $result = $result->getMessage();
 
                 if (!empty($result)) {
-                    $account->getNotifications()->add("green", "form", $result, "1 minute");
+                    $account->getNotifications()->add("form", "green", $result, "1 minute");
                 }
                 redirect_to_url("?");
             }

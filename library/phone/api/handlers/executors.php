@@ -65,14 +65,12 @@ function send_phone_message_by_plan($planID, $phonePointer, $details = null, $co
     global $phone_plans_table;
 
     // Find plan
-    $numericPLan = is_numeric($planID);
     set_sql_cache("1 minute");
     $query = get_sql_query(
         $phone_plans_table,
         array("id", "test", "redundant", "comments", "contents", "default_cooldown"),
         array(
-            $numericPLan ? array("id", $planID) : "",
-            $numericPLan ? "" : array("name", $planID),
+            array("name", $planID),
             array("deletion_date", null),
             null,
             array("expiration_date", "IS", null, 0),

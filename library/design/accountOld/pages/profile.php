@@ -1,5 +1,6 @@
 <?php
 
+
 function loadProfile(Account $account, $isLoggedIn, Application $application)
 {
     global $website_url;

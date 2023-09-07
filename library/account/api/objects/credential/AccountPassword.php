@@ -53,7 +53,7 @@ class AccountPassword
             return new MethodReply(false, "Failed to update user history.");
         }
         if ($cooldown !== null) {
-            $functionality->addUserCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
         }
         $this->account->getEmail()->send("changePassword",
             array(
@@ -122,7 +122,7 @@ class AccountPassword
             return new MethodReply(false, "Failed to update user history.");
         }
         if ($cooldown !== null) {
-            $functionality->addUserCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
         }
         $this->account->getEmail()->send("passwordChanged");
         return new MethodReply(true, "Successfully changed your password.");

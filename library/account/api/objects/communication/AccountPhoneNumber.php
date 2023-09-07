@@ -20,7 +20,7 @@ class AccountPhoneNumber
                     $type === "account"
                 )
                 && send_phone_message_by_plan(
-                    "account-" . $case,
+                    $this->account->getDetail("application_id") . "-" . $case,
                     $phoneNumber,
                     $detailsArray,
                 ) === 1;

@@ -25,7 +25,7 @@ function sendAccountEmail1($account, $case, $detailsArray = null, $type = "accou
         $email = $account;
     }
     return $email != null
-        && send_email_by_plan("account-" . $case, $email, $detailsArray, $unsubscribe) === 1;
+        && send_email_by_plan1("account-" . $case, $email, $detailsArray, $unsubscribe) === 1;
 }
 
 function sendProductPurchaseEmail1($account, $productID, $action = "Thank you for purchasing", $timePeriod = "")

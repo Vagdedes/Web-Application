@@ -119,7 +119,7 @@ class AccountAccounts
             return new MethodReply(false, "Failed to update user history.");
         }
         if ($cooldown !== null) {
-            $functionality->addUserCooldown(AccountFunctionality::ADD_ACCOUNT, $cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::ADD_ACCOUNT, $cooldown);
         }
 
         if ($deletePreviousIfSurpassing > 0
@@ -185,7 +185,7 @@ class AccountAccounts
         clear_memory(array(self::class), true);
 
         if ($cooldown !== null) {
-            $functionality->addUserCooldown(AccountFunctionality::REMOVE_ACCOUNT, $cooldown);
+            $functionality->addInstantCooldown(AccountFunctionality::REMOVE_ACCOUNT, $cooldown);
         }
         return new MethodReply(true, "Successfully deleted account.");
     }

@@ -74,7 +74,7 @@ class TwoFactorAuthentication
                     return new MethodReply(true, "Could not interact with database.");
                 }
             }
-            if ($account->getCooldowns()->add("instant_login", "5 minutes")) {
+            if ($account->getCooldowns()->addInstant("instant_login", "5 minutes")) {
                 $account->getEmail()->send(
                     "instantLogin",
                     array(

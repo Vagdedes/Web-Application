@@ -7,8 +7,11 @@ $account_sessions_table = "account.sessions";
 $email_verifications_table = "account.emailVerifications";
 $instant_logins_table = "account.instantLogins";
 $account_identification_table = "account.identification";
-$account_notifications_table = "account.notifications";
 $account_settings_table = "account.settings";
+
+// Notification
+$account_notifications_table = "notification.notifications";
+$account_notification_types_table = "notification.types";
 
 // Management
 $role_permissions_table = "management.permissions";
@@ -19,7 +22,10 @@ $executed_moderations_table = "management.executedModerations";
 $blocked_functionalities_table = "management.blockedFunctionalities";
 $account_permissions_table = "management.accountPermissions";
 $account_roles_table = "management.accountRoles";
-$account_cooldowns_table = "management.cooldowns";
+
+// Cooldown
+$account_instant_cooldowns_table = "cooldown.instantCooldowns";
+$account_buffer_cooldowns_table = "cooldown.bufferCooldowns";
 
 // Product
 $products_table = "product.products";
@@ -34,6 +40,7 @@ $product_offers_table = "product.offers";
 $product_identification_table = "product.identification";
 $product_updates_table = "product.updates";
 $product_transaction_search_table = "product.transactionSearch";
+$product_reviews_table = "product.reviews";
 
 // Giveaway
 $product_giveaways_table = "giveaway.giveaways";
@@ -67,7 +74,7 @@ $correlation_requests_table = "correlation.requests";
 $correlation_types_table = "correlation.types";
 
 // Files
-$file_documents_table = "file.documents";
+$file_files_table = "file.files";
 $file_sharing_table = "file.sharing";
 $file_types_table = "file.types";
 $file_downloads_table = "file.downloads";
@@ -94,6 +101,8 @@ $balance_wallets_table = "balance.wallets";
 $balance_requests_table = "balance.requests";
 $balance_transfers_table = "balance.transfers";
 $balance_instant_transfers_table = "balance.instantTransfers";
+$balance_transaction_types_table = "balance.transactionTypes";
+$balance_transactions_table = "balance.transactions";
 
 // E.T.C
 $website_url = "https://" . get_domain() . "/account";

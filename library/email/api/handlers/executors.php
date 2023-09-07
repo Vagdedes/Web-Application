@@ -67,14 +67,12 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
     global $email_plans_table;
 
     // Find plan
-    $numericPLan = is_numeric($planID);
     set_sql_cache("1 minute");
     $query = get_sql_query(
         $email_plans_table,
         array("id", "test", "redundant", "title", "comments", "contents", "default_cooldown"),
         array(
-            $numericPLan ? array("id", $planID) : "",
-            $numericPLan ? "" : array("name", $planID),
+            array("name", $planID),
             array("deletion_date", null),
             null,
             array("expiration_date", "IS", null, 0),
