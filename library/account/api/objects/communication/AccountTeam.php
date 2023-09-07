@@ -61,6 +61,6 @@ class AccountTeam
     }
 
     public function modifyInvitation() {
-        
+
     }
 }

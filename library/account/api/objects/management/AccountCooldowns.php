@@ -28,15 +28,33 @@ class AccountCooldowns
     }
 
     public function addBuffer($action, $threshold, $duration): bool
-    { //todo
+    {
         $action = string_to_integer($action);
+        $reply = $this->internalHas($action, false);
 
-        if (!$this->has($action, false)) {
+        if ($reply->isPositiveOutcome()) {
+            $object = $reply->getObject();
+
+            if ($object === null || $object->threshold == $threshold) {
+                return true;
+            }
+            global $account_buffer_cooldowns_table;
+            set_sql_query(
+                $account_buffer_cooldowns_table,
+                array("threshold" => ($threshold + 1)),
+                array(
+                    array("id", $object->id),
+                ),
+                null,
+                1
+            );
+        } else {
             global $account_buffer_cooldowns_table;
             sql_insert($account_buffer_cooldowns_table,
                 array(
                     "account_id" => $this->account->getDetail("id"),
                     "action_id" => $action,
+                    "threshold" => 1,
                     "expiration" => strtotime(get_future_date($duration))
                 )
             );
@@ -45,22 +63,49 @@ class AccountCooldowns
         return false;
     }
 
-    public function has($action, $hash = true): bool
+    private function internalHas($action, $hash = true): MethodReply
     {
-        global $account_instant_cooldowns_table;
+        global $account_instant_cooldowns_table, $account_buffer_cooldowns_table;
+
+        if ($hash) {
+            $action = string_to_integer($action);
+        }
         set_sql_cache("1 second");
-        return !empty(
-        get_sql_query(
+
+        if (!empty(get_sql_query(
             $account_instant_cooldowns_table,
             array("id"),
             array(
                 array("account_id", $this->account->getDetail("id")),
-                array("action_id", $hash ? string_to_integer($action) : $action),
+                array("action_id", $action),
                 array("expiration", ">", time())
             ),
             null,
             1
-        )
+        ))) {
+            return new MethodReply(true);
+        }
+        set_sql_cache("1 second");
+        $query = get_sql_query(
+            $account_buffer_cooldowns_table,
+            array("id", "threshold"),
+            array(
+                array("account_id", $this->account->getDetail("id")),
+                array("action_id", $action),
+                array("expiration", ">", time())
+            ),
+            null,
+            1
         );
+
+        if (!empty($query)) {
+            return new MethodReply(true, null, $query[0]);
+        }
+        return new MethodReply(false);
+    }
+
+    public function has($action, $hash = true): bool
+    {
+        return $this->internalHas($action, $hash)->isPositiveOutcome();
     }
 }
