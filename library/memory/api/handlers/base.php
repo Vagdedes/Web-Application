@@ -75,6 +75,31 @@ function get_memory_segment_limit($multiplier = null): int
 
 function get_memory_segment_ids(): array
 {
+    global $memory_segments_table;
+    $time = time();
+    $identifer = get_server_identifier();
+    $query = get_sql_query(
+        $memory_segments_table,
+        array("array", "next_repetition"),
+        array(
+            array("identifier", $identifer)
+        ),
+        null,
+        1
+    );
+    $empty = empty($query);
+
+    if (!$empty) {
+        $query = $query[0];
+
+        if ($time <= $query->next_repetition) {
+            $query = @unserialize($query->array);
+
+            if (is_array($query)) {
+                return $query;
+            }
+        }
+    }
     global $memory_permissions_string;
     $stringToFix = "echo 32766 >/proc/sys/kernel/shmmni";
     $oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
@@ -88,6 +113,29 @@ function get_memory_segment_ids(): array
                 $array[$key] = hexdec($value);
             }
         }
+    }
+    if ($empty) {
+        sql_insert(
+            $memory_segments_table,
+            array(
+                "identifier" => $identifer,
+                "array" => serialize($array),
+                "next_repetition" => time() + 1
+            )
+        );
+    } else {
+        set_sql_query(
+            $memory_segments_table,
+            array(
+                "array" => serialize($array),
+                "next_repetition" => time() + 1
+            ),
+            array(
+                array("identifier", $identifer)
+            ),
+            null,
+            1
+        );
     }
     return $array;
 }
@@ -317,7 +365,7 @@ class IndividualMemoryBlock
         global $memory_filler_character;
         $rawData = trim($readMapBytes, $memory_filler_character);
 
-        if (strlen($rawData) > 0) {
+        if (strlen($rawData) >= 21) { // Minimum length of serialized and deflated object.
             $value = @gzinflate($rawData);
 
             if ($value !== false) {

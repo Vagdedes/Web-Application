@@ -1,13 +1,12 @@
 <?php
 // Account
 $accounts_table = "account.accounts";
-$change_password_table = "account.changePassword";
-$account_history_table = "account.history";
-$account_sessions_table = "account.sessions";
-$email_verifications_table = "account.emailVerifications";
-$instant_logins_table = "account.instantLogins";
 $account_identification_table = "account.identification";
-$account_settings_table = "account.settings";
+$account_history_table = "account.history";
+
+// Session
+$account_sessions_table = "session.sessions";
+$instant_logins_table = "session.instantLogins";
 
 // Notification
 $account_notifications_table = "notification.notifications";
@@ -22,6 +21,7 @@ $executed_moderations_table = "management.executedModerations";
 $blocked_functionalities_table = "management.blockedFunctionalities";
 $account_permissions_table = "management.accountPermissions";
 $account_roles_table = "management.accountRoles";
+$account_settings_table = "management.settings";
 
 // Cooldown
 $account_instant_cooldowns_table = "cooldown.instantCooldowns";
@@ -88,6 +88,8 @@ $team_teams_table = "team.teams";
 $verification_instant_table = "verification.instant";
 $verification_password_table = "verification.password";
 $verification_types_table = "verification.types";
+$email_verifications_table = "verification.emailVerifications";
+$change_password_table = "verification.changePassword";
 
 // Translation
 $translation_languages_table = "translation.languages";

@@ -2,7 +2,6 @@
 
 // Here we add objects that are completely standalone
 
-
 class Application
 {
     private ?int $id;

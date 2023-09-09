@@ -14,7 +14,7 @@ class CustomerSupport
         clear_memory(array(self::class), true);
     }
 
-    public function listTickets($time = "3 days"): array
+    public function listTickets($time = "7 days"): array
     {
         global $customer_support_table;
         set_sql_cache(null, self::class);
