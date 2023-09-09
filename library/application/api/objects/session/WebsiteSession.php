@@ -88,11 +88,11 @@ class WebsiteSession
                 $account = new Account($this->applicationID, $object->account_id);
 
                 if ($account->exists()) { // Check if session account exists
-                    $date = get_future_date(self::session_account_refresh_expiration);
                     set_sql_query(
                         $account_sessions_table,
                         array(
-                            "expiration_date" => $date
+                            "modification_date" => $date,
+                            "expiration_date" => get_future_date(self::session_account_refresh_expiration)
                         ),
                         array(
                             array("id", $object->id)

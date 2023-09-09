@@ -8,4 +8,14 @@ class WebsiteKnowledge
     {
         $this->applicationID = $applicationID;
     }
+
+    public function getType() {
+
+    }
+
+    // Separator
+
+    public function get() {
+
+    }
 }
