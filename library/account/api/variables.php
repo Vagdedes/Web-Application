@@ -16,12 +16,14 @@ $account_notification_types_table = "notification.types";
 $role_permissions_table = "management.permissions";
 $roles_table = "management.roles";
 $functionalities_table = "management.functionalities";
-$moderations_table = "management.moderations";
-$executed_moderations_table = "management.executedModerations";
 $blocked_functionalities_table = "management.blockedFunctionalities";
 $account_permissions_table = "management.accountPermissions";
 $account_roles_table = "management.accountRoles";
 $account_settings_table = "management.settings";
+
+// Moderation
+$moderations_table = "moderation.moderations";
+$executed_moderations_table = "moderation.executedModerations";
 
 // Cooldown
 $account_instant_cooldowns_table = "cooldown.instantCooldowns";
@@ -105,6 +107,10 @@ $balance_transfers_table = "balance.transfers";
 $balance_instant_transfers_table = "balance.instantTransfers";
 $balance_transaction_types_table = "balance.transactionTypes";
 $balance_transactions_table = "balance.transactions";
+
+// Knowledge
+$knowledge_types_table = "knowledge.types";
+$knowledge_information_table = "knowledge.information";
 
 // E.T.C
 $website_url = "https://" . get_domain() . "/account";
