@@ -4,10 +4,6 @@ $accounts_table = "account.accounts";
 $account_identification_table = "account.identification";
 $account_history_table = "account.history";
 
-// Session
-$account_sessions_table = "session.sessions";
-$instant_logins_table = "session.instantLogins";
-
 // Notification
 $account_notifications_table = "notification.notifications";
 $account_notification_types_table = "notification.types";
@@ -93,10 +89,6 @@ $verification_types_table = "verification.types";
 $email_verifications_table = "verification.emailVerifications";
 $change_password_table = "verification.changePassword";
 
-// Translation
-$translation_languages_table = "translation.languages";
-$translation_text_table = "translation.text";
-
 // Balance
 $balance_accepted_currencies_table = "balance.acceptedCurrencies";
 $balance_denied_currencies_table = "balance.deniedCurrencies";
@@ -108,9 +100,13 @@ $balance_instant_transfers_table = "balance.instantTransfers";
 $balance_transaction_types_table = "balance.transactionTypes";
 $balance_transactions_table = "balance.transactions";
 
-// Knowledge
-$knowledge_types_table = "knowledge.types";
-$knowledge_information_table = "knowledge.information";
+// Statistic
+$statistic_types_table = "statistic.types";
+$statistic_integers_table = "statistic.integerStatistics";
+$statistic_long_table = "statistic.longStatistics";
+$statistic_double_table = "statistic.doubleStatistics";
+$statistic_boolean_table = "statistic.booleanStatistics";
+$statistic_string_table = "statistic.stringStatistics";
 
 // E.T.C
 $website_url = "https://" . get_domain() . "/account";

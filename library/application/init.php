@@ -20,6 +20,9 @@ require_once '/var/www/.structure/library/application/api/objects/finance/Paymen
 // Communication
 require_once '/var/www/.structure/library/application/api/objects/communication/LanguageTranslation.php';
 
+// Information
+require_once '/var/www/.structure/library/application/api/objects/information/WebsiteKnowledge.php';
+
 // Session
 require_once '/var/www/.structure/library/application/api/objects/session/WebsiteSession.php';
 require_once '/var/www/.structure/library/application/api/objects/session/TwoFactorAuthentication.php';

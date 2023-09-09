@@ -40,4 +40,9 @@ class Application
     {
         return new LanguageTranslation($this->id);
     }
+
+    public function getWebsiteKnowledge(): WebsiteKnowledge
+    {
+        return new WebsiteKnowledge($this->id);
+    }
 }

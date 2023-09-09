@@ -34,6 +34,7 @@ class Account
     private AccountGiveaway $giveaway;
     private AccountFunctionality $functionality;
     private AccountWallet $wallet;
+    private AccountStatistics $statistics;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -104,6 +105,7 @@ class Account
                 $this->patreon = new AccountPatreon($this);
                 $this->correlation = new AccountCorrelation($this);
                 $this->verification = new AccountVerification($this);
+                $this->statistics = new AccountStatistics($this);
             } else {
                 $this->exists = false;
                 $this->object = new stdClass();
@@ -309,5 +311,10 @@ class Account
     public function getWallet(): AccountWallet
     {
         return $this->wallet;
+    }
+
+    public function getStatistics(): AccountStatistics
+    {
+        return $this->statistics;
     }
 }

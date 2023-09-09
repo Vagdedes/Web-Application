@@ -55,3 +55,6 @@ require_once '/var/www/.structure/library/account/api/objects/correlation/Accoun
 // Finance
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountWallet.php';
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountAffiliate.php';
+
+// Information
+require_once '/var/www/.structure/library/account/api/objects/information/AccountStatistics.php';
