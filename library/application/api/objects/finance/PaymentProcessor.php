@@ -152,6 +152,7 @@ class PaymentProcessor
                                 $skip = true; // Ignore the first iteration
                                 $transactionSearch = $product->transaction_search;
                                 $transactionSearchEnd = sizeof($transactionSearch) - 1;
+                                $tier = null;
                                 $email = null;
                                 $additionalProducts = null;
                                 $duration = null;
@@ -161,6 +162,7 @@ class PaymentProcessor
                                     if ($lookUpID !== $transactionSearchProperties->lookup_id) {
                                         if (!$skip) {
                                             $credential = true;
+                                            $tier = $transactionSearchProperties->tier_id;
                                             $email = $transactionSearchProperties->email;
                                             $additionalProducts = $transactionSearchProperties->additional_products;
                                             $duration = $transactionSearchProperties->duration;
@@ -217,6 +219,7 @@ class PaymentProcessor
 
                                     if (!$skip && $transactionSearchRow === $transactionSearchEnd) {
                                         $credential = true;
+                                        $tier = $transactionSearchProperties->tier_id;
                                         $email = $transactionSearchProperties->email;
                                         $additionalProducts = $transactionSearchProperties->additional_products;
                                         $duration = $transactionSearchProperties->duration;
@@ -255,10 +258,11 @@ class PaymentProcessor
                                                 $failedTransactions = $account->getTransactions()->getFailed(null, $productCount);
                                             }
                                             if (in_array($transactionID, $failedTransactions)) {
-                                                $account->getPurchases()->remove($product->id, $transactionID);
+                                                $account->getPurchases()->remove($product->id, $tier, $transactionID);
                                             } else {
                                                 $account->getPurchases()->add(
                                                     $product->id,
+                                                    $tier,
                                                     null,
                                                     $transactionID,
                                                     $date,
@@ -302,10 +306,11 @@ class PaymentProcessor
                                                         );
                                                     }
                                                     if (in_array($transactionID, $failedTransactions)) {
-                                                        $account->getPurchases()->remove($product->id, $transactionID);
+                                                        $account->getPurchases()->remove($product->id, $tier, $transactionID);
                                                     } else {
                                                         $account->getPurchases()->add(
                                                             $product->id,
+                                                            $tier,
                                                             null,
                                                             $transactionID,
                                                             $date,
@@ -362,6 +367,7 @@ class PaymentProcessor
                                                 $account->getPurchases()->add(
                                                     $product->id,
                                                     null,
+                                                    null,
                                                     $ownership->transaction_id,
                                                     $ownership->creation_date,
                                                     $ownership->expiration_date,
@@ -369,7 +375,7 @@ class PaymentProcessor
                                                     true,
                                                 );
                                             } else {
-                                                $account->getPurchases()->remove($product->id, $ownership->transaction_id);
+                                                $account->getPurchases()->remove($product->id, null, $ownership->transaction_id);
                                             }
                                         }
                                     }

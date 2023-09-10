@@ -9,7 +9,7 @@ function account_product_prompt(?Account $account, $isLoggedIn, $productObject):
     if ($isLoggedIn) {
         if ($account->getGiveaway()->hasWon($productObject->id)) {
             return "Won From Giveaway";
-        } else if ($productObject->price === null) {
+        } else if ($productObject->is_free) {
             return !empty($productObject->downloads)
                 ? $free
                 : $view;
@@ -23,7 +23,7 @@ function account_product_prompt(?Account $account, $isLoggedIn, $productObject):
     } else {
         return $productObject->requires_account !== null
             ? "Log In To View"
-            : ($productObject->price !== null ? $view
+            : (!$productObject->is_free ? $view
                 : (!empty($productObject->downloads) ? $free : $view));
     }
 }

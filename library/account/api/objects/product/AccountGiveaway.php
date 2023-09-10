@@ -84,7 +84,7 @@ class AccountGiveaway
 
                         // Search for next product to give away
                         foreach ($validProducts as $arrayKey => $product) {
-                            if ($product->price !== null
+                            if (!$product->is_free
                                 && $product->show_in_list !== null
                                 && !empty($product->downloads)) {
                                 $loopID = $product->id;

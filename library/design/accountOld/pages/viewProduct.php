@@ -23,9 +23,9 @@ function loadViewProduct(Account $account, $isLoggedIn)
             $description = $productFound->description;
             $image = $productFound->image;
             $legal = $productFound->legal_information;
-            $isFree = $productFound->price === null;
+            $isFree = $productFound->is_free;
             $developmentDays = get_date_days_difference($productFound->creation_date);
-            $hasPurchased = $productFound->price === null
+            $hasPurchased = $isFree
                 || $isLoggedIn && $account->getPurchases()->owns($productID)->isPositiveOutcome();
 
             // Separator
@@ -39,7 +39,9 @@ function loadViewProduct(Account $account, $isLoggedIn)
                 } else {
                     $activeCustomers = "";
                 }
-                $price = "<li style='width: auto;'>" . $productFound->price . " " . $productFound->currency . "</li>";
+                $hasTiers = sizeof($productFound->tiers) > 1;
+                $tier = $productFound->tiers[0];
+                $price = "<li style='width: auto;'>" . ($hasTiers ? "Starting from " : "") . $tier->price . " " . $tier->currency . "</li>";
             }
 
             echo "<div class='area'>";

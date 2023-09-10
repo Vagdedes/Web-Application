@@ -54,7 +54,8 @@ class AccountProduct
                        $product_identification_table,
                        $product_divisions_table,
                        $product_purchases_table,
-                       $product_reviews_table;
+                       $product_reviews_table,
+                       $product_tiers_table;
                 $accountExists = $this->account->exists();
 
                 foreach ($array as $arrayKey => $object) {
@@ -71,7 +72,8 @@ class AccountProduct
                                 "duration",
                                 "email",
                                 "accepted_account_id",
-                                "lookup_id"
+                                "lookup_id",
+                                "tier_id"
                             ),
                             array(
                                 array("product_id", $productID),
@@ -95,6 +97,19 @@ class AccountProduct
                                 array("deletion_date", null),
                             )
                         );
+                        $object->tiers = get_sql_query(
+                            $product_tiers_table,
+                            array("name", "price", "currency"),
+                            array(
+                                array("product_id", $productID),
+                                array("deletion_date", null),
+                            ),
+                            array(
+                                "ASC",
+                                "price"
+                            )
+                        );
+                        $object->is_free = empty($object->tiers);
                         $object->registered_buyers = sizeof(get_sql_query(
                             $product_purchases_table,
                             array("id"),
@@ -103,7 +118,6 @@ class AccountProduct
                                 array("deletion_date", null)
                             )
                         ));
-                        $object->currency = "EUR";
                         $object->url = $website_url . "/viewProduct/?id=" . $productID;
                         $query = get_sql_query(
                             $product_divisions_table,

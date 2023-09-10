@@ -183,12 +183,35 @@ function clear_memory($keys, $abstractSearch = false, $localSegments = null)
         }
     }
     foreach ($keys as $position => $key) {
-        $key = manipulate_memory_key($key);
+        if (is_array($key)) {
+            if ($abstractSearch) {
+                $break = false;
 
-        if ($key === false) {
-            unset($keys[$position]);
+                foreach ($key as $subPosition => $subKey) {
+                    $subKey = manipulate_memory_key($subKey);
+
+                    if ($subKey === false) {
+                        unset($keys[$position]);
+                        $break = true;
+                        break;
+                    } else {
+                        $key[$subPosition] = $subKey;
+                    }
+                }
+                if (!$break) {
+                    $keys[$position] = $key;
+                }
+            } else {
+                unset($keys[$position]);
+            }
         } else {
-            $keys[$position] = $key;
+            $key = manipulate_memory_key($key);
+
+            if ($key === false) {
+                unset($keys[$position]);
+            } else {
+                $keys[$position] = $key;
+            }
         }
     }
 
@@ -199,16 +222,21 @@ function clear_memory($keys, $abstractSearch = false, $localSegments = null)
             $segments = is_array($localSegments) ? $localSegments : get_memory_segment_ids();
 
             if (!empty($segments)) {
-                foreach ($keys as $arrayKey => $key) {
-                    $keys[$arrayKey] = serialize($key);
-                }
                 foreach ($segments as $segment) {
                     $memoryBlock = new IndividualMemoryBlock($segment);
                     $memoryKey = $memoryBlock->get("key");
 
                     if ($memoryKey !== null) {
                         foreach ($keys as $key) {
-                            if (strpos($memoryKey, $key) !== false) {
+                            if (is_array($key)) {
+                                foreach ($key as $subKey) {
+                                    if (strpos($memoryKey, $subKey) === false) {
+                                        continue 2;
+                                    }
+                                }
+                                $memoryBlock->clear();
+                                unset($memory_object_cache[$segment]);
+                            } else if (strpos($memoryKey, $key) !== false) {
                                 $memoryBlock->clear();
                                 unset($memory_object_cache[$segment]);
                             }
@@ -218,10 +246,12 @@ function clear_memory($keys, $abstractSearch = false, $localSegments = null)
             }
         } else {
             foreach ($memory_reserved_names as $name) {
-                $name .= $key;
-                $memoryBlock = new IndividualMemoryBlock($name);
-                $memoryBlock->clear();
-                unset($memory_object_cache[$name]);
+                foreach ($keys as $key) {
+                    $name .= $key;
+                    $memoryBlock = new IndividualMemoryBlock($name);
+                    $memoryBlock->clear();
+                    unset($memory_object_cache[$name]);
+                }
             }
         }
     } else {

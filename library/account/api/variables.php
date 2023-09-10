@@ -39,6 +39,7 @@ $product_identification_table = "product.identification";
 $product_updates_table = "product.updates";
 $product_transaction_search_table = "product.transactionSearch";
 $product_reviews_table = "product.reviews";
+$product_tiers_table = "product.tiers";
 
 // Giveaway
 $product_giveaways_table = "giveaway.giveaways";

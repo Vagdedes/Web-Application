@@ -25,20 +25,19 @@ class AccountPurchases
 
         if ($products->isPositiveOutcome()) {
             foreach ($products->getObject() as $product) {
-                if ($product->price === null
+                if ($product->is_free
                     || $product->required_permission !== null && $this->account->getPermissions()->hasPermission($product->required_permission)) {
                     $object = new stdClass();
                     $object->id = random_number();
                     $object->account_id = $this->account->getDetail("id");
                     $object->product_id = $product->id;
+                    $object->tier_id = $product->is_free ? null : $product->tiers[0]->id;
                     $object->exchange_id = null;
                     $object->transaction_id = "patreon";
                     $object->creation_date = $date;
                     $object->expiration_date = null;
                     $object->expiration_notification = null;
                     $object->deletion_date = null;
-                    $object->price = $product->price;
-                    $object->currency = null;
                     $object->coupon = null;
                     $array[$product->id] = $object;
                     $challengeArray = true;
@@ -146,13 +145,16 @@ class AccountPurchases
         );
     }
 
-    public function owns($productID): MethodReply
+    public function owns($productID, $tierID = null): MethodReply
     {
         $array = $this->getCurrent();
 
         if (!empty($array)) {
+            $hasTier = $tierID !== null;
+
             foreach ($array as $row) {
-                if ($row->product_id == $productID) {
+                if ($row->product_id == $productID
+                    && (!$hasTier || $row->tier_id == $tierID)) {
                     return new MethodReply(true, null, $row);
                 }
             }
@@ -160,13 +162,16 @@ class AccountPurchases
         return new MethodReply(false);
     }
 
-    public function owned($productID): MethodReply
+    public function owned($productID, $tierID = null): MethodReply
     {
         $array = $this->getExpired();
 
         if (!empty($array)) {
+            $hasTier = $tierID !== null;
+
             foreach ($array as $row) {
-                if ($row->product_id == $productID) {
+                if ($row->product_id == $productID
+                    && (!$hasTier || $row->tier_id == $tierID)) {
                     return new MethodReply(true, null, $row);
                 }
             }
@@ -174,7 +179,8 @@ class AccountPurchases
         return new MethodReply(false);
     }
 
-    public function add($productID, $coupon = null,
+    public function add($productID, $tierID = null,
+                        $coupon = null,
                         $transactionID = null,
                         $creationDate = null, $duration = null,
                         $sendEmail = null,
@@ -190,10 +196,42 @@ class AccountPurchases
         if (!$product->isPositiveOutcome()) {
             return new MethodReply(false, $product->getMessage());
         }
-        $purchase = $this->owns($productID);
+        $product = $product->getObject()[0];
+
+        if ($product->is_free) {
+            return new MethodReply(false, "This product is free and cannot be purchased.");
+        }
+        if ($tierID === null) {
+            $tier = $product->tiers[0];
+            $tierID = $tier->id;
+            $price = $tier->price;
+            $currency = $tier->currency;
+
+            if (!isset($price)) {
+                return new MethodReply(false, "This product does not have a price (1).");
+            }
+            if (!isset($currency)) {
+                return new MethodReply(false, "This product does not have a currency (1).");
+            }
+        } else {
+            foreach ($product->tiers as $tier) {
+                if ($tier->id == $tierID) {
+                    $price = $tier->price;
+                    $currency = $tier->currency;
+                    break;
+                }
+            }
+            if (!isset($price)) {
+                return new MethodReply(false, "This product does not have a price (2).");
+            }
+            if (!isset($currency)) {
+                return new MethodReply(false, "This product does not have a currency (2).");
+            }
+        }
+        $purchase = $this->owns($productID, $tierID);
 
         if ($purchase->isPositiveOutcome()) {
-            return new MethodReply(false, "This product is already owned.");
+            return new MethodReply(false, "This product's tier is already owned.");
         }
         global $product_purchases_table;
 
@@ -211,8 +249,6 @@ class AccountPurchases
             return new MethodReply(false, "This transaction has already been processed for this product.");
         }
         $hasCoupon = $coupon !== null;
-        $product = $product->getObject()[0];
-        $price = $product->price;
 
         if ($hasCoupon) {
             $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::USE_COUPON);
@@ -245,11 +281,12 @@ class AccountPurchases
             array(
                 "account_id" => $this->account->getDetail("id"),
                 "product_id" => $productID,
+                "tier_id" => $tierID,
                 "transaction_id" => $transactionID,
                 "creation_date" => $creationDate,
                 "expiration_date" => $duration,
                 "price" => $price,
-                "currency" => $product->currency,
+                "currency" => $currency,
                 "coupon" => $coupon
             )
         )) {
@@ -289,6 +326,7 @@ class AccountPurchases
                 $this->add(
                     $additionalProduct,
                     null,
+                    null,
                     $transactionID,
                     $creationDate,
                     $additionalProductDuration === null ? $duration : $additionalProductDuration,
@@ -299,14 +337,14 @@ class AccountPurchases
         return new MethodReply(true, "Successfully made new purchase.");
     }
 
-    public function remove($productID, $transactionID = null): MethodReply
+    public function remove($productID, $tierID = null, $transactionID = null): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::REMOVE_PRODUCT);
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
         }
-        $purchase = $this->owns($productID);
+        $purchase = $this->owns($productID, $tierID);
 
         if (!$purchase->isPositiveOutcome()) {
             return new MethodReply(false, "Cannot remove purchase that is not owned.");
@@ -336,7 +374,7 @@ class AccountPurchases
         return new MethodReply(true, "Successfully removed purchase.");
     }
 
-    public function exchange($productID, $newProductID, $sendEmail = true): MethodReply
+    public function exchange($productID, $tierID, $newProductID, $newTierID, $sendEmail = true): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::EXCHANGE_PRODUCT);
 
@@ -356,12 +394,12 @@ class AccountPurchases
         if (!$newProduct->isPositiveOutcome()) {
             return new MethodReply(false, $newProduct->getMessage());
         }
-        $purchase = $this->owns($productID);
+        $purchase = $this->owns($productID, $tierID);
 
         if (!$purchase->isPositiveOutcome()) {
             return new MethodReply(false, "Cannot exchange purchase that's not owned.");
         }
-        $purchase = $this->owns($newProductID);
+        $purchase = $this->owns($newProductID, $newTierID);
 
         if ($purchase->isPositiveOutcome()) {
             return new MethodReply(false, "Cannot exchange purchase that's already owned.");
@@ -371,12 +409,13 @@ class AccountPurchases
         $purchase = $purchase->getObject();
         $purchaseID = $purchase->id;
         unset($purchase->id);
+        $purchase->tier_id = $newTierID;
         $purchase->creation_date = $date;
         $purchase->product_id = $newProductID;
 
         if (!sql_insert(
             $product_purchases_table,
-            json_decode(json_encode($purchase), true)
+            json_decode(json_encode($purchase), true) // Convert object to array
         )) {
             return new MethodReply(false, "Failed to interact with the database (1).");
         }
