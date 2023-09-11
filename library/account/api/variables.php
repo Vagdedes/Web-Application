@@ -106,8 +106,8 @@ $statistic_types_table = "statistic.types";
 $statistic_integers_table = "statistic.integerStatistics";
 $statistic_long_table = "statistic.longStatistics";
 $statistic_double_table = "statistic.doubleStatistics";
-$statistic_boolean_table = "statistic.booleanStatistics";
 $statistic_string_table = "statistic.stringStatistics";
+$statistic_boolean_table = "statistic.booleanStatistics";
 
 // E.T.C
 $website_url = "https://" . get_domain() . "/account";
