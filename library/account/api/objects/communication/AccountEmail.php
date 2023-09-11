@@ -107,7 +107,7 @@ class AccountEmail
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        clear_memory(array(self::class), true);
+        $this->account->clearMemory(self::class);
         $oldEmail = $this->account->getDetail("email_address");
         $change = $this->account->setDetail("email_address", $email);
 
@@ -173,7 +173,7 @@ class AccountEmail
                 ))) {
                 return new MethodReply(false, "Failed to interact with the database.");
             }
-            clear_memory(array(self::class), true);
+            $this->account->clearMemory(self::class);
         } else {
             $token = $array[0]->token;
         }
@@ -210,12 +210,17 @@ class AccountEmail
 
     public function send($case, $detailsArray = null, $type = "account", $unsubscribe = true): bool
     {
+        $applicationID = $this->account->getDetail("application_id");
+
+        if ($applicationID === null) {
+            $applicationID = 0;
+        }
         return $this->account->getSettings()->isEnabled(
                 "receive_" . $type . "_emails",
                 $type === "account"
             )
             && send_email_by_plan(
-                $this->account->getDetail("application_id") . "-" . $case,
+                $applicationID . "-" . $case,
                 $this->account->getDetail("email_address"),
                 $detailsArray,
                 $unsubscribe

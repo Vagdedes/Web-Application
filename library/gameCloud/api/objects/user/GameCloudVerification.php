@@ -385,7 +385,7 @@ class GameCloudVerification
             )) {
             return false;
         }
-        clear_memory(array($this::cache_key), true);
+        $this->user->clearMemory($this::cache_key);
         return true;
     }
 

@@ -152,7 +152,7 @@ class Account
             )) {
                 return new MethodReply(false, "Failed to interact with the database.");
             }
-            clear_memory(array(self::class), true);
+            $this->clearMemory(self::class);
             $this->object->{$detail} = $value;
         }
         return new MethodReply(true);
@@ -316,5 +316,29 @@ class Account
     public function getStatistics(): AccountStatistics
     {
         return $this->statistics;
+    }
+
+    public function clearMemory($key = null)
+    {
+        if (isset($this->object->id)) {
+            if ($key === null) {
+                clear_memory(array(get_sql_cache_key("account_id", $this->object->id)), true);
+            } else if (is_array($key)) {
+                $key1 = get_sql_cache_key("account_id", $this->object->id);
+
+                foreach ($key as $item) {
+                    clear_memory(array(array($item, $key)), true);
+                }
+            } else {
+                clear_memory(
+                    array(array(
+                        $key,
+                        get_sql_cache_key("account_id", $this->object->id)
+                    )), true
+                );
+            }
+        } else if ($key !== null) {
+            clear_memory(array($key), true);
+        }
     }
 }

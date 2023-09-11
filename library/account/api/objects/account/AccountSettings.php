@@ -84,7 +84,7 @@ class AccountSettings
         if ($cooldown !== null) {
             $functionality->addInstantCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
         }
-        clear_memory(array(self::class), true);
+        $this->account->clearMemory(self::class);
         return new MethodReply(true);
     }
 
@@ -151,7 +151,7 @@ class AccountSettings
         if ($cooldown !== null) {
             $functionality->addInstantCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
         }
-        clear_memory(array(self::class), true);
+        $this->account->clearMemory(self::class);
         return new MethodReply(
             true,
             "Functionality successfully " . ($enabled ? "enabled." : "disabled."),

@@ -184,7 +184,8 @@ class AccountFunctionality
                 "expiration_date" => ($duration ? get_future_date($duration) : null),
             )
         )) {
-            clear_memory(array(self::class), true);
+            $this->account->clearMemory(self::class);
+            $account->clearMemory(self::class);
             return new MethodReply(true, "Blocked feature for user successfully.");
         }
         return new MethodReply(false);
@@ -234,7 +235,8 @@ class AccountFunctionality
             null,
             1
         )) {
-            clear_memory(array(self::class), true);
+            $this->account->clearMemory(self::class);
+            $account->clearMemory(self::class);
             return new MethodReply(true, "Cancelled blocked feature of user successfully.");
         }
         return new MethodReply(false, "Failed to execute moderation action.");

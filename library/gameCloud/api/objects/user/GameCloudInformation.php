@@ -3,7 +3,7 @@
 class GameCloudInformation
 {
     private GameCloudUser $user;
-    private $account;
+    private ?Account $account;
 
 
     public function __construct($user)

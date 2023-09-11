@@ -77,7 +77,7 @@ class AccountPurchases
             }
 
             if ($clearMemory) {
-                clear_memory(array(self::class), true);
+                $this->account->clearMemory(self::class);
             } else {
                 global $sql_max_cache_time;
                 set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
@@ -125,7 +125,7 @@ class AccountPurchases
             }
 
             if ($clearMemory) {
-                clear_memory(array(self::class), true);
+                $this->account->clearMemory(self::class);
             }
         }
         return $query;
@@ -292,7 +292,7 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        clear_memory(array(self::class), true);
+        $this->account->clearMemory(self::class);
 
         if (!$this->account->getHistory()->add("buy_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -301,7 +301,7 @@ class AccountPurchases
             if (!$this->account->getHistory()->add("use_coupon", null, $coupon)) {
                 return new MethodReply(false, "Failed to update user history (2).");
             }
-            clear_memory(array(ProductCoupon::class), true);
+            $this->account->clearMemory(ProductCoupon::class);
         }
         if ($sendEmail !== null) {
             $details = array(
@@ -366,7 +366,7 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        clear_memory(array(self::class), true);
+        $this->account->clearMemory(self::class);
 
         if (!$this->account->getHistory()->add("remove_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -447,7 +447,7 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database (3).");
         }
-        clear_memory(array(self::class), true);
+        $this->account->clearMemory(self::class);
 
         if (!$this->account->getHistory()->add("exchange_product", $productID, $newProductID)) {
             return new MethodReply(false, "Failed to update user history.");

@@ -113,7 +113,7 @@ class AccountAccounts
             ))) {
             return new MethodReply(false, "Failed to interact with the database (1).");
         }
-        clear_memory(array(self::class), true);
+        $this->account->clearMemory(self::class);
 
         if (!$this->account->getHistory()->add("add_account", null, $credential)) {
             return new MethodReply(false, "Failed to update user history.");
@@ -182,7 +182,7 @@ class AccountAccounts
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        clear_memory(array(self::class), true);
+        $this->account->clearMemory(self::class);
 
         if ($cooldown !== null) {
             $functionality->addInstantCooldown(AccountFunctionality::REMOVE_ACCOUNT, $cooldown);

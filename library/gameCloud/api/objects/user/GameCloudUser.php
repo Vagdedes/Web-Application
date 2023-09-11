@@ -65,4 +65,35 @@ class GameCloudUser
     {
         return $this->email;
     }
+
+    public function clearMemory($key = null)
+    {
+        if ($this->isValid()) {
+            if ($key === null) {
+                clear_memory(
+                    array(array(
+                        get_sql_cache_key("platform_id", $this->platform),
+                        get_sql_cache_key("license_id", $this->license)
+                    )), true
+                );
+            } else if (is_array($key)) {
+                $key1 = get_sql_cache_key("platform_id", $this->platform);
+                $key2 = get_sql_cache_key("license_id", $this->license);
+
+                foreach ($key as $item) {
+                    clear_memory(array(array($item, $key1, $key2)), true);
+                }
+            } else {
+                clear_memory(
+                    array(array(
+                        $key,
+                        get_sql_cache_key("platform_id", $this->platform),
+                        get_sql_cache_key("license_id", $this->license)
+                    )), true
+                );
+            }
+        } else if ($key !== null) {
+            clear_memory(array($key), true);
+        }
+    }
 }

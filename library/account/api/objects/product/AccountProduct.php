@@ -99,7 +99,7 @@ class AccountProduct
                         );
                         $object->tiers = get_sql_query(
                             $product_tiers_table,
-                            array("name", "price", "currency"),
+                            array("id", "name", "price", "currency"),
                             array(
                                 array("product_id", $productID),
                                 array("deletion_date", null),
@@ -260,11 +260,13 @@ class AccountProduct
         return new MethodReply(!$isEmpty, $isEmpty ? "Product not found." : null, $array);
     }
 
-    public function create() {
+    public function create()
+    {
         //todo
     }
 
-    public function delete() {
+    public function delete()
+    {
         //todo
     }
 }

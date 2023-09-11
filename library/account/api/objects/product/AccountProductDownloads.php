@@ -33,7 +33,7 @@ class AccountProductDownloads
     public function sendFileDownload($productID, $requestedByToken = null, $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
-        $functionalityOutcome = $functionality->getResult(AccountFunctionality::DOWNLOAD_PRODUCT,true);
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::DOWNLOAD_PRODUCT, true);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -124,7 +124,7 @@ class AccountProductDownloads
             unlink($fileCopy);
             return new MethodReply(false, "Failed to update user history.");
         }
-        clear_memory(array(self::class, AccountProductDownloads::class), true);
+        $this->account->clearMemory(self::class);
         send_file_download($fileCopy, false);
         unlink($fileCopy);
         exit();

@@ -24,7 +24,7 @@ class AccountHistory
                 "new_data" => $newData
             )
         )) {
-            clear_memory(array(self::class), true);
+            $this->account->clearMemory(self::class);
             return true;
         }
         return false;

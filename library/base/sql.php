@@ -181,6 +181,15 @@ function sql_build_order($order)
 
 // Cache
 
+function get_sql_cache_key($key, $value)
+{
+    return substr(
+        serialize(array($key => $value)),
+        5,
+        -1
+    );
+}
+
 function set_sql_cache($time, $tag = null)
 {
     global $sql_cache_time, $sql_cache_tag, $sql_max_cache_time;

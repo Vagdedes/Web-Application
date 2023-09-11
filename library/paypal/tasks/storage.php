@@ -76,15 +76,17 @@ function update_paypal_storage($startDays, $endDays, $checkFailures): bool
             }
 
             // Success (Used to contain '&STATUS=Success' but it was removed so all transactions can be first treated as normal)
-            $transactions = search_paypal_transactions("CURRENCYCODE=EUR&STARTDATE=$pastDate&ENDDATE=$recentDate&TRANSACTIONCLASS=Received");
+            foreach (array("Success", "Pending", "Processing") as $status) {
+                $transactions = search_paypal_transactions("CURRENCYCODE=EUR&STARTDATE=$pastDate&ENDDATE=$recentDate&TRANSACTIONCLASS=Received&STATUS=$status");
 
-            if (is_array($transactions) && !empty($transactions)) {
-                foreach ($transactions as $key => $transactionID) {
-                    if (strpos($key, "L_TRANSACTIONID") !== false
-                        && !in_array($transactionID, $existingSuccessfulTransactions)
-                        && !in_array($transactionID, $existingFailedTransactions)
-                        && process_successful_paypal_transaction($transactionID)) {
-                        $processedData = true;
+                if (is_array($transactions) && !empty($transactions)) {
+                    foreach ($transactions as $key => $transactionID) {
+                        if (strpos($key, "L_TRANSACTIONID") !== false
+                            && !in_array($transactionID, $existingSuccessfulTransactions)
+                            && !in_array($transactionID, $existingFailedTransactions)
+                            && process_successful_paypal_transaction($transactionID)) {
+                            $processedData = true;
+                        }
                     }
                 }
             }
@@ -93,17 +95,14 @@ function update_paypal_storage($startDays, $endDays, $checkFailures): bool
             if ($checkFailures) {
                 $recentDate = date('Y-m-d');
                 $pastDate = date('Y-m-d', strtotime("-180 days")) . "T00:00:00Z";
+                $transactions = search_paypal_transactions("CURRENCYCODE=EUR&STARTDATE=$pastDate&ENDDATE=$recentDate&TRANSACTIONCLASS=Received&STATUS=Reversed");
 
-                foreach (array("Reversed", "Denied") as $status) {
-                    $transactions = search_paypal_transactions("CURRENCYCODE=EUR&STARTDATE=$pastDate&ENDDATE=$recentDate&TRANSACTIONCLASS=Received&STATUS=$status");
-
-                    if (is_array($transactions) && !empty($transactions)) {
-                        foreach ($transactions as $key => $transactionID) {
-                            if (strpos($key, "L_TRANSACTIONID") !== false
-                                && !in_array($transactionID, $existingFailedTransactions)
-                                && process_failed_paypal_transaction($transactionID, false)) {
-                                $processedData = true;
-                            }
+                if (is_array($transactions) && !empty($transactions)) {
+                    foreach ($transactions as $key => $transactionID) {
+                        if (strpos($key, "L_TRANSACTIONID") !== false
+                            && !in_array($transactionID, $existingFailedTransactions)
+                            && process_failed_paypal_transaction($transactionID, false)) {
+                            $processedData = true;
                         }
                     }
                 }
@@ -179,6 +178,8 @@ function process_successful_paypal_transaction($transactionID): bool
 
         switch ($transaction["PAYMENTSTATUS"]) {
             case "Completed":
+            case "Pending":
+            case "Processing":
                 global $paypal_successful_transactions_table;
                 if (sql_insert(
                     $paypal_successful_transactions_table,

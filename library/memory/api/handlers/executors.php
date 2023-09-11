@@ -106,8 +106,11 @@ function set_key_value_pair($key, $value = null, $futureTime = null): bool
 
 // Separator
 
-function clear_memory($keys, $abstractSearch = false, $localSegments = null)
+function clear_memory($keys, $abstractSearch = false, $localSegments = null): void
 {
+    if (!is_array($keys)) {
+        return;
+    }
     global $memory_object_cache;
     $hasLocalSegments = $localSegments !== null;
 
@@ -182,41 +185,44 @@ function clear_memory($keys, $abstractSearch = false, $localSegments = null)
             );
         }
     }
-    foreach ($keys as $position => $key) {
-        if (is_array($key)) {
-            if ($abstractSearch) {
-                $break = false;
-
-                foreach ($key as $subPosition => $subKey) {
-                    $subKey = manipulate_memory_key($subKey);
-
-                    if ($subKey === false) {
-                        unset($keys[$position]);
-                        $break = true;
-                        break;
-                    } else {
-                        $key[$subPosition] = $subKey;
-                    }
-                }
-                if (!$break) {
-                    $keys[$position] = $key;
-                }
-            } else {
-                unset($keys[$position]);
-            }
-        } else {
-            $key = manipulate_memory_key($key);
-
-            if ($key === false) {
-                unset($keys[$position]);
-            } else {
-                $keys[$position] = $key;
-            }
-        }
-    }
 
     if (!empty($keys)) {
         global $memory_reserved_names;
+
+        foreach ($keys as $position => $key) {
+            if (is_array($key)) {
+                if ($abstractSearch) {
+                    $break = false;
+
+                    foreach ($key as $subPosition => $subKey) {
+                        $subKey = manipulate_memory_key($subKey);
+
+                        if ($subKey === false) {
+                            unset($keys[$position]);
+                            $break = true;
+                            break;
+                        } else {
+                            $key[$subPosition] = $subKey;
+                        }
+                    }
+                    if (!$break) {
+                        $keys[$position] = $key;
+                    }
+                } else {
+                    unset($keys[$position]);
+                }
+            } else {
+                $key = manipulate_memory_key($key);
+
+                if ($key === false) {
+                    unset($keys[$position]);
+                } else {
+                    $keys[$position] = $key;
+                }
+            }
+        }
+
+        // Separator
 
         if ($abstractSearch) {
             $segments = is_array($localSegments) ? $localSegments : get_memory_segment_ids();

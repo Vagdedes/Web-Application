@@ -64,8 +64,6 @@ class AccountRegistry
             ))) {
             $this->outcome = new MethodReply(false, "Failed to create new account.");
             return;
-        } else {
-            clear_memory(array(Account::class), true);
         }
         $account = new Account($applicationID, null, $email);
 
@@ -73,6 +71,8 @@ class AccountRegistry
             $this->outcome = new MethodReply(false, "Failed to find newly created account.");
             return;
         }
+        $account->clearMemory();
+
         if (!$account->getHistory()->add("register", null, $email)) {
             $this->outcome = new MethodReply(false, "Failed to update user history.");
             return;
