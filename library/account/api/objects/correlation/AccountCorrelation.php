@@ -4,15 +4,29 @@ class AccountCorrelation
 {
     private Account $account;
 
-    //todo introduce constants that are null application-id
 
     public function __construct($account)
     {
         $this->account = $account;
     }
 
-    public function getType() {
-
+    public function getType($id): MethodReply
+    {
+        global $statistic_types_table;
+        $query = get_sql_query(
+            $statistic_types_table,
+            array("id", "name", "description", "creation_date"),
+            array(
+                array("id", $id),
+                array("application_id", $this->account->getDetail("application_id")),
+                array("deletion_date", null)
+            ),
+            null,
+            1
+        );
+        return empty($query)
+            ? new MethodReply(false)
+            : new MethodReply(true, null, $query[0]);
     }
 
     // Separator

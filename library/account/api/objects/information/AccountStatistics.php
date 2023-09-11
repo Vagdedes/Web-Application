@@ -96,18 +96,22 @@ class AccountStatistics
 
     private function privateGet($table, MethodReply $type, $key, $limit = 1, $get = null): MethodReply
     {
-        $query = get_sql_query(
-            $table,
-            $get !== null ? $get : array("id", "statistic_key", "statistic_value", "creation_date", "modification_date", "expiration_date"),
-            $this->getWhereArguments($type, $key),
-            $this->getOrderArguments(),
-            $limit
-        );
+        if ($type->isPositiveOutcome()) {
+            $query = get_sql_query(
+                $table,
+                $get !== null ? $get : array("id", "statistic_key", "statistic_value", "creation_date", "modification_date", "expiration_date"),
+                $this->getWhereArguments($type, $key),
+                $this->getOrderArguments(),
+                $limit
+            );
 
-        if (empty($query)) {
-            return new MethodReply(false);
+            if (empty($query)) {
+                return new MethodReply(false);
+            } else {
+                return new MethodReply(true, null, $query);
+            }
         } else {
-            return new MethodReply(true, null, $query);
+            return new MethodReply(false);
         }
     }
 
@@ -129,21 +133,25 @@ class AccountStatistics
 
     private function privateAdd($date, $table, MethodReply $type, $key, $value, $duration = null): MethodReply
     {
-        $account = $this->includeAccount && $this->account->exists()
-            ? $this->account->getDetail("account_id")
-            : null;
-        return new MethodReply(sql_insert(
-            $table,
-            array(
-                "account_id" => $account,
-                "type" => $type->getObject()->id,
-                "statistic_key" => $key,
-                "statistic_value" => $value,
-                "creation_date" => $date,
-                "modification_date" => $date,
-                "expiration_date" => $duration !== null ? get_future_date($duration) : null,
-            )
-        ));
+        if ($type->isPositiveOutcome()) {
+            $account = $this->includeAccount && $this->account->exists()
+                ? $this->account->getDetail("account_id")
+                : null;
+            return new MethodReply(sql_insert(
+                $table,
+                array(
+                    "account_id" => $account,
+                    "type" => $type->getObject()->id,
+                    "statistic_key" => $key,
+                    "statistic_value" => $value,
+                    "creation_date" => $date,
+                    "modification_date" => $date,
+                    "expiration_date" => $duration !== null ? get_future_date($duration) : null,
+                )
+            ));
+        } else {
+            return new MethodReply(false);
+        }
     }
 
     // Separator
@@ -247,12 +255,16 @@ class AccountStatistics
 
     public function permanentlyDelete($statisticType, $databaseType, $key, $limit = 1): MethodReply
     {
-        return new MethodReply(delete_sql_query(
-            $this->getTable($statisticType),
-            $this->getWhereArguments($this->getType($databaseType), $key),
-            $this->getOrderArguments(),
-            $limit
-        ));
+        $type = $this->getType($databaseType);
+        return new MethodReply(
+            $type->isPositiveOutcome()
+            && delete_sql_query(
+                $this->getTable($statisticType),
+                $this->getWhereArguments($type, $key),
+                $this->getOrderArguments(),
+                $limit
+            )
+        );
     }
 
     public function exists($statisticType, $databaseType, $key): bool
