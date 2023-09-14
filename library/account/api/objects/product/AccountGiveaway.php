@@ -59,7 +59,8 @@ class AccountGiveaway
         ); // get currently running giveaways
 
         if (empty($array)) { // Create giveaway if no other is currently being run
-            $array = get_sql_query($product_giveaways_table,
+            $array = get_sql_query(
+                $product_giveaways_table,
                 array("product_id"),
                 array(
                     array("application_id", $this->account->getDetail("application_id")),
@@ -84,9 +85,9 @@ class AccountGiveaway
 
                         // Search for next product to give away
                         foreach ($validProducts as $arrayKey => $product) {
-                            if (!$product->is_free
-                                && $product->show_in_list !== null
-                                && !empty($product->downloads)) {
+                            if ($product->is_free) {
+                                unset($validProducts[$arrayKey]);
+                            } else {
                                 $loopID = $product->id;
 
                                 if ($loopID == $productID) {
@@ -95,8 +96,6 @@ class AccountGiveaway
                                     $nextProductID = $loopID;
                                     break;
                                 }
-                            } else {
-                                unset($validProducts[$arrayKey]);
                             }
                         }
 

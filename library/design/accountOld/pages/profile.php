@@ -11,14 +11,15 @@ function loadProfile(Account $account, $isLoggedIn, Application $application)
         $objectives = $account->getObjectives()->get();
 
         if (!empty($objectives)) {
-            echo "<div class='area'><div class='area_title' style='color: #c0ca33;'>Objectives To Complete</div>";
-            echo "<div class='area_list'><ul>";
+            $style = count($objectives) <= 2 ? " style='height: auto;'" : "";
+            echo "<div class='area'>";
+            echo "<div class='area_list' style='margin-top: 0px;'><ul>";
 
             foreach ($objectives as $objective) {
                 $title = $objective->url !== null ?
                     "<a href='{$objective->url}'>{$objective->title}</a>" :
                     $objective->title;
-                echo "<li><div class='area_list_title'>$title</div>
+                echo "<li$style><div class='area_list_title'>$title</div>
                           <div class='area_list_contents'>{$objective->description}</div>
                       </li>";
             }

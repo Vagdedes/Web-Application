@@ -4,7 +4,7 @@
 function loadGiveaway(Account $account)
 {
     $productGiveaway = $account->getGiveaway();
-    $currentGiveaway = $productGiveaway->getCurrent();
+    $currentGiveaway = $productGiveaway->getCurrent(true);
 
     if ($currentGiveaway->isPositiveOutcome()) { // Check if current giveaway exists
         $currentGiveaway = $currentGiveaway->getObject();
@@ -15,7 +15,7 @@ function loadGiveaway(Account $account)
 
             if ($lastGiveawayInformation->isPositiveOutcome()) { // Check if the product of the last giveaway is valid
                 global $website_url;
-                echo "<div class='area'>";
+                echo "<div class='area50'>";
 
                 $lastGiveawayInformation = $lastGiveawayInformation->getObject();
                 $lastGiveawayWinners = $lastGiveawayInformation[0];
@@ -29,10 +29,10 @@ function loadGiveaway(Account $account)
                 $amount = $currentGiveaway->amount;
                 $nextWinnersText = $amount > 1 ? $amount . " winners" : "the winner";
 
-                echo "<div class='area_title'>$productToWinName<br><b>Giveaway</b></div>";
+                echo "<div class='area_title'><b>GIVEAWAY</b></div>";
                 $productURL = $productToWin->url;
                 $alt = strtolower(strip_tags($productToWinName));
-                echo "<div class='area_logo'><a href='$productURL'><img src='$productToWinImage' alt='$alt'></a></div>";
+                $description = "<div class='area_text'>";
 
                 if (!empty($lastGiveawayWinners)) { // Check if winners exist
                     $winnerAccounts = "";
@@ -40,13 +40,12 @@ function loadGiveaway(Account $account)
                     foreach ($lastGiveawayWinners as $winner) {
                         $winnerAccounts .= $winner . ", ";
                     }
-                    echo "<div class='area_text'>In the last giveaway, <b>" . substr($winnerAccounts, 0, -2) . "</b> won the product <b>" . $lastGiveawayInformation[1]->name . "</b>.
-                          Next giveaway will end in <b>$days " . ($days == 1 ? "day" : "days") . "</b> and <b>$nextWinnersText</b> will receive <b>$productToWinName</b> for free</b>.";
-                } else {
-                    echo "<div class='area_text'>Next giveaway will end in <b>$days " . ($days == 1 ? "day" : "days") . "</b> and <b>$nextWinnersText</b> will
-                          receive <b>$productToWinName</b> for free</b>.";
+                    $description.= "<b>" . substr($winnerAccounts, 0, -2) . "</b> recently won the product <b>" . $lastGiveawayInformation[1]->name . "</b>. ";
                 }
-                echo " <a href='$website_url/viewProduct/?id=18'>Click here to learn how to participate!</a></div>";
+                $description .= "Next giveaway will end in <b>$days " . ($days == 1 ? "day" : "days") . "</b> and <b>$nextWinnersText</b> will receive <b>$productToWinName</b> for free</b>.";
+                echo $description;
+                echo "<br><a href='$website_url/viewProduct/?id=18'>Click here to learn how to participate!</a></div>";
+                echo "<div class='area_logo'><a href='$productURL'><img src='$productToWinImage' alt='$alt'></a></div>";
                 echo "</div>";
             }
         }

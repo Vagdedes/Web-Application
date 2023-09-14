@@ -3,15 +3,23 @@
 
 function loadMain(Account $account, $isLoggedIn)
 {
-    global $website_url;
+    $discord_url = "https://" . get_domain() . "/discord";
 
-    echo "<div class='area'><div class='area_text'>";
+    echo "<div class='areas'>";
+    echo "<div class='area50'><div class='area_title'>CONNECT WITH US</div><div class='area_text'>";
     echo "Elevate your Minecraft servers with top-tier plugins and the game-changing Spartan AntiCheat. Connect with us below for unbeatable protection against hack modules.";
-    echo "<p><iframe src='https://discordapp.com/widget?id=289384242075533313&theme=dark' width='350' height='500' allowtransparency='false' frameborder='0'></iframe>";
+
+    $height = 75;
+    echo "<p><div style='position:relative;'>";
+    echo "<iframe src='https://discordapp.com/widget?id=289384242075533313&theme=dark' width='100%' height='$height' allowtransparency='false' frameborder='0'></iframe>";
+    echo "<a href='$discord_url' style='position: absolute; top: 0; left: 0; display: inline-block; width: 100%; height: {$height}px; z-index: 5;'></a>";
     echo "</div>";
-    echo "<div class='area_form' id='marginless'>
-                    <a href='$website_url/help' class='button' id='blue'>Get Help</a>
-                </div>";
+    echo "</div>";
+    echo "</div>";
+
+    // Separator
+
+    loadGiveaway($account);
     echo "</div>";
 
     // Separator
@@ -37,17 +45,6 @@ function loadMain(Account $account, $isLoggedIn)
     } else {
         echo "<div class='area_text'>No products are currently available.</div><p>";
     }
-    if ($isLoggedIn) {
-        echo "<div class='area_form' id='marginless'>
-                    <a href='$website_url/profile' class='button' id='green'>My Account</a>
-                </div>";
-    } else {
-        echo "<div class='area_form' id='marginless'>
-                    <a href='$website_url/profile' class='button' id='green'>Create Your Account Today</a>
-                    <p>
-                    <a href='$website_url/profile' class='button' id='blue'>Click Here to Log In</a>
-                </div>";
-    }
     echo "</div>";
 
     // Separator
@@ -65,10 +62,6 @@ function loadMain(Account $account, $isLoggedIn)
         }
         echo "</div>";
     }
-
-    // Separator
-
-    loadGiveaway($account);
 }
 
 ?>

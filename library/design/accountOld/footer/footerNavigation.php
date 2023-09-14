@@ -8,7 +8,7 @@
             <?php if ($directorySlashCount > 4) { ?>
                 <a href="../" class="button" style="margin: 0px; padding: 15px;">PREVIOUS PAGE</a>
             <?php  } else { ?>
-                <a href="https://vagdedes.com/contact" class="button" style="margin-bottom: 8px; padding: 15px;">CONTACT US</a>
+                <a href="https://vagdedes.com/account/profile" class="button" id="blue" style="margin-bottom: 0px; padding: 15px;">MY ACCOUNT</a>
             <?php  } ?>
             <a href="https://vagdedes.com/" class="button" style="margin-bottom: 0px; padding: 15px;">HOME PAGE</a>
         <?php } ?>

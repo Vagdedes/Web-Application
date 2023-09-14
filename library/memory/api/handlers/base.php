@@ -392,7 +392,7 @@ class IndividualMemoryBlock
                     $this->throwException("Unable to restore individual-memory-block object of key '" . $originalKey . "': " . $value);
                 }
             } else {
-                $this->throwException("Failed to inflate string '" . $rawData . "' of individual-memory-block: " . $originalKey);
+                //$this->throwException("Failed to inflate string '" . $rawData . "' of individual-memory-block: " . $originalKey);
             }
         }
         return null;
