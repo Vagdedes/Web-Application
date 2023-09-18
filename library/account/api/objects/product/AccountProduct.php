@@ -212,7 +212,10 @@ class AccountProduct
                                 $hash = string_to_integer($value->file_name);
                                 $hash = overflow_integer(($hash * 31) + string_to_integer($value->file_type));
                                 $hash = overflow_integer(($hash * 31) + string_to_integer($value->required_permission));
-                                $downloads[$hash] = $value;
+
+                                if (!array_key_exists($hash, $downloads)) {
+                                    $downloads[$hash] = $value;
+                                }
 
                                 if (!in_array($value->version, $object->supported_versions)) {
                                     $object->supported_versions[] = $value->version;

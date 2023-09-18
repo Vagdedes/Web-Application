@@ -44,7 +44,7 @@ class AccountGiveaway
         return false;
     }
 
-    private function create($productID, $amount, $duration): bool
+    private function create($productID, $amount, $duration, $requireDownload): bool
     {
         global $product_giveaways_table;
         $array = get_sql_query($product_giveaways_table,
@@ -85,7 +85,8 @@ class AccountGiveaway
 
                         // Search for next product to give away
                         foreach ($validProducts as $arrayKey => $product) {
-                            if ($product->is_free) {
+                            if ($product->is_free
+                                || $requireDownload && empty($product->downloads)) {
                                 unset($validProducts[$arrayKey]);
                             } else {
                                 $loopID = $product->id;
@@ -137,7 +138,7 @@ class AccountGiveaway
         return false;
     }
 
-    public function getCurrent($create = false, $productID = null, $amount = 1, $duration = "14 days"): MethodReply
+    public function getCurrent($create = false, $productID = null, $amount = 1, $duration = "14 days", $requireDownload = true): MethodReply
     {
         global $product_giveaways_table;
         set_sql_cache(null, self::class);
@@ -183,7 +184,7 @@ class AccountGiveaway
                             null,
                             1
                         );
-                        $this->create($productID, $amount, $duration);
+                        $this->create($productID, $amount, $duration, $requireDownload);
 
                         // Search for available accounts for the giveaway
                         $accounts = get_sql_query(
@@ -203,7 +204,7 @@ class AccountGiveaway
                 }
             }
             return new MethodReply(true, null, $object);
-        } else if ($create && $this->create($productID, $amount, $duration)) {
+        } else if ($create && $this->create($productID, $amount, $duration, $requireDownload)) {
             // Create new one if non-existent and set create to 'false' to prevent loops
             return $this->getCurrent(false, $productID, $amount, $duration);
         } else {

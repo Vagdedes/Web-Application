@@ -154,7 +154,7 @@ function loadViewProduct(Account $account, $isLoggedIn)
             $buttonInformation = "";
             $productButton = $hasPurchased ? null : $productFound->buttons->pre_purchase;
 
-            if ($productButton !== null && sizeof($productButton) > 0) {
+            if (!empty($productButton)) {
                 $buttonInformation .= "<div class='area_text'>Your purchase will appear within minutes of completion.</div><p>";
 
                 foreach ($productButton as $button) {
@@ -172,7 +172,7 @@ function loadViewProduct(Account $account, $isLoggedIn)
                         $downloadNote = $productFound->download_note !== null ? "<div class='area_text'><b>IMPORTANT NOTE</b><br>" . $productFound->download_note . "</div>" : "";
                         $buttonInformation .= "$downloadNote<div class='area_form'><a href='$website_url/downloadFile/?id=$productID' class='button' id='blue'>Download $name</a>";
 
-                        if (sizeof($productButton) > 0) {
+                        if (!empty($productButton)) {
                             foreach ($productButton as $button) {
                                 $color = $button->color;
                                 $buttonName = $button->name;
@@ -188,10 +188,18 @@ function loadViewProduct(Account $account, $isLoggedIn)
                     }
                 } else {
                     if ($isLoggedIn) {
-                        $showLegal = false;
-                        /*echo "<div class='area_form' id='marginless'>
-                                    <a href='#' class='button' id='red'>$name Is Not Downloadable</a>
-                                </div>";*/
+                        $productButton = $productFound->buttons->post_purchase;
+
+                        if (!empty($productButton)) {
+                            foreach ($productButton as $button) {
+                                $color = $button->color;
+                                $buttonName = $button->name;
+                                $url = $button->url;
+                                $buttonInformation .= "<p><a href='$url' class='button' id='$color'>$buttonName</a>";
+                            }
+                        } else {
+                            $showLegal = false;
+                        }
                     } else {
                         $showLegal = false;
                         $buttonInformation .= "<div class='area_form' id='marginless'>
