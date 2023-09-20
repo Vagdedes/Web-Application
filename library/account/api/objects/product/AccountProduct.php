@@ -134,8 +134,7 @@ class AccountProduct
                         ));
                         $object->url = $website_url . "/viewProduct/?id=" . $productID;
                         $object->divisions = new stdClass();
-                        $object->divisions->pre_purchase = array();
-                        $object->divisions->post_purchase = array();
+                        $object->buttons = new stdClass();
 
                         foreach (array(
                                      "pre_purchase" => null,
@@ -165,7 +164,21 @@ class AccountProduct
                                     }
                                 }
                                 $object->divisions->{$key} = $divisions;
+                            } else {
+                                $object->divisions->{$key} = $query;
                             }
+                            $object->buttons->{$key} = get_sql_query(
+                                $product_buttons_table,
+                                array("color", "name", "url", "requires_account"),
+                                array(
+                                    array("product_id", $productID),
+                                    array("deletion_date", null),
+                                    null,
+                                    array("post_purchase", "=", 2, 0),
+                                    array("post_purchase", $value),
+                                    null,
+                                )
+                            );
                         }
                         $object->compatibilities = get_sql_query(
                             $product_compatibilities_table,
@@ -180,25 +193,6 @@ class AccountProduct
                             foreach ($object->compatibilities as $key => $value) {
                                 $object->compatibilities[$key] = $value->compatible_product_id;
                             }
-                        }
-                        $object->buttons = new stdClass();
-
-                        foreach (array(
-                                     "pre_purchase" => null,
-                                     "post_purchase" => 1,
-                                 ) as $key => $value) {
-                            $object->buttons->{$key} = get_sql_query(
-                                $product_buttons_table,
-                                array("color", "name", "url", "requires_account"),
-                                array(
-                                    array("product_id", $productID),
-                                    array("deletion_date", null),
-                                    null,
-                                    array("post_purchase", "=", 2, 0),
-                                    array("post_purchase", $value),
-                                    null,
-                                )
-                            );
                         }
                         $object->downloads = get_sql_query(
                             $product_updates_table,

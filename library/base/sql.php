@@ -313,7 +313,12 @@ function sql_query($command, $debug = false)
             $query = $sqlConnection->query($command);
         } else {
             error_reporting(0);
-            $query = $sqlConnection->query($command);
+
+            try {
+                $query = $sqlConnection->query($command);
+            } catch (Exception $e) {
+                $query = false;
+            }
             error_reporting(E_ALL);
         }
         if ($sql_store_error && !$query) {
@@ -325,7 +330,12 @@ function sql_query($command, $debug = false)
                 $sqlConnection->query($command);
             } else {
                 error_reporting(0);
-                $sqlConnection->query($command);
+
+                try {
+                    $sqlConnection->query($command);
+                } catch (Exception $e) {
+
+                }
                 error_reporting(E_ALL);
             }
         }
@@ -555,7 +565,9 @@ function get_sql_database_schemas(): array
 
     if (isset($query->num_rows) && $query->num_rows > 0) {
         while ($row = $query->fetch_assoc()) {
-            $array[] = $row["SCHEMA_NAME"];
+            if ($row["SCHEMA_NAME"] !== "information_schema") {
+                $array[] = $row["SCHEMA_NAME"];
+            }
         }
     }
     return $array;

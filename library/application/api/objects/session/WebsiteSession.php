@@ -58,7 +58,7 @@ class WebsiteSession
         return $key;
     }
 
-    public function deleteKey(): bool
+    public function deleteKey($limit = false): bool
     {
         return delete_cookie(self::session_key_name);
     }

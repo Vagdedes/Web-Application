@@ -117,7 +117,7 @@ function clear_memory($keys, $abstractSearch = false, $localSegments = null): vo
     if (!$hasLocalSegments) {
         global $memory_clearance_table;
         $serialize = serialize($keys);
-        $tracker = (string_to_integer($serialize) * 31) + boolean_to_integer($abstractSearch);
+        $tracker = overflow_integer((string_to_integer($serialize) * 31) + boolean_to_integer($abstractSearch));
 
         if (empty(get_sql_query(
             $memory_clearance_table,

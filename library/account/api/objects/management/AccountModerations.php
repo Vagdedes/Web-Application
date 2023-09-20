@@ -214,7 +214,7 @@ class AccountModerations
                 array("moderation_id", $moderation),
                 $active ? array("deletion_date", "IS NOT", null) : "",
                 $active ? null : "",
-                $active ? array("expiration_date", null, 0) : "",
+                $active ? array("expiration_date", "IS", null, 0) : "",
                 $active ? array("expiration_date", ">", get_current_date()) : "",
                 $active ? null : ""
             ),

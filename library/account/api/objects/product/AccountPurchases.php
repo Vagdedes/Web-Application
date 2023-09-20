@@ -64,7 +64,7 @@ class AccountPurchases
                     if ($product->is_free) {
                         $tierID = null;
                     } else {
-                        foreach ($product->tiers as $tier) {
+                        foreach ($product->tiers->paid as $tier) {
                             if ($tier->required_products !== null) {
                                 foreach (explode("|", $tier->required_products) as $requiredProduct) {
                                     if (!array_key_exists($requiredProduct, $array)) {
