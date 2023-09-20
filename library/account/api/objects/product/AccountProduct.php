@@ -97,9 +97,12 @@ class AccountProduct
                                 array("deletion_date", null),
                             )
                         );
-                        $object->tiers = get_sql_query(
+                        $object->tiers = new stdClass();
+                        $object->tiers->free = array();
+                        $object->tiers->paid = array();
+                        $object->tiers->all = get_sql_query(
                             $product_tiers_table,
-                            array("id", "name", "price", "currency"),
+                            array("id", "name", "price", "currency", "required_permission", "required_products"),
                             array(
                                 array("product_id", $productID),
                                 array("deletion_date", null),
@@ -109,7 +112,18 @@ class AccountProduct
                                 "price"
                             )
                         );
-                        $object->is_free = empty($object->tiers);
+                        $object->is_free = true;
+
+                        if (!empty($object->tiers->all)) {
+                            foreach ($object->tiers->all as $tier) {
+                                if ($tier->price === null) {
+                                    $object->tiers->free[] = $tier;
+                                } else {
+                                    $object->is_free = false;
+                                    $object->tiers->paid[] = $tier;
+                                }
+                            }
+                        }
                         $object->registered_buyers = sizeof(get_sql_query(
                             $product_purchases_table,
                             array("id"),

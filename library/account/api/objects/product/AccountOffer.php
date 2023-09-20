@@ -50,8 +50,16 @@ class AccountOffer
                 $purchases = $accountExists ? $this->account->getPurchases()->getCurrent() : array();
 
                 foreach ($offers as $offer) {
-                    if ((!$accountExists || !$checkOwnership || $offer->required_product === null || $this->account->getPurchases()->owns($offer->required_product))
-                        && ($accountExists || $offer->requires_account === null)) {
+                    if ($accountExists || $offer->requires_account === null) {
+                        if ($accountExists
+                            && $checkOwnership
+                            && $offer->required_products !== null) {
+                            foreach (explode("|", $offer->required_products) as $requiredProduct) {
+                                if (!$this->account->getPurchases()->owns($requiredProduct)->isPositiveOutcome()) {
+                                    continue 2;
+                                }
+                            }
+                        }
                         $query = get_sql_query(
                             $product_offer_divisions_table,
                             array("family", "name", "description", "no_html"),

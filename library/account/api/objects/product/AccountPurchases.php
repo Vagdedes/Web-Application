@@ -11,7 +11,7 @@ class AccountPurchases
 
     public function getCurrent(): array
     {
-        global $product_purchases_table;
+        global $product_purchases_table, $sql_max_cache_time;
         $cacheKey = array(self::class, $this->account->getDetail("id"), "current");
         $cache = get_key_value_pair($cacheKey);
 
@@ -20,30 +20,7 @@ class AccountPurchases
         }
         $array = array();
         $date = get_current_date();
-        $challengeArray = false;
         $products = $this->account->getProduct()->find(null, false);
-
-        if ($products->isPositiveOutcome()) {
-            foreach ($products->getObject() as $product) {
-                if ($product->is_free
-                    || $product->required_permission !== null && $this->account->getPermissions()->hasPermission($product->required_permission)) {
-                    $object = new stdClass();
-                    $object->id = random_number();
-                    $object->account_id = $this->account->getDetail("id");
-                    $object->product_id = $product->id;
-                    $object->tier_id = $product->is_free ? null : $product->tiers[0]->id;
-                    $object->exchange_id = null;
-                    $object->transaction_id = "patreon";
-                    $object->creation_date = $date;
-                    $object->expiration_date = null;
-                    $object->expiration_notification = null;
-                    $object->deletion_date = null;
-                    $object->coupon = null;
-                    $array[$product->id] = $object;
-                    $challengeArray = true;
-                }
-            }
-        }
         $query = get_sql_query(
             $product_purchases_table,
             null,
@@ -58,34 +35,70 @@ class AccountPurchases
             $clearMemory = false;
 
             foreach ($query as $row) {
-                if (!$challengeArray || !array_key_exists($row->product_id, $array)) {
-                    if ($row->expiration_date !== null && $row->expiration_date < $date) {
-                        $clearMemory = true;
-                        $product = $this->account->getProduct()->find($row->product_id);
+                if ($row->expiration_date !== null && $row->expiration_date < $date) {
+                    $clearMemory = true;
+                    $product = $this->account->getProduct()->find($row->product_id);
 
-                        if ($product->isPositiveOutcome()) {
-                            $this->account->getEmail()->send("productExpiration",
-                                array(
-                                    "productName" => $product->getObject()[0]->name,
-                                )
-                            );
-                        }
-                    } else {
-                        $array[$row->product_id] = $row;
+                    if ($product->isPositiveOutcome()) {
+                        $this->account->getEmail()->send("productExpiration",
+                            array(
+                                "productName" => $product->getObject()[0]->name,
+                            )
+                        );
                     }
+                } else {
+                    $array[$row->product_id] = $row;
                 }
             }
 
             if ($clearMemory) {
                 $this->account->clearMemory(self::class);
-            } else {
-                global $sql_max_cache_time;
-                set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
             }
-        } else {
-            global $sql_max_cache_time;
-            set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
         }
+
+        if ($products->isPositiveOutcome()) {
+            foreach ($products->getObject() as $product) {
+                if (!array_key_exists($product->id, $array)) {
+                    $tierID = false;
+
+                    if ($product->is_free) {
+                        $tierID = null;
+                    } else {
+                        foreach ($product->tiers as $tier) {
+                            if ($tier->required_products !== null) {
+                                foreach (explode("|", $tier->required_products) as $requiredProduct) {
+                                    if (!array_key_exists($requiredProduct, $array)) {
+                                        continue 2;
+                                    }
+                                }
+                            }
+                            if ($tier->required_permission === null
+                                || $this->account->getPermissions()->hasPermission($tier->required_permission)) {
+                                $tierID = $tier->id;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($tierID !== false) {
+                        $object = new stdClass();
+                        $object->id = random_number();
+                        $object->account_id = $this->account->getDetail("id");
+                        $object->product_id = $product->id;
+                        $object->tier_id = $tierID;
+                        $object->exchange_id = null;
+                        $object->transaction_id = "patreon";
+                        $object->creation_date = $date;
+                        $object->expiration_date = null;
+                        $object->expiration_notification = null;
+                        $object->deletion_date = null;
+                        $object->coupon = null;
+                        $array[$product->id] = $object;
+                    }
+                }
+            }
+        }
+        set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
         return $array;
     }
 
@@ -202,7 +215,7 @@ class AccountPurchases
             return new MethodReply(false, "This product is free and cannot be purchased.");
         }
         if ($tierID === null) {
-            $tier = $product->tiers[0];
+            $tier = $product->tiers->paid[0];
             $tierID = $tier->id;
             $price = $tier->price;
             $currency = $tier->currency;
@@ -214,7 +227,7 @@ class AccountPurchases
                 return new MethodReply(false, "This product does not have a currency (1).");
             }
         } else {
-            foreach ($product->tiers as $tier) {
+            foreach ($product->tiers->all as $tier) {
                 if ($tier->id == $tierID) {
                     $price = $tier->price;
                     $currency = $tier->currency;

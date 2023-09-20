@@ -39,8 +39,8 @@ function loadViewProduct(Account $account, $isLoggedIn)
                 } else {
                     $activeCustomers = "";
                 }
-                $hasTiers = sizeof($productFound->tiers) > 1;
-                $tier = $productFound->tiers[0];
+                $hasTiers = sizeof($productFound->tiers->paid) > 1;
+                $tier = $productFound->tiers->paid[0];
                 $price = "<li style='width: auto;'>" . ($hasTiers ? "Starting from " : "") . $tier->price . " " . $tier->currency . "</li>";
             }
 
