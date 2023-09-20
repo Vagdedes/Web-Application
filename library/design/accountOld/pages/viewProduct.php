@@ -67,7 +67,9 @@ function loadViewProduct(Account $account, $isLoggedIn)
             // Separator
             $css = "";
             $overviewContents = "";
-            $productDivisions = $productFound->divisions;
+            $productDivisions = $hasPurchased
+                ? $productFound->divisions->post_purchase
+                : $productFound->divisions->pre_purchase;
 
             if (!empty($productDivisions)) {
                 foreach ($productDivisions as $family => $divisions) {
