@@ -155,10 +155,13 @@ function loadViewProduct(Account $account, $isLoggedIn)
             $productButton = $hasPurchased ? null : $productFound->buttons->pre_purchase;
 
             if (!empty($productButton)) {
-                $buttonInformation .= "<div class='area_text'>Your purchase will appear within minutes of completion.</div><p>";
+                $buttonInformation .= "<div class='area_text'>Your purchase will appear within a minute of completion.</div><p>";
 
                 foreach ($productButton as $button) {
-                    if ($isLoggedIn || $button->requires_account == null) {
+                    echo "<div class='area_form' id='marginless'>";
+
+                    if ($isLoggedIn
+                        || $button->requires_account == null) {
                         $color = $button->color;
                         $buttonName = $button->name;
                         $url = $button->url;
@@ -187,24 +190,29 @@ function loadViewProduct(Account $account, $isLoggedIn)
                                     </div>";
                     }
                 } else {
-                    if ($isLoggedIn) {
-                        $productButton = $productFound->buttons->post_purchase;
+                    $productButton = $productFound->buttons->post_purchase;
 
-                        if (!empty($productButton)) {
-                            foreach ($productButton as $button) {
+                    if (!empty($productButton)) {
+                        $firstButton = false;
+
+                        foreach ($productButton as $button) {
+                            if ($isLoggedIn
+                                || $button->requires_account == null) {
+                                if (!$firstButton) {
+                                    $firstButton = true;
+                                    $buttonInformation .= "<div class='area_form' id='marginless'>";
+                                }
                                 $color = $button->color;
                                 $buttonName = $button->name;
                                 $url = $button->url;
                                 $buttonInformation .= "<p><a href='$url' class='button' id='$color'>$buttonName</a>";
                             }
-                        } else {
-                            $showLegal = false;
+                        }
+                        if ($firstButton) {
+                            $buttonInformation .= "</div>";
                         }
                     } else {
                         $showLegal = false;
-                        $buttonInformation .= "<div class='area_form' id='marginless'>
-                                        <a href='$website_url/profile' class='button' id='blue'>Log In To Learn More</a>
-                                    </div>";
                     }
                 }
             } else if (!$isFree) {

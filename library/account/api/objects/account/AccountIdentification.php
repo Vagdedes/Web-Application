@@ -3,13 +3,19 @@
 class AccountIdentification
 {
 
+    private Account $account;
     private string $identification;
     private const expiration_time = "1 hour";
 
     public function __construct(Account $account)
     {
+        $this->account = $account;
+        $this->run();
+    }
+
+    private function run($repeat = true) {
         global $account_identification_table;
-        $accountID = $account->getDetail("id");
+        $accountID = $this->account->getDetail("id");
         set_sql_cache(null, self::class);
         $query = get_sql_query(
             $account_identification_table,
@@ -42,11 +48,13 @@ class AccountIdentification
                             "expiration_date" => get_future_date(self::expiration_time)
                         )
                     )) {
-                        $account->clearMemory(self::class);
+                        $this->account->clearMemory(self::class);
                         $this->identification = $code;
                         return;
                     }
                     break;
+                } else if ($repeat) { // Try to retrieve if failed
+                    $this->run(false);
                 }
             }
         } else {
@@ -80,7 +88,7 @@ class AccountIdentification
                             null,
                             1
                         )) {
-                            $account->clearMemory(self::class);
+                            $this->account->clearMemory(self::class);
                             $this->identification = $code;
                             return;
                         }

@@ -23,7 +23,7 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
                     "next_repetition" => time() + $seconds
                 )
             )
-            && (!$makeProcess || start_memory_process($identifier, $processSeconds, false))) {
+            && (!$makeProcess || start_memory_process($identifier, $processSeconds, false, false))) {
             call_user_func_array($function, $arguments === null ? array() : $arguments);
 
             if ($processEnd) {
@@ -40,7 +40,7 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
                 array("identifier", $identifier)
             )
         )
-        && (!$makeProcess || start_memory_process($identifier, $processSeconds, false))) {
+        && (!$makeProcess || start_memory_process($identifier, $processSeconds, false, false))) {
         call_user_func_array($function, $arguments === null ? array() : $arguments);
 
         if ($processEnd) {

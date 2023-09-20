@@ -89,14 +89,12 @@ class Account
                 $this->object = $query[0];
                 $this->email = new AccountEmail($this);
                 $this->settings = new AccountSettings($this);
-                $this->actions = new AccountActions($this);
                 $this->history = new AccountHistory($this);
                 $this->transactions = new AccountTransactions($this);
                 $this->purchases = new AccountPurchases($this);
                 $this->cooldowns = new AccountCooldowns($this);
                 $this->accounts = new AccountAccounts($this);
                 $this->permissions = new AccountPermissions($this);
-                $this->password = new AccountPassword($this);
                 $this->objectives = new AccountObjectives($this);
                 $this->identification = new AccountIdentification($this);
                 $this->notifications = new AccountNotifications($this);
@@ -113,6 +111,8 @@ class Account
             }
         }
         // Standalone
+        $this->actions = new AccountActions($this);
+        $this->password = new AccountPassword($this);
         $this->downloads = new AccountProductDownloads($this);
         $this->team = new AccountTeam($this);
         $this->files = new AccountFiles($this);

@@ -7,6 +7,7 @@ require_once '/var/www/.structure/library/design/accountOld/pages/basics.php';
 
 function load_page_html_head(Account $account, $title)
 {
+    global $website_url;
     $validProducts = $account->getProduct()->find();
     $metaDescription = "Vagdedes Services Store";
 
@@ -30,7 +31,7 @@ function load_page_html_head(Account $account, $title)
             <meta name='description' content='$metaDescription'>
         	<link rel='shortcut icon' type='image/png' href='https://" . get_domain() . "/.images/icon.png'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <link rel='stylesheet' href='https://vagdedes.com/.css/universal.css?id=$randomNumber>'>
+            <link rel='stylesheet' href='https://" . get_domain() . "/.css/universal.css?id=$randomNumber>'>
             <script src='https://www.google.com/recaptcha/api.js'></script>
         </head>
         <body>";
@@ -63,7 +64,7 @@ function load_page_intro(?Account $account, $isLoggedIn, $loadIntro, $loadNaviga
     if ($loadIntro) {
         echo "<div class='intro'>
               <div class='intro_image'>
-                  <img src='https://vagdedes.com/.images/services.png' alt='company logo'>
+                  <img src='https://" . get_domain() . "/.images/services.png' alt='company logo'>
               </div>
           </div>";
     } else if ($loadNavigation) {

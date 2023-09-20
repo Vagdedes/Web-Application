@@ -21,9 +21,11 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
     }
 
     // Verify details
+    $domain = get_domain();
+
     if (is_array($details)) {
         if (!array_key_exists("defaultDomainName", $details)) {
-            $details["defaultDomainName"] = get_domain();
+            $details["defaultDomainName"] = $domain;
         }
         if (!array_key_exists("defaultCompanyName", $details)) {
             global $email_default_company_name;
@@ -36,7 +38,7 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
     } else {
         global $email_default_company_name, $email_default_email_name;
         $details = array(
-            "defaultDomainName" => get_domain(),
+            "defaultDomainName" => $domain,
             "defaultCompanyName" => $email_default_company_name,
             "defaultEmailName" => $email_default_email_name
         );
@@ -303,7 +305,7 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
         $customContents = $contents;
 
         if ($unsubscribe) {
-            $customContents .= "<p><a href='https://vagdedes.com/email/exempt/?token=" . get_user_exemption_token($planID, $rowID) . "'>Click to unsubscribe from this email</a>";
+            $customContents .= "<p><a href='https://" . $domain . "/email/exempt/?token=" . get_user_exemption_token($planID, $rowID) . "'>Click to unsubscribe from this email</a>";
         }
         $execution = services_email($credential, null, $title, $customContents);
 

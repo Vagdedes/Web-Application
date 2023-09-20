@@ -75,9 +75,10 @@ class AccountPassword
         $date = get_current_date();
         $locallyLoggedIn = $this->account->getActions()->isLocallyLoggedIn();
         $isLocallyLoggedIn = $locallyLoggedIn->isPositiveOutcome();
+        $loggedOut = !$this->account->exists();
         $array = get_sql_query(
             $change_password_table,
-            $isLocallyLoggedIn ? array("id", "account_id") : array("id"),
+            $isLocallyLoggedIn || $loggedOut ? array("id", "account_id") : array("id"),
             array(
                 array("token", $token),
                 array("completion_date", null),
@@ -91,7 +92,6 @@ class AccountPassword
             return new MethodReply(false, "This change password token is invalid or has expired.");
         }
         $array = $array[0];
-        $locallyLoggedIn = $this->account->getActions()->isLocallyLoggedIn();
 
         if ($isLocallyLoggedIn
             && $locallyLoggedIn->getObject()->getDetail("id") !== $array->account_id) {
@@ -101,6 +101,13 @@ class AccountPassword
 
         if (!$password) {
             return new MethodReply("Password hashing failed.");
+        }
+        if ($loggedOut) { // In case the process is initiated when logged out
+            $this->account = new Account($this->account->getDetail("application_id"), $array->account_id);
+
+            if (!$this->account->exists()) {
+                return new MethodReply(false, "Failed to find account.");
+            }
         }
         if (!set_sql_query(
             $change_password_table,

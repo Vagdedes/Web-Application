@@ -3,6 +3,7 @@
 class CustomerSupport
 {
     private $ignoreSoftwareInformation;
+    public const EMAIL = "contact@vagdedes.com";
 
     public function __construct($ignoreSoftwareInformation = null)
     {

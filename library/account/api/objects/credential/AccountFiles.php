@@ -24,6 +24,10 @@ class AccountFiles
 
     }
 
+    public function getAll() {
+
+    }
+
     public function getOwned() {
 
     }

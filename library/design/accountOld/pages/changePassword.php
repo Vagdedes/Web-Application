@@ -14,7 +14,11 @@ function loadChangePassword(Account $account, $isLoggedIn, Application $applicat
                 $result = $result->getMessage();
 
                 if (!empty($result)) {
-                    $account->getNotifications()->add(AccountNotifications::FORM, "green", $result, "1 minute");
+                    if ($isLoggedIn) {
+                        $account->getNotifications()->add(AccountNotifications::FORM, "green", $result, "1 minute");
+                    } else {
+                        redirect_to_url("?message=" . $result);
+                    }
                 }
                 redirect_to_url("?");
             } else {

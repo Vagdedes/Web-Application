@@ -4,24 +4,27 @@ class AccountPatreon
 {
     private Account $account;
 
-    private const patreon_low_tiers = array(9790579, 9804213);
+    public const
+        support_only_tiers = array(9804213),
+        products_tiers = array(4064030, 9784720, 9784718);
 
     public function __construct(Account $account)
     {
         $this->account = $account;
 
-        if ($this->get()->isPositiveOutcome()) {
-            $account->getPermissions()->addSystemPermission("patreon.subscriber");
+        if ($this->get(self::products_tiers)->isPositiveOutcome()) {
+            $account->getPermissions()->addSystemPermission(array(
+                "patreon.subscriber.support",
+                "patreon.subscriber.products"
+            ));
+        } else if ($this->get()->isPositiveOutcome()) {
+            $account->getPermissions()->addSystemPermission("patreon.subscriber.support");
         }
     }
 
-    public function get($all = false): MethodReply
+    public function get($tiers = null): MethodReply
     {
-        if ($all) {
-            $patreonSubscriptions = get_patreon_subscriptions();
-        } else {
-            $patreonSubscriptions = get_patreon_subscriptions(self::patreon_low_tiers);
-        }
+        $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers);
 
         if (!empty($patreonSubscriptions)) {
             $patreonAccount = $this->account->getAccounts()->hasAdded(AccountAccounts::PATREON_FULL_NAME, null, 1);

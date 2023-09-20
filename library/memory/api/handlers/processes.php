@@ -1,6 +1,23 @@
 <?php
 
-function start_memory_process($identifier, $processSeconds = 0, $hash = true): bool
+function running_memory_process($identifier, $time = true, $hash = true): bool
+{
+    global $memory_processes_table;
+    $query = get_sql_query(
+        $memory_processes_table,
+        array("running", "next_repetition"),
+        array(
+            array("identifier", $hash ? string_to_integer($identifier) : $identifier)
+        ),
+        null,
+        1
+    );
+    return !empty($query)
+        && ($query[0]->running !== null
+            || $time && $query[0]->next_repetition >= time());
+}
+
+function start_memory_process($identifier, $processSeconds = 0, $forceful = false, $hash = true): bool
 {
     global $memory_processes_table;
 
@@ -43,6 +60,9 @@ function start_memory_process($identifier, $processSeconds = 0, $hash = true): b
             )
         )) {
         return true;
+    }
+    if ($forceful) {
+        return start_memory_process($identifier, $processSeconds, $forceful, $hash);
     }
     return false;
 }

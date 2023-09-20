@@ -28,6 +28,14 @@ $spartan_anticheat_check_names = array(
     "Clip", "Fly", "ElytraMove", "BoatMove", "Nuker", "Jesus", "KillAura",
     "EntityMove", "Velocity", "FastPlace", "FastBreak", "NormalMovements"
 );
+$spartan_anticheat_1_0_checks = array(
+    "Speed" => array("horizontal: 0."), // Default
+    "IrregularMovements" => array("box-difference 0.", "box-difference: 1."), // Default
+    "FastPlace" => array("type: fast"), // Code
+    "FastBreak" => array("seconds: 0.26", "seconds: 0.27", "seconds: 0.28", "seconds: 0.29", "seconds: 0.3", "seconds: 0.4", "seconds: 0.5", "seconds: 0.6", "seconds: 0.7", "seconds: 0.8", "seconds: 0.9", "seconds: 1.", "seconds: 2.", "seconds: 3.", "seconds: 4.", "seconds: 5."), // Default
+    "BlockReach" => array("distance: 6.", "distance: 7.", "distance: 8.", "distance: 9."), // Default
+    "Exploits" => array("type: undetected-movement"), // Default
+);
 $ultimatestats_statistic_names = array(
     "Time Spent", "Health", "Food Level", "Inventory Items", "First Time Joined",
     "CPS", "Latency", "TPS", "RAM", "Players", "CPU", "Players Killed", "Mobs Killed",
