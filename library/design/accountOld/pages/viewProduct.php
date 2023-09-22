@@ -17,8 +17,8 @@ function loadViewProduct(Account $account, $isLoggedIn)
             $nameURL = str_replace(" ", "-", $name);
 
             if ($argumentSize == 1 || $productArguments[0] !== $nameURL) {
-                redirect_to_url($website_url . "/viewProduct/?id=$nameURL.$productID", array("id"));
-                return;
+                //redirect_to_url($website_url . "/viewProduct/?id=$nameURL.$productID", array("id"));
+                //return;
             }
             $description = $productFound->description;
             $image = $productFound->image;
@@ -67,9 +67,10 @@ function loadViewProduct(Account $account, $isLoggedIn)
             // Separator
             $css = "";
             $overviewContents = "";
-            $productDivisions = $hasPurchased
-                ? $productFound->divisions->post_purchase
-                : $productFound->divisions->pre_purchase;
+            $productDivisions = $isFree ? array_merge($productFound->divisions->post_purchase, $productFound->divisions->pre_purchase)
+                : ($hasPurchased
+                    ? $productFound->divisions->post_purchase
+                    : $productFound->divisions->pre_purchase);
 
             if (!empty($productDivisions)) {
                 foreach ($productDivisions as $family => $divisions) {
@@ -157,17 +158,23 @@ function loadViewProduct(Account $account, $isLoggedIn)
             $productButton = $hasPurchased ? null : $productFound->buttons->pre_purchase;
 
             if (!empty($productButton)) {
+                $firstButton = false;
                 $buttonInformation .= "<div class='area_text'>Your purchase will appear within a minute of completion.</div><p>";
 
                 foreach ($productButton as $button) {
-                    echo "<div class='area_form' id='marginless'>";
-
                     if ($isLoggedIn
                         || $button->requires_account == null) {
+                        if (!$firstButton) {
+                            $firstButton = true;
+                            $buttonInformation .= "<div class='area_form' id='marginless'>";
+                        }
                         $color = $button->color;
                         $buttonName = $button->name;
                         $url = $button->url;
                         $buttonInformation .= "<a href='$url' class='button' id='$color'>$buttonName</a> ";
+                    }
+                    if ($firstButton) {
+                        $buttonInformation .= "</div>";
                     }
                 }
             } else if ($hasPurchased) {

@@ -87,7 +87,7 @@ class AccountPurchases
                         $object->product_id = $product->id;
                         $object->tier_id = $tierID;
                         $object->exchange_id = null;
-                        $object->transaction_id = "patreon";
+                        $object->transaction_id = null;
                         $object->creation_date = $date;
                         $object->expiration_date = null;
                         $object->expiration_notification = null;

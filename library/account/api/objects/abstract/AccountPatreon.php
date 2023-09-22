@@ -5,7 +5,8 @@ class AccountPatreon
     private Account $account;
 
     public const
-        SPARTAN_2_0 = 20,
+        SPARTAN_2_0_JAVA = 21,
+        SPARTAN_2_0_BEDROCK = 22,
         SUPPORTER = 9804213,
         MOTIVATOR = 4064030,
         SPONSOR = 9784720,
