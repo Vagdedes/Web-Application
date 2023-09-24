@@ -181,7 +181,7 @@ function sql_build_order($order)
 
 // Cache
 
-function get_sql_cache_key($key, $value)
+function get_sql_cache_key($key, $value): string
 {
     return substr(
         serialize(array($key => $value)),

@@ -9,9 +9,13 @@ class AccountTransactions
         $this->account = $account;
     }
 
+    public function clearCache() {
+        $this->account->clearMemory(self::class);
+    }
+
     public function getSuccessful($types = null, $limit = PaymentProcessor::limit): array
     {
-        $cacheKey = array(self::class, $this->account->getDetail("id"), $types, $limit, "successful");
+        $cacheKey = array(self::class, "account_id" => $this->account->getDetail("id"), $types, $limit, "successful");
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
@@ -58,7 +62,7 @@ class AccountTransactions
 
     public function getFailed($types = null, $limit = PaymentProcessor::limit): array
     {
-        $cacheKey = array(self::class, $this->account->getDetail("id"), $types, $limit, "failed");
+        $cacheKey = array(self::class, "account_id" => $this->account->getDetail("id"), $types, $limit, "failed");
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {

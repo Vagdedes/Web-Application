@@ -35,6 +35,7 @@ class Account
     private AccountFunctionality $functionality;
     private AccountWallet $wallet;
     private AccountStatistics $statistics;
+    private AccountReference $reference;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -125,6 +126,7 @@ class Account
         $this->moderations = new AccountModerations($this);
         $this->functionality = new AccountFunctionality($this);
         $this->wallet = new AccountWallet($this);
+        $this->reference = new AccountReference($this);
     }
 
     public function exists(): bool
@@ -318,6 +320,13 @@ class Account
         return $this->statistics;
     }
 
+    public function getReference(): AccountReference
+    {
+        return $this->reference;
+    }
+
+    // Separator
+
     public function clearMemory($key = null)
     {
         if (isset($this->object->id)) {
@@ -327,7 +336,7 @@ class Account
                 $key1 = get_sql_cache_key("account_id", $this->object->id);
 
                 foreach ($key as $item) {
-                    clear_memory(array(array($item, $key)), true);
+                    clear_memory(array(array($item, $key1)), true);
                 }
             } else {
                 clear_memory(

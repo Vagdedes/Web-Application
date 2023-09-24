@@ -12,7 +12,7 @@ class AccountPurchases
     public function getCurrent(): array
     {
         global $product_purchases_table, $sql_max_cache_time;
-        $cacheKey = array(self::class, $this->account->getDetail("id"), "current");
+        $cacheKey = array(self::class, "account_id" => $this->account->getDetail("id"), "current");
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
@@ -72,8 +72,8 @@ class AccountPurchases
                                     }
                                 }
                             }
-                            if ($tier->required_permission === null
-                                || $this->account->getPermissions()->hasPermission($tier->required_permission)) {
+                            if ($tier->required_permission !== null
+                                && $this->account->getPermissions()->hasPermission($tier->required_permission)) {
                                 $tierID = $tier->id;
                                 break;
                             }

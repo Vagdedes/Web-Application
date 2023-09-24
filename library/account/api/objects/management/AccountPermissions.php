@@ -25,7 +25,7 @@ class AccountPermissions
     public function getRoles(): array
     {
         $accountID = $this->account->getDetail("id");
-        $cacheKey = array(self::class, $accountID, "roles");
+        $cacheKey = array(self::class, "account_id" => $accountID, "roles");
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
@@ -130,7 +130,7 @@ class AccountPermissions
     public function getGivenPermissions(): array
     {
         $accountID = $this->account->getDetail("id");
-        $cacheKey = array(self::class, $accountID, "given");
+        $cacheKey = array(self::class, "account_id" => $accountID, "given");
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {

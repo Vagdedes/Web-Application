@@ -13,7 +13,6 @@ require_once '/var/www/.structure/library/account/api/objects/abstract/AccountPa
 // Account
 require_once '/var/www/.structure/library/account/api/objects/account/AccountHistory.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountSettings.php';
-require_once '/var/www/.structure/library/account/api/objects/account/AccountTransactions.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountActions.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountObjectives.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountIdentification.php';
@@ -55,6 +54,8 @@ require_once '/var/www/.structure/library/account/api/objects/correlation/Accoun
 // Finance
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountWallet.php';
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountAffiliate.php';
+require_once '/var/www/.structure/library/account/api/objects/finance/AccountTransactions.php';
 
 // Information
 require_once '/var/www/.structure/library/account/api/objects/information/AccountStatistics.php';
+require_once '/var/www/.structure/library/account/api/objects/information/AccountReference.php';
