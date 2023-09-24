@@ -83,7 +83,7 @@ function get_patreon2_subscriptions($ignoreTiers = null, $targetTiers = null): a
         $key = $key[0];
         $results = array();
         $arguments = "currently_entitled_tiers,address";
-        $arguments .= "&fields[member]=full_name,last_charge_date,last_charge_status,lifetime_support_cents,currently_entitled_amount_cents,patron_status";
+        $arguments .= "&fields[member]=full_name,last_charge_date,next_charge_date,last_charge_status,lifetime_support_cents,currently_entitled_amount_cents,patron_status";
         $arguments .= "&fields[tier]=amount_cents,created_at,description,discord_role_ids,edited_at,patron_count,published,published_at,requires_shipping,title,url";
         $arguments .= "&fields[address]=addressee,city,line_1,line_2,phone_number,postal_code,state";
         $link = "https://www.patreon.com/api/oauth2/v2/campaigns/" . $patreon_campaign_id . "/members?include="

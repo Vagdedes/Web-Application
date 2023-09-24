@@ -63,6 +63,7 @@ class AccountActions
             return new MethodReply(false, $session->getMessage());
         }
         $functionality->addInstantCooldown(AccountFunctionality::LOG_IN, self::log_in_out_cooldown);
+        $this->account->refresh();
         return new MethodReply(true);
     }
 

@@ -89,7 +89,9 @@ class AccountProductDownloads
         if (!file_exists($originalFile)) {
             return new MethodReply(false, "Failed to find original file.");
         }
-        $fileCopy = "/var/www/" . get_potential_directory() . "/.temporary/" . $fileProperties->file_name . $newToken . "." . $fileProperties->file_type;
+        $fileCopy = "/var/www/" . get_potential_directory() . "/.temporary/"
+            . ($fileProperties->file_rename !== null ? $fileProperties->file_rename : $fileProperties->file_name)
+            . $newToken . "." . $fileProperties->file_type;
 
         if (!copy($originalFile, $fileCopy)) {
             $errors = error_get_last();

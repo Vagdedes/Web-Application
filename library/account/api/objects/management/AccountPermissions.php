@@ -163,10 +163,11 @@ class AccountPermissions
 
     public function getSystemPermissions(): array
     {
+        $this->account->getPatreon()->retrieve();
         return $this->systemPermissions;
     }
 
-    public function addSystemPermission($permission)
+    public function addSystemPermission($permission): void
     {
         if (is_array($permission)) {
             $this->systemPermissions = array_merge(

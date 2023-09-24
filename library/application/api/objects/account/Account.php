@@ -327,6 +327,15 @@ class Account
 
     // Separator
 
+    public function refresh()
+    {
+        if ($this->exists
+            && isset($this->transactions)) {
+            $this->getTransactions()->clearCache();
+            $this->getTransactions()->getSuccessful();
+        }
+    }
+
     public function clearMemory($key = null)
     {
         if (isset($this->object->id)) {

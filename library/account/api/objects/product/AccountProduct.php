@@ -124,14 +124,18 @@ class AccountProduct
                                 }
                             }
                         }
-                        $object->registered_buyers = sizeof(get_sql_query(
-                            $product_purchases_table,
-                            array("id"),
-                            array(
-                                array("product_id", $productID),
-                                array("deletion_date", null)
-                            )
-                        ));
+                        if ($object->is_free) {
+                            $object->registered_buyers = 0;
+                        } else {
+                            $object->registered_buyers = sizeof(get_sql_query(
+                                $product_purchases_table,
+                                array("id"),
+                                array(
+                                    array("product_id", $productID),
+                                    array("deletion_date", null)
+                                )
+                            ));
+                        }
                         $object->url = $website_url . "/viewProduct/?id=" . $productID;
                         $object->divisions = new stdClass();
                         $object->buttons = new stdClass();
@@ -198,6 +202,7 @@ class AccountProduct
                             $product_updates_table,
                             array(
                                 "file_name",
+                                "file_rename",
                                 "file_type",
                                 "required_permission",
                                 "version",

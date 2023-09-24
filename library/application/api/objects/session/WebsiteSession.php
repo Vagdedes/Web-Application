@@ -26,11 +26,11 @@ class WebsiteSession
         return new TwoFactorAuthentication($this);
     }
 
-    public function getAll($select = null, $limit = 0): array
+    public function getAlive($select = null, $limit = 0): array
     {
         global $account_sessions_table;
         $date = get_current_date();
-        set_sql_cache(null, self::class);
+        set_sql_cache("1 minute", self::class);
         return get_sql_query(
             $account_sessions_table,
             $select,
@@ -45,6 +45,42 @@ class WebsiteSession
             ),
             $limit
         );
+    }
+
+    public function getAll($select = array("account_id"), $limit = 0): array
+    {
+        global $account_sessions_table;
+        $cacheKey = array(self::class, $select, $limit, "all");
+        $cache = get_key_value_pair($cacheKey);
+
+        if (is_array($cache)) {
+            return $cache;
+        }
+        $query = get_sql_query(
+            $account_sessions_table,
+            $select,
+            null,
+            array(
+                "DESC",
+                "id"
+            ),
+            $limit
+        );
+
+        if (!empty($query)) {
+            $array = array();
+
+            foreach ($query as $row) {
+                if (!array_key_exists($row->account_id, $array)) {
+                    $array[$row->account_id] = $row;
+                }
+            }
+            set_key_value_pair($cacheKey, $array, "1 minute");
+            return $array;
+        } else {
+            set_key_value_pair($cacheKey, $query, "1 minute");
+            return $query;
+        }
     }
 
     public function createKey(): string
