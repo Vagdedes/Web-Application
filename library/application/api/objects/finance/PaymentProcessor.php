@@ -411,9 +411,10 @@ class PaymentProcessor
         }
     }
 
-    private function sendGeneralPurchaseEmail($email, $transactionID, $date)
+    private function sendGeneralPurchaseEmail($email, $transactionID, $date): void
     {
         global $unknown_email_processing_table;
+        $email = strtolower($email);
         $query = get_sql_query(
             $unknown_email_processing_table,
             array("id"),

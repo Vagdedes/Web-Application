@@ -1,10 +1,10 @@
 <?php
 
 
-function loadChangeName(Account $account, $isLoggedIn)
+function loadChangeName(Account $account, $isLoggedIn): void
 {
     if (!$isLoggedIn) {
-        redirect_to_account_page(null, false, null);
+        account_page_redirect(null, false, null);
     } else {
         if (isset($_POST["change"])) {
             $result = $account->getActions()->changeName(get_form_post("name"));

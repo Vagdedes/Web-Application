@@ -39,7 +39,11 @@ class Account
 
     public const IGNORE_APPLICATION = -1;
 
-    public function __construct($applicationID, $id, $email = null, $identification = null, $checkDeletion = true)
+    public function __construct($applicationID,
+                                $id, $email = null, $username = null,
+                                $identification = null,
+                                $checkDeletion = true,
+                                $cache = true)
     {
         $hasID = $id !== null;
         $hasIdentification = $identification !== null;
@@ -51,7 +55,10 @@ class Account
         } else {
             if ($hasIdentification) {
                 global $account_identification_table;
-                set_sql_cache(null, self::class);
+
+                if ($cache) {
+                    set_sql_cache(null, self::class);
+                }
                 $query = get_sql_query(
                     $account_identification_table,
                     array("account_id"),
@@ -71,13 +78,17 @@ class Account
                 }
             }
             global $accounts_table;
-            set_sql_cache(null, self::class);
+
+            if ($cache) {
+                set_sql_cache(null, self::class);
+            }
             $query = get_sql_query(
                 $accounts_table,
                 null,
                 array(
                     $hasID ? array("id", $id) : "",
-                    $email !== null ? array("email_address", $email) : "",
+                    $email !== null ? array("email_address", strtolower($email)) : "",
+                    $username !== null ? array("name", $username) : "",
                     $checkDeletion ? array("deletion_date", null) : "",
                     $applicationID !== self::IGNORE_APPLICATION ? array("application_id", $applicationID) : ""
                 ),
@@ -327,7 +338,7 @@ class Account
 
     // Separator
 
-    public function refresh()
+    public function refresh(): void
     {
         if ($this->exists
             && isset($this->transactions)) {
@@ -336,22 +347,46 @@ class Account
         }
     }
 
-    public function clearMemory($key = null)
+    public function clearMemory($key = null): void
     {
-        if (isset($this->object->id)) {
+        if (isset($this->object->id)
+            && isset($this->object->name)
+            && isset($this->object->email_address)) {
             if ($key === null) {
-                clear_memory(array(get_sql_cache_key("account_id", $this->object->id)), true);
+                clear_memory(array(
+                    get_sql_cache_key("account_id", $this->object->id),
+                    get_sql_cache_key("id", $this->object->id),
+                    get_sql_cache_key("name", $this->object->name),
+                    get_sql_cache_key("email_address", $this->object->email_address)
+                ), true);
             } else if (is_array($key)) {
                 $key1 = get_sql_cache_key("account_id", $this->object->id);
+                $key2 = get_sql_cache_key("id", $this->object->id);
+                $key3 = get_sql_cache_key("name", $this->object->name);
+                $key4 = get_sql_cache_key("email_address", $this->object->email_address);
 
                 foreach ($key as $item) {
-                    clear_memory(array(array($item, $key1)), true);
+                    clear_memory(array(
+                        array($item, $key1),
+                        array($item, $key2),
+                        array($item, $key3),
+                        array($item, $key4)
+                    ), true);
                 }
             } else {
                 clear_memory(
                     array(array(
                         $key,
                         get_sql_cache_key("account_id", $this->object->id)
+                    ), array(
+                        $key,
+                        get_sql_cache_key("id", $this->object->id)
+                    ), array(
+                        $key,
+                        get_sql_cache_key("name", $this->object->name)
+                    ), array(
+                        $key,
+                        get_sql_cache_key("email_address", $this->object->email_address)
                     )), true
                 );
             }

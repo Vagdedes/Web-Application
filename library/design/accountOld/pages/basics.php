@@ -1,5 +1,8 @@
 <?php
 
+function prepare_redirect_url($string): string {
+    return str_replace(" ", "-", str_replace(".", "-", strip_tags($string)));
+}
 
 function account_product_prompt(?Account $account, $isLoggedIn, $productObject): string
 {
@@ -28,7 +31,7 @@ function account_product_prompt(?Account $account, $isLoggedIn, $productObject):
     }
 }
 
-function load_account_page_message($title, $reason)
+function load_account_page_message($title, $reason): void
 {
     echo "<div class='area'>
             <div class='area_logo'>
@@ -43,7 +46,7 @@ function load_account_page_message($title, $reason)
         </div>";
 }
 
-function redirect_to_account_page(?Account $account, $isLoggedIn, $message)
+function account_page_redirect(?Account $account, $isLoggedIn, $message): void
 {
     global $website_url;
     $redirectURL = get_user_url();

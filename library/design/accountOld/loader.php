@@ -5,7 +5,7 @@ require_once '/var/www/.structure/library/base/form.php';
 require_once '/var/www/.structure/library/base/requirements/account_systems.php';
 require_once '/var/www/.structure/library/design/accountOld/pages/basics.php';
 
-function load_page_html_head(Account $account, $title)
+function load_page_html_head(Account $account, $title): void
 {
     global $website_url;
     $validProducts = $account->getProduct()->find();
@@ -37,7 +37,7 @@ function load_page_html_head(Account $account, $title)
         <body>";
 }
 
-function load_page_intro(?Account $account, $isLoggedIn, $loadIntro, $loadNavigation)
+function load_page_intro(?Account $account, $isLoggedIn, $loadIntro, $loadNavigation): void
 {
     $notification = $isLoggedIn
         ? $account->getNotifications()->get(AccountNotifications::FORM, 1, true)
@@ -79,7 +79,7 @@ function load_page_intro(?Account $account, $isLoggedIn, $loadIntro, $loadNaviga
     }
 }
 
-function load_page_footer($loadFooter)
+function load_page_footer($loadFooter): void
 {
     if ($loadFooter) {
         include("/var/www/.structure/library/design/accountOld/footer/footer.php");
@@ -87,7 +87,7 @@ function load_page_footer($loadFooter)
     echo "</body></html>";
 }
 
-function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true)
+function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true): void
 {
     $application = new Application(null);
 
@@ -151,7 +151,7 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                     load_account_page_message("Website Error", "This offer does not exist or is not currently available.");
                 } else {
                     $offer = $offer->getObject();
-                    $offerArgument = str_replace(" ", "-", strip_tags($offer->name)) . "." . $id;
+                    $offerArgument = prepare_redirect_url($offer->name) . "." . $id;
 
                     if ($isNumericID && ($argumentSize == 1 || $argument != $offerArgument)) {
                         redirect_to_url($website_url . "/" . $directory . "/?id=" . $offerArgument, array("id"));
@@ -239,11 +239,11 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                 break;
             case "instantLogin":
                 if ($isLoggedIn) {
-                    redirect_to_account_page($account, true, null);
+                    account_page_redirect($account, true, null);
                 } else {
                     $twoFactor = $session->getTwoFactorAuthentication();
                     $twoFactor = $twoFactor->verify(get_form_get("token"));
-                    redirect_to_account_page($twoFactor->getObject(), $twoFactor->isPositiveOutcome(), $twoFactor->getMessage());
+                    account_page_redirect($twoFactor->getObject(), $twoFactor->isPositiveOutcome(), $twoFactor->getMessage());
                 }
                 break;
             default:

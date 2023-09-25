@@ -1,7 +1,7 @@
 <?php
 
 
-function loadViewProduct(Account $account, $isLoggedIn)
+function loadViewProduct(Account $account, $isLoggedIn): void
 {
     $productArguments = explode(".", get_form_get("id"));
     $argumentSize = sizeof($productArguments);
@@ -14,11 +14,11 @@ function loadViewProduct(Account $account, $isLoggedIn)
         if ($productFound->isPositiveOutcome()) {
             $productFound = $productFound->getObject()[0];
             $name = $productFound->name;
-            $nameURL = str_replace(" ", "-", $name);
+            $nameURL = prepare_redirect_url($name);
 
             if ($argumentSize == 1 || $productArguments[0] !== $nameURL) {
-                //redirect_to_url($website_url . "/viewProduct/?id=$nameURL.$productID", array("id"));
-                //return;
+                redirect_to_url($website_url . "/viewProduct/?id=$nameURL.$productID", array("id"));
+                return;
             }
             $description = $productFound->description;
             $image = $productFound->image;
@@ -163,7 +163,7 @@ function loadViewProduct(Account $account, $isLoggedIn)
 
                 foreach ($productButton as $button) {
                     if ($isLoggedIn
-                        || $button->requires_account == null) {
+                        || $button->requires_account === null) {
                         if (!$firstButton) {
                             $firstButton = true;
                             $buttonInformation .= "<div class='area_form' id='marginless'>";
@@ -171,11 +171,11 @@ function loadViewProduct(Account $account, $isLoggedIn)
                         $color = $button->color;
                         $buttonName = $button->name;
                         $url = $button->url;
-                        $buttonInformation .= "<a href='$url' class='button' id='$color'>$buttonName</a> ";
+                        $buttonInformation .= "<p><a href='$url' class='button' id='$color'>$buttonName</a>";
                     }
-                    if ($firstButton) {
-                        $buttonInformation .= "</div>";
-                    }
+                }
+                if ($firstButton) {
+                    $buttonInformation .= "</div>";
                 }
             } else if ($hasPurchased) {
                 if (!empty($productFound->downloads)) {
@@ -206,7 +206,7 @@ function loadViewProduct(Account $account, $isLoggedIn)
 
                         foreach ($productButton as $button) {
                             if ($isLoggedIn
-                                || $button->requires_account == null) {
+                                || $button->requires_account === null) {
                                 if (!$firstButton) {
                                     $firstButton = true;
                                     $buttonInformation .= "<div class='area_form' id='marginless'>";

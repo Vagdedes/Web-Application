@@ -16,9 +16,12 @@ class Application
         return $this->id;
     }
 
-    public function getAccount($id, $email = null, $identification = null, $checkDeletion = true): Account
+    public function getAccount($id, $email = null, $username = null,
+                               $identification = null,
+                               $checkDeletion = true,
+                               $cache = true): Account
     {
-        return new Account($this->id, $id, $email, $identification, $checkDeletion);
+        return new Account($this->id, $id, $email, $username, $identification, $checkDeletion, $cache);
     }
 
     public function getAccountRegistry($email, $password, $name): AccountRegistry

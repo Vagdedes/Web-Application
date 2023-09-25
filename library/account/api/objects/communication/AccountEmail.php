@@ -11,6 +11,7 @@ class AccountEmail
 
     public function requestVerification($email, $cooldown = "1 minute"): MethodReply
     {
+        $email = strtolower($email);
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_EMAIL, true);
 
@@ -19,7 +20,7 @@ class AccountEmail
         }
         $currentEmail = $this->account->getDetail("email_address");
 
-        if (strtolower($email) === strtolower($currentEmail)) {
+        if ($email === strtolower($currentEmail)) {
             return new MethodReply(false, "This is already your email address.");
         }
         global $accounts_table;
@@ -144,6 +145,7 @@ class AccountEmail
             if (!$parameter->getOutcome()->isPositiveOutcome()) {
                 return new MethodReply(false, $parameter->getOutcome()->getMessage());
             }
+            $email = strtolower($email);
         }
         global $email_verifications_table;
         $accountID = $this->account->getDetail("id");

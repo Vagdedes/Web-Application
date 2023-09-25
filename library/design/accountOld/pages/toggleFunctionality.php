@@ -4,7 +4,7 @@
 function loadToggleFunctionality(Account $account, $isLoggedIn)
 {
     if (!$isLoggedIn) {
-        redirect_to_account_page(null, false, null);
+        account_page_redirect(null, false, null);
     } else {
         global $website_url;
         $functionalities = array(
@@ -17,7 +17,7 @@ function loadToggleFunctionality(Account $account, $isLoggedIn)
         );
 
         if (empty($functionalities)) {
-            redirect_to_account_page($account, true, "This functionality is currently not available.");
+            account_page_redirect($account, true, "This functionality is currently not available.");
         } else {
             $toggle = get_form_get("toggle");
 

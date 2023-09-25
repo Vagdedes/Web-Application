@@ -287,7 +287,7 @@ class AccountGiveaway
                 $winnerPosition = rand(0, $accountsAmount - 1);
 
                 if (isset($accountsArray[$winnerPosition])) { // Check if it exists as it may have been removed
-                    $account = new Account($this->account->getDetail("application_id"), $accountsArray[$winnerPosition]->id, null, null, false); // Get object before unsetting it
+                    $account = new Account($this->account->getDetail("application_id"), $accountsArray[$winnerPosition]->id, null, null, null, false); // Get object before unsetting it
                     unset($accountsArray[$winnerPosition]); // Unset object to pick a different winner in the next potential loop
 
                     // add the product to the winner's account

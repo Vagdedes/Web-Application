@@ -32,28 +32,21 @@ class AccountRegistry
             $this->outcome = new MethodReply(false, $parameter->getOutcome()->getMessage());
             return;
         }
-        global $accounts_table;
-
-        if (!empty(get_sql_query(
-            $accounts_table,
-            array("id"),
-            array(
-                array("name", $name),
-                array("deletion_date", null),
-                array("application_id", $applicationID)
-            ),
-            null,
-            1
-        ))) {
-            $this->outcome = new MethodReply(false, "Account with this name already exists.");
-            return;
-        }
+        $email = strtolower($email);
         $account = new Account($applicationID, null, $email);
 
         if ($account->exists()) {
             $this->outcome = new MethodReply(false, "Account with this email already exists.");
             return;
         }
+        $account = new Account($applicationID, null, null, $name);
+
+        if ($account->exists()) {
+            $this->outcome = new MethodReply(false, "Account with this name already exists.");
+            return;
+        }
+        global $accounts_table;
+
         if (!sql_insert($accounts_table,
             array(
                 "email_address" => $email,
@@ -65,7 +58,7 @@ class AccountRegistry
             $this->outcome = new MethodReply(false, "Failed to create new account.");
             return;
         }
-        $account = new Account($applicationID, null, $email);
+        $account = new Account($applicationID, null, $email, null, null, true, false);
 
         if (!$account->exists()) {
             $this->outcome = new MethodReply(false, "Failed to find newly created account.");

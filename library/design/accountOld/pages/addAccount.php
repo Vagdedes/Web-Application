@@ -4,7 +4,7 @@
 function loadAddAccount(Account $account, $isLoggedIn)
 {
     if (!$isLoggedIn) {
-        redirect_to_account_page(null, false, "You must be logged in to add an account.");
+        account_page_redirect(null, false, "You must be logged in to add an account.");
     } else {
         global $accepted_accounts_table;
         $acceptedAccounts = get_sql_query(
@@ -18,7 +18,7 @@ function loadAddAccount(Account $account, $isLoggedIn)
         );
 
         if (empty($acceptedAccounts)) {
-            redirect_to_account_page($account, true, "This functionality is currently not available.");
+            account_page_redirect($account, true, "This functionality is currently not available.");
         } else {
             if (isset($_POST["add"])) {
                 $result = $account->getAccounts()->add(
@@ -45,7 +45,7 @@ function loadAddAccount(Account $account, $isLoggedIn)
             }
             echo "</datalist>";
 
-            echo "<input type='text' name='information' placeholder='Account Information' minlength=6 maxlength=384>
+            echo "<input type='text' name='information' placeholder='Account Information' minlength=1 maxlength=384>
                         <input type='submit' name='add' value='Add Account' class='button' id='blue'>
                     </form>
                 </div>

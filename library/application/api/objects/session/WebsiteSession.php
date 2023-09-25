@@ -94,7 +94,7 @@ class WebsiteSession
         return $key;
     }
 
-    public function deleteKey($limit = false): bool
+    public function deleteKey(): bool
     {
         return delete_cookie(self::session_key_name);
     }

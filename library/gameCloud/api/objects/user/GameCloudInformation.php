@@ -87,7 +87,7 @@ class GameCloudInformation
                     );
 
                     if (!empty($query)) {
-                        $this->account = $application->getAccount($query[0]->account_id, null, null, $checkDeletion);
+                        $this->account = $application->getAccount($query[0]->account_id, null, null, null, $checkDeletion);
                     } else {
                         $this->account = $application->getAccount(0);
                     }

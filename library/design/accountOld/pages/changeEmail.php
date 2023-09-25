@@ -16,14 +16,14 @@ function loadChangeEmail(Account $account, $isLoggedIn)
                     </div>
                 </div>";
         } else {
-            redirect_to_account_page(null, false, null);
+            account_page_redirect(null, false, null);
         }
     } else {
         $token = get_form_get("token");
 
         if (!empty($token)) {
             $result = $account->getEmail()->completeVerification($token);
-            redirect_to_account_page($account, true, $result->getMessage());
+            account_page_redirect($account, true, $result->getMessage());
         } else {
             if (isset($_POST["change"])) {
                 $result = $account->getEmail()->requestVerification(get_form_post("email"));

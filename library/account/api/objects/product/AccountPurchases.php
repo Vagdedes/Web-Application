@@ -319,7 +319,7 @@ class AccountPurchases
         if ($sendEmail !== null) {
             $details = array(
                 "productID" => $productID,
-                "productName" => $product->name,
+                "productName" => strip_tags($product->name),
                 "transactionID" => $transactionID,
                 "creationDate" => $product->name,
                 "additionalProducts" => $additionalProducts,
@@ -468,8 +468,8 @@ class AccountPurchases
         if ($sendEmail) {
             $this->account->getEmail()->send("productExchange",
                 array(
-                    "currentProductName" => $currentProduct->getObject()[0]->name,
-                    "newProductName" => $newProduct->getObject()[0]->name
+                    "currentProductName" => strip_tags($currentProduct->getObject()[0]->name),
+                    "newProductName" => strip_tags($newProduct->getObject()[0]->name)
                 )
             );
         }

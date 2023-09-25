@@ -1,7 +1,7 @@
 <?php
 
 
-function loadProfile(Account $account, $isLoggedIn, Application $application)
+function loadProfile(Account $account, $isLoggedIn, Application $application): void
 {
     global $website_url;
 
@@ -52,9 +52,9 @@ function loadProfile(Account $account, $isLoggedIn, Application $application)
             $platformShowcase .= "</ul></div>";
             echo "<div class='area_text'>Here you will find many of your recently added accounts.</div>";
         } else {
-            $platformShowcase .= "<div class='area_text'>You haven't added any accounts yet.</div>";
+            $platformShowcase .= "</p><div class='area_text'>You haven't added any accounts yet.</div>";
         }
-        $platformShowcase .= "<div class='area_form' id='marginless'>
+        $platformShowcase .= "<p><div class='area_form' id='marginless'>
                                 <a href='$add_account_url' class='button' id='blue'>Add Account</a>
                             </div></div>";
         echo $platformShowcase;
@@ -83,19 +83,18 @@ function loadProfile(Account $account, $isLoggedIn, Application $application)
     } else {
         if (isset($_POST["register"])) {
             if (!is_google_captcha_valid()) {
-                redirect_to_account_page(null, false, "Please complete the bot verification.");
+                account_page_redirect(null, false, "Please complete the bot verification.");
             } else {
                 $accountRegistry = $application->getAccountRegistry(
                     get_form_post("email"),
                     get_form_post("password"),
                     get_form_post("name")
-                );
-                $accountRegistry = $accountRegistry->getOutcome();
-                redirect_to_account_page($accountRegistry->getObject(), $accountRegistry->isPositiveOutcome(), $accountRegistry->getMessage());
+                )->getOutcome();
+                account_page_redirect($accountRegistry->getObject(), $accountRegistry->isPositiveOutcome(), $accountRegistry->getMessage());
             }
         } else if (isset($_POST["log_in"])) {
             if (!is_google_captcha_valid()) {
-                redirect_to_account_page(null, false, "Please complete the bot verification.");
+                account_page_redirect(null, false, "Please complete the bot verification.");
             } else {
                 $account = $application->getAccount(null, get_form_post("email"));
 
@@ -110,13 +109,13 @@ function loadProfile(Account $account, $isLoggedIn, Application $application)
                             || starts_with($redirectURL, $website_url_http)) {
                             redirect_to_url($redirectURL);
                         } else {
-                            redirect_to_account_page($account, true, $result->getMessage());
+                            account_page_redirect($account, true, $result->getMessage());
                         }
                     } else {
-                        redirect_to_account_page(null, false, $result->getMessage());
+                        account_page_redirect(null, false, $result->getMessage());
                     }
                 } else {
-                    redirect_to_account_page(null, false, "Account with this email does not exist.");
+                    account_page_redirect(null, false, "Account with this email does not exist.");
                 }
             }
         }

@@ -4,7 +4,7 @@
 function loadHistory(Account $account, $isLoggedIn)
 {
     if (!$isLoggedIn) {
-        redirect_to_account_page(null, false, null);
+        account_page_redirect(null, false, null);
     } else {
         echo "<div class='area'>
                     <div class='area_title'>Recent History</div>";
