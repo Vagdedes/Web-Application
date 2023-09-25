@@ -110,7 +110,7 @@ class AccountActions
         if ($permanently) {
             $tables = get_sql_database_tables("account");
 
-            if (sizeof($tables) > 0) {
+            if (!empty($tables)) {
                 global $accounts_table;
                 $accountID = $this->account->getDetail("id");
 
@@ -129,6 +129,7 @@ class AccountActions
                             );
                         }
                     }
+                    $this->account->clearMemory();
                     return new MethodReply(true, "User successfully deleted permanently.");
                 }
                 return new MethodReply(false, "Failed to delete account.");
@@ -147,6 +148,7 @@ class AccountActions
             )) {
                 return new MethodReply(false, "Failed to interact with the database.");
             }
+            $this->account->clearMemory();
             return new MethodReply(true, "User successfully deleted.");
         }
     }

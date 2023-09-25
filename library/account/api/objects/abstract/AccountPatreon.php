@@ -24,11 +24,11 @@ class AccountPatreon
     public function retrieve(): MethodReply
     {
         if ($this->retrieve === null) {
-            $patreonAccount = $this->account->getAccounts()->hasAdded(AccountAccounts::PATREON_FULL_NAME, null, 1);
+            $name = $this->account->getAccounts()->hasAdded(AccountAccounts::PATREON_FULL_NAME, null, 1);
 
-            if ($patreonAccount->isPositiveOutcome()) {
-                $patreonAccount = $patreonAccount->getObject()[0];
-                $this->retrieve = $this->find($patreonAccount, array(self::INVESTOR));
+            if ($name->isPositiveOutcome()) {
+                $name = $name->getObject()[0];
+                $this->retrieve = $this->find($name, array(self::INVESTOR));
 
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
@@ -36,7 +36,7 @@ class AccountPatreon
                         "patreon.subscriber.products"
                     ));
                 } else {
-                    $this->retrieve = $this->find($patreonAccount, array(self::SPONSOR));
+                    $this->retrieve = $this->find($name, array(self::SPONSOR));
 
                     if ($this->retrieve->isPositiveOutcome()) {
                         $this->account->getPermissions()->addSystemPermission(array(
@@ -44,7 +44,7 @@ class AccountPatreon
                             "patreon.subscriber.products"
                         ));
                     } else {
-                        $this->retrieve = $this->find($patreonAccount, array(self::MOTIVATOR));
+                        $this->retrieve = $this->find($name, array(self::MOTIVATOR));
 
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
@@ -52,7 +52,7 @@ class AccountPatreon
                                 "patreon.subscriber.products"
                             ));
                         } else {
-                            $this->retrieve = $this->find($patreonAccount, array(self::SUPPORTER));
+                            $this->retrieve = $this->find($name, array(self::SUPPORTER));
 
                             if ($this->retrieve->isPositiveOutcome()) {
                                 $this->account->getPermissions()->addSystemPermission(array(
@@ -70,13 +70,13 @@ class AccountPatreon
         return $this->retrieve;
     }
 
-    private function find($patreonAccount, $tiers = null): MethodReply
+    private function find($name, $tiers = null): MethodReply
     {
         $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers);
 
         if (!empty($patreonSubscriptions)) {
             foreach ($patreonSubscriptions as $subscription) {
-                if ($subscription->attributes->full_name == $patreonAccount) {
+                if ($subscription->attributes->full_name == $name) {
                     return new MethodReply(true, null, $subscription);
                 }
             }

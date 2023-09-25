@@ -1,5 +1,4 @@
 <?php
-$patreon_campaign_id = "3314007";
 
 function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): array
 {
