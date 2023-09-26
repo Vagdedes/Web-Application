@@ -340,10 +340,15 @@ class Account
 
     public function refresh(): void
     {
-        if ($this->exists
-            && isset($this->transactions)) {
-            $this->getTransactions()->clearCache();
-            $this->getTransactions()->getSuccessful();
+        if ($this->exists()) {
+            if (isset($this->transactions)) {
+                $this->getTransactions()->clearCache();
+                $this->getTransactions()->getSuccessful();
+            }
+            if (isset($this->email)
+                && !$this->getEmail()->isVerified()) {
+                $this->getEmail()->initiateVerification();
+            }
         }
     }
 
