@@ -4,7 +4,7 @@
 function loadGiveaway(Account $account)
 {
     $productGiveaway = $account->getGiveaway();
-    $currentGiveaway = $productGiveaway->getCurrent(true);
+    $currentGiveaway = $productGiveaway->getCurrent(null, 1, "14 days", true);
 
     if ($currentGiveaway->isPositiveOutcome()) { // Check if current giveaway exists
         $currentGiveaway = $currentGiveaway->getObject();

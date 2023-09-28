@@ -73,72 +73,70 @@ class AccountGiveaway
                 1
             ); // get last successful giveaway
 
-            if (!empty($array)) {
-                if ($productID === null) {
-                    $nextProductID = null;
-                    $validProducts = $this->account->getProduct()->find(null, false);
+            if ($productID === null) {
+                $nextProductID = null;
+                $validProducts = $this->account->getProduct()->find(null, false);
 
-                    if ($validProducts->isPositiveOutcome()) {
-                        $validProducts = $validProducts->getObject();
-                        $productID = $array[0]->product_id; // get product of last successful giveaway
-                        $queueNext = false;
+                if ($validProducts->isPositiveOutcome()) {
+                    $validProducts = $validProducts->getObject();
+                    $productID = empty($array) ? null : $array[0]->product_id; // get product of last successful giveaway
+                    $queueNext = false;
 
-                        // Search for next product to give away
-                        foreach ($validProducts as $arrayKey => $product) {
-                            if ($product->is_free
-                                || $requireDownload && empty($product->downloads)) {
-                                unset($validProducts[$arrayKey]);
-                            } else {
-                                $loopID = $product->id;
+                    // Search for next product to give away
+                    foreach ($validProducts as $arrayKey => $product) {
+                        if ($product->is_free
+                            || $requireDownload && empty($product->downloads)) {
+                            unset($validProducts[$arrayKey]);
+                        } else {
+                            $loopID = $product->id;
 
-                                if ($loopID == $productID) {
-                                    $queueNext = true;
-                                } else if ($queueNext) {
-                                    $nextProductID = $loopID;
-                                    break;
-                                }
-                            }
-                        }
-
-                        // Reset loop if search reached limits
-                        if ($nextProductID == null) {
-                            foreach ($validProducts as $product) {
-                                $loopID = $product->id;
-
-                                if ($loopID != $productID) {
-                                    $nextProductID = $loopID;
-                                    break;
-                                }
+                            if ($loopID == $productID) {
+                                $queueNext = true;
+                            } else if ($queueNext) {
+                                $nextProductID = $loopID;
+                                break;
                             }
                         }
                     }
-                } else {
-                    $nextProductID = $productID;
+
+                    // Reset loop if search reached limits
+                    if ($nextProductID === null) {
+                        foreach ($validProducts as $product) {
+                            $loopID = $product->id;
+
+                            if ($loopID != $productID) {
+                                $nextProductID = $loopID;
+                                break;
+                            }
+                        }
+                    }
                 }
+            } else {
+                $nextProductID = $productID;
+            }
 
-                if ($nextProductID !== null) {
-                    // Insert to the database
-                    global $product_giveaways_table;
+            if ($nextProductID !== null) {
+                // Insert to the database
+                global $product_giveaways_table;
 
-                    if (sql_insert($product_giveaways_table,
-                        array(
-                            "application_id" => $this->account->getDetail("application_id"),
-                            "product_id" => $nextProductID,
-                            "amount" => $amount,
-                            "creation_date" => get_current_date(),
-                            "expiration_date" => get_future_date($duration)
-                        )
-                    )) {
-                        clear_memory(array(self::class), true);
-                        return true;
-                    }
+                if (sql_insert($product_giveaways_table,
+                    array(
+                        "application_id" => $this->account->getDetail("application_id"),
+                        "product_id" => $nextProductID,
+                        "amount" => $amount,
+                        "creation_date" => get_current_date(),
+                        "expiration_date" => get_future_date($duration)
+                    )
+                )) {
+                    clear_memory(array(self::class), true);
+                    return true;
                 }
             }
         }
         return false;
     }
 
-    public function getCurrent($create = false, $productID = null, $amount = 1, $duration = "14 days", $requireDownload = true): MethodReply
+    public function getCurrent($productID, $amount, $duration, $requireDownload): MethodReply
     {
         global $product_giveaways_table;
         set_sql_cache(null, self::class);
@@ -152,6 +150,7 @@ class AccountGiveaway
             null,
             1
         );
+        $create = $amount > 0;
 
         if (!empty($array)) { // Search for existing valid last giveaway
             $object = $array[0];
@@ -206,7 +205,7 @@ class AccountGiveaway
             return new MethodReply(true, null, $object);
         } else if ($create && $this->create($productID, $amount, $duration, $requireDownload)) {
             // Create new one if non-existent and set create to 'false' to prevent loops
-            return $this->getCurrent(false, $productID, $amount, $duration);
+            return $this->getCurrent($productID, 0, $duration, $requireDownload); // Set amount to 0 to stop creation
         } else {
             return new MethodReply(false);
         }

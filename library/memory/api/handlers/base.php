@@ -357,8 +357,11 @@ class IndividualMemoryBlock
         if (!$block) {
             return null;
         }
-        $readMapBytes = shmop_read($block, 0, max($this->internalGetBlockSize($exceptionID, $originalKey, $block), $memory_starting_bytes));
-
+        try {
+            $readMapBytes = shmop_read($block, 0, max($this->internalGetBlockSize($exceptionID, $originalKey, $block), $memory_starting_bytes));
+        } catch (Exception $ignored) {
+            return null;
+        }
         if (!$readMapBytes) {
             $this->throwException("Unable to read individual-memory-block: " . $originalKey);
         }
@@ -470,7 +473,11 @@ class IndividualMemoryBlock
                 $bytesSize = $oldBytesSize;
                 $block = $block[0];
             }
-            $readMapBytes = shmop_read($block, 0, $bytesSize);
+            try {
+                $readMapBytes = shmop_read($block, 0, $bytesSize);
+            } catch (Exception $ignored) {
+                return false;
+            }
 
             if (!$readMapBytes) {
                 $this->throwException("Unable to read replacement individual-memory-block: " . $originalKey);
