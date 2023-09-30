@@ -357,11 +357,11 @@ class IndividualMemoryBlock
         if (!$block) {
             return null;
         }
-        try {
-            $readMapBytes = shmop_read($block, 0, max($this->internalGetBlockSize($exceptionID, $originalKey, $block), $memory_starting_bytes));
-        } catch (Exception $ignored) {
-            return null;
-        }
+        $readMapBytes = $this->readBlock(
+            $block,
+            max($this->internalGetBlockSize($exceptionID, $originalKey, $block), $memory_starting_bytes)
+        );
+
         if (!$readMapBytes) {
             $this->throwException("Unable to read individual-memory-block: " . $originalKey);
         }
@@ -473,11 +473,7 @@ class IndividualMemoryBlock
                 $bytesSize = $oldBytesSize;
                 $block = $block[0];
             }
-            try {
-                $readMapBytes = shmop_read($block, 0, $bytesSize);
-            } catch (Exception $ignored) {
-                return false;
-            }
+            $readMapBytes = $this->readBlock($block, $bytesSize);
 
             if (!$readMapBytes) {
                 $this->throwException("Unable to read replacement individual-memory-block: " . $originalKey);
@@ -645,5 +641,20 @@ class IndividualMemoryBlock
             $errors = error_get_last();
         }
         throw new Exception($exception . (!empty($errors) ? " [" . $errors["message"] . "]" : ""));
+    }
+
+    private function readBlock($block, $bytesSize)
+    {
+        try {
+            global $max_32bit_Integer;
+
+            if ($bytesSize >= 0 && $bytesSize <= $max_32bit_Integer) {
+                return @shmop_read($block, 0, $bytesSize);
+            } else {
+                return false;
+            }
+        } catch (Exception $ignored) {
+            return false;
+        }
     }
 }

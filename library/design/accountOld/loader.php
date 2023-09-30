@@ -26,7 +26,7 @@ function load_page_html_head(Account $account, $title): void
     $randomNumber = rand(0, 2147483647);
     echo "<!DOCTYPE html>
         <html lang='en'>
-        <head>
+        <head>" . get_google_analytics() . "
             <title>Vagdedes Services | $title</title>
             <meta name='description' content='$metaDescription'>
         	<link rel='shortcut icon' type='image/png' href='https://" . get_domain() . "/.images/icon.png'>

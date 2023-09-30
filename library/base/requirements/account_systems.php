@@ -17,3 +17,4 @@ require_once '/var/www/.structure/library/account/init.php';
 require_once '/var/www/.structure/library/application/init.php';
 require_once '/var/www/.structure/library/gameCloud/init.php';
 require_once '/var/www/.structure/library/application/init.php';
+require_once '/var/www/.structure/library/google/init.php';
