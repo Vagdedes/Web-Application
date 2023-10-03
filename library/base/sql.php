@@ -250,6 +250,7 @@ function get_sql_query($table, $select = null, $where = null, $order = null, $li
             $cacheKey[] = $sql_cache_tag;
             $sql_cache_tag = null;
         }
+        $cacheKey = remove_dates(serialize($cacheKey)); // Remove dates to prevent cache from being ineffective
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {

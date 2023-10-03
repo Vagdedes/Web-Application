@@ -685,6 +685,11 @@ function manage_errors($display = null, $log = null) // NULL leaves it unaffecte
 
 // Dates
 
+function remove_dates($string): array|string|null
+{
+    return preg_replace('/(\d{4}[\.\/\-][01]\d[\.\/\-][0-3]\d)/', '', $string);
+}
+
 function manipulate_date($date, $time): string
 {
     return date('Y-m-d H:i:s', strtotime($date . " " . $time));

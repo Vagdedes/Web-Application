@@ -1,6 +1,6 @@
 <?php
 
-function manipulate_memory_key($key)
+function manipulate_memory_key($key): bool|string
 {
     return $key === null ? false : serialize(is_object($key) ? get_object_vars($key) : $key);
 }
