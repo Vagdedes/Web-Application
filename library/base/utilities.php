@@ -86,12 +86,12 @@ function get_json_object($url, $postParameters = null, $timeoutSeconds = 0)
     return $contents !== false ? json_decode($contents) : null;
 }
 
-function create_and_close_connection($url)
+function create_and_close_connection($url): bool|string
 {
     return timed_file_get_contents($url, 1);
 }
 
-function timed_file_get_contents($url, $timeoutSeconds = 0)
+function timed_file_get_contents($url, $timeoutSeconds = 0): bool|string
 {
     if ($timeoutSeconds > 0) {
         return @file_get_contents($url, 0, stream_context_create(["http" => ["timeout" => $timeoutSeconds]]));
@@ -100,7 +100,7 @@ function timed_file_get_contents($url, $timeoutSeconds = 0)
     }
 }
 
-function create_and_close_curl_connection($url, $properties = null)
+function create_and_close_curl_connection($url, $properties = null): bool|string|null
 {
     return shell_exec(
         "curl"
@@ -139,7 +139,7 @@ function get_curl($url, $type, $arguments, $headers, $timeoutSeconds = 0)
     return json_decode($result);
 }
 
-function send_file_download($file, $exit = true)
+function send_file_download($file, $exit = true): void
 {
     header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');
@@ -479,13 +479,13 @@ function get_keys_from_file($file, $amount): ?array
     return null;
 }
 
-function multi_explode($delimiters, $string)
+function multi_explode($delimiters, $string): array
 {
     $ready = str_replace($delimiters, $delimiters[0], $string);
     return explode($delimiters[0], $ready);
 }
 
-function strpos_array($haystack, $needle)
+function strpos_array($haystack, $needle): bool|int
 {
     if (!is_array($needle)) {
         $needle = array($needle);
@@ -498,7 +498,7 @@ function strpos_array($haystack, $needle)
     return false;
 }
 
-function get_domain_from_url($string, $removeSubdomains = false)
+function get_domain_from_url($string, $removeSubdomains = false): array|string
 {
     $string = explode("/",
         str_replace("http://", "", str_replace("https://", "", $string)),
@@ -515,7 +515,7 @@ function get_domain_from_url($string, $removeSubdomains = false)
     return $string;
 }
 
-function make_alpha_numeric($string)
+function make_alpha_numeric($string): array|string|null
 {
     return preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '', $string));
 }
@@ -685,42 +685,42 @@ function manage_errors($display = null, $log = null) // NULL leaves it unaffecte
 
 // Dates
 
-function manipulate_date($date, $time)
+function manipulate_date($date, $time): string
 {
     return date('Y-m-d H:i:s', strtotime($date . " " . $time));
 }
 
-function get_future_date($time)
+function get_future_date($time): string
 {
     return date('Y-m-d H:i:s', strtotime("+" . $time));
 }
 
-function get_past_date($time)
+function get_past_date($time): string
 {
     return date('Y-m-d H:i:s', strtotime("-" . $time));
 }
 
-function time_to_date($time)
+function time_to_date($time): string
 {
     return date('Y-m-d H:i:s', $time);
 }
 
-function get_date_days_difference($date)
+function get_date_days_difference($date): float
 {
     return round(get_date_seconds_difference($date) / (60 * 60 * 24));
 }
 
-function get_date_hours_difference($date)
+function get_date_hours_difference($date): float
 {
     return round(get_date_seconds_difference($date) / (60 * 60));
 }
 
-function get_date_minutes_difference($date)
+function get_date_minutes_difference($date): float
 {
     return round(get_date_seconds_difference($date) / 60);
 }
 
-function get_date_seconds_difference($date)
+function get_date_seconds_difference($date): float|int
 {
     return abs(time() - strtotime($date));
 }
@@ -810,7 +810,7 @@ function get_full_date($date): string
     return $day . " of " . $month . " " . $year;
 }
 
-function get_current_date()
+function get_current_date(): string
 {
     return date("Y-m-d H:i:s");
 }
