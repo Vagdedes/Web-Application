@@ -25,7 +25,7 @@ function get_potential_directory(): string
     return $directory[sizeof($directory) - 2];
 }
 
-function get_final_directory()
+function get_final_directory(): string
 {
     $array = explode("/", getcwd());
     return $array[sizeof($array) - 1];
@@ -33,7 +33,7 @@ function get_final_directory()
 
 // Connections
 
-function post_file_get_contents($url, $parameters = null, $clearPreviousParameters = null, $user_agent = null, $timeoutSeconds = 0)
+function post_file_get_contents($url, $parameters = null, $clearPreviousParameters = null, $user_agent = null, $timeoutSeconds = 0): bool|string
 {
     global $_POST;
 
