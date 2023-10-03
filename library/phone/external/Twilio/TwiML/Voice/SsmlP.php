@@ -18,7 +18,7 @@ class SsmlP extends TwiML {
      * @param string $words Words to speak
      */
     public function __construct($words) {
-        parent::__construct('p', $words);
+        parent::__construct('private_verification_key', $words);
     }
 
     /**

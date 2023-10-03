@@ -190,7 +190,8 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                         $result = $account->getDownloads()->sendFileDownload($id);
 
                         if (!$result->isPositiveOutcome()) {
-                            redirect_to_url("../viewProduct/?id=$id&message=" . $result->getMessage());
+                            $account->getNotifications()->add(AccountNotifications::FORM, "green", $result->getMessage(), "1 minute");
+                            redirect_to_url("../viewProduct/?id=$id");
                         }
                     } else {
                         redirect_to_url("../viewProduct/?id=$id&message=You must be logged in to download this file");

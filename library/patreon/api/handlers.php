@@ -29,7 +29,8 @@ function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): a
                 null,
                 array(
                     "Authorization: Bearer " . $key
-                )
+                ),
+                3
             );
 
             if (isset($reply->data) && isset($reply->included)) {
@@ -95,7 +96,8 @@ function get_patreon2_subscriptions($ignoreTiers = null, $targetTiers = null): a
                 null,
                 array(
                     "Authorization: Bearer " . $key
-                )
+                ),
+                3
             );
 
             if (isset($reply->data)) {

@@ -12,7 +12,14 @@ class LanguageTranslation
         $this->applicationID = $applicationID;
     }
 
-    public function getText() {
+    public function getText($key, $replace = null): ?string {
+        $value = null;
 
+        if ($replace === null) {
+            return $value;
+        } else {
+            $placeholder = new InformationPlaceholder();
+            return $placeholder->replace($value, $replace);
+        }
     }
 }

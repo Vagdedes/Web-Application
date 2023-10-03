@@ -76,6 +76,7 @@ function get_paypal_transaction_details($transaction)
     curl_setopt($curl, CURLOPT_POSTFIELDS, $info);
     curl_setopt($curl, CURLOPT_HEADER, 0);
     curl_setopt($curl, CURLOPT_POST, 1);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 30);
 
     $result = curl_exec($curl);
     parse_str($result, $result);

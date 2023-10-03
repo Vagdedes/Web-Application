@@ -22,6 +22,7 @@ require_once '/var/www/.structure/library/application/api/objects/communication/
 
 // Information
 require_once '/var/www/.structure/library/application/api/objects/information/WebsiteKnowledge.php';
+require_once '/var/www/.structure/library/application/api/objects/information/InformationPlaceholder.php';
 
 // Session
 require_once '/var/www/.structure/library/application/api/objects/session/WebsiteSession.php';

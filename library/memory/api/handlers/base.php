@@ -110,7 +110,7 @@ function get_memory_segment_ids(): array
             if (empty($value) || is_numeric($value) || $value[0] === "w") {
                 unset($array[$key]);
             } else {
-                $array[$key] = hexdec($value);
+                $array[$key] = @hexdec($value);
             }
         }
     }
@@ -267,7 +267,7 @@ class ThreadMemoryBlock
         if (!shmop_delete($block)) {
             $this->throwException("Unable to close thread-memory-block: " . $this->key, false);
         }
-        shmop_close($block);
+        //shmop_close($block); DEPRECATED
         return true;
     }
 
@@ -363,7 +363,7 @@ class IndividualMemoryBlock
         );
 
         if (!$readMapBytes) {
-            $this->throwException("Unable to read individual-memory-block: " . $originalKey);
+            return false;
         }
         global $memory_filler_character;
         $rawData = trim($readMapBytes, $memory_filler_character);
@@ -476,7 +476,7 @@ class IndividualMemoryBlock
             $readMapBytes = $this->readBlock($block, $bytesSize);
 
             if (!$readMapBytes) {
-                $this->throwException("Unable to read replacement individual-memory-block: " . $originalKey);
+                return false;
             }
         } else if (!$block) {
             $block = $this->internalGetBlock($exceptionID, $key, $originalKey, $bytesSize, true, true); // open default
@@ -643,7 +643,7 @@ class IndividualMemoryBlock
         throw new Exception($exception . (!empty($errors) ? " [" . $errors["message"] . "]" : ""));
     }
 
-    private function readBlock($block, $bytesSize)
+    private function readBlock($block, $bytesSize): bool|string
     {
         try {
             global $max_32bit_Integer;
@@ -653,7 +653,7 @@ class IndividualMemoryBlock
             } else {
                 return false;
             }
-        } catch (Exception $ignored) {
+        } catch (Error|Exception $ignored) {
             return false;
         }
     }

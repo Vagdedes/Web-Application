@@ -61,7 +61,7 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                         $price
                         $activeCustomers
                     </ul>
-                 </div><p>
+                 </div><private_verification_key>
                 </div>";
 
             // Separator
@@ -159,7 +159,7 @@ function loadViewProduct(Account $account, $isLoggedIn): void
 
             if (!empty($productButton)) {
                 $firstButton = false;
-                $buttonInformation .= "<div class='area_text'>Your purchase will appear within a minute of completion.</div><p>";
+                $buttonInformation .= "<div class='area_text'>Your purchase will appear within a minute of completion.</div><private_verification_key>";
 
                 foreach ($productButton as $button) {
                     if ($isLoggedIn
@@ -171,7 +171,7 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                         $color = $button->color;
                         $buttonName = $button->name;
                         $url = $button->url;
-                        $buttonInformation .= "<p><a href='$url' class='button' id='$color'>$buttonName</a>";
+                        $buttonInformation .= "<private_verification_key><a href='$url' class='button' id='$color'>$buttonName</a>";
                     }
                 }
                 if ($firstButton) {
@@ -189,7 +189,7 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                                 $color = $button->color;
                                 $buttonName = $button->name;
                                 $url = $button->url;
-                                $buttonInformation .= "<p><a href='$url' class='button' id='$color'>$buttonName</a>";
+                                $buttonInformation .= "<private_verification_key><a href='$url' class='button' id='$color'>$buttonName</a>";
                             }
                         }
                         $buttonInformation .= "</div>";
@@ -214,7 +214,7 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                                 $color = $button->color;
                                 $buttonName = $button->name;
                                 $url = $button->url;
-                                $buttonInformation .= "<p><a href='$url' class='button' id='$color'>$buttonName</a>";
+                                $buttonInformation .= "<private_verification_key><a href='$url' class='button' id='$color'>$buttonName</a>";
                             }
                         }
                         if ($firstButton) {
@@ -241,7 +241,7 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                 echo $buttonInformation;
 
                 if ($showLegal && $legal !== null) {
-                    echo "<p><div class='area_text'>By purchasing/downloading, you acknowledge and accept this product/service's <a href='$legal'>legal information</a>.</div>";
+                    echo "<private_verification_key><div class='area_text'>By purchasing/downloading, you acknowledge and accept this product/service's <a href='$legal'>legal information</a>.</div>";
                 }
                 echo "</div>";
             }

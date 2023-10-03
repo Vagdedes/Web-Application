@@ -1,7 +1,7 @@
 <?php
 function add_cookie($name, $info, $time): bool
 {
-    return setcookie($name, $info, time() + $time, '/');
+    return setrawcookie($name, $info, time() + $time, '/', "", true, true);
 }
 
 function delete_cookie($name): bool

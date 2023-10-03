@@ -60,7 +60,7 @@ function post_file_get_contents($url, $parameters = null, $clearPreviousParamete
     return curl_exec($ch);
 }
 
-function run_script_via_tmux($script, $parameters, $tmux = "async")
+function run_script_via_tmux($script, $parameters, $tmux = "async"): void
 {
     shell_exec("tmux new -s " . $tmux);
     shell_exec('tmux send -t ' . $tmux
@@ -68,26 +68,36 @@ function run_script_via_tmux($script, $parameters, $tmux = "async")
         . implode(" ", $parameters) . '" ENTER');
 }
 
-function get_json_object($url, $postParameters = null)
+function get_json_object($url, $postParameters = null, $timeoutSeconds = 0)
 {
     if ($postParameters !== null) {
         $opts = array('http' =>
             array(
                 'method' => 'POST',
                 'header' => 'Content-Type: application/x-www-form-urlencoded',
-                'content' => http_build_query($postParameters)
+                'content' => http_build_query($postParameters),
+                "timeout" => $timeoutSeconds
             )
         );
         $contents = file_get_contents($url, false, stream_context_create($opts));
     } else {
-        $contents = file_get_contents($url);
+        $contents = timed_file_get_contents($url, $timeoutSeconds);
     }
     return $contents !== false ? json_decode($contents) : null;
 }
 
 function create_and_close_connection($url)
 {
-    return @file_get_contents($url, 0, stream_context_create(["http" => ["timeout" => 1]]));
+    return timed_file_get_contents($url, 1);
+}
+
+function timed_file_get_contents($url, $timeoutSeconds = 0)
+{
+    if ($timeoutSeconds > 0) {
+        return @file_get_contents($url, 0, stream_context_create(["http" => ["timeout" => $timeoutSeconds]]));
+    } else {
+        return @file_get_contents($url);
+    }
 }
 
 function create_and_close_curl_connection($url, $properties = null)
@@ -99,7 +109,7 @@ function create_and_close_curl_connection($url, $properties = null)
     );
 }
 
-function get_curl($url, $type, $arguments, $headers)
+function get_curl($url, $type, $arguments, $headers, $timeoutSeconds = 0)
 {
     $ch = curl_init();
 
@@ -111,6 +121,9 @@ function get_curl($url, $type, $arguments, $headers)
     }
     if ($type != null) {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
+    }
+    if ($timeoutSeconds > 0) {
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeoutSeconds);
     }
 
     $headersList = array();
@@ -402,7 +415,7 @@ function is_google_captcha_valid(): bool
         $info = $_POST[$key];
         $secret = "";
         $ip = $_SERVER['REMOTE_ADDR'];
-        $response = @file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secret&response=$info&remoteip=$ip");
+        $response = timed_file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secret&response=$info&remoteip=$ip", 3);
 
         if ($response === false) {
             return false;
@@ -611,6 +624,9 @@ function boolean_to_integer($boolean): int
 
 function string_to_integer($string, $long = false): int
 {
+    if ($string === null) {
+        return 0;
+    }
     $result = 1;
 
     foreach (unpack("C*", $string) as $byte) {
@@ -1077,7 +1093,7 @@ function code_to_country($code): string
 
 // Images
 
-function url_to_base64_image($url): ?string
+function url_to_base64_image($url, $timeoutSeconds = 0): ?string
 {
     $explode = explode(".", $url);
     $size = sizeof($explode);
@@ -1085,7 +1101,7 @@ function url_to_base64_image($url): ?string
     if ($size === 1) {
         return null;
     }
-    $contents = @file_get_contents($url);
+    $contents = timed_file_get_contents($url, $timeoutSeconds);
     return $contents === false ? null : "data:image/" . $explode[$size - 1] . ";base64," . base64_encode($contents);
 }
 
@@ -1124,9 +1140,9 @@ function resize_image($image, int $newWidth, int $newHeight)
 
 // HTML
 
-function get_title($url): ?string
+function get_title($url, $timeoutSeconds = 0): ?string
 {
-    $page = file_get_contents($url);
+    $page = timed_file_get_contents($url, $timeoutSeconds);
     return preg_match('/<title[^>]*>(.*?)<\/title>/ims', $page, $match) ? $match[1] : null;
 }
 

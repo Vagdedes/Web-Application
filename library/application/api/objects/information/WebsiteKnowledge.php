@@ -10,7 +10,7 @@ class WebsiteKnowledge
     }
 
     public function getType() {
-
+        //todo
     }
 
     // Separator

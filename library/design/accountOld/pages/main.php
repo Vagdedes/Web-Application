@@ -10,7 +10,7 @@ function loadMain(Account $account, $isLoggedIn)
     echo "Elevate your Minecraft servers with top-tier plugins and the game-changing Spartan AntiCheat. Connect with us below for unbeatable protection against hack modules.";
 
     $height = 75;
-    echo "<p><div style='position:relative;'>";
+    echo "<private_verification_key><div style='position:relative;'>";
     echo "<iframe src='https://discordapp.com/widget?id=289384242075533313&theme=dark' width='100%' height='$height' allowtransparency='false' frameborder='0'></iframe>";
     echo "<a href='$discord_url' style='position: absolute; top: 0; left: 0; display: inline-block; width: 100%; height: {$height}px; z-index: 5;'></a>";
     echo "</div>";
@@ -43,7 +43,7 @@ function loadMain(Account $account, $isLoggedIn)
         }
         echo "</ul></div>";
     } else {
-        echo "<div class='area_text'>No products are currently available.</div><p>";
+        echo "<div class='area_text'>No products are currently available.</div><private_verification_key>";
     }
     echo "</div>";
 

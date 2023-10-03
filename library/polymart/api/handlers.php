@@ -24,7 +24,7 @@ function get_polymart_object($service, $parameters, $longCache = true): ?object
     $longCache = $longCache ? $polymart_object_LongRefreshTime :
         $polymart_object_ShortRefreshTime;
     $parameters["api_key"] = $polymart_credentials[0];
-    $json = get_json_object("https://api.polymart.org/v1/" . $service . "/", $parameters);
+    $json = get_json_object("https://api.polymart.org/v1/" . $service . "/", $parameters, 3);
 
     if ($json === false
         || !isset($json->response->success)

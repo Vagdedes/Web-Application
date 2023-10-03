@@ -52,9 +52,9 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
             $platformShowcase .= "</ul></div>";
             echo "<div class='area_text'>Here you will find many of your recently added accounts.</div>";
         } else {
-            $platformShowcase .= "</p><div class='area_text'>You haven't added any accounts yet.</div>";
+            $platformShowcase .= "</private_verification_key><div class='area_text'>You haven't added any accounts yet.</div>";
         }
-        $platformShowcase .= "<p><div class='area_form' id='marginless'>
+        $platformShowcase .= "<private_verification_key><div class='area_form' id='marginless'>
                                 <a href='$add_account_url' class='button' id='blue'>Add Account</a>
                             </div></div>";
         echo $platformShowcase;
@@ -76,7 +76,7 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
             <div class='area_form'>
                 <a href='$website_url/exit' class='button' id='red'>Log Out</a>
             </div>";
-        echo "<p><div class='area_text'>
+        echo "<private_verification_key><div class='area_text'>
                 <b> User-Support-Code: {$account->getIdentification()->get()} | Email: {$account->getDetail("email_address")}</b>
                 </div>
             </div>";
@@ -133,7 +133,7 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
 		            </div>
                 </form>
             </div>
-            <p>
+            <private_verification_key>
             <div class='area_text'>By registering an account, you acknowledge and accept this platforms/service's <a href='$legal'>legal information</a>.</div>
         </div>";
 

@@ -6,11 +6,11 @@ function get_minecraft_head_image($uuid, $pixels = 100)
     return "https://mc-heads.net/avatar/$uuid/$pixels/";
 }
 
-function get_minecraft_uuid($name)
+function get_minecraft_uuid($name, $timeoutSeconds = 0)
 {
     global $minecraft_user_agent;
     ini_set("user_agent", $minecraft_user_agent);
-    $result = @file_get_contents("https://api.mojang.com/users/profiles/minecraft/" . urlencode($name));
+    $result = timed_file_get_contents("https://api.mojang.com/users/profiles/minecraft/" . urlencode($name), $timeoutSeconds);
 
     if ($result === false) {
         return null;
@@ -23,12 +23,12 @@ function get_minecraft_uuid($name)
     return $json->id ?? null;
 }
 
-function get_minecraft_name($uuid)
+function get_minecraft_name($uuid, $timeoutSeconds = 0)
 {
     global $minecraft_user_agent;
     ini_set("user_agent", $minecraft_user_agent);
     $uuid = str_replace("-", "", $uuid);
-    $result = @file_get_contents("https://sessionserver.mojang.com/session/minecraft/profile/" . urlencode($uuid));
+    $result = timed_file_get_contents("https://sessionserver.mojang.com/session/minecraft/profile/" . urlencode($uuid), $timeoutSeconds);
 
     if ($result === false) {
         return null;
