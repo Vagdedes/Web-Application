@@ -35,7 +35,8 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                 $price = "";
             } else {
                 if ($productFound->registered_buyers > 0) {
-                    $activeCustomers = "<li style='width: auto;'>$productFound->registered_buyers Customers</li>";
+                    $word = $productFound->registered_buyers === 1 ? "Customer" : "Customers";
+                    $activeCustomers = "<li style='width: auto;'>$productFound->registered_buyers $word</li>";
                 } else {
                     $activeCustomers = "";
                 }

@@ -97,6 +97,8 @@ class AccountEmail
             ))) {
             return new MethodReply(false, "This email address is already in use by another user.");
         }
+        $verifiedEmail = $this->isVerified();
+
         if (!set_sql_query(
             $email_verifications_table,
             array("completion_date" => $date),
@@ -119,7 +121,7 @@ class AccountEmail
             return new MethodReply(false, "Failed to update user history.");
         }
         $this->send(
-            "emailChanged",
+            $verifiedEmail ? "emailChanged" : "emailVerified",
             array(
                 "email" => $email,
             ),

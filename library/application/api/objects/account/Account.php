@@ -36,6 +36,7 @@ class Account
     private AccountWallet $wallet;
     private AccountStatistics $statistics;
     private AccountReference $reference;
+    private AccountFeedback $feedback;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -138,6 +139,7 @@ class Account
         $this->functionality = new AccountFunctionality($this);
         $this->wallet = new AccountWallet($this);
         $this->reference = new AccountReference($this);
+        $this->feedback = new AccountFeedback($this);
     }
 
     public function exists(): bool
@@ -334,6 +336,11 @@ class Account
     public function getReference(): AccountReference
     {
         return $this->reference;
+    }
+
+    public function getFeedback(): AccountFeedback
+    {
+        return $this->feedback;
     }
 
     // Separator

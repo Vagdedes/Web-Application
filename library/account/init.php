@@ -46,6 +46,7 @@ require_once '/var/www/.structure/library/account/api/objects/communication/Acco
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountTeam.php';
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountCommunication.php';
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountCooperation.php';
+require_once '/var/www/.structure/library/account/api/objects/communication/AccountFeedback.php';
 
 // Correlation
 require_once '/var/www/.structure/library/account/api/objects/correlation/AcceptedAccount.php';

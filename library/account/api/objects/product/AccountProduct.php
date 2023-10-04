@@ -124,6 +124,11 @@ class AccountProduct
                                 }
                             }
                         }
+                        if ($object->patreon_tiers === null) {
+                            $object->patreon_tiers = array();
+                        } else {
+                            $object->patreon_tiers = explode("|", $object->patreon_tiers);
+                        }
                         if ($object->is_free) {
                             $object->registered_buyers = 0;
                         } else {
@@ -135,6 +140,9 @@ class AccountProduct
                                     array("deletion_date", null)
                                 )
                             ));
+                            if (!empty($object->patreon_tiers)) {
+                                $object->registered_buyers += sizeof(get_patreon2_subscriptions(null, $object->patreon_tiers));
+                            }
                         }
                         $object->url = $website_url . "/viewProduct/?id=" . $productID;
                         $object->divisions = new stdClass();
