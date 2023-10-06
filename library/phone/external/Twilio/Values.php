@@ -40,12 +40,12 @@ class Values implements \ArrayAccess {
      * (PHP 5 &gt;= 5.0.0)<br/>
      * Whether a offset exists
      * @link http://php.net/manual/en/arrayaccess.offsetexists.php
-     * @param mixed $offset <private_verification_key>
+     * @param mixed $offset <p>
      * An offset to check for.
      * </private_verification_key>
      * @return bool true on success or false on failure.
      * </private_verification_key>
-     * <private_verification_key>
+     * <p>
      * The return value will be casted to boolean if non-boolean was returned.
      */
     public function offsetExists($offset): bool {
@@ -56,7 +56,7 @@ class Values implements \ArrayAccess {
      * (PHP 5 &gt;= 5.0.0)<br/>
      * Offset to retrieve
      * @link http://php.net/manual/en/arrayaccess.offsetget.php
-     * @param mixed $offset <private_verification_key>
+     * @param mixed $offset <p>
      * The offset to retrieve.
      * </private_verification_key>
      * @return mixed Can return all value types.
@@ -71,10 +71,10 @@ class Values implements \ArrayAccess {
      * (PHP 5 &gt;= 5.0.0)<br/>
      * Offset to set
      * @link http://php.net/manual/en/arrayaccess.offsetset.php
-     * @param mixed $offset <private_verification_key>
+     * @param mixed $offset <p>
      * The offset to assign the value to.
      * </private_verification_key>
-     * @param mixed $value <private_verification_key>
+     * @param mixed $value <p>
      * The value to set.
      * </private_verification_key>
      * @return void
@@ -87,7 +87,7 @@ class Values implements \ArrayAccess {
      * (PHP 5 &gt;= 5.0.0)<br/>
      * Offset to unset
      * @link http://php.net/manual/en/arrayaccess.offsetunset.php
-     * @param mixed $offset <private_verification_key>
+     * @param mixed $offset <p>
      * The offset to unset.
      * </private_verification_key>
      * @return void

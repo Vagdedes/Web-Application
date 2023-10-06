@@ -1,7 +1,7 @@
 <?php
 
 
-function loadChangeEmail(Account $account, $isLoggedIn)
+function loadChangeEmail(Account $account, $isLoggedIn): void
 {
     if (!$isLoggedIn) {
         $token = get_form_get("token");
@@ -38,7 +38,7 @@ function loadChangeEmail(Account $account, $isLoggedIn)
             echo "<div class='area'>
                     <div class='area_form'>
                         <form method='post'>
-                            <input type='email' name='email' placeholder='New Email Address' minlength=5 maxlength=384>
+                            <input type='email' name='email' placeholder='" . $account->getDetail("email_address") . "' minlength=5 maxlength=384>
                             <input type='submit' name='change' value='Request Change Email' class='button' id='blue'>
                         </form>
                     </div>

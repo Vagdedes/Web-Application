@@ -119,9 +119,10 @@ function sql_log_connection()
 
 // Utilities
 
-function sql_build_where($where): string
+function sql_build_where($where, $cacheKey = false): string|array
 {
     $query = "";
+    $queryModified = "";
     $parenthesesCount = 0;
     $whereEnd = sizeof($where) - 1;
 
@@ -135,21 +136,35 @@ function sql_build_where($where): string
                 $previous = $where[$count - 1];
                 $and_or = ($previous === null || sizeof($previous) < 4 || $previous[3] === 1 ? " AND " : " OR ");
             }
-            $query .= ($parenthesesCount % 2 == 0 ? ")" : $and_or . "(");
+            $addition = $parenthesesCount % 2 == 0 ? ")" : $and_or . "(";
+            $query .= $addition;
+
+            if ($cacheKey) {
+                $queryModified .= $addition;
+            }
         } else if (is_string($single)) {
             if (!empty($single)) {
                 $query .= " " . $single . " ";
+
+                if ($cacheKey) {
+                    $queryModified .= " " . remove_dates($single) . " ";
+                }
             }
         } else {
             $equals = sizeof($single) === 2;
             $value = $single[$equals ? 1 : 2];
             $nullValue = $value === null;
             $booleanValue = is_bool($value);
-            $query .= $single[0] . " "
-                . ($equals ? ($nullValue || $booleanValue && !$value ? "IS" : "=") : $single[1]) . " "
-                . ($nullValue ? "NULL" :
+            $addition = $single[0] . " " . ($equals ? ($nullValue || $booleanValue && !$value ? "IS" : "=") : $single[1]) . " ";
+            $query .= $addition . ($nullValue ? "NULL" :
                     ($booleanValue ? ($value ? "'1'" : "NULL") :
                         "'" . properly_sql_encode($value, true) . "'"));
+
+            if ($cacheKey) {
+                $queryModified .= $addition . ($nullValue ? "NULL" :
+                        ($booleanValue ? ($value ? "'1'" : "NULL") :
+                            "'" . (is_date($value) ? "" : properly_sql_encode($value, true)) . "'"));
+            }
             $customCount = $count;
 
             while ($customCount !== $whereEnd) {
@@ -160,13 +175,18 @@ function sql_build_where($where): string
                     break;
                 }
                 if (!is_string($next) || !empty($next)) {
-                    $query .= ($equals || !isset($single[3]) || $single[3] === 1 ? " AND " : " OR ");
+                    $addition = $equals || !isset($single[3]) || $single[3] === 1 ? " AND " : " OR ";
+                    $query .= $addition;
+
+                    if ($cacheKey) {
+                        $queryModified .= $addition;
+                    }
                     break;
                 }
             }
         }
     }
-    return $query;
+    return $cacheKey ? array($query, $queryModified) : $query;
 }
 
 function sql_build_order($order)
@@ -232,7 +252,11 @@ function reverse_extra_sql_encode($string): string
 function get_sql_query($table, $select = null, $where = null, $order = null, $limit = 0): array
 {
     global $sql_cache_time;
+    $hasWhere = $where !== null;
 
+    if ($hasWhere) {
+        $where = sql_build_where($where, true);
+    }
     if ($sql_cache_time !== false) {
         global $sql_cache_tag;
         $hasCache = true;
@@ -241,7 +265,7 @@ function get_sql_query($table, $select = null, $where = null, $order = null, $li
         $cacheKey = array(
             $table,
             $select,
-            $where,
+            $hasWhere ? $where[1] : null,
             $order,
             $limit
         );
@@ -250,7 +274,6 @@ function get_sql_query($table, $select = null, $where = null, $order = null, $li
             $cacheKey[] = $sql_cache_tag;
             $sql_cache_tag = null;
         }
-        $cacheKey = remove_dates(serialize($cacheKey)); // Remove dates to prevent cache from being ineffective
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
@@ -261,8 +284,8 @@ function get_sql_query($table, $select = null, $where = null, $order = null, $li
     }
     $query = "SELECT " . ($select === null ? "*" : implode(", ", $select)) . " FROM " . $table;
 
-    if ($where !== null) {
-        $query .= " WHERE " . sql_build_where($where);
+    if ($hasWhere) {
+        $query .= " WHERE " . $where[0];
     }
     if ($order !== null) {
         $query .= " ORDER BY " . sql_build_order($order);
@@ -429,7 +452,7 @@ function sql_insert($table, $pairs)
 
 // Set
 
-function set_sql_query($table, $what, $where = null, $order = null, $limit = 0)
+function set_sql_query($table, $what, $where = null, $order = null, $limit = 0): bool
 {
     $query = "UPDATE " . $table . " SET ";
     $counter = 0;
@@ -479,7 +502,7 @@ function set_sql_query($table, $what, $where = null, $order = null, $limit = 0)
 
 // Delete
 
-function delete_sql_query($table, $where, $order = null, $limit = 0)
+function delete_sql_query($table, $where, $order = null, $limit = 0): bool
 {
     $query = "DELETE FROM " . $table . " WHERE " . sql_build_where($where);;
 

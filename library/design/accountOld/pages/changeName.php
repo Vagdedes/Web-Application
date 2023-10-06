@@ -18,8 +18,8 @@ function loadChangeName(Account $account, $isLoggedIn): void
         echo "<div class='area'>
             <div class='area_form'>
                 <form method='post'>
-                    <input type='text' name='name' placeholder='Username' minlength=3 maxlength=16>
-                    <input type='submit' name='change' value='Change Name' class='button' id='blue'>
+                    <input type='text' name='name' placeholder='" . $account->getDetail("name") . "' minlength=3 maxlength=16>
+                    <input type='submit' name='change' value='Change Username' class='button' id='blue'>
                 </form>
             </div>
         </div>";

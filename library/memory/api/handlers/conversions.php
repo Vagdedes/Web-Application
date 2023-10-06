@@ -2,7 +2,14 @@
 
 function manipulate_memory_key($key): bool|string
 {
-    return $key === null ? false : serialize(is_object($key) ? get_object_vars($key) : $key);
+    global $memory_serialize_key;
+
+    if ($memory_serialize_key) {
+        return $key === null ? false : serialize(is_object($key) ? get_object_vars($key) : $key);
+    } else {
+        $memory_serialize_key = true;
+        return $key;
+    }
 }
 
 function manipulate_memory_date($cooldown, $maxTime = 86400)

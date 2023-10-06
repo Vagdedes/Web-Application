@@ -62,7 +62,7 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                         $price
                         $activeCustomers
                     </ul>
-                 </div><private_verification_key>
+                 </div><p>
                 </div>";
 
             // Separator
@@ -107,7 +107,7 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                     $validProducts = $validProducts->getObject();
 
                     if (sizeof($validProducts) > 1) { // One because we already are quering one
-                        $overviewContents .= "<div class='area_title'>Works With</div><div class='product_list'><ul>";
+                        $overviewContents .= "<div class='area_title'>$productFound->compatibility_description</div><div class='product_list'><ul>";
 
                         foreach ($productCompatibilities as $compatibility) {
                             $productObject = find_object_from_key_match($validProducts, "id", $compatibility);
@@ -160,81 +160,143 @@ function loadViewProduct(Account $account, $isLoggedIn): void
 
             if (!empty($productButton)) {
                 $firstButton = false;
-                $buttonInformation .= "<div class='area_text'>Your purchase will appear within a minute of completion.</div><private_verification_key>";
 
                 foreach ($productButton as $button) {
                     if ($isLoggedIn
                         || $button->requires_account === null) {
                         if (!$firstButton) {
                             $firstButton = true;
+                            $buttonInformation .= "<div class='area_text'>Your purchase will appear within a minute of completion.</div>";
                             $buttonInformation .= "<div class='area_form' id='marginless'>";
                         }
                         $color = $button->color;
                         $buttonName = $button->name;
                         $url = $button->url;
-                        $buttonInformation .= "<private_verification_key><a href='$url' class='button' id='$color'>$buttonName</a>";
+                        $buttonInformation .= "<p><a href='$url' class='button' id='$color'>$buttonName</a>";
                     }
                 }
                 if ($firstButton) {
                     $buttonInformation .= "</div>";
                 }
-            } else if ($hasPurchased) {
-                if (!empty($productFound->downloads)) {
-                    if ($isLoggedIn) {
-                        $productButton = $productFound->buttons->post_purchase;
-                        $downloadNote = $productFound->download_note !== null ? "<div class='area_text'><b>IMPORTANT NOTE</b><br>" . $productFound->download_note . "</div>" : "";
-                        $buttonInformation .= "$downloadNote<div class='area_form'><a href='$website_url/downloadFile/?id=$productID' class='button' id='blue'>Download $name</a>";
+            } else {
+                $productCard = $hasPurchased ? null : $productFound->cards->pre_purchase;
 
-                        if (!empty($productButton)) {
-                            foreach ($productButton as $button) {
-                                $color = $button->color;
-                                $buttonName = $button->name;
-                                $url = $button->url;
-                                $buttonInformation .= "<private_verification_key><a href='$url' class='button' id='$color'>$buttonName</a>";
+                if (!empty($productCard)) {
+                    $firstCard = false;
+
+                    foreach ($productCard as $card) {
+                        if ($isLoggedIn
+                            || $card->requires_account === null) {
+                            if (!$firstCard) {
+                                $firstCard = true;
+                                $buttonInformation .= "<div class='area_text'>Your purchase will appear within a minute of completion.</div>";
+                                $buttonInformation .= "<div class='product_list'><ul>";
                             }
+                            $image = $card->image;
+                            $cardName = $card->name;
+                            $url = $card->url;
+                            $buttonInformation .= "<li><a href='$url'>
+                                                        <div class='product_list_contents' style='background-image: url($image);'>
+                                                            <div class='product_list_title'>$cardName</div>
+                                                        </div>
+                                                    </a>
+                                                </li>";
                         }
-                        $buttonInformation .= "</div>";
-                    } else {
-                        $buttonInformation .= "<div class='area_form' id='marginless'>
+                    }
+                    if ($firstCard) {
+                        $buttonInformation .= "</ul></div>";
+                    }
+                } else if ($hasPurchased) {
+                    if (!empty($productFound->downloads)) {
+                        if ($isLoggedIn) {
+                            $productButton = $productFound->buttons->post_purchase;
+                            $downloadNote = $productFound->download_note !== null ? "<div class='area_text'><b>IMPORTANT NOTE</b><br>" . $productFound->download_note . "</div>" : "";
+                            $buttonInformation .= "$downloadNote<div class='area_form'><a href='$website_url/downloadFile/?id=$productID' class='button' id='blue'>Download $name</a>";
+
+                            if (!empty($productButton)) {
+                                foreach ($productButton as $button) {
+                                    $color = $button->color;
+                                    $buttonName = $button->name;
+                                    $url = $button->url;
+                                    $buttonInformation .= "<p><a href='$url' class='button' id='$color'>$buttonName</a>";
+                                }
+                            }
+                            $buttonInformation .= "</div>";
+                        } else {
+                            $buttonInformation .= "<div class='area_form' id='marginless'>
                                         <a href='$website_url/profile' class='button' id='blue'>Log In To Download</a>
                                     </div>";
-                    }
-                } else {
-                    $productButton = $productFound->buttons->post_purchase;
-
-                    if (!empty($productButton)) {
-                        $firstButton = false;
-
-                        foreach ($productButton as $button) {
-                            if ($isLoggedIn
-                                || $button->requires_account === null) {
-                                if (!$firstButton) {
-                                    $firstButton = true;
-                                    $buttonInformation .= "<div class='area_form' id='marginless'>";
-                                }
-                                $color = $button->color;
-                                $buttonName = $button->name;
-                                $url = $button->url;
-                                $buttonInformation .= "<private_verification_key><a href='$url' class='button' id='$color'>$buttonName</a>";
-                            }
-                        }
-                        if ($firstButton) {
-                            $buttonInformation .= "</div>";
                         }
                     } else {
-                        $showLegal = false;
+                        $productButton = $productFound->buttons->post_purchase;
+
+                        if (!empty($productButton)) {
+                            $firstButton = false;
+
+                            foreach ($productButton as $button) {
+                                if ($isLoggedIn
+                                    || $button->requires_account === null) {
+                                    if (!$firstButton) {
+                                        $firstButton = true;
+                                        $buttonInformation .= "<div class='area_form' id='marginless'>";
+                                    }
+                                    $color = $button->color;
+                                    $buttonName = $button->name;
+                                    $url = $button->url;
+                                    $buttonInformation .= "<p><a href='$url' class='button' id='$color'>$buttonName</a>";
+                                }
+                            }
+                            if ($firstButton) {
+                                $buttonInformation .= "</div>";
+                            } else {
+                                $showLegal = false;
+                            }
+                        } else {
+                            $productCard = $productFound->cards->post_purchase;
+
+                            if (!empty($productCard)) {
+                                $firstCard = false;
+
+                                foreach ($productCard as $card) {
+                                    if ($isLoggedIn
+                                        || $card->requires_account === null) {
+                                        if (!$firstCard) {
+                                            $firstCard = true;
+                                            $buttonInformation .= "<div class='area_text'>Your purchase will appear within a minute of completion.</div>";
+                                            $buttonInformation .= "<div class='product_list'><ul>";
+                                        }
+                                        $image = $card->image;
+                                        $cardName = $card->name;
+                                        $url = $card->url;
+                                        $buttonInformation .= "<li><a href='$url'>
+                                                        <div class='product_list_contents' style='background-image: url($image);'>
+                                                            <div class='product_list_title'>$cardName</div>
+                                                        </div>
+                                                    </a>
+                                                </li>";
+                                    }
+                                }
+                                if ($firstCard) {
+                                    $buttonInformation .= "</ul></div>";
+                                } else {
+                                    $showLegal = false;
+                                }
+                            } else {
+                                $showLegal = false;
+                            }
+                        }
                     }
-                }
-            } else if (!$isFree) {
-                if ($isLoggedIn) {
-                    $buttonInformation .= "<div class='area_form' id='marginless'>
+                } else if (!$isFree) {
+                    if ($isLoggedIn) {
+                        $buttonInformation .= "<div class='area_form' id='marginless'>
                                         <a href='#' class='button' id='red'>Not For Sale</a>
                                     </div>";
-                } else {
-                    $showLegal = false;
-                    $buttonInformation .= "<div class='area_form' id='marginless'>
+                    } else {
+                        $showLegal = false;
+                        $buttonInformation .= "<div class='area_form' id='marginless'>
                                         <a href='$website_url/profile' class='button' id='blue'>Log In To Learn More</a>
                                     </div>";
+                    }
                 }
             }
             if (isset($buttonInformation[0])) {
@@ -242,7 +304,7 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                 echo $buttonInformation;
 
                 if ($showLegal && $legal !== null) {
-                    echo "<private_verification_key><div class='area_text'>By purchasing/downloading, you acknowledge and accept this product/service's <a href='$legal'>legal information</a>.</div>";
+                    echo "<p><div class='area_text'>By purchasing/downloading, you acknowledge and accept this product/service's <a href='$legal'>legal information</a>.</div>";
                 }
                 echo "</div>";
             }

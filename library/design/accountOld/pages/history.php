@@ -1,7 +1,7 @@
 <?php
 
 
-function loadHistory(Account $account, $isLoggedIn)
+function loadHistory(Account $account, $isLoggedIn): void
 {
     if (!$isLoggedIn) {
         account_page_redirect(null, false, null);

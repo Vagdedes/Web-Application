@@ -26,7 +26,7 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
             echo "</ul></div></div>";
         }
 
-        echo "<div class='area' id='darker'><div class='area_title'>My Accounts</div>";
+        echo "<div class='area' id='darker'><div class='area_title'>Connected Accounts</div>";
         $platformShowcase = "";
         $alternateAccounts = $account->getAccounts()->getAdded(null, 10);
 
@@ -54,7 +54,7 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
         } else {
             $platformShowcase .= "</private_verification_key><div class='area_text'>You haven't added any accounts yet.</div>";
         }
-        $platformShowcase .= "<private_verification_key><div class='area_form' id='marginless'>
+        $platformShowcase .= "<p><div class='area_form' id='marginless'>
                                 <a href='$add_account_url' class='button' id='blue'>Add Account</a>
                             </div></div>";
         echo $platformShowcase;
@@ -68,18 +68,14 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
                     <a href='$website_url/profile/changeName'><li>Change Username</li></a>
                     <a href='$website_url/profile/changeEmail'><li>Change Email</li></a>
                     <a href='$website_url/profile/changePassword'><li>Change Password</li></a>
-                    <a href='$add_account_url'><li>Add Account</li></a>
-                    <a href='$website_url/profile/history'><li>View History</li></a>
                     <a href='$website_url/profile/toggleFunctionality'><li>Toggle Functionalities</li></a>
+                    <a href='$website_url/profile/history'><li>View History</li></a>
+                    <a href='$website_url/profile/help'><li>View Support Code</li></a>
                 <ul>
-            </div>
-            <div class='area_form'>
+            </div><p>
+            <div class='area_form' id='marginless'>
                 <a href='$website_url/exit' class='button' id='red'>Log Out</a>
-            </div>";
-        echo "<private_verification_key><div class='area_text'>
-                <b> User-Support-Code: {$account->getIdentification()->get()} | Email: {$account->getDetail("email_address")}</b>
-                </div>
-            </div>";
+            </div><p>";
     } else {
         if (isset($_POST["register"])) {
             if (!is_google_captcha_valid()) {
@@ -96,32 +92,38 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
             if (!is_google_captcha_valid()) {
                 account_page_redirect(null, false, "Please complete the bot verification.");
             } else {
-                $account = $application->getAccount(null, get_form_post("email"));
+                $email = get_form_post("email");
 
-                if ($account->exists()) {
-                    $result = $account->getActions()->logIn(get_form_post("password"));
+                if (!is_email($email)) {
+                    redirect_to_url("?message=Please enter a valid email address");
+                } else {
+                    $account = $application->getAccount(null, $email);
 
-                    if ($result->isPositiveOutcome()) {
-                        global $website_url_http;
-                        $redirectURL = get_form_get("redirectURL");
+                    if ($account->exists()) {
+                        $result = $account->getActions()->logIn(get_form_post("password"));
 
-                        if (starts_with($redirectURL, $website_url)
-                            || starts_with($redirectURL, $website_url_http)) {
-                            redirect_to_url($redirectURL);
+                        if ($result->isPositiveOutcome()) {
+                            global $website_url_http;
+                            $redirectURL = get_form_get("redirectURL");
+
+                            if (starts_with($redirectURL, $website_url)
+                                || starts_with($redirectURL, $website_url_http)) {
+                                redirect_to_url($redirectURL);
+                            } else {
+                                account_page_redirect($account, true, $result->getMessage());
+                            }
                         } else {
-                            account_page_redirect($account, true, $result->getMessage());
+                            account_page_redirect(null, false, $result->getMessage());
                         }
                     } else {
-                        account_page_redirect(null, false, $result->getMessage());
+                        account_page_redirect(null, false, "Account with this email does not exist.");
                     }
-                } else {
-                    account_page_redirect(null, false, "Account with this email does not exist.");
                 }
             }
         }
         $legal = "https://docs.google.com/document/d/e/2PACX-1vQv3w35tedzwTKAeouxTs9w5Datl8SPosZE4zwNuMb0j2MWHc4wxaY6SAtjhuMY-SXD4jYfNjRrJLK-/pub";
-        echo "<div class='area'>
-            <div class='area_form'>
+        echo "<div class='area50' id='darker'>
+            <div class='area_form' id='full'>
                 <form method='post'>
                     <input type='email' name='email' placeholder='Email Address' minlength=5 maxlength=384>
                     <input type='password' name='password' placeholder='Password' minlength=8 maxlength=64>
@@ -133,13 +135,12 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
 		            </div>
                 </form>
             </div>
-            <private_verification_key>
+            <p>
             <div class='area_text'>By registering an account, you acknowledge and accept this platforms/service's <a href='$legal'>legal information</a>.</div>
         </div>";
 
-        echo "<div class='area' id='darker'>
-            <div class='area_title'>Already have an account?</div>
-            <div class='area_form'>
+        echo "<div class='area50' id='darker'>
+            <div class='area_form' id='full'>
                 <form method='post'>
                     <input type='email' name='email' placeholder='Email Address' minlength=5 maxlength=384>
                     <input type='password' name='password' placeholder='Password' minlength=8 maxlength=384>

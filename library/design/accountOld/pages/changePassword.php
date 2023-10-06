@@ -1,7 +1,7 @@
 <?php
 
 
-function loadChangePassword(Account $account, $isLoggedIn, Application $application)
+function loadChangePassword(Account $account, $isLoggedIn, Application $application): void
 {
     $token = get_form_get("token");
 
@@ -51,7 +51,7 @@ function loadChangePassword(Account $account, $isLoggedIn, Application $applicat
         echo "<div class='area'>
                 <div class='area_form'>
                     <form method='post'>
-                        <input type='email' name='email' placeholder='$email' minlength=0 maxlength=0>
+                        <input type='text' name='empty' placeholder='$email' minlength=0 maxlength=0>
                         <input type='submit' name='change' value='Request Change Password' class='button' id='blue'>
                     </form>
                 </div>
@@ -61,18 +61,24 @@ function loadChangePassword(Account $account, $isLoggedIn, Application $applicat
             if (!is_google_captcha_valid()) {
                 redirect_to_url("?message=Please complete the bot verification");
             } else {
-                $account = $application->getAccount(null, get_form_post("email"));
+                $email = get_form_post("email");
 
-                if ($account->exists()) {
-                    $result = $account->getPassword()->requestChange();
-                    $result = $result->getMessage();
-
-                    if (!empty($result)) {
-                        $account->getNotifications()->add(AccountNotifications::FORM, "green", $result, "1 minute");
-                    }
-                    redirect_to_url("?");
+                if (!is_email($email)) {
+                    redirect_to_url("?message=Please enter a valid email address");
                 } else {
-                    redirect_to_url("?message=Account with this email address does not exist");
+                    $account = $application->getAccount(null, $email);
+
+                    if ($account->exists()) {
+                        $result = $account->getPassword()->requestChange();
+                        $result = $result->getMessage();
+
+                        if (!empty($result)) {
+                            $account->getNotifications()->add(AccountNotifications::FORM, "green", $result, "1 minute");
+                        }
+                        redirect_to_url("?");
+                    } else {
+                        redirect_to_url("?message=Account with this email address does not exist");
+                    }
                 }
             }
         }

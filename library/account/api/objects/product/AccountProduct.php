@@ -53,6 +53,7 @@ class AccountProduct
                        $product_updates_table,
                        $product_identification_table,
                        $product_divisions_table,
+                       $product_cards_table,
                        $product_purchases_table,
                        $product_reviews_table,
                        $product_tiers_table;
@@ -147,6 +148,7 @@ class AccountProduct
                         $object->url = $website_url . "/viewProduct/?id=" . $productID;
                         $object->divisions = new stdClass();
                         $object->buttons = new stdClass();
+                        $object->cards = new stdClass();
 
                         foreach (array(
                                      "pre_purchase" => null,
@@ -182,6 +184,18 @@ class AccountProduct
                             $object->buttons->{$key} = get_sql_query(
                                 $product_buttons_table,
                                 array("color", "name", "url", "requires_account"),
+                                array(
+                                    array("product_id", $productID),
+                                    array("deletion_date", null),
+                                    null,
+                                    array("post_purchase", "=", 2, 0),
+                                    array("post_purchase", $value),
+                                    null,
+                                )
+                            );
+                            $object->cards->{$key} = get_sql_query(
+                                $product_cards_table,
+                                array("image", "name", "url", "requires_account"),
                                 array(
                                     array("product_id", $productID),
                                     array("deletion_date", null),

@@ -34,6 +34,7 @@ $product_offer_divisions_table = "product.offerDivisions";
 $product_purchases_table = "product.purchases";
 $product_compatibilities_table = "product.compatibilities";
 $product_buttons_table = "product.buttons";
+$product_cards_table = "product.cards";
 $product_offers_table = "product.offers";
 $product_identification_table = "product.identification";
 $product_updates_table = "product.updates";

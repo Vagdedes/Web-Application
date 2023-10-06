@@ -1,7 +1,7 @@
 <?php
 
 
-function loadToggleFunctionality(Account $account, $isLoggedIn)
+function loadToggleFunctionality(Account $account, $isLoggedIn): void
 {
     if (!$isLoggedIn) {
         account_page_redirect(null, false, null);

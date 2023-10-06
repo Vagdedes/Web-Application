@@ -167,7 +167,7 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
 
                         if ($isLoggedIn) {
                             echo "<div class='area_form' id='marginless'>
-                                    <a href='$website_url/profile' class='button' id='green'>My Account</a>
+                                    <a href='$website_url/profile' class='button' id='green'>My Profile</a>
                                 </div>";
                         } else {
                             echo "<div class='area_form' id='marginless'>
@@ -246,6 +246,10 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                     $twoFactor = $twoFactor->verify(get_form_get("token"));
                     account_page_redirect($twoFactor->getObject(), $twoFactor->isPositiveOutcome(), $twoFactor->getMessage());
                 }
+                break;
+            case "help":
+                require_once '/var/www/.structure/library/design/accountOld/pages/help.php';
+                loadHelp($account, $isLoggedIn);
                 break;
             default:
                 require_once '/var/www/.structure/library/design/accountOld/pages/main.php';

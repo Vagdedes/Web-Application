@@ -11,6 +11,9 @@ class AccountEmail
 
     public function requestVerification($email, $cooldown = "1 minute"): MethodReply
     {
+        if (!is_email($email)) {
+            return new MethodReply(false, "Please enter a valid email address.");
+        }
         $email = strtolower($email);
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_EMAIL, true);

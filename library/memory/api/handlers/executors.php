@@ -1,5 +1,12 @@
 <?php
 $memory_object_cache = array();
+$memory_serialize_key = true;
+
+function memory_ignore_key_serialization(): void
+{
+    global $memory_serialize_key;
+    $memory_serialize_key = false;
+}
 
 function memory_get_object_cache($key): IndividualMemoryBlock
 {

@@ -305,7 +305,7 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
         $customContents = $contents;
 
         if ($unsubscribe) {
-            $customContents .= "<private_verification_key><a href='https://" . $domain . "/email/exempt/?token=" . get_user_exemption_token($planID, $rowID) . "'>Click to unsubscribe from this email</a>";
+            $customContents .= "<p><a href='https://" . $domain . "/email/exempt/?token=" . get_user_exemption_token($planID, $rowID) . "'>Click to unsubscribe from this email</a>";
         }
         $execution = services_email($credential, null, $title, $customContents);
 
