@@ -1,7 +1,7 @@
 <?php
 
 
-function loadChangeEmail(Account $account, $isLoggedIn): void
+function load_account_change_email(Account $account, $isLoggedIn): void
 {
     if (!$isLoggedIn) {
         $token = get_form_get("token");

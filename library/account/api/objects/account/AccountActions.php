@@ -18,7 +18,7 @@ class AccountActions
 
     public function logIn($password): MethodReply
     {
-        $parameter = new ParameterVerification($password, null, 8, 64);
+        $parameter = new ParameterVerification($password, null, 1);
 
         if (!$parameter->getOutcome()->isPositiveOutcome()) {
             return new MethodReply(false, $parameter->getOutcome()->getMessage());

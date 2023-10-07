@@ -1,7 +1,7 @@
 <?php
 
 
-function loadChangePassword(Account $account, $isLoggedIn, Application $application): void
+function load_account_change_password(Account $account, $isLoggedIn, Application $application): void
 {
     $token = get_form_get("token");
 

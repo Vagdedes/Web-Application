@@ -1,7 +1,7 @@
 <?php
 
 
-function loadGiveaway(Account $account)
+function load_account_giveaway(Account $account): void
 {
     $productGiveaway = $account->getGiveaway();
     $currentGiveaway = $productGiveaway->getCurrent(null, 1, "14 days", true);

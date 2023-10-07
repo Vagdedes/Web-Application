@@ -107,6 +107,6 @@ class AccountIdentification
 
     private function create(): string
     {
-        return strtoupper(random_string(6));
+        return strtoupper(random_string(7));
     }
 }

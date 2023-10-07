@@ -37,7 +37,7 @@ function load_page_html_head(Account $account, $title): void
         <body>";
 }
 
-function load_page_intro(?Account $account, $isLoggedIn, $loadIntro, $loadNavigation): void
+function load_page_intro(?Account $account, $isLoggedIn, $loadNavigation): void
 {
     $notification = $isLoggedIn
         ? $account->getNotifications()->get(AccountNotifications::FORM, 1, true)
@@ -61,19 +61,6 @@ function load_page_intro(?Account $account, $isLoggedIn, $loadIntro, $loadNaviga
         echo "<div class='message'>" . htmlspecialchars($notification, ENT_QUOTES, 'UTF-8') . "</div>";
     }
 
-    if ($loadIntro) {
-        echo "<div class='intro'>
-              <div class='intro_image'>
-                  <img src='https://" . get_domain() . "/.images/services.png' alt='company logo'>
-              </div>
-          </div>";
-    } else if ($loadNavigation) {
-        echo "<style>
-                .footer_top#opposite {
-                    border-top: none;
-                }
-           </style>";
-    }
     if ($loadNavigation) {
         include("/var/www/.structure/library/design/accountOld/footer/footerNavigation.php");
     }
@@ -87,14 +74,14 @@ function load_page_footer($loadFooter): void
     echo "</body></html>";
 }
 
-function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true): void
+function load_page($loadContents = true): void
 {
     $application = new Application(null);
 
     if (has_memory_limit(array(get_client_ip_address(), "website"), 60, "1 minute")) {
         $title = "Website Error";
         load_page_html_head($application->getAccount(0), $title);
-        load_page_intro(null, false, $loadIntro, true);
+        load_page_intro(null, false, true);
         load_account_page_message($title, "Please stop refreshing the page so frequently");
     } else {
         $session = $application->getWebsiteSession();
@@ -104,39 +91,39 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
 
         $directory = get_final_directory();
         load_page_html_head($account, unstuck_words_from_capital_letters($directory));
-        load_page_intro($account, $isLoggedIn, $loadIntro, $loadNavigation);
+        load_page_intro($account, $isLoggedIn, $loadContents);
 
         if ($isLoggedIn) {
             $ban = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
             if ($ban->isPositiveOutcome()) {
-                if ($loadIntro || $loadFooter) {
+                if ($loadContents) {
                     load_account_page_message("Account Suspended", $ban->getMessage());
                 }
-                load_page_footer($loadFooter);
+                load_page_footer($loadContents);
                 return;
             }
         }
         switch ($directory) {
             case "changePassword":
                 require_once '/var/www/.structure/library/design/accountOld/pages/changePassword.php';
-                loadChangePassword($account, $isLoggedIn, $application);
+                load_account_change_password($account, $isLoggedIn, $application);
                 break;
             case "profile":
                 require_once '/var/www/.structure/library/design/accountOld/pages/profile.php';
-                loadProfile($account, $isLoggedIn, $application);
+                load_account_profile($account, $isLoggedIn, $application);
                 break;
             case "viewProduct":
                 require_once '/var/www/.structure/library/design/accountOld/pages/viewProduct.php';
-                loadViewProduct($account, $isLoggedIn);
+                load_account_view_product($account, $isLoggedIn);
                 break;
             case "changeEmail":
                 require_once '/var/www/.structure/library/design/accountOld/pages/changeEmail.php';
-                loadChangeEmail($account, $isLoggedIn);
+                load_account_change_email($account, $isLoggedIn);
                 break;
             case "changeName":
                 require_once '/var/www/.structure/library/design/accountOld/pages/changeName.php';
-                loadChangeName($account, $isLoggedIn);
+                load_account_change_name($account, $isLoggedIn);
                 break;
             case "viewOffer":
                 global $website_url;
@@ -180,7 +167,7 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                 break;
             case "addAccount":
                 require_once '/var/www/.structure/library/design/accountOld/pages/addAccount.php';
-                loadAddAccount($account, $isLoggedIn);
+                load_account_add_account($account, $isLoggedIn);
                 break;
             case "downloadFile":
                 $id = get_form_get("id");
@@ -232,11 +219,11 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                 break;
             case "history":
                 require_once '/var/www/.structure/library/design/accountOld/pages/history.php';
-                loadHistory($account, $isLoggedIn);
+                load_account_history($account, $isLoggedIn);
                 break;
             case "toggleFunctionality":
                 require_once '/var/www/.structure/library/design/accountOld/pages/toggleFunctionality.php';
-                loadToggleFunctionality($account, $isLoggedIn);
+                load_account_toggle_functionality($account, $isLoggedIn);
                 break;
             case "instantLogin":
                 if ($isLoggedIn) {
@@ -249,14 +236,14 @@ function load_page($loadIntro = true, $loadNavigation = true, $loadFooter = true
                 break;
             case "help":
                 require_once '/var/www/.structure/library/design/accountOld/pages/help.php';
-                loadHelp($account, $isLoggedIn);
+                load_account_help($account, $isLoggedIn);
                 break;
             default:
                 require_once '/var/www/.structure/library/design/accountOld/pages/main.php';
                 require_once '/var/www/.structure/library/design/accountOld/pages/giveaway.php';
-                loadMain($account, $isLoggedIn);
+                load_account_main_page($account, $isLoggedIn);
                 break;
         }
     }
-    load_page_footer($loadFooter);
+    load_page_footer($loadContents);
 }

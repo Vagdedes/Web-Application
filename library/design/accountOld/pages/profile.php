@@ -1,7 +1,7 @@
 <?php
 
 
-function loadProfile(Account $account, $isLoggedIn, Application $application): void
+function load_account_profile(Account $account, $isLoggedIn, Application $application): void
 {
     global $website_url;
 
@@ -75,7 +75,7 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
             </div><p>
             <div class='area_form' id='marginless'>
                 <a href='$website_url/exit' class='button' id='red'>Log Out</a>
-            </div><p>";
+            </div></div>";
     } else {
         if (isset($_POST["register"])) {
             if (!is_google_captcha_valid()) {
@@ -122,6 +122,7 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
             }
         }
         $legal = "https://docs.google.com/document/d/e/2PACX-1vQv3w35tedzwTKAeouxTs9w5Datl8SPosZE4zwNuMb0j2MWHc4wxaY6SAtjhuMY-SXD4jYfNjRrJLK-/pub";
+        echo "<div class='areas' id='darker'>";
         echo "<div class='area50' id='darker'>
             <div class='area_form' id='full'>
                 <form method='post'>
@@ -152,6 +153,7 @@ function loadProfile(Account $account, $isLoggedIn, Application $application): v
                 </form>
             </div>
         </div>";
+        echo "</div>";
 
         echo "<div class='area'>
                 <div class='area_form' id='marginless'>

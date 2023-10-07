@@ -1,7 +1,7 @@
 <?php
 
 
-function loadAddAccount(Account $account, $isLoggedIn): void
+function load_account_add_account(Account $account, $isLoggedIn): void
 {
     if (!$isLoggedIn) {
         account_page_redirect(null, false, "You must be logged in to add an account.");

@@ -1,7 +1,7 @@
 <?php
 
 
-function loadViewProduct(Account $account, $isLoggedIn): void
+function load_account_view_product(Account $account, $isLoggedIn): void
 {
     $productArguments = explode(".", get_form_get("id"));
     $argumentSize = sizeof($productArguments);
@@ -269,11 +269,11 @@ function loadViewProduct(Account $account, $isLoggedIn): void
                                         $cardName = $card->name;
                                         $url = $card->url;
                                         $buttonInformation .= "<li><a href='$url'>
-                                                        <div class='product_list_contents' style='background-image: url($image);'>
-                                                            <div class='product_list_title'>$cardName</div>
-                                                        </div>
-                                                    </a>
-                                                </li>";
+                                                                    <div class='product_list_contents' style='background-image: url($image);'>
+                                                                        <div class='product_list_title'>$cardName</div>
+                                                                    </div>
+                                                                </a>
+                                                            </li>";
                                     }
                                 }
                                 if ($firstCard) {

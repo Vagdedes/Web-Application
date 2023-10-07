@@ -1,7 +1,7 @@
 <?php
 
 
-function loadMain(Account $account, $isLoggedIn)
+function load_account_main_page(Account $account, $isLoggedIn): void
 {
     $discord_url = "https://" . get_domain() . "/discord";
 
@@ -19,7 +19,7 @@ function loadMain(Account $account, $isLoggedIn)
 
     // Separator
 
-    loadGiveaway($account);
+    load_account_giveaway($account);
     echo "</div>";
 
     // Separator

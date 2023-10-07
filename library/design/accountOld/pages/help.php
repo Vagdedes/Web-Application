@@ -1,6 +1,6 @@
 <?php
 
-function loadHelp(Account $account, $isLoggedIn): void
+function load_account_help(Account $account, $isLoggedIn): void
 {
     if (!$isLoggedIn) {
         account_page_redirect(null, false, null);
