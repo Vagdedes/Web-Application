@@ -65,7 +65,7 @@ function send_phone_message_by_plan($planID, $phonePointer, $details = null, $co
     global $phone_plans_table;
 
     // Find plan
-    set_sql_cache("1 minute");
+    set_sql_cache();
     $query = get_sql_query(
         $phone_plans_table,
         array("id", "test", "redundant", "comments", "contents", "default_cooldown"),

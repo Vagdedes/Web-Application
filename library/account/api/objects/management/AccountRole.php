@@ -9,7 +9,7 @@ class AccountRole
     public function __construct($applicationID, $id, $checkDeletion = true)
     {
         global $roles_table;
-        set_sql_cache("1 minute");
+        set_sql_cache();
         $query = get_sql_query(
             $roles_table,
             array("name", "prefix", "suffix", "public", "priority"),
@@ -72,7 +72,7 @@ class AccountRole
     public function hasPermission($permission): bool
     {
         global $role_permissions_table;
-        set_sql_cache("1 minute");
+        set_sql_cache();
         return !empty(get_sql_query(
             $role_permissions_table,
             array("id"),
@@ -88,13 +88,13 @@ class AccountRole
 
     public function getPermissions(): array
     {
-        $cacheKey = array(self::class, $this->id);
+        $cacheKey = array(self::class, "role_id"=>$this->id);
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
             return $cache;
         } else {
-            global $role_permissions_table;
+            global $role_permissions_table, $sql_max_cache_time;
             $array = array();
             $query = get_sql_query(
                 $role_permissions_table,
@@ -110,7 +110,7 @@ class AccountRole
                     $array[] = $row->permission;
                 }
             }
-            set_key_value_pair($cacheKey, $array, "1 minute");
+            set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
             return $array;
         }
     }

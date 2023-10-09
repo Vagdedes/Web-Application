@@ -101,7 +101,7 @@ function get_memory_segment_ids(): array
         }
     }
     global $memory_permissions_string;
-    $stringToFix = "echo 32766 >/proc/sys/kernel/shmmni";
+    $stringToFix = "echo 32768 >/proc/sys/kernel/shmmni";
     $oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
     $array = explode(chr(32), shell_exec("ipcs -m"));
 

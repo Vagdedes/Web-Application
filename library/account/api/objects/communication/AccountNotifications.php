@@ -14,7 +14,7 @@ class AccountNotifications
     public function getType($id): MethodReply
     {
         global $account_notification_types_table;
-        set_sql_cache("1 minute");
+        set_sql_cache();
         $query = get_sql_query(
             $account_notification_types_table,
             array("id", "name", "description", "creation_date"),

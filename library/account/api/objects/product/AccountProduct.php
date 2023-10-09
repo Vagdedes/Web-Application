@@ -31,7 +31,7 @@ class AccountProduct
         $array = get_key_value_pair($cacheKey);
 
         if (!is_array($array)) {
-            global $products_table;
+            global $products_table, $sql_max_cache_time;
             $array = get_sql_query($products_table,
                 null,
                 array(
@@ -47,7 +47,8 @@ class AccountProduct
             );
 
             if (!empty($array)) {
-                global $website_url, $product_buttons_table,
+                global $website_url,
+                       $product_buttons_table,
                        $product_compatibilities_table,
                        $product_transaction_search_table,
                        $product_updates_table,
@@ -303,7 +304,7 @@ class AccountProduct
                     }
                 }
             }
-            set_key_value_pair($cacheKey, $array, "1 minute");
+            set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
         }
         $isEmpty = empty($array);
         return new MethodReply(!$isEmpty, $isEmpty ? "Product not found." : null, $array);

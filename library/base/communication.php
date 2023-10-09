@@ -30,7 +30,7 @@ function is_private_connection(): bool
 {
     if (hash("sha512", ($_POST['private_verification_key'] ?? "")) === get_communication_private_key()) {
         global $administrator_local_server_ip_addresses_table;
-        set_sql_cache("1 minute");
+        set_sql_cache();
         return !empty(get_sql_query(
             $administrator_local_server_ip_addresses_table,
             array("id"),

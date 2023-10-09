@@ -107,7 +107,7 @@ class WebsiteSession
                 self::class,
                 get_sql_cache_key("token", $token)
             )
-        ), true);
+        ), true, 1);
     }
 
     public function getSession(): MethodReply
@@ -118,7 +118,7 @@ class WebsiteSession
         if (strlen($key) === self::session_token_length) { // Check if length of key is correct
             $date = get_current_date();
             $key = string_to_integer($key, true);
-            set_sql_cache(self::session_cache_time);
+            set_sql_cache(self::session_cache_time, self::class);
             $array = get_sql_query(
                 $account_sessions_table,
                 array("id", "account_id", "ip_address"),
@@ -143,24 +143,40 @@ class WebsiteSession
                             "account_id" => $object->account_id,
                             "token" => $key
                         ), self::session_cache_time)) {
-                        set_sql_query(
-                            $account_sessions_table,
-                            array(
-                                "modification_date" => $date,
-                                "expiration_date" => get_future_date(self::session_account_refresh_expiration)
-                            ),
-                            array(
-                                array("id", $object->id)
-                            ),
-                            null,
-                            1
-                        ); // Extend expiration date of session
-                    }
-                    $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
+                        $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
-                    if ($punishment->isPositiveOutcome()) {
-                        return new MethodReply(true, $punishment->getMessage(), $account);
-                    } else if ($object->ip_address === get_client_ip_address()
+                        if ($punishment->isPositiveOutcome()) {
+                            set_sql_query(
+                                $account_sessions_table,
+                                array(
+                                    "deletion_date" => $date
+                                ),
+                                array(
+                                    array("id", $object->id)
+                                ),
+                                null,
+                                1
+                            ); // Delete session from database
+                            $this->clearTokenCache($key);
+                            $account->clearMemory(self::class);
+                            return new MethodReply(false, null, new Account($this->applicationID, 0));
+                        } else {
+                            set_sql_query(
+                                $account_sessions_table,
+                                array(
+                                    "modification_date" => $date,
+                                    "expiration_date" => get_future_date(self::session_account_refresh_expiration)
+                                ),
+                                array(
+                                    array("id", $object->id)
+                                ),
+                                null,
+                                1
+                            ); // Extend expiration date of session
+                        }
+                    }
+
+                    if ($object->ip_address === get_client_ip_address()
                         || $account->getPermissions()->isAdministrator()
                         && $account->getSettings()->isEnabled("two_factor_authentication")) { // Check if IP address is the same or the user is an administrator
                         return new MethodReply(true, null, $account);
@@ -308,7 +324,9 @@ class WebsiteSession
                     1
                 ); // Delete session from database
                 $this->clearTokenCache($key);
-                return new MethodReply(true, null, new Account($this->applicationID, $accountID));
+                $account = new Account($this->applicationID, $accountID);
+                $account->clearMemory(self::class);
+                return new MethodReply(true, null, $account);
             }
         }
         return new MethodReply(false);

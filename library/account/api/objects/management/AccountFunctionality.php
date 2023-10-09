@@ -41,7 +41,7 @@ class AccountFunctionality
                 null,
             );
         }
-        set_sql_cache("1 minute");
+        set_sql_cache();
         $array = get_sql_query(
             $functionalities_table,
             array("name"),
@@ -81,7 +81,7 @@ class AccountFunctionality
                 null,
             );
         }
-        set_sql_cache("1 minute");
+        set_sql_cache();
         $query = get_sql_query(
             $functionalities_table,
             $hasSelect ? $select : array("id"),

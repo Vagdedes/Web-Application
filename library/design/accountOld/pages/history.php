@@ -10,14 +10,14 @@ function load_account_history(Account $account, $isLoggedIn): void
                     <div class='area_title'>Recent History</div>";
         $history = $account->getHistory()->get(
             array("action_id", "creation_date"),
-            50
+            100
         );
 
         if ($history->isPositiveOutcome()) {
             $history = $history->getObject();
 
             if (!empty($history)) {
-                echo "<div class='area_text'>Our Dates & Time are available in the GMT+1 Timezone</div>";
+                echo "<div class='area_text'>Here is your past 100 account actions for your convenience.</div>";
                 echo "<div class='area_board'><ul>
                     <li class='label'>
                         <div class='main'>Action</div><div>Date</div><div>Time</div>
@@ -28,7 +28,7 @@ function load_account_history(Account $account, $isLoggedIn): void
                     $fullDate = $row->creation_date;
                     $date = substr($fullDate, 0, 10);
                     $time = substr($fullDate, 10, -3);
-                    echo "<li><div class='main'>$action</div><div>$date</div><div>$time</div></li>";
+                    echo "<li><div class='main'>$action</div><div>$date</div><div>$time GMT+1</div></li>";
                 }
                 echo "</ul></div>";
             } else {

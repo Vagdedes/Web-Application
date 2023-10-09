@@ -26,7 +26,7 @@ class AccountOffer
 
         if ($validProducts->isPositiveOutcome()) {
             global $product_offers_table;
-            set_sql_cache("1 minute");
+            set_sql_cache();
             $offers = get_sql_query(
                 $product_offers_table,
                 null,
@@ -35,7 +35,7 @@ class AccountOffer
                     array("deletion_date", null),
                     $hasOffer ? array("id", $offerID) : ""
                 ),
-                $hasOffer ? null
+                $hasOeffr ? null
                     : array(
                     "DESC",
                     "priority"

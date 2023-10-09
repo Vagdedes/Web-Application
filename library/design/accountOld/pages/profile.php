@@ -103,11 +103,9 @@ function load_account_profile(Account $account, $isLoggedIn, Application $applic
                         $result = $account->getActions()->logIn(get_form_post("password"));
 
                         if ($result->isPositiveOutcome()) {
-                            global $website_url_http;
                             $redirectURL = get_form_get("redirectURL");
 
-                            if (starts_with($redirectURL, $website_url)
-                                || starts_with($redirectURL, $website_url_http)) {
+                            if (starts_with($redirectURL, $website_url)) {
                                 redirect_to_url($redirectURL);
                             } else {
                                 account_page_redirect($account, true, $result->getMessage());

@@ -18,7 +18,7 @@ function load_account_help(Account $account, $isLoggedIn): void
                 function copyCode() {
                   var copyText = document.getElementById('code');
                   copyText.select();
-                  copyText.setSelectionRange(0, 6);
+                  copyText.setSelectionRange(0, 7);
                   navigator.clipboard.writeText(copyText.value);
                 }
             </script>";

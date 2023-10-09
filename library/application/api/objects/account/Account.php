@@ -370,7 +370,7 @@ class Account
                     get_sql_cache_key("id", $this->object->id),
                     get_sql_cache_key("name", $this->object->name),
                     get_sql_cache_key("email_address", $this->object->email_address)
-                ), true);
+                ), true, 1);
             } else if (is_array($key)) {
                 $key1 = get_sql_cache_key("account_id", $this->object->id);
                 $key2 = get_sql_cache_key("id", $this->object->id);
@@ -383,7 +383,7 @@ class Account
                         array($item, $key2),
                         array($item, $key3),
                         array($item, $key4)
-                    ), true);
+                    ), true, 1);
                 }
             } else {
                 clear_memory(
@@ -399,11 +399,11 @@ class Account
                     ), array(
                         $key,
                         get_sql_cache_key("email_address", $this->object->email_address)
-                    )), true
+                    )), true, 1
                 );
             }
         } else if ($key !== null) {
-            clear_memory(array($key), true);
+            clear_memory(array($key), true, 1);
         }
     }
 }

@@ -1,4 +1,5 @@
 <?php
+set_sql_cache("1 second"); // Use to prevent redundancy
 $memory_trackers_query = get_sql_query(
     $memory_clearance_table,
     array("tracker", "array", "abstract_search"),
@@ -40,7 +41,7 @@ if (!empty($memory_trackers_query)) {
                 if ($segments === null) {
                     $segments = get_memory_segment_ids();
                 }
-                clear_memory($array, $row->abstract_search !== null, $segments);
+                clear_memory($array, $row->abstract_search !== null, 0, $segments);
             }
         }
     }

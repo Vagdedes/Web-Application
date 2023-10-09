@@ -132,7 +132,7 @@ class PaymentProcessor
                     $queue = get_key_value_pair($this::queue_key);
 
                     if (is_array($queue)) {
-                        clear_memory($this::queue_key, false, false); // We don't want to share this deletion
+                        clear_memory($this::queue_key, false, 0, false); // We don't want to share this deletion
 
                         foreach ($queue as $transactionID) {
                             $transactionDetails = $this->getDetails($transactionID);

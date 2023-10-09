@@ -69,7 +69,7 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
     global $email_plans_table;
 
     // Find plan
-    set_sql_cache("1 minute");
+    set_sql_cache();
     $query = get_sql_query(
         $email_plans_table,
         array("id", "test", "redundant", "title", "comments", "contents", "default_cooldown"),

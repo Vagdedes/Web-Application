@@ -31,7 +31,7 @@ class AccountPermissions
         if (is_array($cache)) {
             return $cache;
         } else {
-            global $account_roles_table;
+            global $account_roles_table, $sql_max_cache_time;
             $array = array();
             $query = get_sql_query(
                 $account_roles_table,
@@ -64,7 +64,7 @@ class AccountPermissions
                 $this->defaultRoleID,
                 false
             );
-            set_key_value_pair($cacheKey, $array, "1 minute");
+            set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
             return $array;
         }
     }
@@ -75,7 +75,7 @@ class AccountPermissions
             return true;
         } else {
             global $account_roles_table;
-            set_sql_cache("1 minute");
+            set_sql_cache();
             return !empty(get_sql_query(
                 $account_roles_table,
                 array("id"),
@@ -136,7 +136,7 @@ class AccountPermissions
         if (is_array($cache)) {
             return $cache;
         } else {
-            global $account_permissions_table;
+            global $account_permissions_table, $sql_max_cache_time;
             $array = array();
             $query = get_sql_query(
                 $account_permissions_table,
@@ -156,7 +156,7 @@ class AccountPermissions
                     $array[] = $row->permission;
                 }
             }
-            set_key_value_pair($cacheKey, $array, "1 minute");
+            set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
             return $array;
         }
     }

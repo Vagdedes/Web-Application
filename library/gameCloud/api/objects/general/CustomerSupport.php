@@ -10,7 +10,7 @@ class CustomerSupport
         $this->ignoreSoftwareInformation = $ignoreSoftwareInformation;
     }
 
-    public function clearCache()
+    public function clearCache(): void
     {
         clear_memory(array(self::class), true);
     }
