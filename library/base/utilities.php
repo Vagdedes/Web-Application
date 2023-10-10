@@ -321,9 +321,17 @@ function get_user_agent(): string
     return $_SERVER['HTTP_USER_AGENT'] ?? "";
 }
 
-function get_domain(): string
+function get_domain($subdomains = true): string
 {
-    return $_SERVER['SERVER_NAME'] ?? "";
+    if ($subdomains) {
+        return $_SERVER['SERVER_NAME'] ?? "";
+    } else if (isset($_SERVER['SERVER_NAME'])) {
+        $domain = explode(".", $_SERVER['HTTP_HOST'] ?? "");
+        $size = sizeof($domain);
+        return $domain[$size - 2] . "." . $domain[$size - 1];
+    } else {
+        return "";
+    }
 }
 
 // Validators

@@ -1,12 +1,27 @@
 <?php
+
 function add_cookie($name, $info, $time): bool
 {
-    return setrawcookie($name, $info, time() + $time, '/', "", true, true);
+    return setcookie($name, $info, [
+        'expires' => time() + $time,
+        'path' => '/',
+        'domain' => "." . get_domain(false),
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Strict'
+    ]);
 }
 
 function delete_cookie($name): bool
 {
-    return setcookie($name, "", time() - 1, '/');
+    return setcookie($name, "", [
+        'expires' => time() - 1,
+        'path' => '/',
+        'domain' => "." . get_domain(false),
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Strict'
+    ]);
 }
 
 function cookie_exists($name): bool
