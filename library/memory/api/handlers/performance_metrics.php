@@ -1,13 +1,13 @@
 <?php
 $memory_metrics_performance_time = 0;
 
-function performance_metrics_reset()
+function performance_metrics_reset(): void
 {
     global $memory_metrics_performance_time;
     $memory_metrics_performance_time = microtime(true);
 }
 
-function performance_metrics_store($name)
+function performance_metrics_store($name): void
 {
     global $memory_metrics_performance_time;
     $memory_metrics_performance_time = microtime(true) - $memory_metrics_performance_time;

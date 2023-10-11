@@ -24,7 +24,7 @@ function get_reserved_memory_names(): array
 /**
  * @throws Exception
  */
-function reserve_memory_key($name, $key)
+function reserve_memory_key($name, $key): void
 {
     if (!is_string($name)) {
         throw new Exception("Tried to reserve name that's not a string: " . $name);
@@ -142,46 +142,6 @@ function get_memory_segment_ids(): array
 
 // Separator
 
-function map_to_string($array): string
-{
-    $string = "";
-
-    foreach ($array as $key => $value) {
-        $dataToStore = @gzdeflate($value, 9);
-
-        if ($dataToStore !== false) {
-            $string .= $key . "\r" . $dataToStore . "\r";
-        } else {
-            throw new Exception("Failed to deflate string: " . $value);
-        }
-    }
-    return $string;
-}
-
-function string_to_map($string): array
-{
-    $explode = preg_split("/(\r)/", $string);
-    $array = array();
-    $previousValue = null;
-
-    foreach ($explode as $position => $value) {
-        if (($position + 1) % 2 == 0) {
-            $storedData = @gzinflate($value);
-
-            if ($storedData !== false) {
-                $array[$previousValue] = $storedData;
-            } else {
-                throw new Exception("Failed to inflate string: " . $value);
-            }
-        } else {
-            $previousValue = $value;
-        }
-    }
-    return $array;
-}
-
-// Separator
-
 class ThreadMemoryBlock
 {
     // 23 is the length of the max 64-bit negative integer
@@ -287,7 +247,8 @@ class ThreadMemoryBlock
 
 class IndividualMemoryBlock
 {
-    private $key, $originalKey;
+    private $originalKey;
+    private int $key;
 
     /**
      * @throws Exception
@@ -339,7 +300,7 @@ class IndividualMemoryBlock
     public function set($value, $expiration = false): bool
     {
         $bool = $this->internalSet($value, $expiration);
-        $this->lookForExpiredSegments();
+        $this->removeExpired();
         return $bool;
     }
 
@@ -407,7 +368,7 @@ class IndividualMemoryBlock
     public function get($objectKey = "value")
     {
         $raw = $this->getRaw();
-        return $raw !== null ? $raw->{$objectKey} : null;
+        return $raw?->{$objectKey};
     }
 
     /**
@@ -421,7 +382,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function clear()
+    public function clear(): void
     {
         if (!$this->internalClose()) {
             $this->throwException("Unable to manually close current individual-memory-block: " . $this->originalKey, false);
@@ -502,7 +463,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    private function lookForExpiredSegments()
+    private function removeExpired(): void
     {
         global $memory_reserved_keys;
         $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
@@ -565,7 +526,7 @@ class IndividualMemoryBlock
         if (!shmop_delete($block)) {
             return false;
         }
-        shmop_close($block);
+        //shmop_close($block);
         return true;
     }
 

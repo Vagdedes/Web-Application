@@ -1,8 +1,13 @@
 <?php
+$memory_serialize_key = true;
+$memory_object_cache = array();
+
 $memory_reserved_value = true;
 $memory_reserved_keys = array(
     0 => 0xff1 // Natively reserved for managing individual-memory-block clearance method
 );
+
+
 $memory_permissions = 0644;
 $memory_permissions_string = "644";
 $memory_filler_character = " ";

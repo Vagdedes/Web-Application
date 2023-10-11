@@ -67,7 +67,7 @@ function start_memory_process($identifier, $processSeconds = 0, $forceful = fals
     return false;
 }
 
-function end_memory_process($identifier, $hash = true)
+function end_memory_process($identifier, $hash = true): void
 {
     global $memory_processes_table;
     set_sql_query(

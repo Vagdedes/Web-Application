@@ -1,12 +1,4 @@
 <?php
-$memory_object_cache = array();
-$memory_serialize_key = true;
-
-function memory_ignore_key_serialization(): void
-{
-    global $memory_serialize_key;
-    $memory_serialize_key = false;
-}
 
 function memory_get_object_cache($key): IndividualMemoryBlock
 {
@@ -51,7 +43,7 @@ function has_memory_limit($key, $countLimit, $futureTime = null): bool
     return false;
 }
 
-function has_memory_cooldown($key, $futureTime = null, $set = true, $force = false)
+function has_memory_cooldown($key, $futureTime = null, $set = true, $force = false): bool
 {
     $key = manipulate_memory_key($key);
 
@@ -215,7 +207,7 @@ function clear_memory($keys, $abstractSearch = false, $stopAfterSuccessfulIterat
                         foreach ($keys as $arrayKey => $key) {
                             if (is_array($key)) {
                                 foreach ($key as $subKey) {
-                                    if (strpos($memoryKey, $subKey) === false) {
+                                    if (!str_contains($memoryKey, $subKey)) {
                                         continue 2;
                                     }
                                 }
@@ -229,7 +221,7 @@ function clear_memory($keys, $abstractSearch = false, $stopAfterSuccessfulIterat
                                         break 2;
                                     }
                                 }
-                            } else if (strpos($memoryKey, $key) !== false) {
+                            } else if (str_contains($memoryKey, $key)) {
                                 $memoryBlock->clear();
                                 unset($memory_object_cache[$segment]);
 
@@ -260,10 +252,12 @@ function clear_memory($keys, $abstractSearch = false, $stopAfterSuccessfulIterat
     } else {
         $segments = is_array($localSegments) ? $localSegments : get_memory_segment_ids();
 
-        foreach ($segments as $segment) {
-            $memoryBlock = new IndividualMemoryBlock($segment);
-            $memoryBlock->clear();
-            unset($memory_object_cache[$segment]);
+        if (!empty($segments)) {
+            foreach ($segments as $segment) {
+                $memoryBlock = new IndividualMemoryBlock($segment);
+                $memoryBlock->clear();
+                unset($memory_object_cache[$segment]);
+            }
         }
     }
 }
