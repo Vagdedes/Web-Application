@@ -23,15 +23,16 @@ function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): a
         $link = "https://www.patreon.com/api/oauth2/api/campaigns/" . $patreon_campaign_id . "/pledges";
 
         while ($link !== null) {
-            $reply = get_curl(
+            $reply = json_decode(get_curl(
                 $link,
                 "GET",
-                null,
                 array(
+                    "Content-Type: application/json",
                     "Authorization: Bearer " . $key
                 ),
+                null,
                 3
-            );
+            ));
 
             if (isset($reply->data) && isset($reply->included)) {
                 $userIDs = array();
@@ -90,15 +91,16 @@ function get_patreon2_subscriptions($ignoreTiers = null, $targetTiers = null): a
             . str_replace("[", "%5B", str_replace("]", "%5D", $arguments));
 
         while ($link !== null) {
-            $reply = get_curl(
+            $reply = json_decode(get_curl(
                 $link,
                 "GET",
-                null,
                 array(
+                    "Content-Type: application/json",
                     "Authorization: Bearer " . $key
                 ),
+                null,
                 3
-            );
+            ));
 
             if (isset($reply->data)) {
                 foreach ($reply->data as $patron) {

@@ -35,7 +35,7 @@ class AccountOffer
                     array("deletion_date", null),
                     $hasOffer ? array("id", $offerID) : ""
                 ),
-                $hasOeffr ? null
+                $hasOffer ? null
                     : array(
                     "DESC",
                     "priority"
