@@ -31,6 +31,29 @@ function get_final_directory(): string
     return $array[sizeof($array) - 1];
 }
 
+// Google Docs
+
+function get_raw_google_doc($url, $returnHTML = false): ?string
+{
+    $html = timed_file_get_contents($url);
+
+    if ($html !== false) {
+        $html = explode('doc-content">', $html);
+
+        if (sizeof($html) > 1) {
+            $html = explode('<script', $html[1])[0];
+            $html = str_replace("</span>", "\n</span>", $html);
+            $html = strip_tags($html);
+
+            if ($returnHTML) {
+                $html = str_replace("\n", "<br>", $html);
+            }
+            return $html;
+        }
+    }
+    return null;
+}
+
 // Connections
 
 function post_file_get_contents($url, $parameters = null, $clearPreviousParameters = null, $user_agent = null, $timeoutSeconds = 0): bool|string
@@ -673,7 +696,7 @@ function cut_decimal($value, $cut): float
 
 // Debug
 
-function manage_errors($display = null, $log = null) // NULL leaves it unaffected in relation to its current
+function manage_errors($display = null, $log = null): void // NULL leaves it unaffected in relation to its current
 {
     if ($display !== null) {
         ini_set('display_errors', $display ? 1 : 0);
