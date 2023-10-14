@@ -8,7 +8,7 @@ function add_cookie($name, $info, $time): bool
         'domain' => "." . get_domain(false),
         'secure' => true,
         'httponly' => true,
-        'samesite' => 'Strict'
+        'samesite' => 'Lax'
     ]);
 }
 
@@ -20,7 +20,7 @@ function delete_cookie($name): bool
         'domain' => "." . get_domain(false),
         'secure' => true,
         'httponly' => true,
-        'samesite' => 'Strict'
+        'samesite' => 'Lax'
     ]);
 }
 

@@ -13,7 +13,7 @@ $sql_store_error = true;
 $sql_max_cache_time = "30 minutes";
 
 // Connection
-function sql_sql_credentials($hostname, $username, $password = null, $database = null, $port = null, $socket = null, $exit = false)
+function sql_sql_credentials($hostname, $username, $password = null, $database = null, $port = null, $socket = null, $exit = false): void
 {
     global $sql_credentials;
     $sql_credentials = array($hostname, $username, $password, $database, $port, $socket, $exit);
@@ -31,7 +31,7 @@ function get_sql_connection(): ?object
     return $sql_connection;
 }
 
-function reset_sql_connection()
+function reset_sql_connection(): void
 {
     global $sql_connection;
     $sql_connection = null;
