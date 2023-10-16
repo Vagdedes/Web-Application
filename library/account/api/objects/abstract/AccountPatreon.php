@@ -77,8 +77,10 @@ class AccountPatreon
         $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers);
 
         if (!empty($patreonSubscriptions)) {
+            $name = trim($name);
+
             foreach ($patreonSubscriptions as $subscription) {
-                if ($subscription->attributes->full_name == $name) {
+                if (trim($subscription->attributes->full_name) == $name) {
                     return new MethodReply(true, null, $subscription);
                 }
             }
