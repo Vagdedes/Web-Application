@@ -52,6 +52,11 @@ class AccountProductDownloads
         if (!$product->isPositiveOutcome()) {
             return new MethodReply(false, $product->getMessage());
         }
+        $purchase = $this->account->getPurchases()->owns($productID);
+
+        if (!$purchase->isPositiveOutcome()) {
+            return new MethodReply(false, "You do not own this product.");
+        }
         $fileProperties = $this->findDownloadableFile($product->getObject()[0]->downloads);
 
         if (!$fileProperties->isPositiveOutcome()) {
