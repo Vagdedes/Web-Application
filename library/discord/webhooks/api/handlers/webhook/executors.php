@@ -101,7 +101,7 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
     $isTest = $planObject->test !== null;
 
     // Load executions
-    if (!$isTest && $planObject->redundant === null) {
+    if (!$isTest) {
         $query = get_sql_query(
             $discord_webhook_executions_table,
             array("webhook_id", "cooldown_expiration_date"),
