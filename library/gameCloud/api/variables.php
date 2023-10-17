@@ -19,6 +19,7 @@ $accepted_platforms_table = "gameCloud.acceptedPlatforms";
 // Separator
 
 $spartan_anticheat_product_id = 1;
+$spartan_anticheat_2_0_discord_advertisement = "spartan-2-0";
 $spartan_anticheat_check_names = array(
     // Exempted: Speed, MorePackets, IrregularMovements, NoFall
     "Criticals", "FastBow", "FastClicks", "Exploits", "ImpossibleInventory",
