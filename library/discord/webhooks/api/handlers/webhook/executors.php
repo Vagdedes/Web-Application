@@ -325,6 +325,7 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
 
     // Send to webhook URLs
     foreach ($total as $credential) {
+        $originalCredential = $credential;
         $credential = strtolower($credential);
 
         if ($hasBlacklisted) {
@@ -372,12 +373,12 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
             if ($hasCooldown) {
                 has_memory_cooldown($cacheKey, $cooldown, true, true);
             }
-            if (array_key_exists($credential, $databaseInsertions)) {
-                sql_insert($discord_webhook_executions_table, $databaseInsertions[$credential]);
+            if (array_key_exists($originalCredential, $databaseInsertions)) {
+                sql_insert($discord_webhook_executions_table, $databaseInsertions[$originalCredential]);
             }
         } else {
-            $databaseInsertions[$credential]["error"] = $execution;
-            sql_insert($discord_webhook_failed_executions_table, $databaseInsertions[$credential]);
+            $databaseInsertions[$originalCredential]["error"] = $execution;
+            sql_insert($discord_webhook_failed_executions_table, $databaseInsertions[$originalCredential]);
         }
     }
     return 1;

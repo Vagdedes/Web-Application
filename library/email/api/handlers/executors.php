@@ -269,6 +269,8 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
 
     // Send emails
     foreach ($total as $credential) {
+        $originalCredential = $credential;
+
         if ($hasBlacklisted) {
             foreach ($query as $properties) {
                 $credentialCopy = $credential;
@@ -313,12 +315,12 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
             if ($hasCooldown) {
                 has_memory_cooldown($cacheKey, $cooldown, true, true);
             }
-            if (array_key_exists($credential, $databaseInsertions)) {
-                sql_insert($email_executions_table, $databaseInsertions[$credential]);
+            if (array_key_exists($originalCredential, $databaseInsertions)) {
+                sql_insert($email_executions_table, $databaseInsertions[$originalCredential]);
             }
         } else {
-            $databaseInsertions[$credential]["error"] = $execution;
-            sql_insert($email_failed_executions_table, $databaseInsertions[$credential]);
+            $databaseInsertions[$originalCredential]["error"] = $execution;
+            sql_insert($email_failed_executions_table, $databaseInsertions[$originalCredential]);
         }
     }
     return 1;
