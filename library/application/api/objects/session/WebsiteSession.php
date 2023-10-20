@@ -118,7 +118,7 @@ class WebsiteSession
         if (strlen($key) === self::session_token_length) { // Check if length of key is correct
             $date = get_current_date();
             $key = string_to_integer($key, true);
-            set_sql_cache(self::session_cache_time, self::class);
+            set_sql_cache(null, self::class);
             $array = get_sql_query(
                 $account_sessions_table,
                 array("id", "account_id", "ip_address"),

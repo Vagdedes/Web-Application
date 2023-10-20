@@ -59,25 +59,23 @@ class AccountGiveaway
         ); // get currently running giveaways
 
         if (empty($array)) { // Create giveaway if no other is currently being run
-            $array = get_sql_query(
-                $product_giveaways_table,
-                array("product_id"),
-                array(
-                    array("application_id", $this->account->getDetail("application_id")),
-                    array("completion_date", "IS NOT", null)
-                ),
-                array(
-                    "DESC",
-                    "id"
-                ),
-                1
-            ); // get last successful giveaway
-
             if ($productID === null) {
                 $nextProductID = null;
                 $validProducts = $this->account->getProduct()->find(null, false);
 
                 if ($validProducts->isPositiveOutcome()) {
+                    $array = get_sql_query(
+                        $product_giveaways_table,
+                        array("product_id"),
+                        array(
+                            array("application_id", $this->account->getDetail("application_id")),
+                        ),
+                        array(
+                            "DESC",
+                            "id"
+                        ),
+                        1
+                    ); // get last giveaway, finished or not
                     $validProducts = $validProducts->getObject();
                     $productID = empty($array) ? null : $array[0]->product_id; // get product of last successful giveaway
                     $queueNext = false;
@@ -93,7 +91,7 @@ class AccountGiveaway
                             if ($loopID == $productID) {
                                 $queueNext = true;
                             } else if ($queueNext) {
-                                $nextProductID = $loopID;
+                                $nextProductID = $loopID; // Take the next product
                                 break;
                             }
                         }
@@ -101,12 +99,18 @@ class AccountGiveaway
 
                     // Reset loop if search reached limits
                     if ($nextProductID === null) {
-                        foreach ($validProducts as $product) {
-                            $loopID = $product->id;
+                        if (!empty($validProducts)) {
+                            foreach ($validProducts as $product) {
+                                $loopID = $product->id;
 
-                            if ($loopID != $productID) {
-                                $nextProductID = $loopID;
-                                break;
+                                if ($loopID != $productID) {
+                                    $nextProductID = $loopID; // Take the first product but not the same
+                                    break;
+                                }
+                            }
+
+                            if ($nextProductID === null) {
+                                $nextProductID = $validProducts[0]->id; // Take the same product
                             }
                         }
                     }
@@ -271,8 +275,11 @@ class AccountGiveaway
     }
 
     private function finalise($objectID, $productID, $productObject,
-                              $accountsArray, $accountsAmount, $limit): bool
+                              $accountsArray, $accountsAmount, $limit): void
     {
+        if (!start_memory_process(array(__METHOD__, $productID, $limit))) {
+            return;
+        }
         $limit = min($limit, $accountsAmount);
         $oneWinner = $limit == 1;
 
@@ -286,7 +293,7 @@ class AccountGiveaway
                 $winnerPosition = rand(0, $accountsAmount - 1);
 
                 if (isset($accountsArray[$winnerPosition])) { // Check if it exists as it may have been removed
-                    $account = new Account($this->account->getDetail("application_id"), $accountsArray[$winnerPosition]->id, null, null, null, false); // Get object before unsetting it
+                    $account = new Account($this->account->getDetail("application_id"), $accountsArray[$winnerPosition]->id); // Get object before unsetting it
                     unset($accountsArray[$winnerPosition]); // Unset object to pick a different winner in the next potential loop
 
                     // add the product to the winner's account
@@ -314,7 +321,6 @@ class AccountGiveaway
                         );
 
                         if ($oneWinner) {
-                            $winnerCounter = 1;
                             break;
                         } else {
                             $winnerCounter++;
@@ -326,8 +332,6 @@ class AccountGiveaway
                     }
                 }
             }
-            return $winnerCounter > 0;
         }
-        return false;
     }
 }

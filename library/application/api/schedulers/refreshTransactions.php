@@ -2,7 +2,7 @@
 $refresh_transactions_run = true;
 $refresh_transactions_function = "refresh_transactions";
 
-function refresh_transactions()
+function refresh_transactions(): void
 {
     global $refresh_transactions_run;
 

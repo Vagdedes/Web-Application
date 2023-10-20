@@ -1,7 +1,7 @@
 <?php
 
 function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
-                                     $makeProcess = false, $processEnd = true, $processSeconds = 0)
+                                     $makeProcess = false, $processEnd = true, $processSeconds = 0): void
 {
     global $memory_schedulers_table;
     $identifier = string_to_integer($function);
