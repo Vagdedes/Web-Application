@@ -29,7 +29,7 @@ $spartan_anticheat_check_names = array(
     "AutoRespawn", "FastEat", "FastHeal", "NoSwing", "BlockReach", "GhostHand",
     "ImpossibleActions", "Liquids", "XRay", "MachineLearning", "CombatAnalysis",
     "Clip", "Fly", "ElytraMove", "BoatMove", "Nuker", "Jesus", "KillAura",
-    "EntityMove", "Velocity", "FastPlace", "FastBreak", "NormalMovements"
+    "EntityMove", "Velocity", "FastPlace", "FastBreak", "IrregularMovements"
 );
 $spartan_anticheat_1_0_checks = array(
     "Speed" => array("horizontal: 0.1", "horizontal: 0.2", "horizontal: 0.3", "horizontal: 0.4", "horizontal: 0.5"), // Default

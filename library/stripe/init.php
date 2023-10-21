@@ -1,5 +1,5 @@
 <?php
-require_once '/usr/share/php/stripe-api/init.php';
+require_once '/var/www/.structure/library/stripe/external/stripe-api/init.php';
 
 require_once '/var/www/.structure/library/stripe/api/variables.php';
 require_once '/var/www/.structure/library/stripe/api/connect.php';
