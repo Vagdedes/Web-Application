@@ -211,7 +211,7 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
 
             foreach ($details as $arrayKey => $arrayValue) {
                 if (!empty($arrayKey)) {
-                    $arrayKey = "%%__" . $arrayKey . "__%%";
+                    $arrayKey = "___" . $arrayKey . "___";
                     $arrayValue = empty($arrayValue) ? "" : $arrayValue;
                     $name = str_replace($arrayKey, $arrayValue, $name);
                     $value = str_replace($arrayKey, $arrayValue, $value);
@@ -225,7 +225,7 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
         }
         foreach ($details as $arrayKey => $arrayValue) {
             if (!empty($arrayKey)) {
-                $arrayKey = "%%__" . $arrayKey . "__%%";
+                $arrayKey = "___" . $arrayKey . "___";
                 $arrayValue = empty($arrayValue) ? "" : $arrayValue;
 
                 if ($planObject->color !== null) {
@@ -366,7 +366,7 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
             $planObject->footer,
             $planObject->fields,
             $planObject->user,
-            $planObject->information
+            empty($planObject->information) ? "" : $planObject->information
         );
 
         if ($execution === true) {

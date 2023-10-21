@@ -4,8 +4,11 @@ class AccountRegistry
 {
 
     private MethodReply $outcome;
+    public const DEFAULT_WEBHOOK = "https://discord.com/api/webhooks/1165260206951911524/BmTptuNVPRxpvCaCBZcXCc5r846i-amc38zIWZpF94YZxszlE8VWj_X2NL3unsbIWPlz";
 
-    public function __construct($applicationID, $email, $password, $name)
+    public function __construct($applicationID, $email, $password, $name,
+                                $firstName = null, $middleName = null, $lastName = null,
+                                $discordWebhook = null)
     {
         $functionality = new Account($applicationID, 0);
         $functionality = $functionality->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);
@@ -52,6 +55,9 @@ class AccountRegistry
                 "email_address" => $email,
                 "password" => encrypt_password($password),
                 "name" => $name,
+                "first_name" => $firstName,
+                "middle_name" => $middleName,
+                "last_name" => $lastName,
                 "creation_date" => get_current_date(),
                 "application_id" => $applicationID
             ))) {
@@ -88,6 +94,14 @@ class AccountRegistry
             return;
         }
         $this->outcome = new MethodReply(true, "Welcome!", $account);
+
+        if ($discordWebhook !== null) {
+            send_discord_webhook_by_plan(
+                "new-account",
+                $discordWebhook,
+                array("websiteUsername" => $name)
+            );
+        }
     }
 
     public function getOutcome(): MethodReply

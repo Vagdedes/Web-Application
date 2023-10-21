@@ -18,6 +18,8 @@ $accepted_platforms_table = "gameCloud.acceptedPlatforms";
 
 // Separator
 
+$customer_support_discord_webhook = "https://discord.com/api/webhooks/1165260211540467802/aNXb5HOp0vwsEGc-M7-TtQNxc2v1o9gzyTBlxy7Y8b68wdqw6QALXguNZS8AVuahXkzl";
+
 $spartan_anticheat_product_id = 1;
 $spartan_anticheat_2_0_discord_advertisement = "spartan-2-0";
 $spartan_anticheat_check_names = array(

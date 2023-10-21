@@ -433,7 +433,12 @@ class PaymentProcessor
                     "creation_date" => $date
                 )
             )) {
-            send_email_by_plan($this->applicationID . "-generalPurchase", $email);
+            $applicationID = $this->applicationID;
+
+            if ($applicationID === null) {
+                $applicationID = 0;
+            }
+            send_email_by_plan($applicationID . "-generalPurchase", $email);
         }
     }
 }

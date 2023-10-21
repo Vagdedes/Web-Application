@@ -24,9 +24,11 @@ class Application
         return new Account($this->id, $id, $email, $username, $identification, $checkDeletion, $cache);
     }
 
-    public function getAccountRegistry($email, $password, $name): AccountRegistry
+    public function getAccountRegistry($email, $password, $name,
+                                       $firstName = null, $middleName = null, $lastName = null,
+                                       $discordWebhook = null): AccountRegistry
     {
-        return new AccountRegistry($this->id, $email, $password, $name);
+        return new AccountRegistry($this->id, $email, $password, $name, $firstName, $middleName, $lastName, $discordWebhook);
     }
 
     public function getWebsiteSession(): WebsiteSession
