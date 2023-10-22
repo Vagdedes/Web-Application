@@ -472,14 +472,14 @@ class IndividualMemoryBlock
                         $sortedByCreation[$time] = $memoryBlock;
                     }
                 }
+            }
 
-                if (!empty($sortedByCreation)) {
-                    ksort($sortedByCreation); // Sort in ascending order, so we start from the least recent
+            if (!empty($sortedByCreation)) {
+                ksort($sortedByCreation); // Sort in ascending order, so we start from the least recent
 
-                    foreach ($sortedByCreation as $memoryBlock) {
-                        if ($memoryBlock->clear()) {
-                            return true;
-                        }
+                foreach ($sortedByCreation as $memoryBlock) {
+                    if ($memoryBlock->clear()) {
+                        return true;
                     }
                 }
             }
