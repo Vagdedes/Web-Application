@@ -1,13 +1,5 @@
 <?php
 
-foreach ($memory_reserved_keys as $memory_reserved_key) {
-    try {
-        $memoryBlock = new IndividualMemoryBlock($memory_reserved_key);
-        $memoryBlock->internalSet($memory_reserved_value, 0, true);
-    } catch (Exception $e) {
-    }
-}
-
 function get_reserved_memory_names(): array
 {
     global $memory_reserved_keys;
@@ -68,8 +60,9 @@ function is_reserved_memory_key($key): bool
 
 function get_memory_segment_limit($multiplier = null): int
 {
+    global $memory_reserved_keys;
     $niddle = "max number of segments = ";
-    $integer = substr(shell_exec("ipcs -l | grep '$niddle'"), strlen($niddle), -1);
+    $integer = substr(shell_exec("ipcs -l | grep '$niddle'"), strlen($niddle), -1) - sizeof($memory_reserved_keys);
     return $multiplier !== null ? round($integer * $multiplier) : $integer;
 }
 
@@ -138,6 +131,20 @@ function get_memory_segment_ids(): array
         );
     }
     return $array;
+}
+
+function has_reached_maximum_segment_ids(): bool
+{
+    global $memory_reserved_keys;
+    $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
+
+    if (!$memoryBlock->exists(false)) {
+        $result = sizeof(get_memory_segment_ids()) >= get_memory_segment_limit(0.999); // 99.9% due to potential multi-threading and the one-second cooldown
+        $memoryBlock->set($result, time() + 1); // Cooldown before next check
+        return $result;
+    } else {
+        return $memoryBlock->get() === true;
+    }
 }
 
 // Separator
@@ -247,7 +254,7 @@ class ThreadMemoryBlock
 
 class IndividualMemoryBlock
 {
-    private $originalKey;
+    private mixed $originalKey;
     private int $key;
 
     /**
@@ -259,9 +266,6 @@ class IndividualMemoryBlock
             $keyToInteger = $key;
             $this->originalKey = $key;
         } else {
-            if (!function_exists("string_to_integer")) {
-                $this->throwException("Function 'string_to_integer' doesn't exist or isn't included.");
-            }
             $keyToInteger = string_to_integer($key);
 
             if (is_reserved_memory_key($keyToInteger)) {
@@ -277,7 +281,7 @@ class IndividualMemoryBlock
         return $this->key;
     }
 
-    public function getOriginalKey(): int
+    public function getOriginalKey(): mixed
     {
         return $this->originalKey;
     }
@@ -289,38 +293,25 @@ class IndividualMemoryBlock
     {
         global $memory_starting_bytes;
         $exceptionID = 4;
-        $originalKey = $this->originalKey;
-        $block = $this->internalGetBlock($exceptionID, $this->key, $originalKey, $memory_starting_bytes, false);
-        return $this->internalGetBlockSize($exceptionID, $originalKey, $block);
+        $block = $this->internalGetBlock($exceptionID, $this->key, $this->originalKey, $memory_starting_bytes, false);
+        return $this->internalGetBlockSize($exceptionID, $this->originalKey, $block);
     }
 
     /**
      * @throws Exception
      */
-    public function set($value, $expiration = false): bool
-    {
-        $bool = $this->internalSet($value, $expiration);
-        $this->removeExpired();
-        return $bool;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function getRaw()
+    private function getRaw($removeIfExpired = true)
     {
         global $memory_starting_bytes;
         $exceptionID = 3;
-        $key = $this->key;
-        $originalKey = $this->originalKey;
-        $block = $this->internalGetBlock($exceptionID, $key, $originalKey, $memory_starting_bytes, false);
+        $block = $this->internalGetBlock($exceptionID, $this->key, $this->originalKey, $memory_starting_bytes, false);
 
         if (!$block) {
             return null;
         }
         $readMapBytes = $this->readBlock(
             $block,
-            max($this->internalGetBlockSize($exceptionID, $originalKey, $block), $memory_starting_bytes)
+            max($this->internalGetBlockSize($exceptionID, $this->originalKey, $block), $memory_starting_bytes)
         );
 
         if (!$readMapBytes) {
@@ -335,25 +326,15 @@ class IndividualMemoryBlock
             if ($value !== false) {
                 $object = @unserialize($value);
 
-                if (is_object($object)) {
-                    if (isset($object->expiration)
-                        && isset($object->creation)
-                        && isset($object->value)
-                        && isset($object->key)) {
-                        $expiration = $object->expiration;
-
-                        if ($expiration === false || $expiration >= time()) {
-                            if ($this->originalKey === $this->key) { // Update the key when possible & needed
-                                $this->originalKey = $object->key;
-                            }
-                            return $object;
-                        }
+                if (isset($object->expiration)) {
+                    if ($object->expiration === false || $object->expiration >= time()) {
+                        return $object;
+                    }
+                    if ($removeIfExpired) {
                         $this->internalClose();
-                    } else {
-                        $this->throwException("Unable to use individual-memory-block object of key '" . $originalKey . "': " . $value);
                     }
                 } else {
-                    $this->throwException("Unable to restore individual-memory-block object of key '" . $originalKey . "': " . $value);
+                    $this->throwException("Unable to use individual-memory-block object of key '" . $this->originalKey . "': " . $value);
                 }
             } else {
                 //$this->throwException("Failed to inflate string '" . $rawData . "' of individual-memory-block: " . $originalKey);
@@ -365,27 +346,33 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function get($objectKey = "value")
+    public function get($objectKey = "value", $removeIfExpired = true)
     {
-        $raw = $this->getRaw();
+        $raw = $this->getRaw($removeIfExpired);
         return $raw?->{$objectKey};
     }
 
     /**
      * @throws Exception
      */
-    public function exists(): bool
+    public function exists($removeIfExpired = true): bool
     {
-        return $this->get() !== null;
+        return $this->getRaw($removeIfExpired) !== null;
     }
 
     /**
      * @throws Exception
      */
-    public function clear(): void
+    public function clear($ifExpired = false): bool
     {
-        if (!$this->internalClose()) {
-            $this->throwException("Unable to manually close current individual-memory-block: " . $this->originalKey, false);
+        if (!is_reserved_memory_key($this->key)
+            && (!$ifExpired || $this->getRaw() === null)) {
+            if (!$this->internalClose(null, true)) {
+                $this->throwException("Unable to manually close current individual-memory-block: " . $this->originalKey, false);
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -394,7 +381,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function internalSet($value, $expiration, $ifEmpty = false): bool
+    public function set($value, $expiration = false, $ifEmpty = false): bool
     {
         if ($ifEmpty && $this->getRaw() !== null) {
             return false;
@@ -408,25 +395,23 @@ class IndividualMemoryBlock
         $object->expiration = is_numeric($expiration) ? $expiration : false;
 
         $exceptionID = 1;
-        $key = $this->key;
-        $originalKey = $this->originalKey;
         $objectToTextRaw = serialize($object);
         $objectToText = @gzdeflate($objectToTextRaw, 9);
 
         if ($objectToText === false) {
-            $this->throwException("Failed to deflate string '" . $objectToTextRaw . "' of individual-memory-block: " . $originalKey);
+            $this->throwException("Failed to deflate string '" . $objectToTextRaw . "' of individual-memory-block: " . $this->originalKey);
         }
         $objectToTextLength = strlen($objectToText);
-        $block = $this->internalGetBlock($exceptionID, $key, $originalKey, $memory_starting_bytes, false, true);
-        $bytesSize = max($this->internalGetBlockSize($exceptionID, $originalKey, $block), $memory_starting_bytes); // check default
+        $block = $this->internalGetBlock($exceptionID, $this->key, $this->originalKey, $memory_starting_bytes, false, true);
+        $bytesSize = max($this->internalGetBlockSize($exceptionID, $this->originalKey, $block), $memory_starting_bytes); // check default
 
         if ($objectToTextLength > $bytesSize) {
-            if (!$this->internalClose($block)) {
-                $this->throwException("Unable to close old individual-memory-block: " . $originalKey);
+            if (!$this->internalClose($block, true)) {
+                $this->throwException("Unable to close old individual-memory-block: " . $this->originalKey);
             }
             $oldBytesSize = $bytesSize;
             $bytesSize = max($bytesSize + $memory_starting_bytes, $objectToTextLength);
-            $block = $this->internalGetBlock(2, $key, $originalKey, $bytesSize, true, true); // open bigger
+            $block = $this->internalGetBlock(2, $this->key, $this->originalKey, $bytesSize, true, true); // open bigger
 
             if (!$block) {
                 return false;
@@ -440,7 +425,12 @@ class IndividualMemoryBlock
                 return false;
             }
         } else if (!$block) {
-            $block = $this->internalGetBlock($exceptionID, $key, $originalKey, $bytesSize, true, true); // open default
+            if (!is_reserved_memory_key($this->key)
+                && has_reached_maximum_segment_ids()
+                && !$this->removeExpired()) {
+                return false;
+            }
+            $block = $this->internalGetBlock($exceptionID, $this->key, $this->originalKey, $bytesSize, true, true); // open default
 
             if (!$block) {
                 return false;
@@ -455,7 +445,7 @@ class IndividualMemoryBlock
         $bytesWritten = shmop_write($block, $objectToText, 0);
 
         if ($bytesWritten !== $bytesSize) {
-            $this->throwException("Unable to write to individual-memory-block: " . $originalKey);
+            $this->throwException("Unable to write to individual-memory-block: " . $this->originalKey);
         }
         return true;
     }
@@ -463,71 +453,55 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    private function removeExpired(): void
+    private function removeExpired(): bool
     {
-        global $memory_reserved_keys;
-        $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
+        $segments = get_memory_segment_ids();
 
-        if (!$memoryBlock->exists()) {
-            global $memory_reserved_value;
-            $memoryBlock->internalSet($memory_reserved_value, time() + 30); // Cooldown before next clearance
-            $segments = get_memory_segment_ids();
-            $segmentAmount = sizeof($segments);
+        if (!empty($segments)) {
+            $sortedByCreation = array();
 
-            if ($segmentAmount > 0) {
-                if ($segmentAmount >= get_memory_segment_limit(0.9)) {
-                    $sortedByCreation = array();
+            foreach ($segments as $segment) {
+                $memoryBlock = new IndividualMemoryBlock($segment);
 
-                    foreach ($segments as $segment) {
-                        $memoryBlock = new IndividualMemoryBlock($segment);
-                        $time = $memoryBlock->get("creation");
-
-                        if ($time !== null) {
-                            $sortedByCreation[$time] = $memoryBlock;
-                        }
-                    }
-                    $sortedSegmentAmount = sizeof($sortedByCreation);
-
-                    if ($sortedSegmentAmount > 0) {
-                        $sortedSegmentAmount /= 3; // Modify it so it can act as a clearing limit
-                        sort($sortedByCreation); // Sort in ascending order, so we start from the least recent
-
-                        foreach ($sortedByCreation as $counter => $memoryBlock) {
-                            $memoryBlock->clear();
-
-                            if ($counter >= $sortedSegmentAmount) {
-                                break;
-                            }
-                        }
-                    }
+                if ($memoryBlock->clear(true)) {
+                    return true;
                 } else {
-                    foreach ($segments as $segment) {
-                        $memoryBlock = new IndividualMemoryBlock($segment);
-                        $memoryBlock->get(); // Call to clear if expired
+                    $time = $memoryBlock->get("creation");
+
+                    if ($time !== null) {
+                        $sortedByCreation[$time] = $memoryBlock;
+                    }
+                }
+
+                if (!empty($sortedByCreation)) {
+                    ksort($sortedByCreation); // Sort in ascending order, so we start from the least recent
+
+                    foreach ($sortedByCreation as $memoryBlock) {
+                        if ($memoryBlock->clear()) {
+                            return true;
+                        }
                     }
                 }
             }
         }
+        return false;
     }
 
     /**
      * @throws Exception
      */
-    private function internalClose($block = null): bool
+    private function internalClose($block = null, $ignoreCreation = false): bool
     {
         if ($block === null) {
             global $memory_starting_bytes;
             $block = $this->internalGetBlock(5, $this->key, $this->originalKey, $memory_starting_bytes, false);
         }
-
-        if (!$block) {
-            return true;
-        }
-        if (!shmop_delete($block)) {
-            return false;
+        if ($block) {
+            return shmop_delete($block);
+        } else {
+            return $ignoreCreation;
         }
         //shmop_close($block);
-        return true;
     }
 
     /**

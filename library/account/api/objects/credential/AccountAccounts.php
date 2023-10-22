@@ -140,6 +140,7 @@ class AccountAccounts
             )) {
             return new MethodReply(false, "Failed to interact with the database (2).");
         }
+        clear_patreon_subscription_cache();
         return new MethodReply(true, "Successfully stored account.");
     }
 
@@ -187,6 +188,7 @@ class AccountAccounts
         if ($cooldown !== null) {
             $functionality->addInstantCooldown(AccountFunctionality::REMOVE_ACCOUNT, $cooldown);
         }
+        clear_patreon_subscription_cache();
         return new MethodReply(true, "Successfully deleted account.");
     }
 

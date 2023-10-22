@@ -19,7 +19,6 @@ class GameCloudInformation
         if ($license !== null
             && $license > 0) {
             global $verifications_table;
-            set_sql_cache("1 hour");
             $query = get_sql_query(
                 $verifications_table,
                 array("platform_id"),

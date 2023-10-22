@@ -1,5 +1,13 @@
 <?php
 
+function clear_patreon_subscription_cache(): void
+{
+    clear_memory(array(
+        "patreon-1-subscriptions",
+        "patreon-2-subscriptions"
+    ), true);
+}
+
 function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): array
 {
     $hasIgnoreTiers = $ignoreTiers !== null;
@@ -17,7 +25,7 @@ function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): a
     $key = get_keys_from_file("/var/www/.structure/private/patreon_1_credentials", 1);
 
     if ($key !== null) {
-        global $patreon_campaign_id;
+        global $patreon_campaign_id, $sql_max_cache_time;
         $key = $key[0];
         $results = array();
         $link = "https://www.patreon.com/api/oauth2/api/campaigns/" . $patreon_campaign_id . "/pledges";
@@ -56,7 +64,7 @@ function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): a
             }
             $link = $reply->links->next ?? null;
         }
-        set_key_value_pair($cacheKey, $results, "1 minute");
+        set_key_value_pair($cacheKey, $results, $sql_max_cache_time);
         return $results;
     } else {
         return array();
@@ -80,7 +88,7 @@ function get_patreon2_subscriptions($ignoreTiers = null, $targetTiers = null): a
     $key = get_keys_from_file("/var/www/.structure/private/patreon_2_credentials", 1);
 
     if ($key !== null) {
-        global $patreon_campaign_id;
+        global $patreon_campaign_id, $sql_max_cache_time;
         $key = $key[0];
         $results = array();
         $arguments = "currently_entitled_tiers,address";
@@ -125,7 +133,7 @@ function get_patreon2_subscriptions($ignoreTiers = null, $targetTiers = null): a
             }
             $link = $reply->links->next ?? null;
         }
-        set_key_value_pair($cacheKey, $results, "1 minute");
+        set_key_value_pair($cacheKey, $results, $sql_max_cache_time);
         return $results;
     } else {
         return array();
