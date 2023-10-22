@@ -499,8 +499,9 @@ function get_keys_from_file($file, $amount): ?array
     if ($contents !== false) {
         $keys = explode("\n", $contents);
         return sizeof($keys) != $amount ? null : $keys;
+    } else {
+        return null;
     }
-    return null;
 }
 
 function multi_explode($delimiters, $string): array

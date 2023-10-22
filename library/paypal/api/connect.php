@@ -1,2 +1,2 @@
 <?php
-require_once '/var/www/.structure/library/base/default_sql.php';
+require_once '/var/www/.structure/library/base/requirements/sql_connection.php';

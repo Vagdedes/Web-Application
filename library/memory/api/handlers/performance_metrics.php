@@ -14,6 +14,7 @@ function performance_metrics_store($name): void
 
     if ($memory_metrics_performance_time > 0.0) {
         global $memory_performance_metrics_table;
+        load_sql_database(SqlDatabaseCredentials::MEMORY);
         sql_insert(
             $memory_performance_metrics_table,
             array(
@@ -22,5 +23,6 @@ function performance_metrics_store($name): void
                 "creation_date" => get_current_date()
             )
         );
+        load_previous_sql_database();
     }
 }

@@ -3,63 +3,67 @@
 
 $sql_timeout = 1;
 $show_sql_errors = false;
-$sql_connection = null;
-$is_sql_usable = false;
-$sql_credentials = array();
-$sql_cache_time = false;
-$sql_cache_tag = null;
 $sql_log_connection = true; // Disabled
 $sql_store_error = true;
+
+$sql_connections = array();
+$is_sql_usable = false;
+
+$sql_credentials = array();
+$sql_credentials_hash = null;
+
+$sql_cache_time = false;
+$sql_cache_tag = null;
 $sql_max_cache_time = "30 minutes";
 
 // Connection
 function sql_sql_credentials($hostname, $username, $password = null, $database = null, $port = null, $socket = null, $exit = false): void
 {
-    global $sql_credentials;
+    global $sql_credentials, $sql_credentials_hash;
     $sql_credentials = array($hostname, $username, $password, $database, $port, $socket, $exit);
+    $sql_credentials_hash = string_to_integer(serialize($sql_credentials));
 }
 
 function has_sql_credentials(): bool
 {
-    global $sql_credentials;
     return !empty($sql_credentials);
 }
 
 function get_sql_connection(): ?object
 {
-    global $sql_connection;
-    return $sql_connection;
+    global $sql_connections, $sql_credentials_hash;
+    return $sql_connections[$sql_credentials_hash];
 }
 
 function reset_sql_connection(): void
 {
-    global $sql_connection;
-    $sql_connection = null;
+    global $sql_connections, $sql_credentials_hash;
+    unset($sql_connections[$sql_credentials_hash]);
 }
 
 function create_sql_connection(): ?object
 {
-    global $sql_connection;
+    global $sql_connections, $sql_credentials_hash;
 
-    if ($sql_connection === null) {
+    if (!array_key_exists($sql_credentials_hash, $sql_connections)) {
         global $sql_credentials;
 
         if (sizeof($sql_credentials) === 7) {
             global $sql_timeout, $show_sql_errors, $is_sql_usable;
-            $sql_connection = mysqli_init();
-            $sql_connection->options(MYSQLI_OPT_CONNECT_TIMEOUT, $sql_timeout);
+            $sql_connections[$sql_credentials_hash] = mysqli_init();
+            $sql_connections[$sql_credentials_hash]->options(MYSQLI_OPT_CONNECT_TIMEOUT, $sql_timeout);
 
             if ($show_sql_errors) {
-                $sql_connection->real_connect($sql_credentials[0], $sql_credentials[1], $sql_credentials[2],
+                $sql_connections[$sql_credentials_hash]->real_connect($sql_credentials[0], $sql_credentials[1], $sql_credentials[2],
                     $sql_credentials[3], $sql_credentials[4], $sql_credentials[5]);
             } else {
                 error_reporting(0);
-                $sql_connection->real_connect($sql_credentials[0], $sql_credentials[1], $sql_credentials[2],
+                $sql_connections[$sql_credentials_hash]->real_connect($sql_credentials[0], $sql_credentials[1], $sql_credentials[2],
                     $sql_credentials[3], $sql_credentials[4], $sql_credentials[5]);
                 error_reporting(E_ALL); // In rare occassions, this would be something, but it's recommended to keep it to E_ALL
             }
 
-            if ($sql_connection->connect_error) {
+            if ($sql_connections[$sql_credentials_hash]->connect_error) {
                 $is_sql_usable = false;
 
                 if ($sql_credentials[sizeof($sql_credentials) - 1]) {
@@ -72,7 +76,7 @@ function create_sql_connection(): ?object
             exit();
         }
     }
-    return $sql_connection;
+    return $sql_connections[$sql_credentials_hash];
 }
 
 function close_sql_connection(): bool
@@ -80,9 +84,9 @@ function close_sql_connection(): bool
     global $is_sql_usable;
 
     if ($is_sql_usable) {
-        global $sql_connection;
-        $result = $sql_connection->close();
-        $sql_connection = null;
+        global $sql_connections, $sql_credentials_hash;
+        $result = $sql_connections[$sql_credentials_hash]->close();
+        unset($sql_connections[$sql_credentials_hash]);
         $is_sql_usable = false;
         return $result;
     }
@@ -91,7 +95,7 @@ function close_sql_connection(): bool
 
 // Functionality
 
-function sql_log_connection()
+function sql_log_connection(): void
 {
     global $sql_log_connection;
 
@@ -243,8 +247,9 @@ function properly_sql_encode($string, $partial = false, $extra = false): ?string
     if (!$is_sql_usable) {
         return $partial ? $string : htmlspecialchars($string);
     } else {
-        global $sql_connection;
-        return $sql_connection->real_escape_string($partial ? $string : htmlspecialchars($string));
+        global $sql_connections, $sql_credentials_hash;
+        create_sql_connection();
+        return $sql_connections[$sql_credentials_hash]->real_escape_string($partial ? $string : htmlspecialchars($string));
     }
 }
 
@@ -269,11 +274,12 @@ function get_sql_query($table, $select = null, $where = null, $order = null, $li
         $where = sql_build_where($where, true);
     }
     if ($sql_cache_time !== false) {
-        global $sql_cache_tag;
+        global $sql_cache_tag, $sql_credentials_hash;
         $hasCache = true;
         $time = $sql_cache_time;
         $sql_cache_time = false;
         $cacheKey = array(
+            $sql_credentials_hash,
             $table,
             $select,
             $hasWhere ? $where[1] : null,

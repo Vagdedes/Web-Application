@@ -1,6 +1,6 @@
 <?php
 require_once '/var/www/.structure/library/base/utilities.php';
-require_once '/var/www/.structure/library/base/default_sql.php';
+require_once '/var/www/.structure/library/base/requirements/sql_connection.php';
 require_once '/var/www/.structure/library/memory/init.php';
 $administrator_local_server_ip_addresses_table = "administrator.localServerIpAddresses";
 

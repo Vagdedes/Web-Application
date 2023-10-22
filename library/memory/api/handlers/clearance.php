@@ -1,4 +1,5 @@
 <?php
+load_sql_database(SqlDatabaseCredentials::MEMORY);
 set_sql_cache("1 second"); // Use to prevent redundancy
 $memory_trackers_query = get_sql_query(
     $memory_clearance_table,
@@ -46,3 +47,4 @@ if (!empty($memory_trackers_query)) {
         }
     }
 }
+load_previous_sql_database();

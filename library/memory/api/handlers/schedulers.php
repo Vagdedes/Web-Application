@@ -5,6 +5,7 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
 {
     global $memory_schedulers_table;
     $identifier = string_to_integer($function);
+    load_sql_database(SqlDatabaseCredentials::MEMORY);
     $query = get_sql_query(
         $memory_schedulers_table,
         array("next_repetition"),
@@ -24,6 +25,7 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
                 )
             )
             && (!$makeProcess || start_memory_process($identifier, $processSeconds, false, false))) {
+            load_previous_sql_database();
             call_user_func_array($function, $arguments === null ? array() : $arguments);
 
             if ($processEnd) {
@@ -41,10 +43,13 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
             )
         )
         && (!$makeProcess || start_memory_process($identifier, $processSeconds, false, false))) {
+        load_previous_sql_database();
         call_user_func_array($function, $arguments === null ? array() : $arguments);
 
         if ($processEnd) {
             end_memory_process($identifier, false);
         }
+    } else {
+        load_previous_sql_database();
     }
 }

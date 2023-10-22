@@ -117,6 +117,7 @@ function clear_memory($keys, $abstractSearch = false, $stopAfterSuccessfulIterat
         global $memory_clearance_table;
         $serialize = serialize($keys);
         $tracker = overflow_integer((string_to_integer($serialize) * 31) + boolean_to_integer($abstractSearch));
+        load_sql_database(SqlDatabaseCredentials::MEMORY);
 
         if (empty(get_sql_query(
             $memory_clearance_table,
@@ -183,6 +184,7 @@ function clear_memory($keys, $abstractSearch = false, $stopAfterSuccessfulIterat
                 )
             );
         }
+        load_previous_sql_database();
     }
 
     if (!empty($keys)) {

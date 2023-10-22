@@ -71,6 +71,7 @@ function get_memory_segment_ids(): array
     global $memory_segments_table;
     $time = time();
     $identifer = get_server_identifier();
+    load_sql_database(SqlDatabaseCredentials::MEMORY);
     $query = get_sql_query(
         $memory_segments_table,
         array("array", "next_repetition"),
@@ -89,6 +90,7 @@ function get_memory_segment_ids(): array
             $query = @unserialize($query->array);
 
             if (is_array($query)) {
+                load_previous_sql_database();
                 return $query;
             }
         }
@@ -130,6 +132,7 @@ function get_memory_segment_ids(): array
             1
         );
     }
+    load_previous_sql_database();
     return $array;
 }
 
