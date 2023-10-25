@@ -26,12 +26,13 @@ function private_file_get_contents($url, $createAndClose = false): bool|string
 
 // Separator
 
-function is_private_connection(): bool
+function is_private_connection($ignoreHash = false, $checkClientIP = false): bool
 {
-    if (hash("sha512", ($_POST['private_verification_key'] ?? "")) === get_communication_private_key()) {
+    if ($ignoreHash
+        || hash("sha512", ($_POST['private_verification_key'] ?? "")) === get_communication_private_key()) {
         global $administrator_local_server_ip_addresses_table;
         set_sql_cache();
-        return !empty(get_sql_query(
+        if (!empty(get_sql_query(
             $administrator_local_server_ip_addresses_table,
             array("id"),
             array(
@@ -44,7 +45,27 @@ function is_private_connection(): bool
             ),
             null,
             1
-        ));
+        ))) {
+            if ($checkClientIP) {
+                set_sql_cache();
+                return !empty(get_sql_query(
+                    $administrator_local_server_ip_addresses_table,
+                    array("id"),
+                    array(
+                        array("ip_address", get_raw_client_ip_address()),
+                        array("deletion_date", null),
+                        null,
+                        array("expiration_date", "IS", null, 0),
+                        array("expiration_date", ">", get_current_date()),
+                        null,
+                    ),
+                    null,
+                    1
+                ));
+            } else {
+                return true;
+            }
+        }
     }
     return false;
 }
@@ -61,7 +82,7 @@ function get_session_account_id()
     return is_private_connection() ? $_POST['session_account_id'] ?? null : null;
 }
 
-function set_session_account_id($id)
+function set_session_account_id($id): void
 {
     $_POST['session_account_id'] = $id;
 }

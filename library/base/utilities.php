@@ -223,6 +223,11 @@ function get_client_ip_address(): ?string
             return $privateIpAddress;
         }
     }
+    return get_raw_client_ip_address();
+}
+
+function get_raw_client_ip_address(): ?string
+{
     if (getenv('HTTP_CLIENT_IP')) {
         $ipAddress = getenv('HTTP_CLIENT_IP');
     } else if (getenv('HTTP_X_FORWARDED_FOR')) {
