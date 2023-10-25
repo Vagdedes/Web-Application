@@ -5,7 +5,7 @@ class AccountIdentification
 
     private Account $account;
     private string $identification;
-    private const expiration_time = "1 hour";
+    private const expiration_time = "6 hours";
 
     public function __construct(Account $account)
     {
