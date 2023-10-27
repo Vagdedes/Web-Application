@@ -147,6 +147,7 @@ class AccountProduct
                             }
                         }
                         $object->url = $website_url . "/viewProduct/?id=" . $productID;
+                        $object->download_url = $website_url . "/downloadURL/?id=" . $productID;
                         $object->divisions = new stdClass();
                         $object->buttons = new stdClass();
                         $object->cards = new stdClass();
