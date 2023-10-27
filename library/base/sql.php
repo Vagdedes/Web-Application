@@ -510,7 +510,7 @@ function set_sql_query($table, $what, $where = null, $order = null, $limit = 0):
 
 function delete_sql_query($table, $where, $order = null, $limit = 0): bool
 {
-    $query = "DELETE FROM " . $table . " WHERE " . sql_build_where($where);;
+    $query = "DELETE FROM " . $table . " WHERE " . sql_build_where($where);
 
     if ($order !== null) {
         $query .= " ORDER BY " . sql_build_order($order);
