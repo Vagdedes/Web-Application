@@ -12,9 +12,9 @@ $unsigned_59bit_full_Integer = 576460752303423488;
 
 // Constants
 
-function get_server_identifier(): int
+function get_server_identifier($long = false): int
 {
-    return string_to_integer(getHostName());
+    return string_to_integer(getHostName(), $long);
 }
 
 // File

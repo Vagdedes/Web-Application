@@ -1,6 +1,6 @@
 <?php
 
-function running_memory_process($identifier, $time = true, $hash = true): bool
+function running_memory_process($tracker, $time = true, $hash = true): bool
 {
     global $memory_processes_table;
     load_sql_database(SqlDatabaseCredentials::MEMORY);
@@ -8,7 +8,7 @@ function running_memory_process($identifier, $time = true, $hash = true): bool
         $memory_processes_table,
         array("running", "next_repetition"),
         array(
-            array("identifier", $hash ? string_to_integer($identifier) : $identifier)
+            array("tracker", $hash ? string_to_integer($tracker, true) : $tracker)
         ),
         null,
         1
@@ -19,12 +19,12 @@ function running_memory_process($identifier, $time = true, $hash = true): bool
             || $time && $query[0]->next_repetition >= time());
 }
 
-function start_memory_process($identifier, $processSeconds = 0, $forceful = false, $hash = true): bool
+function start_memory_process($tracker, $processSeconds = 0, $forceful = false, $hash = true): bool
 {
     global $memory_processes_table;
 
     if ($hash) {
-        $identifier = string_to_integer($identifier);
+        $tracker = string_to_integer($tracker, true);
     }
     if ($processSeconds === 0) {
         $processSeconds = 60; // Max script execution time in seconds
@@ -34,7 +34,7 @@ function start_memory_process($identifier, $processSeconds = 0, $forceful = fals
         $memory_processes_table,
         array("running", "next_repetition"),
         array(
-            array("identifier", $identifier)
+            array("tracker", $tracker)
         ),
         null,
         1
@@ -44,7 +44,7 @@ function start_memory_process($identifier, $processSeconds = 0, $forceful = fals
         if (sql_insert(
             $memory_processes_table,
             array(
-                "identifier" => $identifier,
+                "tracker" => $tracker,
                 "running" => 1,
                 "next_repetition" => (time() + $processSeconds)
             )
@@ -60,21 +60,21 @@ function start_memory_process($identifier, $processSeconds = 0, $forceful = fals
                 "next_repetition" => (time() + $processSeconds)
             ),
             array(
-                array("identifier", $identifier)
+                array("tracker", $tracker)
             )
         )) {
         load_previous_sql_database();
         return true;
     }
     if ($forceful) {
-        return start_memory_process($identifier, $processSeconds, $forceful, $hash);
+        return start_memory_process($tracker, $processSeconds, $forceful, $hash);
     } else {
         load_previous_sql_database();
     }
     return false;
 }
 
-function end_memory_process($identifier, $hash = true): void
+function end_memory_process($tracker, $hash = true): void
 {
     global $memory_processes_table;
     load_sql_database(SqlDatabaseCredentials::MEMORY);
@@ -84,7 +84,7 @@ function end_memory_process($identifier, $hash = true): void
             "running" => null
         ),
         array(
-            array("identifier", $hash ? string_to_integer($identifier) : $identifier)
+            array("tracker", $hash ? string_to_integer($tracker, true) : $tracker)
         ),
         null,
         1

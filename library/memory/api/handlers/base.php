@@ -70,7 +70,7 @@ function get_memory_segment_ids(): array
 {
     global $memory_segments_table;
     $time = time();
-    $identifer = get_server_identifier();
+    $identifer = get_server_identifier(true);
     load_sql_database(SqlDatabaseCredentials::MEMORY);
     $query = get_sql_query(
         $memory_segments_table,

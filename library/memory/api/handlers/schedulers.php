@@ -4,13 +4,13 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
                                      $makeProcess = false, $processEnd = true, $processSeconds = 0): void
 {
     global $memory_schedulers_table;
-    $identifier = string_to_integer($function);
+    $identifier = string_to_integer($function, true);
     load_sql_database(SqlDatabaseCredentials::MEMORY);
     $query = get_sql_query(
         $memory_schedulers_table,
         array("next_repetition"),
         array(
-            array("identifier", $identifier),
+            array("tracker", $identifier),
         ),
         null,
         1
@@ -20,7 +20,7 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
         if (sql_insert(
                 $memory_schedulers_table,
                 array(
-                    "identifier" => $identifier,
+                    "tracker" => $identifier,
                     "next_repetition" => time() + $seconds
                 )
             )
@@ -39,7 +39,7 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
                 "next_repetition" => time() + $seconds
             ),
             array(
-                array("identifier", $identifier)
+                array("tracker", $identifier)
             )
         )
         && (!$makeProcess || start_memory_process($identifier, $processSeconds, false, false))) {

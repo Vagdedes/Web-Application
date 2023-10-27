@@ -16,7 +16,7 @@ $memory_trackers_query = get_sql_query(
 
 if (!empty($memory_trackers_query)) {
     $segments = null;
-    $memory_client_identifier = get_server_identifier();
+    $memory_client_identifier = get_server_identifier(true);
 
     foreach ($memory_trackers_query as $row) {
         $array = @unserialize($row->array);

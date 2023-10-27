@@ -3,19 +3,24 @@ require_once '/var/www/.structure/library/base/utilities.php';
 require_once '/var/www/.structure/library/base/requirements/sql_connection.php';
 require_once '/var/www/.structure/library/memory/init.php';
 $administrator_local_server_ip_addresses_table = "administrator.localServerIpAddresses";
-
-function get_communication_private_key($hash = true): ?string
-{
-    $private_verification_key = get_keys_from_file("/var/www/.structure/private/private_verification_key", 1);
-    return $private_verification_key === null ? null : ($hash ? hash("sha512", $private_verification_key[0]) : $private_verification_key[0]);
-}
+$memory_private_connections_table = "memory.privateConnections";
 
 function private_file_get_contents($url, $createAndClose = false): bool|string
 {
+    global $memory_private_connections_table;
+    $code = random_string(512);
+    load_sql_database(SqlDatabaseCredentials::MEMORY);
+    sql_insert(
+        $memory_private_connections_table,
+        array(
+            "code" => hash("sha512", $code),
+        )
+    );
+    load_previous_sql_database();
     return post_file_get_contents(
         $url,
         array(
-            "private_verification_key" => get_communication_private_key(false),
+            "private_verification_key" => $code,
             "private_ip_address" => get_client_ip_address()
         ),
         false,
@@ -26,44 +31,67 @@ function private_file_get_contents($url, $createAndClose = false): bool|string
 
 // Separator
 
-function is_private_connection($ignoreHash = false, $checkClientIP = false): bool
+function is_private_connection($checkClientIP = false): bool
 {
-    if ($ignoreHash
-        || hash("sha512", ($_POST['private_verification_key'] ?? "")) === get_communication_private_key()) {
-        global $administrator_local_server_ip_addresses_table;
-        set_sql_cache();
-        if (!empty(get_sql_query(
-            $administrator_local_server_ip_addresses_table,
+    global $memory_private_connections_table;
+
+    if (isset($_POST['private_verification_key'])) {
+        load_sql_database(SqlDatabaseCredentials::MEMORY);
+        $query = get_sql_query(
+            $memory_private_connections_table,
             array("id"),
             array(
-                array("ip_address", get_local_ip_address()),
-                array("deletion_date", null),
-                null,
-                array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", get_current_date()),
-                null,
+                array("code", hash("sha512", $_POST['private_verification_key'])),
             ),
             null,
             1
-        ))) {
-            if ($checkClientIP) {
-                set_sql_cache();
-                return !empty(get_sql_query(
-                    $administrator_local_server_ip_addresses_table,
-                    array("id"),
-                    array(
-                        array("ip_address", get_raw_client_ip_address()),
-                        array("deletion_date", null),
-                        null,
-                        array("expiration_date", "IS", null, 0),
-                        array("expiration_date", ">", get_current_date()),
-                        null,
-                    ),
+        );
+        load_previous_sql_database();
+
+        if (!empty($query)) {
+            delete_sql_query(
+                $memory_private_connections_table,
+                array(
+                    array("id", $query[0]->id),
+                ),
+                null,
+                1
+            );
+            global $administrator_local_server_ip_addresses_table;
+            set_sql_cache();
+            if (!empty(get_sql_query(
+                $administrator_local_server_ip_addresses_table,
+                array("id"),
+                array(
+                    array("ip_address", get_local_ip_address()),
+                    array("deletion_date", null),
                     null,
-                    1
-                ));
-            } else {
-                return true;
+                    array("expiration_date", "IS", null, 0),
+                    array("expiration_date", ">", get_current_date()),
+                    null,
+                ),
+                null,
+                1
+            ))) {
+                if ($checkClientIP) {
+                    set_sql_cache();
+                    return !empty(get_sql_query(
+                        $administrator_local_server_ip_addresses_table,
+                        array("id"),
+                        array(
+                            array("ip_address", get_raw_client_ip_address()),
+                            array("deletion_date", null),
+                            null,
+                            array("expiration_date", "IS", null, 0),
+                            array("expiration_date", ">", get_current_date()),
+                            null,
+                        ),
+                        null,
+                        1
+                    ));
+                } else {
+                    return true;
+                }
             }
         }
     }
@@ -79,7 +107,7 @@ function get_private_ip_address(): ?string
 
 function get_session_account_id()
 {
-    return is_private_connection() ? $_POST['session_account_id'] ?? null : null;
+    return is_private_connection() ? ($_POST['session_account_id'] ?? null) : null;
 }
 
 function set_session_account_id($id): void
