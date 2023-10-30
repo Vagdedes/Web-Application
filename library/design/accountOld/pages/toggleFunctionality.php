@@ -6,7 +6,7 @@ function load_account_toggle_functionality(Account $account, $isLoggedIn): void
     if (!$isLoggedIn) {
         account_page_redirect(null, false, null);
     } else {
-        global $website_url;
+        global $website_account_url;
         $functionalities = array(
             "receive_account_emails" => "Toggle Account Emails",
             "receive_marketing_emails" => "Toggle Marketing Emails",
@@ -33,7 +33,7 @@ function load_account_toggle_functionality(Account $account, $isLoggedIn): void
             echo "<div class='area'><div class='area_title'>Toggle Functionalities</div><div class='area_list' id='text'><ul>";
 
             foreach ($functionalities as $key => $value) {
-                echo "<a href='$website_url/profile/toggleFunctionality/?toggle=$key'><li>$value</li></a>";
+                echo "<a href='$website_account_url/profile/toggleFunctionality/?toggle=$key'><li>$value</li></a>";
             }
             echo "<ul></div></div>";
         }

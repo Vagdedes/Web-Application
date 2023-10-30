@@ -8,7 +8,7 @@ function load_account_view_product(Account $account, $isLoggedIn): void
     $productID = $productArguments[$argumentSize - 1];
 
     if (is_numeric($productID) && $productID > 0) {
-        global $website_url;
+        global $website_account_url;
         $productFound = $account->getProduct()->find($productID);
 
         if ($productFound->isPositiveOutcome()) {
@@ -17,7 +17,7 @@ function load_account_view_product(Account $account, $isLoggedIn): void
             $nameURL = prepare_redirect_url($name);
 
             if ($argumentSize == 1 || $productArguments[0] !== $nameURL) {
-                redirect_to_url($website_url . "/viewProduct/?id=$nameURL.$productID", array("id"));
+                redirect_to_url($website_account_url . "/viewProduct/?id=$nameURL.$productID", array("id"));
                 return;
             }
             $description = $productFound->description;
@@ -211,7 +211,7 @@ function load_account_view_product(Account $account, $isLoggedIn): void
                         if ($isLoggedIn) {
                             $productButton = $productFound->buttons->post_purchase;
                             $downloadNote = $productFound->download_note !== null ? "<div class='area_text'><b>IMPORTANT NOTE</b><br>" . $productFound->download_note . "</div>" : "";
-                            $buttonInformation .= "$downloadNote<div class='area_form'><a href='$website_url/downloadFile/?id=$productID' class='button' id='blue'>Download $name</a>";
+                            $buttonInformation .= "$downloadNote<div class='area_form'><a href='$website_account_url/downloadFile/?id=$productID' class='button' id='blue'>Download $name</a>";
 
                             if (!empty($productButton)) {
                                 foreach ($productButton as $button) {
@@ -224,7 +224,7 @@ function load_account_view_product(Account $account, $isLoggedIn): void
                             $buttonInformation .= "</div>";
                         } else {
                             $buttonInformation .= "<div class='area_form' id='marginless'>
-                                        <a href='$website_url/profile' class='button' id='blue'>Log In To Download</a>
+                                        <a href='$website_account_url/profile' class='button' id='blue'>Log In To Download</a>
                                     </div>";
                         }
                     } else {
@@ -294,7 +294,7 @@ function load_account_view_product(Account $account, $isLoggedIn): void
                     } else {
                         $showLegal = false;
                         $buttonInformation .= "<div class='area_form' id='marginless'>
-                                        <a href='$website_url/profile' class='button' id='blue'>Log In To Learn More</a>
+                                        <a href='$website_account_url/profile' class='button' id='blue'>Log In To Learn More</a>
                                     </div>";
                     }
                 }
@@ -312,7 +312,7 @@ function load_account_view_product(Account $account, $isLoggedIn): void
             $name = "Error";
 
             if ($argumentSize == 1 || $productArguments[0] !== $name) {
-                redirect_to_url($website_url . "/viewProduct/?id=$name.$productID", array("id"));
+                redirect_to_url($website_account_url . "/viewProduct/?id=$name.$productID", array("id"));
                 return;
             }
             load_account_page_message(

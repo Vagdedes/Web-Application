@@ -13,6 +13,21 @@ class AccountAccounts
         $this->account = $account;
     }
 
+    public function getAvailable($select = null, $id = null): array
+    {
+        global $accepted_accounts_table;
+        return get_sql_query(
+            $accepted_accounts_table,
+            $select,
+            array(
+                array("manual", "IS NOT", null),
+                array("deletion_date", null),
+                array("application_id", $this->account->getDetail("application_id")),
+                $id !== null ? array("id", $id) : ""
+            )
+        );
+    }
+
     public function add($type, $credential, $deletePreviousIfSurpassing = 0, $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();

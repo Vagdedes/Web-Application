@@ -48,7 +48,7 @@ function load_account_page_message($title, $reason): void
 
 function account_page_redirect(?Account $account, $isLoggedIn, $message): void
 {
-    global $website_url;
+    global $website_account_url;
     $redirectURL = get_user_url();
 
     if ($isLoggedIn) {
@@ -60,7 +60,7 @@ function account_page_redirect(?Account $account, $isLoggedIn, $message): void
     } else {
         $hasURLMessage = !empty($message);
     }
-    redirect_to_url($website_url . "/profile/"
+    redirect_to_url($website_account_url . "/profile/"
         . ($hasURLMessage ? "?message=" . $message : "")
-        . (starts_with($redirectURL, $website_url) ? ($hasURLMessage ? "&" : "?") . "redirectURL=" . $redirectURL : ""));
+        . (starts_with($redirectURL, $website_account_url) ? ($hasURLMessage ? "&" : "?") . "redirectURL=" . $redirectURL : ""));
 }

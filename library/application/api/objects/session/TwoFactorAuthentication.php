@@ -26,7 +26,7 @@ class TwoFactorAuthentication
         );
 
         if (empty($array)) {
-            global $website_url, $instant_logins_table;
+            global $website_account_url, $instant_logins_table;
             $date = date("Y-m-d H:i:s");
             $array = get_sql_query(
                 $instant_logins_table,
@@ -78,7 +78,7 @@ class TwoFactorAuthentication
                 $account->getEmail()->send(
                     "instantLogin",
                     array(
-                        "URL" => ($website_url . "/instantLogin/?token=" . $token)
+                        "URL" => ($website_account_url . "/instantLogin/?token=" . $token)
                     ),
                     "account",
                     false

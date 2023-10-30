@@ -125,7 +125,7 @@ function load_page($loadContents = true): void
                 load_account_change_name($account, $isLoggedIn);
                 break;
             case "viewOffer":
-                global $website_url;
+                global $website_account_url;
                 $argument = get_form_get("id");
                 $arguments = explode(".", $argument);
                 $argumentSize = sizeof($arguments);
@@ -140,7 +140,7 @@ function load_page($loadContents = true): void
                     $offerArgument = prepare_redirect_url($offer->name) . "." . $id;
 
                     if ($isNumericID && ($argumentSize == 1 || $argument != $offerArgument)) {
-                        redirect_to_url($website_url . "/" . $directory . "/?id=" . $offerArgument, array("id"));
+                        redirect_to_url($website_account_url . "/" . $directory . "/?id=" . $offerArgument, array("id"));
                     } else {
                         echo "<div class='area'>";
 
@@ -153,11 +153,11 @@ function load_page($loadContents = true): void
 
                         if ($isLoggedIn) {
                             echo "<div class='area_form' id='marginless'>
-                                    <a href='$website_url/profile' class='button' id='green'>My Profile</a>
+                                    <a href='$website_account_url/profile' class='button' id='green'>My Profile</a>
                                 </div>";
                         } else {
                             echo "<div class='area_form' id='marginless'>
-                                    <a href='$website_url/profile' class='button' id='green'>Create Your Account Today</a>
+                                    <a href='$website_account_url/profile' class='button' id='green'>Create Your Account Today</a>
                                 </div>";
                         }
                         echo "</div>";
@@ -207,12 +207,12 @@ function load_page($loadContents = true): void
                 }
                 break;
             case "exit":
-                global $website_url;
+                global $website_account_url;
 
                 if ($isLoggedIn && $account->getActions()->logOut()->isPositiveOutcome()) {
-                    redirect_to_url($website_url . "/profile/?message=You have been logged out");
+                    redirect_to_url($website_account_url . "/profile/?message=You have been logged out");
                 } else {
-                    redirect_to_url($website_url . "/profile");
+                    redirect_to_url($website_account_url . "/profile");
                 }
                 break;
             case "history":

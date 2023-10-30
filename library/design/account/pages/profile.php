@@ -3,7 +3,7 @@
 
 function load_account_profile($isLoggedIn, Application $application): void
 {
-    global $website_url;
+    global $website_account_url;
 
     if ($isLoggedIn) {
         echo "<div class='area'>
@@ -13,7 +13,7 @@ function load_account_profile($isLoggedIn, Application $application): void
             <div class='area_form' id='marginless'>
                 <a href='https://" . get_domain() . "/discord' class='button' id='blue'>Join Discord</a>
                 <p>
-                <a href='$website_url/exit' class='button' id='red'>Log Out</a>
+                <a href='$website_account_url/exit' class='button' id='red'>Log Out</a>
             </div></div>
             </div>";
     } else {
@@ -34,7 +34,7 @@ function load_account_profile($isLoggedIn, Application $application): void
                         if ($result->isPositiveOutcome()) {
                             $redirectURL = get_form_get("redirectURL");
 
-                            if (starts_with($redirectURL, $website_url)) {
+                            if (starts_with($redirectURL, $website_account_url)) {
                                 redirect_to_url($redirectURL);
                             } else {
                                 account_page_redirect($account, true, $result->getMessage());
@@ -64,7 +64,7 @@ function load_account_profile($isLoggedIn, Application $application): void
 
         echo "<div class='area'>
                 <div class='area_form' id='marginless'>
-                    <a href='$website_url/profile/changePassword' class='button' id='red'>Forgot My Password</a>
+                    <a href='$website_account_url/profile/changePassword' class='button' id='red'>Forgot My Password</a>
                 </div>
             </div>";
     }

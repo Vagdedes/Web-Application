@@ -111,4 +111,5 @@ $statistic_string_table = "statistic.stringStatistics";
 $statistic_boolean_table = "statistic.booleanStatistics";
 
 // E.T.C
-$website_url = "https://" . get_domain() . "/account";
+$website_domain = "https://" . get_domain();
+$website_account_url = $website_domain . "/account";

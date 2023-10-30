@@ -14,7 +14,7 @@ function load_account_giveaway(Account $account): void
             $lastGiveawayInformation = $productGiveaway->getLast();
 
             if ($lastGiveawayInformation->isPositiveOutcome()) { // Check if the product of the last giveaway is valid
-                global $website_url;
+                global $website_account_url;
                 echo "<div class='area50'>";
 
                 $lastGiveawayInformation = $lastGiveawayInformation->getObject();
@@ -44,7 +44,7 @@ function load_account_giveaway(Account $account): void
                 }
                 $description .= "Next giveaway will end in <b>$days " . ($days == 1 ? "day" : "days") . "</b> and <b>$nextWinnersText</b> will receive <b>$productToWinName</b> for free</b>.";
                 echo $description;
-                echo "<br><a href='$website_url/viewProduct/?id=18'>Click here to learn how to participate!</a></div>";
+                echo "<br><a href='$website_account_url/viewProduct/?id=18'>Click here to learn how to participate!</a></div>";
                 echo "<div class='area_logo'><a href='$productURL'><img src='$productToWinImage' alt='$alt'></a></div>";
                 echo "</div>";
             }

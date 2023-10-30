@@ -47,7 +47,8 @@ class AccountProduct
             );
 
             if (!empty($array)) {
-                global $website_url,
+                global $website_account_url, //todo remove
+                       $website_domain,
                        $product_buttons_table,
                        $product_compatibilities_table,
                        $product_transaction_search_table,
@@ -146,7 +147,7 @@ class AccountProduct
                                 $object->registered_buyers += sizeof(get_patreon2_subscriptions(null, $object->patreon_tiers));
                             }
                         }
-                        $object->url = $website_url . "/viewProduct/?id=" . $productID;
+                        $object->url = $website_account_url . "/viewProduct/?id=" . $productID; //todo remove
                         $object->divisions = new stdClass();
                         $object->buttons = new stdClass();
                         $object->cards = new stdClass();
@@ -253,7 +254,7 @@ class AccountProduct
                             $object->minimum_supported_version = null;
                             $object->supported_versions = array();
                         } else {
-                            $object->download_url = $website_url . "/downloadFile/?id=" . $productID;
+                            $object->download_url = $website_domain . "/api/v1/product/downloadFile/?id=" . $productID;
                             $downloads = array();
                             $object->supported_versions = array();
 

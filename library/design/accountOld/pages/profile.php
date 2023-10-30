@@ -3,11 +3,11 @@
 
 function load_account_profile(Account $account, $isLoggedIn, Application $application): void
 {
-    global $website_url;
+    global $website_account_url;
 
     if ($isLoggedIn) {
         global $add_account_url;
-        $add_account_url = $website_url . "/profile/addAccount";
+        $add_account_url = $website_account_url . "/profile/addAccount";
         $objectives = $account->getObjectives()->get();
 
         if (!empty($objectives)) {
@@ -65,16 +65,16 @@ function load_account_profile(Account $account, $isLoggedIn, Application $applic
             <div class='area_title'>Account Actions</div>
             <div class='area_list' id='text'>
                 <ul>
-                    <a href='$website_url/profile/changeName'><li>Change Username</li></a>
-                    <a href='$website_url/profile/changeEmail'><li>Change Email</li></a>
-                    <a href='$website_url/profile/changePassword'><li>Change Password</li></a>
-                    <a href='$website_url/profile/toggleFunctionality'><li>Toggle Functionalities</li></a>
-                    <a href='$website_url/profile/history'><li>View History</li></a>
-                    <a href='$website_url/profile/help'><li>View Support Code</li></a>
+                    <a href='$website_account_url/profile/changeName'><li>Change Username</li></a>
+                    <a href='$website_account_url/profile/changeEmail'><li>Change Email</li></a>
+                    <a href='$website_account_url/profile/changePassword'><li>Change Password</li></a>
+                    <a href='$website_account_url/profile/toggleFunctionality'><li>Toggle Functionalities</li></a>
+                    <a href='$website_account_url/profile/history'><li>View History</li></a>
+                    <a href='$website_account_url/profile/help'><li>View Support Code</li></a>
                 <ul>
             </div><p>
             <div class='area_form' id='marginless'>
-                <a href='$website_url/exit' class='button' id='red'>Log Out</a>
+                <a href='$website_account_url/exit' class='button' id='red'>Log Out</a>
             </div></div>";
     } else {
         if (isset($_POST["register"])) {
@@ -109,7 +109,7 @@ function load_account_profile(Account $account, $isLoggedIn, Application $applic
                         if ($result->isPositiveOutcome()) {
                             $redirectURL = get_form_get("redirectURL");
 
-                            if (starts_with($redirectURL, $website_url)) {
+                            if (starts_with($redirectURL, $website_account_url)) {
                                 redirect_to_url($redirectURL);
                             } else {
                                 account_page_redirect($account, true, $result->getMessage());
@@ -159,7 +159,7 @@ function load_account_profile(Account $account, $isLoggedIn, Application $applic
 
         echo "<div class='area'>
                 <div class='area_form' id='marginless'>
-                    <a href='$website_url/profile/changePassword' class='button' id='red'>Forgot My Password</a>
+                    <a href='$website_account_url/profile/changePassword' class='button' id='red'>Forgot My Password</a>
                 </div>
             </div>";
     }

@@ -6,16 +6,7 @@ function load_account_add_account(Account $account, $isLoggedIn): void
     if (!$isLoggedIn) {
         account_page_redirect(null, false, "You must be logged in to add an account.");
     } else {
-        global $accepted_accounts_table;
-        $acceptedAccounts = get_sql_query(
-            $accepted_accounts_table,
-            array("name"),
-            array(
-                array("manual", "IS NOT", null),
-                array("deletion_date", null),
-                array("application_id", $account->getDetail("application_id"))
-            )
-        );
+        $acceptedAccounts = $account->getAccounts()->getAvailable(array("name"));
 
         if (empty($acceptedAccounts)) {
             account_page_redirect($account, true, "This functionality is currently not available.");

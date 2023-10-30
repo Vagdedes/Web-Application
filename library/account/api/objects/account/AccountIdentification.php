@@ -13,7 +13,8 @@ class AccountIdentification
         $this->run();
     }
 
-    private function run($repeat = true) {
+    private function run($repeat = true): void
+    {
         global $account_identification_table;
         $accountID = $this->account->getDetail("id");
         set_sql_cache(null, self::class);

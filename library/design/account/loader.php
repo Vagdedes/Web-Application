@@ -113,12 +113,12 @@ function load_page(bool $loadContents = true): void
                 }
                 break;
             case "exit":
-                global $website_url;
+                global $website_account_url;
 
                 if ($isLoggedIn && $account->getActions()->logOut()->isPositiveOutcome()) {
-                    redirect_to_url($website_url . "/profile/?message=You have been logged out");
+                    redirect_to_url($website_account_url . "/profile/?message=You have been logged out");
                 } else {
-                    redirect_to_url($website_url . "/profile");
+                    redirect_to_url($website_account_url . "/profile");
                 }
                 break;
             case "instantLogin":
@@ -131,8 +131,8 @@ function load_page(bool $loadContents = true): void
                 }
                 break;
             default:
-                global $website_url;
-                redirect_to_url($website_url . "/profile");
+                global $website_account_url;
+                redirect_to_url($website_account_url . "/profile");
                 break;
         }
     }
@@ -159,7 +159,7 @@ function load_account_page_message($title, $reason): void
 
 function account_page_redirect(?Account $account, bool $isLoggedIn, ?string $message): void
 {
-    global $website_url;
+    global $website_account_url;
     $redirectURL = get_user_url();
 
     if ($isLoggedIn) {
@@ -171,7 +171,7 @@ function account_page_redirect(?Account $account, bool $isLoggedIn, ?string $mes
     } else {
         $hasURLMessage = !empty($message);
     }
-    redirect_to_url($website_url . "/profile/"
+    redirect_to_url($website_account_url . "/profile/"
         . ($hasURLMessage ? "?message=" . $message : "")
-        . (starts_with($redirectURL, $website_url) ? ($hasURLMessage ? "&" : "?") . "redirectURL=" . $redirectURL : ""));
+        . (starts_with($redirectURL, $website_account_url) ? ($hasURLMessage ? "&" : "?") . "redirectURL=" . $redirectURL : ""));
 }

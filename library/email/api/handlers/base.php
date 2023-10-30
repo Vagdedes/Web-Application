@@ -1,4 +1,5 @@
 <?php
+$email_credentials_directory = "/var/www/.structure/private/email_credentials";
 
 class EmailBase
 {
@@ -12,7 +13,8 @@ class EmailBase
 
 function personal_self_email($from, $subject, $content): bool|string
 {
-    $email_credentials = get_keys_from_file("/var/www/.structure/private/email_credentials", EmailBase::email_credential_lines);
+    global $email_credentials_directory;
+    $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
 
     if ($email_credentials === null) {
         return false;
@@ -47,7 +49,8 @@ function personal_self_email($from, $subject, $content): bool|string
 
 function services_self_email($from, $subject, $content, $startingLinePosition = EmailBase::VAGDEDES_CONTACT): bool|string
 {
-    $email_credentials = get_keys_from_file("/var/www/.structure/private/email_credentials", EmailBase::email_credential_lines);
+    global $email_credentials_directory;
+    $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
 
     if ($email_credentials === null) {
         return false;
@@ -82,7 +85,8 @@ function services_self_email($from, $subject, $content, $startingLinePosition = 
 
 function services_email($to, $from, $subject, $content, $startingLinePosition = EmailBase::VAGDEDES_NO_REPLY): bool|string
 {
-    $email_credentials = get_keys_from_file("/var/www/.structure/private/email_credentials", EmailBase::email_credential_lines);
+    global $email_credentials_directory;
+    $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
 
     if ($email_credentials === null) {
         return false;
