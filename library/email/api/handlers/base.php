@@ -1,8 +1,18 @@
 <?php
 
-function personal_self_email($from, $subject, $content)
+class EmailBase
 {
-    $email_credentials = get_keys_from_file("/var/www/.structure/private/email_credentials", 6);
+    public const
+        email_credential_lines = 10,
+        VAGDEDES_CONTACT = 2,
+        VAGDEDES_NO_REPLY = 4,
+        IDEALISTIC_CONTACT = 6,
+        IDEALISTIC_NO_REPLY = 8;
+}
+
+function personal_self_email($from, $subject, $content): bool|string
+{
+    $email_credentials = get_keys_from_file("/var/www/.structure/private/email_credentials", EmailBase::email_credential_lines);
 
     if ($email_credentials === null) {
         return false;
@@ -35,9 +45,9 @@ function personal_self_email($from, $subject, $content)
     return true;
 }
 
-function services_self_email($from, $subject, $content)
+function services_self_email($from, $subject, $content, $startingLinePosition = EmailBase::VAGDEDES_CONTACT): bool|string
 {
-    $email_credentials = get_keys_from_file("/var/www/.structure/private/email_credentials", 6);
+    $email_credentials = get_keys_from_file("/var/www/.structure/private/email_credentials", EmailBase::email_credential_lines);
 
     if ($email_credentials === null) {
         return false;
@@ -48,8 +58,8 @@ function services_self_email($from, $subject, $content)
     $mail->isSMTP();
     $mail->Host = "smtp.gmail.com";
     $mail->SMTPAuth = true;
-    $mail->Username = $email_credentials[4];
-    $mail->Password = $email_credentials[5];
+    $mail->Username = $email_credentials[$startingLinePosition];
+    $mail->Password = $email_credentials[$startingLinePosition + 1];
     $mail->SMTPSecure = "tls";
     $mail->Port = 587;
 
@@ -57,7 +67,7 @@ function services_self_email($from, $subject, $content)
     $mail->From = $from;
     $mail->FromName = "(Automated Email)";
 
-    $mail->addAddress($email_credentials[4], null);
+    $mail->addAddress($email_credentials[$startingLinePosition], null);
 
     $mail->isHTML(true);
     $mail->Subject = $subject;
@@ -70,9 +80,9 @@ function services_self_email($from, $subject, $content)
     return true;
 }
 
-function services_email($to, $from, $subject, $content)
+function services_email($to, $from, $subject, $content, $startingLinePosition = EmailBase::VAGDEDES_NO_REPLY): bool|string
 {
-    $email_credentials = get_keys_from_file("/var/www/.structure/private/email_credentials", 6);
+    $email_credentials = get_keys_from_file("/var/www/.structure/private/email_credentials", EmailBase::email_credential_lines);
 
     if ($email_credentials === null) {
         return false;
@@ -83,13 +93,13 @@ function services_email($to, $from, $subject, $content)
     $mail->isSMTP();
     $mail->Host = "smtp.gmail.com";
     $mail->SMTPAuth = true;
-    $mail->Username = $email_credentials[4];
-    $mail->Password = $email_credentials[5];
+    $mail->Username = $email_credentials[$startingLinePosition];
+    $mail->Password = $email_credentials[$startingLinePosition + 1];
     $mail->SMTPSecure = "tls";
     $mail->Port = 587;
 
-    if ($from == null) {
-        $from = $email_credentials[2];
+    if ($from === null) {
+        $from = $email_credentials[$startingLinePosition];
     }
 
     $mail->addReplyTo($from, null);
