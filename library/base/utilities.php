@@ -21,7 +21,7 @@ function get_server_identifier($long = false): int
 
 // File
 
-function get_potential_directory(): string
+function get_domain_directory(): string
 {
     $directory = explode(".", get_domain());
     return $directory[sizeof($directory) - 2];
@@ -176,16 +176,16 @@ function send_file_download($file, $exit = true): void
     }
 }
 
-function copy_and_send_file_download($file, $exit = true)
+function copy_and_send_file_download($file, $directory, $exit = true)
 {
     if (json_decode($file)) {
-        $fileCopy = "/var/www/" . get_potential_directory() . "/.temporary/data.json";
+        $fileCopy = $directory . "data.json";
 
         if (@file_put_contents($fileCopy, $file) === false) {
             return "Failed to write to file.";
         }
     } else {
-        $fileCopy = "/var/www/" . get_potential_directory() . "/.temporary/" . $file;
+        $fileCopy = $directory . $file;
 
         if (!copy($file, $fileCopy)) {
             $errors = error_get_last();

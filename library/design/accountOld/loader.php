@@ -7,7 +7,6 @@ require_once '/var/www/.structure/library/design/accountOld/pages/basics.php';
 
 function load_page_html_head(Account $account, $title): void
 {
-    global $website_url;
     $validProducts = $account->getProduct()->find();
     $metaDescription = "Vagdedes Services Store";
 
@@ -29,9 +28,9 @@ function load_page_html_head(Account $account, $title): void
         <head>" . get_google_analytics() . "
             <title>Vagdedes Services | $title</title>
             <meta name='description' content='$metaDescription'>
-        	<link rel='shortcut icon' type='image/png' href='https://" . get_domain() . "/.images/icon.png'>
+        	<link rel='shortcut icon' type='image/png' href='" . Application::IMAGES_PATH . "icon.png'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <link rel='stylesheet' href='https://" . get_domain() . "/.css/universal.css?id=$randomNumber>'>
+            <link rel='stylesheet' href='" . Application::WEBSITE_DESIGN_PATH . "universal.css?id=$randomNumber>'>
             <script src='https://www.google.com/recaptcha/api.js'></script>
         </head>
         <body>";

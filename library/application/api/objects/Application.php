@@ -6,6 +6,12 @@ class Application
 {
     private ?int $id;
 
+    public const
+        LOAD_BALANCER_IP = "10.0.0.3",
+        IMAGES_PATH = "https://vagdedes.com/.images/",
+        WEBSITE_DESIGN_PATH = "https://vagdedes.com/.css/",
+        DOWNLOADS_PATH = "/var/www/vagdedes/.temporary/";
+
     public function __construct($id)
     {
         $this->id = $id;
