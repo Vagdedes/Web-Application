@@ -31,9 +31,9 @@ class Application
         return new AccountRegistry($this->id, $email, $password, $name, $firstName, $middleName, $lastName, $discordWebhook);
     }
 
-    public function getWebsiteSession(): WebsiteSession
+    public function getAccountSession(): AccountSession
     {
-        return new WebsiteSession($this->id);
+        return new AccountSession($this->id);
     }
 
     public function getPaymentProcessor(): PaymentProcessor

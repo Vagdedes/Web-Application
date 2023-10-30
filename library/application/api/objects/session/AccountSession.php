@@ -1,20 +1,29 @@
 <?php
 
-class WebsiteSession
+class AccountSession
 {
     private ?int $applicationID;
+    private ?string $customKey, $type;
 
-    public const session_key_name = "vagdedes_account_session",
-        session_token_length = 128,
+    private const session_key_name = "vagdedes_account_session",
         session_account_refresh_expiration = "2 days",
         session_account_total_expiration = "15 days",
-        session_cookie_expiration = 86400 * 30,
         session_max_creation_tries = 100,
         session_cache_time = "1 minute";
+    public const session_token_length = 128,
+        session_cookie_expiration = 86400 * 30;
 
     public function __construct($applicationID)
     {
         $this->applicationID = $applicationID;
+        $this->type = null;
+        $this->customKey = null;
+    }
+
+    public function setCustomKey($type, $customKey): void
+    {
+        $this->type = $type;
+        $this->customKey = $customKey;
     }
 
     public function getApplicationID(): ?int
@@ -86,18 +95,26 @@ class WebsiteSession
 
     public function createKey(): string
     {
-        $key = get_cookie(self::session_key_name);
+        if ($this->customKey !== null) {
+            return $this->customKey;
+        } else {
+            $key = get_cookie(self::session_key_name);
 
-        if ($key === null) {
-            $key = random_string(self::session_token_length);
-            add_cookie(self::session_key_name, $key, self::session_cookie_expiration); // Create new cookie with strict requirements
+            if ($key === null) {
+                $key = random_string(self::session_token_length);
+                add_cookie(self::session_key_name, $key, self::session_cookie_expiration); // Create new cookie with strict requirements
+            }
+            return $key;
         }
-        return $key;
     }
 
     public function deleteKey(): bool
     {
-        return delete_cookie(self::session_key_name);
+        if ($this->customKey === null) {
+            return delete_cookie(self::session_key_name);
+        } else {
+            return true;
+        }
     }
 
     private function clearTokenCache($token): void
@@ -114,10 +131,13 @@ class WebsiteSession
     {
         global $account_sessions_table;
         $key = $this->createKey();
+        $hasCustomKey = $this->customKey !== null;
 
-        if (strlen($key) === self::session_token_length) { // Check if length of key is correct
+        if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
             $date = get_current_date();
-            $key = string_to_integer($key, true);
+            $key = $hasCustomKey
+                ? (is_numeric($this->customKey) ? $this->customKey : string_to_integer($this->customKey, true))
+                : string_to_integer($key, true);
             set_sql_cache(null, self::class);
             $array = get_sql_query(
                 $account_sessions_table,
@@ -128,7 +148,10 @@ class WebsiteSession
                     array("end_date", ">", $date),
                     array("deletion_date", null)
                 ),
-                null,
+                array(
+                    "DESC",
+                    "id"
+                ),
                 1
             );
 
@@ -213,24 +236,28 @@ class WebsiteSession
         }
         global $account_sessions_table;
         $date = get_current_date();
+        $hasCustomKey = $this->customKey !== null;
 
         for ($count = 0; $count < self::session_max_creation_tries; $count++) { // Loop until a free session key is found
             $key = $this->createKey();
 
-            if (strlen($key) !== self::session_token_length) { // Check if length of key is correct
+            if (!$hasCustomKey && strlen($key) !== self::session_token_length) { // Check if length of key is correct
                 $this->deleteKey();
                 continue;
             }
-            $key = string_to_integer($key, true);
-            $array = get_sql_query(
-                $account_sessions_table,
-                array("id"),
-                array(
-                    array("token", $key),
-                ),
-                null,
-                1
-            );
+            $key = $hasCustomKey
+                ? (is_numeric($this->customKey) ? $this->customKey : string_to_integer($this->customKey, true))
+                : string_to_integer($key, true);
+            $array = $hasCustomKey ? null
+                : get_sql_query(
+                    $account_sessions_table,
+                    array("id"),
+                    array(
+                        array("token", $key),
+                    ),
+                    null,
+                    1
+                );
 
             if (empty($array)) { // Check if session does not exist
                 if (!$account->getPermissions()->isAdministrator()
@@ -266,6 +293,7 @@ class WebsiteSession
                 if (sql_insert(
                     $account_sessions_table,
                     array(
+                        "type" => $this->type !== null ? string_to_integer($this->type, true) : null,
                         "token" => $key,
                         "ip_address" => get_client_ip_address(),
                         "account_id" => $account->getDetail("id"),
@@ -291,11 +319,14 @@ class WebsiteSession
     public function deleteSession($accountID): MethodReply
     {
         $key = $this->createKey();
+        $hasCustomKey = $this->customKey !== null;
         $this->deleteKey();
 
-        if (strlen($key) === self::session_token_length) { // Check if length of key is correct
+        if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
             global $account_sessions_table;
-            $key = string_to_integer($key, true);
+            $key = $hasCustomKey
+                ? (is_numeric($this->customKey) ? $this->customKey : string_to_integer($this->customKey, true))
+                : string_to_integer($key, true);
             $date = get_current_date();
             $array = get_sql_query(
                 $account_sessions_table,
@@ -307,7 +338,10 @@ class WebsiteSession
                     array("end_date", ">", $date),
                     array("expiration_date", ">", $date)
                 ),
-                null,
+                array(
+                    "DESC",
+                    "id"
+                ),
                 1
             );
 

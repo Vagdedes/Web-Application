@@ -2,7 +2,7 @@
 
 class TwoFactorAuthentication
 {
-    private WebsiteSession $session;
+    private AccountSession $session;
 
     public function __construct($session)
     {
@@ -49,12 +49,12 @@ class TwoFactorAuthentication
             }
 
             if ($token === null) { // Create
-                $token = random_string(WebsiteSession::session_token_length);
+                $token = random_string(AccountSession::session_token_length);
 
                 // Separator
                 $key = $this->session->createKey();
 
-                if (strlen($key) !== WebsiteSession::session_token_length) {
+                if (strlen($key) !== AccountSession::session_token_length) {
                     $this->session->deleteKey();
                     $key = $this->session->createKey();
                 }
@@ -95,7 +95,7 @@ class TwoFactorAuthentication
 
     public function verify($token): MethodReply
     {
-        if (strlen($token) === WebsiteSession::session_token_length) {
+        if (strlen($token) === AccountSession::session_token_length) {
             global $instant_logins_table;
             $date = get_current_date();
             $query = get_sql_query(

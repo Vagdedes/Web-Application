@@ -386,7 +386,7 @@ class PaymentProcessor
 
                     // Separator
 
-                    $all = $application->getWebsiteSession();
+                    $all = $application->getAccountSession();
                     $all = $all->getAlive(array("account_id"), $this::limit);
 
                     if (!empty($all)) {

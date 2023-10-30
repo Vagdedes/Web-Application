@@ -147,7 +147,6 @@ class AccountProduct
                             }
                         }
                         $object->url = $website_url . "/viewProduct/?id=" . $productID;
-                        $object->download_url = $website_url . "/downloadURL/?id=" . $productID;
                         $object->divisions = new stdClass();
                         $object->buttons = new stdClass();
                         $object->cards = new stdClass();
@@ -249,10 +248,12 @@ class AccountProduct
                         $object->download_note = null;
 
                         if (empty($object->downloads)) {
+                            $object->download_url = null;
                             $object->latest_version = null;
                             $object->minimum_supported_version = null;
                             $object->supported_versions = array();
                         } else {
+                            $object->download_url = $website_url . "/downloadFile/?id=" . $productID;
                             $downloads = array();
                             $object->supported_versions = array();
 

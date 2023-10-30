@@ -1,7 +1,7 @@
 <?php
 
 
-function load_account_change_password(Account $account, $isLoggedIn, Application $application): void
+function load_account_change_password(Account $account, bool $isLoggedIn, Application $application): void
 {
     $token = get_form_get("token");
 
@@ -37,26 +37,7 @@ function load_account_change_password(Account $account, $isLoggedIn, Application
                 </div>
             </div>";
     } else if ($isLoggedIn) {
-        $email = $account->getDetail("email_address");
-
-        if (isset($_POST["change"])) {
-            $result = $account->getPassword()->requestChange();
-            $result = $result->getMessage();
-
-            if (!empty($result)) {
-                $account->getNotifications()->add(AccountNotifications::FORM, "green", $result, "1 minute");
-            }
-            redirect_to_url("?");
-        }
-
-        echo "<div class='area'>
-                <div class='area_form'>
-                    <form method='post'>
-                        <input type='text' name='empty' placeholder='$email' minlength=0 maxlength=0>
-                        <input type='submit' name='change' value='Request Change Password' class='button' id='blue'>
-                    </form>
-                </div>
-            </div>";
+        account_page_redirect($account, true, null);
     } else {
         if (isset($_POST["change"])) {
             if (!is_google_captcha_valid()) {

@@ -49,7 +49,7 @@ function load_page_intro(?Account $account, $isLoggedIn, $loadNavigation): void
         if (!set_cookie_to_value_if_not(
             string_to_integer($notification),
             true,
-            WebsiteSession::session_cookie_expiration
+            AccountSession::session_cookie_expiration
         )) {
             $notification = null;
         }
@@ -84,7 +84,7 @@ function load_page($loadContents = true): void
         load_page_intro(null, false, true);
         load_account_page_message($title, "Please stop refreshing the page so frequently");
     } else {
-        $session = $application->getWebsiteSession();
+        $session = $application->getAccountSession();
         $sessionObject = $session->getSession();
         $account = $sessionObject->getObject();
         $isLoggedIn = $sessionObject->isPositiveOutcome() && $account->exists();
@@ -177,11 +177,10 @@ function load_page($loadContents = true): void
                         $result = $account->getDownloads()->sendFileDownload($id);
 
                         if (!$result->isPositiveOutcome()) {
-                            $account->getNotifications()->add(AccountNotifications::FORM, "green", $result->getMessage(), "1 minute");
-                            redirect_to_url("../viewProduct/?id=$id");
+                            account_page_redirect($account, true, $result->getMessage());
                         }
                     } else {
-                        redirect_to_url("../viewProduct/?id=$id&message=You must be logged in to download this file");
+                        account_page_redirect(null, false, "You must be logged in to download this file.");
                     }
                 } else {
                     $token = get_form_get("token");
@@ -204,7 +203,7 @@ function load_page($loadContents = true): void
                             exit();
                         }
                     } else {
-                        exit();
+                        account_page_redirect(null, false, "You must be logged in to access downloads.");
                     }
                 }
                 break;

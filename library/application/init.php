@@ -25,5 +25,5 @@ require_once '/var/www/.structure/library/application/api/objects/information/We
 require_once '/var/www/.structure/library/application/api/objects/information/InformationPlaceholder.php';
 
 // Session
-require_once '/var/www/.structure/library/application/api/objects/session/WebsiteSession.php';
+require_once '/var/www/.structure/library/application/api/objects/session/AccountSession.php';
 require_once '/var/www/.structure/library/application/api/objects/session/TwoFactorAuthentication.php';

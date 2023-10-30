@@ -16,9 +16,9 @@ class AccountActions
         $this->account = $account;
     }
 
-    public function logIn($password): MethodReply
+    public function logIn($password, ?AccountSession $session = null, bool $twoFactor = true): MethodReply
     {
-        $parameter = new ParameterVerification($password, null, 1);
+        $parameter = new ParameterVerification($password, null, 8);
 
         if (!$parameter->getOutcome()->isPositiveOutcome()) {
             return new MethodReply(false, $parameter->getOutcome()->getMessage());
@@ -37,8 +37,9 @@ class AccountActions
         if ($punishment->isPositiveOutcome()) {
             return new MethodReply(false, $punishment->getMessage());
         }
-        $session = new WebsiteSession($this->account->getDetail("application_id"));
-
+        if ($session === null) {
+            $session = new AccountSession($this->account->getDetail("application_id"));
+        }
         if (!$session->getSession()->isPositiveOutcome()) {
             $message = $session->getSession()->getMessage();
 
@@ -46,7 +47,8 @@ class AccountActions
                 return new MethodReply(false, $message);
             }
         }
-        if ($this->account->getSettings()->isEnabled("two_factor_authentication")) {
+        if ($twoFactor
+            && $this->account->getSettings()->isEnabled("two_factor_authentication")) {
             $twoFactor = $session->getTwoFactorAuthentication();
             $twoFactor = $twoFactor->initiate($this->account);
 
@@ -67,7 +69,7 @@ class AccountActions
         return new MethodReply(true);
     }
 
-    public function logOut(): MethodReply
+    public function logOut(?AccountSession $session = null): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::LOG_OUT, true);
@@ -75,20 +77,22 @@ class AccountActions
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
-        $session = new WebsiteSession($this->account->getDetail("application_id"));
+        if ($session === null) {
+            $session = new AccountSession($this->account->getDetail("application_id"));
+        }
         $session = $session->deleteSession($this->account->getDetail("id"));
 
         if ($session->isPositiveOutcome()) {
             $functionality->addInstantCooldown(AccountFunctionality::LOG_OUT, self::log_in_out_cooldown);
             $session->getObject()->getHistory()->add("log_out");
-            return new MethodReply(true, "User logged out successfully.");
+            return new MethodReply(true, "You have been logged out.");
         }
         return new MethodReply(false, "Could not find session to log out user.");
     }
 
     public function isLocallyLoggedIn(): MethodReply
     {
-        $session = new WebsiteSession($this->account->getDetail("application_id"));
+        $session = new AccountSession($this->account->getDetail("application_id"));
 
         if ($session->getSession()->isPositiveOutcome()) {
             $session = $session->getSession()->getObject();

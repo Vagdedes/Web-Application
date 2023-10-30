@@ -86,7 +86,7 @@ class AccountRegistry
                 return;
             }
         }
-        $session = new WebsiteSession($applicationID);
+        $session = new AccountSession($applicationID);
         $session = $session->createSession($account);
 
         if (!$session->isPositiveOutcome()) {
