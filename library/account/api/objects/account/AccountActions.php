@@ -85,9 +85,10 @@ class AccountActions
         if ($session->isPositiveOutcome()) {
             $functionality->addInstantCooldown(AccountFunctionality::LOG_OUT, self::log_in_out_cooldown);
             $session->getObject()->getHistory()->add("log_out");
-            return new MethodReply(true, "You have been logged out.");
+            return new MethodReply(true, $session->getMessage());
+        } else {
+            return new MethodReply(false, $session->getMessage());
         }
-        return new MethodReply(false, "Could not find session to log out user.");
     }
 
     public function isLocallyLoggedIn(): MethodReply

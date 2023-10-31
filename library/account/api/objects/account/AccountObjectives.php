@@ -16,7 +16,8 @@ class AccountObjectives
             return array(
                 $this->create(
                     "Email Verification",
-                    "Verify your email by clicking the verification link we have emailed you."
+                    "Verify your email by clicking the verification link we have emailed you.",
+                    true
                 )
             );
         } else {
@@ -29,13 +30,15 @@ class AccountObjectives
                 $array[] = $this->create(
                     "Purchases & Transactions",
                     "Add your" . (!$paypal ? " PayPal and " : " ") . "Stripe email to have your purchases identified.",
-                    $website_account_url . "/profile/addAccount"
+                    $website_account_url . "/profile/addAccount",
+                    true
                 );
             } else if (!$paypal) {
                 $array[] = $this->create(
                     "Purchases & Transactions",
                     "Add your PayPal email to have your purchases identified.",
-                    $website_account_url . "/profile/addAccount"
+                    $website_account_url . "/profile/addAccount",
+                    true
                 );
             }
             if (!$this->account->getAccounts()->hasAdded(AccountAccounts::SPIGOTMC_URL, null, 1)->isPositiveOutcome()
@@ -44,33 +47,38 @@ class AccountObjectives
                 $array[] = $this->create( // Do not mention SpigotMC, it's automatically found
                     "Minecraft Platform",
                     "Add your BuiltByBit/Polymart account URL to have your licenses identified.",
-                    $website_account_url . "/profile/addAccount"
+                    $website_account_url . "/profile/addAccount",
+                    true
                 );
             }
             if (!$this->account->getAccounts()->hasAdded(AccountAccounts::DISCORD_TAG, null, 1)->isPositiveOutcome()) {
                 $array[] = $this->create(
                     "Discord Tag",
                     "Add your Discord-Tag so we can give you roles on Discord now or in the future.",
-                    $website_account_url . "/profile/addAccount"
+                    $website_account_url . "/profile/addAccount",
+                    true
                 );
             }
             if (!$this->account->getAccounts()->hasAdded(AccountAccounts::PATREON_FULL_NAME, null, 1)->isPositiveOutcome()) {
                 $array[] = $this->create(
                     "Patreon Full Name",
                     "Add your Patreon-Full-Name to have your purchases identified.",
-                    $website_account_url . "/profile/addAccount"
+                    $website_account_url . "/profile/addAccount",
+                    true
                 );
             }
             return $array;
         }
     }
 
-    private function create($title, $description, $url = null): object
+    private function create(string  $title, string $description,
+                            ?string $url = null, bool $optionalURL = false): object
     {
         $object = new stdClass();
         $object->title = $title;
         $object->description = $description;
         $object->url = $url;
+        $object->optional_url = $optionalURL;
         return $object;
     }
 

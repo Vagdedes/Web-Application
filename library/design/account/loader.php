@@ -121,6 +121,10 @@ function load_page(bool $loadContents = true): void
                     redirect_to_url($website_account_url . "/profile");
                 }
                 break;
+            case "contact":
+                require_once '/var/www/.structure/library/design/account/pages/contact.php';
+                load_account_contact($account, $isLoggedIn);
+                break;
             case "instantLogin":
                 if ($isLoggedIn) {
                     account_page_redirect($account, true, null);

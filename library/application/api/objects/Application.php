@@ -27,14 +27,38 @@ class Application
                                $checkDeletion = true,
                                $cache = true): Account
     {
-        return new Account($this->id, $id, $email, $username, $identification, $checkDeletion, $cache);
+        return new Account(
+            $this->id,
+            $id,
+            $email,
+            $username,
+            $identification,
+            $checkDeletion,
+            $cache
+        );
     }
 
-    public function getAccountRegistry($email, $password, $name,
-                                       $firstName = null, $middleName = null, $lastName = null,
-                                       $discordWebhook = null): AccountRegistry
+    public function getAccountRegistry(?string         $email, ?string $password, ?string $name,
+                                       ?string         $firstName = null, ?string $middleName = null, ?string $lastName = null,
+                                       ?AccountSession $session = null,
+                                       ?string         $discordWebhook = AccountRegistry::DEFAULT_WEBHOOK): AccountRegistry
     {
-        return new AccountRegistry($this->id, $email, $password, $name, $firstName, $middleName, $lastName, $discordWebhook);
+        return new AccountRegistry(
+            $this->id,
+            $email,
+            $password,
+            $name,
+            $firstName,
+            $middleName,
+            $lastName,
+            $session,
+            $discordWebhook
+        );
+    }
+
+    public function getAccountAmount(): int
+    {
+        return AccountRegistry::getAccountAmount($this->id);
     }
 
     public function getAccountSession(): AccountSession

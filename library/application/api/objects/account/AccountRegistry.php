@@ -6,9 +6,10 @@ class AccountRegistry
     private MethodReply $outcome;
     public const DEFAULT_WEBHOOK = "https://discord.com/api/webhooks/1165260206951911524/BmTptuNVPRxpvCaCBZcXCc5r846i-amc38zIWZpF94YZxszlE8VWj_X2NL3unsbIWPlz";
 
-    public function __construct($applicationID, $email, $password, $name,
-                                $firstName = null, $middleName = null, $lastName = null,
-                                $discordWebhook = null)
+    public function __construct(?int            $applicationID, ?string $email, ?string $password, ?string $name,
+                                ?string         $firstName = null, ?string $middleName = null, ?string $lastName = null,
+                                ?AccountSession $session = null,
+                                ?string         $discordWebhook = self::DEFAULT_WEBHOOK)
     {
         $functionality = new Account($applicationID, 0);
         $functionality = $functionality->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);
@@ -50,8 +51,31 @@ class AccountRegistry
         }
         global $accounts_table;
 
+        if ($session === null) {
+            $session = new AccountSession($applicationID);
+            $session->setCustomKey("website", get_client_ip_address());
+        }
+        if ($session->isCustom() // Protected by captcha when not custom
+            && !empty(get_sql_query(
+                $accounts_table,
+                array("id"),
+                array(
+                    array("application_id", $session->getApplicationID()),
+                    array("type", $session->getType()),
+                    array("custom_id", $session->getCustomKey()),
+                    array("deletion_date", null),
+                    array("creation_date", ">", get_past_date("1 day")),
+                ),
+                null,
+                1
+            ))) {
+            $this->outcome = new MethodReply(false, "You cannot create more accounts for now, please try again later.");
+            return;
+        }
         if (!sql_insert($accounts_table,
             array(
+                "type" => $session->getType(),
+                "custom_id" => $session->getCustomKey(),
                 "email_address" => $email,
                 "password" => encrypt_password($password),
                 "name" => $name,
@@ -86,7 +110,6 @@ class AccountRegistry
                 return;
             }
         }
-        $session = new AccountSession($applicationID);
         $session = $session->createSession($account);
 
         if (!$session->isPositiveOutcome()) {
@@ -107,5 +130,19 @@ class AccountRegistry
     public function getOutcome(): MethodReply
     {
         return $this->outcome;
+    }
+
+    public static function getAccountAmount(?int $applicationID): int
+    {
+        global $accounts_table;
+        set_sql_cache(AccountSession::session_cache_time, self::class);
+        return sizeof(get_sql_query(
+            $accounts_table,
+            array("id"),
+            array(
+                array("application_id", $applicationID),
+                array("deletion_date", null),
+            ))
+        );
     }
 }

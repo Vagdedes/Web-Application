@@ -124,6 +124,10 @@ function load_page($loadContents = true): void
                 require_once '/var/www/.structure/library/design/accountOld/pages/changeName.php';
                 load_account_change_name($account, $isLoggedIn);
                 break;
+            case "contact":
+                require_once '/var/www/.structure/library/design/accountOld/pages/contact.php';
+                load_account_contact($account, $isLoggedIn);
+                break;
             case "viewOffer":
                 global $website_account_url;
                 $argument = get_form_get("id");

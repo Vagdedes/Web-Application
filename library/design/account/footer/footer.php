@@ -2,10 +2,9 @@
     <div class="footer_center">
         <div class="footer_top">
             <?php
-            require_once '/var/www/.structure/library/base/utilities.php';
-            $domain = get_domain();
+            global $website_account_url;
             ?>
-            <a href="https://<?php echo $domain ?>/contact" class="selection" id="hover">CONTACT US</a>
+            <a href="<?php echo $website_account_url ?>/contact" class="selection" id="hover">CONTACT US</a>
         </div>
         <div class="footer_bottom">
             @<?php echo date("Y") . " Idealistic AI"; ?>

@@ -1,6 +1,7 @@
 <?php
 
-function prepare_redirect_url($string): string {
+function prepare_redirect_url($string): string
+{
     return str_replace(" ", "-", str_replace(".", "-", strip_tags($string)));
 }
 
@@ -46,7 +47,7 @@ function load_account_page_message($title, $reason): void
         </div>";
 }
 
-function account_page_redirect(?Account $account, $isLoggedIn, $message): void
+function account_page_redirect(?Account $account, bool $isLoggedIn, string $message): void
 {
     global $website_account_url;
     $redirectURL = get_user_url();

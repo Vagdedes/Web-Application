@@ -3,15 +3,15 @@
 class AccountSession
 {
     private ?int $applicationID;
-    private ?string $customKey, $type;
+    private ?int $customKey, $type;
 
     private const session_key_name = "vagdedes_account_session",
         session_account_refresh_expiration = "2 days",
         session_account_total_expiration = "15 days",
-        session_max_creation_tries = 100,
-        session_cache_time = "1 minute";
+        session_max_creation_tries = 100;
     public const session_token_length = 128,
-        session_cookie_expiration = 86400 * 30;
+        session_cookie_expiration = 86400 * 30,
+        session_cache_time = "1 minute";
 
     public function __construct($applicationID)
     {
@@ -22,8 +22,23 @@ class AccountSession
 
     public function setCustomKey($type, $customKey): void
     {
-        $this->type = $type;
-        $this->customKey = $customKey;
+        $this->type = is_numeric($type) ? $type : string_to_integer($type, true);
+        $this->customKey = is_numeric($customKey) ? $customKey : string_to_integer($this->customKey, true);
+    }
+
+    public function isCustom(): bool
+    {
+        return $this->type !== null && $this->customKey !== null;
+    }
+
+    public function getType(): ?int
+    {
+        return $this->type;
+    }
+
+    public function getCustomKey(): ?int
+    {
+        return $this->customKey;
     }
 
     public function getApplicationID(): ?int
@@ -131,18 +146,19 @@ class AccountSession
     {
         global $account_sessions_table;
         $key = $this->createKey();
-        $hasCustomKey = $this->customKey !== null;
+        $hasCustomKey = $this->isCustom();
 
         if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
             $date = get_current_date();
             $key = $hasCustomKey
-                ? (is_numeric($this->customKey) ? $this->customKey : string_to_integer($this->customKey, true))
+                ? $this->customKey
                 : string_to_integer($key, true);
             set_sql_cache(null, self::class);
             $array = get_sql_query(
                 $account_sessions_table,
                 array("id", "account_id", "ip_address"),
                 array(
+                    array("type", $this->type),
                     array("token", $key),
                     array("expiration_date", ">", $date),
                     array("end_date", ">", $date),
@@ -236,7 +252,7 @@ class AccountSession
         }
         global $account_sessions_table;
         $date = get_current_date();
-        $hasCustomKey = $this->customKey !== null;
+        $hasCustomKey = $this->isCustom();
 
         for ($count = 0; $count < self::session_max_creation_tries; $count++) { // Loop until a free session key is found
             $key = $this->createKey();
@@ -246,7 +262,7 @@ class AccountSession
                 continue;
             }
             $key = $hasCustomKey
-                ? (is_numeric($this->customKey) ? $this->customKey : string_to_integer($this->customKey, true))
+                ? $this->customKey
                 : string_to_integer($key, true);
             $array = $hasCustomKey ? null
                 : get_sql_query(
@@ -293,7 +309,7 @@ class AccountSession
                 if (sql_insert(
                     $account_sessions_table,
                     array(
-                        "type" => $this->type !== null ? string_to_integer($this->type, true) : null,
+                        "type" => $this->type,
                         "token" => $key,
                         "ip_address" => get_client_ip_address(),
                         "account_id" => $account->getDetail("id"),
@@ -319,21 +335,21 @@ class AccountSession
     public function deleteSession($accountID): MethodReply
     {
         $key = $this->createKey();
-        $hasCustomKey = $this->customKey !== null;
+        $hasCustomKey = $this->isCustom();
         $this->deleteKey();
 
         if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
             global $account_sessions_table;
             $key = $hasCustomKey
-                ? (is_numeric($this->customKey) ? $this->customKey : string_to_integer($this->customKey, true))
+                ? $this->customKey
                 : string_to_integer($key, true);
             $date = get_current_date();
             $array = get_sql_query(
                 $account_sessions_table,
                 array("id"),
                 array(
-                    array("token", "=", $key, 0),
-                    array("account_id", $accountID),
+                    array("type", $this->type),
+                    array("token", $key),
                     array("deletion_date", null),
                     array("end_date", ">", $date),
                     array("expiration_date", ">", $date)
@@ -344,6 +360,10 @@ class AccountSession
                 ),
                 1
             );
+
+            $this->clearTokenCache($key);
+            $account = new Account($this->applicationID, $accountID);
+            $account->clearMemory(self::class);
 
             if (!empty($array)) { // Check if session exists
                 set_sql_query(
@@ -357,12 +377,9 @@ class AccountSession
                     null,
                     1
                 ); // Delete session from database
-                $this->clearTokenCache($key);
-                $account = new Account($this->applicationID, $accountID);
-                $account->clearMemory(self::class);
-                return new MethodReply(true, null, $account);
+                return new MethodReply(true, "You have been logged out.", $account);
             }
         }
-        return new MethodReply(false);
+        return new MethodReply(false, "You are not logged in.");
     }
 }

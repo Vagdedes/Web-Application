@@ -84,11 +84,7 @@ function load_account_profile(Account $account, $isLoggedIn, Application $applic
                 $accountRegistry = $application->getAccountRegistry(
                     get_form_post("email"),
                     get_form_post("password"),
-                    get_form_post("name"),
-                    null,
-                    null,
-                    null,
-                    AccountRegistry::DEFAULT_WEBHOOK
+                    get_form_post("name")
                 )->getOutcome();
                 account_page_redirect($accountRegistry->getObject(), $accountRegistry->isPositiveOutcome(), $accountRegistry->getMessage());
             }

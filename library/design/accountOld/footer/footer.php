@@ -2,6 +2,7 @@
     <div class="footer_center">
         <div class="footer_top">
             <?php
+            global $website_account_url;
             require_once '/var/www/.structure/library/base/utilities.php';
             $directorySlashCount = substr_count(getcwd(), "/");
             $domain = get_domain();
@@ -11,7 +12,7 @@
                 <?php if ($directorySlashCount > 4) { ?>
                     <a href="../" class="selection" id="hover">PREVIOUS PAGE</a>
                 <?php } else { ?>
-                    <a href="https://<?php echo $domain ?>/contact" class="selection" id="hover">CONTACT US</a>
+                    <a href="<?php echo $website_account_url ?>/contact" class="selection" id="hover">CONTACT US</a>
                 <?php } ?>
                 <a href="https://<?php echo $domain ?>/" class="selection" id="hover">HOME PAGE</a>
             <?php } ?>
