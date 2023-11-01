@@ -17,7 +17,6 @@ class AccountObjectives
                 $this->create(
                     "Email Verification",
                     "Verify your email by clicking the verification link we have emailed you.",
-                    true
                 )
             );
         } else {
