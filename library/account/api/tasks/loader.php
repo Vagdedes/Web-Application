@@ -31,7 +31,7 @@ function load_page_intro(?Account $account, bool $isLoggedIn, bool $loadNavigati
     }
 }
 
-function load_page(bool $loadContents = true): void
+function load_page(bool $loadContents = true, ?callable $callable = null): void
 {
     $directory = get_final_directory();
     $title = unstuck_words_from_capital_letters($directory);
@@ -63,80 +63,24 @@ function load_page(bool $loadContents = true): void
 
         switch ($directory) {
             case "changePassword":
-                require_once '/var/www/.structure/library/design/account/pages/changePassword.php';
-                load_account_change_password($account, $isLoggedIn, $application);
+                $callable($account, $isLoggedIn, $application);
                 break;
             case "profile":
-                require_once '/var/www/.structure/library/design/account/pages/profile.php';
-                load_account_profile($isLoggedIn, $application);
-                break;
-            case "changeEmail":
-                require_once '/var/www/.structure/library/design/account/pages/changeEmail.php';
-                load_account_change_email($account, $isLoggedIn);
-                break;
-            case "downloadFile":
-                $id = get_form_get("id");
-
-                if (is_numeric($id)) {
-                    if ($isLoggedIn) {
-                        $result = $account->getDownloads()->sendFileDownload($id);
-
-                        if (!$result->isPositiveOutcome()) {
-                            account_page_redirect($account, true, $result->getMessage());
-                        }
-                    } else {
-                        account_page_redirect(null, false, "You must be logged in to download this file.");
-                    }
-                } else {
-                    $token = get_form_get("token");
-
-                    if (!empty($token)) {
-                        $download = $account->getDownloads()->find($token);
-
-                        if ($download->isPositiveOutcome()) {
-                            $download = $download->getObject();
-                            $tokenAccount = $download->account;
-
-                            if (!$tokenAccount->exists()
-                                || !$tokenAccount->getDownloads()->sendFileDownload(
-                                    $download->product_id,
-                                    $download->token
-                                )->isPositiveOutcome()) {
-                                exit();
-                            }
-                        } else {
-                            exit();
-                        }
-                    } else {
-                        account_page_redirect(null, false, "You must be logged in to access downloads.");
-                    }
-                }
-                break;
-            case "exit":
-                global $website_account_url;
-
-                if ($isLoggedIn && $account->getActions()->logOut()->isPositiveOutcome()) {
-                    redirect_to_url($website_account_url . "/profile/?message=You have been logged out");
-                } else {
-                    redirect_to_url($website_account_url . "/profile");
-                }
+                $callable($isLoggedIn, $application);
                 break;
             case "contact":
-                require_once '/var/www/.structure/library/design/account/pages/contact.php';
-                load_account_contact($account, $isLoggedIn);
+            case "exit":
+            case "changeEmail":
+            case "downloadFile":
+                $callable($account, $isLoggedIn);
                 break;
             case "instantLogin":
-                if ($isLoggedIn) {
-                    account_page_redirect($account, true, null);
-                } else {
-                    $twoFactor = $session->getTwoFactorAuthentication();
-                    $twoFactor = $twoFactor->verify(get_form_get("token"));
-                    account_page_redirect($twoFactor->getObject(), $twoFactor->isPositiveOutcome(), $twoFactor->getMessage());
-                }
+                $callable($account, $isLoggedIn, $session);
                 break;
             default:
-                global $website_account_url;
-                redirect_to_url($website_account_url . "/profile");
+                if ($callable !== null) {
+                    $callable();
+                }
                 break;
         }
     }
