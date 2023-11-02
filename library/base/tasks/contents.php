@@ -16,7 +16,7 @@ if (!empty($path)) {
         set_session_account_id($session->getObject()->getDetail("id"));
         unset($_GET["path"]);
         $domain = get_form_get("domain");
-        $url = "https://" . (empty($domain) ? get_domain() : $domain) . "/" . $path . "/?" . http_build_query($_GET);
+        $url = "http://" . (empty($domain) ? get_domain() : $domain) . "/" . $path . "/?" . http_build_query($_GET);
         $contents = private_file_get_contents($url);
 
         if (json_decode($contents)) {
