@@ -47,8 +47,7 @@ class AccountProduct
             );
 
             if (!empty($array)) {
-                global $website_account_url, //todo remove
-                       $website_domain,
+                global $website_domain,
                        $product_buttons_table,
                        $product_compatibilities_table,
                        $product_transaction_search_table,
@@ -147,7 +146,6 @@ class AccountProduct
                                 $object->registered_buyers += sizeof(get_patreon2_subscriptions(null, $object->patreon_tiers));
                             }
                         }
-                        $object->url = $website_account_url . "/viewProduct/?id=" . $productID; //todo remove
                         $object->divisions = new stdClass();
                         $object->buttons = new stdClass();
                         $object->cards = new stdClass();

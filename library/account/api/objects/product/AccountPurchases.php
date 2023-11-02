@@ -69,6 +69,8 @@ class AccountPurchases
                                 foreach (explode("|", $tier->required_products) as $requiredProduct) {
                                     if (!array_key_exists($requiredProduct, $array)) {
                                         continue 2;
+                                    } else {
+                                        break;
                                     }
                                 }
                             }

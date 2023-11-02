@@ -4,9 +4,6 @@
 require_once '/var/www/.structure/library/application/api/connect.php';
 require_once '/var/www/.structure/library/application/api/variables.php';
 
-// Schedulers
-require_once '/var/www/.structure/library/application/api/schedulers/refreshTransactions.php';
-
 // Objects
 require_once '/var/www/.structure/library/application/api/objects/Application.php';
 
@@ -27,3 +24,6 @@ require_once '/var/www/.structure/library/application/api/objects/information/In
 // Session
 require_once '/var/www/.structure/library/application/api/objects/session/AccountSession.php';
 require_once '/var/www/.structure/library/application/api/objects/session/TwoFactorAuthentication.php';
+
+// Schedulers
+require_once '/var/www/.structure/library/application/api/schedulers/refreshTransactions.php';

@@ -1,44 +1,47 @@
 <?php
 
-function addFormInput($type, $key, $preview)
-{
-    if (is_array($preview)) {
-        if (empty($preview)) {
-            $preview[] = "Empty";
-        }
-        echo "<input list='$key' name='$key' placeholder='$key'>";
-        echo "<datalist id='$key'>";
-
-        foreach ($preview as $content) {
-            echo "<option value='$content'>";
-        }
-        echo "</datalist><br>";
-    } else {
-        echo "<input type='$type' name='$key' placeholder='$preview' style='margin: 0; padding: 0;'><br>";
-    }
-}
-
-function addFormSubmit($key, $preview)
-{
-    echo "<input type='submit'" . ($key == null ? "" : " name='$key' ") . "value='$preview' style='margin: 0; padding: 0;'><br>";
-}
-
-function createForm($method, $space, $url = null)
-{
-    echo ($space ? "<p>" : "") . "<form method='$method'" . ($url == null ? "" : " action='$url' ") . "style='margin: 0; padding: 0;'>";
-}
-
-function endForm()
-{
-    echo "</form>";
-}
-
 // Separator
 require_once '/var/www/.structure/library/base/communication.php';
 
 if (is_private_connection()) {
     require_once '/var/www/.structure/library/base/form.php';
     require_once '/var/www/.structure/library/base/requirements/account_systems.php';
+
+    function addFormInput($type, $key, $preview): void
+    {
+        if (is_array($preview)) {
+            if (empty($preview)) {
+                $preview[] = "Empty";
+            }
+            echo "<input list='$key' name='$key' placeholder='$key'>";
+            echo "<datalist id='$key'>";
+
+            foreach ($preview as $content) {
+                echo "<option value='$content'>";
+            }
+            echo "</datalist><br>";
+        } else {
+            echo "<input type='$type' name='$key' placeholder='$preview' style='margin: 0; padding: 0;'><br>";
+        }
+    }
+
+    function addFormSubmit($key, $preview): void
+    {
+        echo "<input type='submit'" . ($key == null ? "" : " name='$key' ") . "value='$preview' style='margin: 0; padding: 0;'><br>";
+    }
+
+    function createForm($method, $space, $url = null): void
+    {
+        echo ($space ? "<p>" : "") . "<form method='$method'" . ($url == null ? "" : " action='$url' ") . "style='margin: 0; padding: 0;'>";
+    }
+
+    function endForm(): void
+    {
+        echo "</form>";
+    }
+
+    // Separator
+
     $session_account_id = get_session_account_id();
 
     if (empty($session_account_id)) {
