@@ -1,5 +1,4 @@
 <?php
-$memory_clearance_table = "memory.clearMemory";
 
 function share_clear_memory(array $keys, bool $abstractSearch): void
 {

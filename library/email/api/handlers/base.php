@@ -83,7 +83,7 @@ function services_self_email($from, $subject, $content, $startingLinePosition = 
     return true;
 }
 
-function services_email($to, $from, $subject, $content, $startingLinePosition = EmailBase::IDEALISTIC_NO_REPLY): bool|string
+function services_email($to, $from, $subject, $content, $startingLinePosition = EmailBase::IDEALISTIC_CONTACT): bool|string
 {
     global $email_credentials_directory;
     $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);

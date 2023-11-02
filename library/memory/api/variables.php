@@ -17,6 +17,7 @@ $memory_segment_ignore_errors = array(
 
 $memory_reserved_names = array("cooldowns", "limits", "keyValuePairs");
 
+$memory_clearance_table = "memory.clearMemory";
 $memory_clearance_tracking_table = "memory.clearMemoryTracking";
 $memory_schedulers_table = "memory.schedulers";
 $memory_performance_metrics_table = "memory.performanceMetrics";

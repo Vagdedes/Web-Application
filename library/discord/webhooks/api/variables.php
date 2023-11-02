@@ -6,8 +6,8 @@ $discord_webhook_storage_table = "discord.webhookStorage";
 $discord_webhook_blacklist_table = "discord.webhookBlacklist";
 $discord_webhook_exemptions = "discord.webhookExemptions";
 
-$discord_webhook_default_company_name = "Vagdedes Services";
-$discord_webhook_default_email_name = "contact@" . get_domain();
+$discord_webhook_default_company_name = "Idealistic AI";
+$discord_webhook_default_email_name = "contact@" . get_domain(false);
 
 $discord_webhooks_accepted_domains = array(
     "discord.com",
