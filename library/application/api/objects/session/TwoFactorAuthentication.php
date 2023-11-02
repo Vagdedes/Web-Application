@@ -78,7 +78,7 @@ class TwoFactorAuthentication
                 $account->getEmail()->send(
                     "instantLogin",
                     array(
-                        "URL" => ($website_account_url . "/instantLogin/?token=" . $token)
+                        "URL" => ($website_account_url . "/profile/instantLogin/?token=" . $token)
                     ),
                     "account",
                     false
