@@ -4,7 +4,7 @@
             <?php
             global $website_account_url;
             ?>
-            <a href="<?php echo $website_account_url ?>/contact" class="selection" id="hover">CONTACT US</a>
+            <a href="<?php echo $website_account_url ?>/profile/contact" class="selection" id="hover">CONTACT US</a>
         </div>
         <div class="footer_bottom">
             @<?php echo date("Y") . " Idealistic AI"; ?>

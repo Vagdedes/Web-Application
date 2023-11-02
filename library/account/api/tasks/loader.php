@@ -1,6 +1,7 @@
 <?php
 require_once '/var/www/.structure/library/base/form.php';
 require_once '/var/www/.structure/library/base/requirements/account_systems.php';
+$website_account_url = "https://" . get_domain() . "/account";
 
 function load_page_intro(?Account $account, bool $isLoggedIn, bool $loadNavigation): void
 {
