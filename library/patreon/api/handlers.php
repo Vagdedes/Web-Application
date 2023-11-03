@@ -1,4 +1,6 @@
 <?php
+$patreon1_credentials_directory = "/var/www/.structure/private/patreon_1_credentials";
+$patreon2_credentials_directory = "/var/www/.structure/private/patreon_2_credentials";
 
 function clear_patreon_subscription_cache(): void
 {
@@ -22,7 +24,8 @@ function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): a
     if (is_array($cache)) {
         return $cache;
     }
-    $key = get_keys_from_file("/var/www/.structure/private/patreon_1_credentials", 1);
+    global $patreon1_credentials_directory;
+    $key = get_keys_from_file($patreon1_credentials_directory, 1);
 
     if ($key !== null) {
         global $patreon_campaign_id, $sql_max_cache_time;
@@ -85,7 +88,8 @@ function get_patreon2_subscriptions($ignoreTiers = null, $targetTiers = null): a
     if (is_array($cache)) {
         return $cache;
     }
-    $key = get_keys_from_file("/var/www/.structure/private/patreon_2_credentials", 1);
+    global $patreon2_credentials_directory;
+    $key = get_keys_from_file($patreon2_credentials_directory, 1);
 
     if ($key !== null) {
         global $patreon_campaign_id, $sql_max_cache_time;

@@ -57,21 +57,24 @@ class AccountEmail
 
     public function completeVerification($token, $cooldown = "1 day"): MethodReply
     {
-        $functionality = $this->account->getFunctionality();
-        $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_EMAIL_VERIFICATION);
+        $account = $this->account;
+        $exists = $account->exists();
 
-        if (!$functionalityOutcome->isPositiveOutcome()) {
-            return new MethodReply(false, $functionalityOutcome->getMessage());
+        if ($exists) {
+            $functionality = $account->getFunctionality();
+            $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_EMAIL_VERIFICATION);
+
+            if (!$functionalityOutcome->isPositiveOutcome()) {
+                return new MethodReply(false, $functionalityOutcome->getMessage());
+            }
         }
         global $email_verifications_table;
-        $accountID = $this->account->getDetail("id");
         $date = get_current_date();
         $array = get_sql_query(
             $email_verifications_table,
-            array("id", "email_address"),
+            $exists ? array("id", "email_address") : array("id", "email_address", "account_id"),
             array(
                 array("token", $token),
-                array("account_id", $accountID),
                 array("completion_date", null),
                 array("expiration_date", ">", $date)
             ),
@@ -84,23 +87,38 @@ class AccountEmail
         }
         global $accounts_table;
         $object = $array[0];
+        $applicationID = $account->getDetail("application_id");
+
+        if (!$exists) {
+            $account = new Account($applicationID, $object->account_id);
+
+            if (!$account->exists()) {
+                return new MethodReply(false, "Failed to find account related to email.");
+            }
+            $functionality = $account->getFunctionality();
+            $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_EMAIL_VERIFICATION);
+
+            if (!$functionalityOutcome->isPositiveOutcome()) {
+                return new MethodReply(false, $functionalityOutcome->getMessage());
+            }
+        }
         $email = $object->email_address;
 
-        if ($this->account->getDetail("email_address") != $email
+        if ($account->getDetail("email_address") != $email
             && !empty(get_sql_query(
                 $accounts_table,
                 array("id"),
                 array(
                     array("email_address", $email),
                     array("deletion_date", null),
-                    array("application_id", $this->account->getDetail("application_id"))
+                    array("application_id", $applicationID)
                 ),
                 null,
                 1
             ))) {
             return new MethodReply(false, "This email address is already in use by another user.");
         }
-        $verifiedEmail = $this->isVerified();
+        $verifiedEmail = $account->getEmail()->isVerified();
 
         if (!set_sql_query(
             $email_verifications_table,
@@ -113,17 +131,17 @@ class AccountEmail
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $this->account->clearMemory(self::class);
-        $oldEmail = $this->account->getDetail("email_address");
-        $change = $this->account->setDetail("email_address", $email);
+        $account->clearMemory(self::class);
+        $oldEmail = $account->getDetail("email_address");
+        $change = $account->setDetail("email_address", $email);
 
         if (!$change->isPositiveOutcome()) {
             return new MethodReply(false, $change->getMessage());
         }
-        if (!$this->account->getHistory()->add("complete_email_verification", $oldEmail, $email)) {
+        if (!$account->getHistory()->add("complete_email_verification", $oldEmail, $email)) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $this->send(
+        $account->getEmail()->send(
             $verifiedEmail ? "emailChanged" : "emailVerified",
             array(
                 "email" => $email,
