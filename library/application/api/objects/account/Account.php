@@ -100,7 +100,6 @@ class Account
             if (!empty($query)) {
                 $this->exists = true;
                 $this->object = $query[0];
-                $this->email = new AccountEmail($this);
                 $this->settings = new AccountSettings($this);
                 $this->history = new AccountHistory($this);
                 $this->transactions = new AccountTransactions($this);
@@ -124,6 +123,7 @@ class Account
             }
         }
         // Standalone
+        $this->email = new AccountEmail($this);
         $this->actions = new AccountActions($this);
         $this->password = new AccountPassword($this);
         $this->downloads = new AccountProductDownloads($this);

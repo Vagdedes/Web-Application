@@ -111,7 +111,7 @@ class AccountEmail
                 array(
                     array("email_address", $email),
                     array("deletion_date", null),
-                    array("application_id", $applicationID)
+                    array("application_id", $applicationID),
                 ),
                 null,
                 1

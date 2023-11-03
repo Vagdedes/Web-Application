@@ -9,7 +9,7 @@ function load_page_intro(?Account $account, bool $isLoggedIn, bool $loadNavigati
         ? $account->getNotifications()->get(AccountNotifications::FORM, 1, true)
         : get_form_get("message");
 
-    if (empty($notification)) {
+    if (!$isLoggedIn && empty($notification)) {
         $notification = "We use the necessary cookies to offer you access to our system.";
 
         if (!set_cookie_to_value_if_not(

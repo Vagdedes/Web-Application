@@ -7,7 +7,7 @@ $email_exemptions_table = "email.exemptions";
 $email_user_exemption_keys_table = "email.exemptionKeys";
 $email_blacklist_table = "email.blacklist";
 
-$email_default_company_name = "Vagdedes Services";
+$email_default_company_name = "Idealistic AI";
 $email_default_email_name = "contact@" . get_domain(false);
 
 $email_exempt_token_length = 1024;
