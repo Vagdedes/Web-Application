@@ -40,13 +40,6 @@ class AccountActions
         if ($session === null) {
             $session = new AccountSession($this->account->getDetail("application_id"));
         }
-        if (!$session->getSession()->isPositiveOutcome()) {
-            $message = $session->getSession()->getMessage();
-
-            if ($message !== null) {
-                return new MethodReply(false, $message);
-            }
-        }
         if ($twoFactor
             && $this->account->getSettings()->isEnabled("two_factor_authentication")) {
             $twoFactor = $session->getTwoFactorAuthentication();

@@ -248,6 +248,7 @@ class AccountSession
         $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
         if ($punishment->isPositiveOutcome()) {
+            $this->deleteSession($account->getDetail("id"));
             return new MethodReply(false, $punishment->getMessage());
         }
         global $account_sessions_table;
