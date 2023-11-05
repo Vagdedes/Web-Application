@@ -45,7 +45,7 @@ class AccountObjectives
                 && !$this->account->getAccounts()->hasAdded(AccountAccounts::POLYMART_URL, null, 1)->isPositiveOutcome()) {
                 $array[] = $this->create( // Do not mention SpigotMC, it's automatically found
                     "Minecraft Platform",
-                    "Add your BuiltByBit/Polymart account URL to have your licenses identified.",
+                    "Add your SpigotMC/BuiltByBit/Polymart account URL to have your licenses identified.",
                     $website_account_url . "/profile/addAccount",
                     true
                 );
