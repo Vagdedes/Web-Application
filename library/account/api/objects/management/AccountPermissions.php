@@ -170,11 +170,10 @@ class AccountPermissions
     public function addSystemPermission($permission): void
     {
         if (is_array($permission)) {
-            $this->systemPermissions = array_merge(
-                $this->systemPermissions,
-                $permission
-            );
-        } else {
+            foreach ($permission as $key) {
+                $this->addSystemPermission($key);
+            }
+        } else if (!in_array($permission, $this->systemPermissions)) {
             $this->systemPermissions[] = $permission;
         }
     }

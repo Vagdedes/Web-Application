@@ -356,7 +356,7 @@ function get_domain($subdomains = true): string
     } else {
         $domain = null;
     }
-    if (empty($domain)) {
+    if (empty($domain) || is_ip_address($domain)) {
         global $backup_domain;
         return $backup_domain;
     } else {

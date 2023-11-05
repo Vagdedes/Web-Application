@@ -5,7 +5,9 @@ $patreon2_credentials_directory = "/var/www/.structure/private/patreon_2_credent
 function clear_patreon_subscription_cache(): void
 {
     clear_memory(array(
+        "patreon-1-links",
         "patreon-1-subscriptions",
+        "patreon-2-links",
         "patreon-2-subscriptions"
     ), true);
 }
@@ -34,16 +36,25 @@ function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): a
         $link = "https://www.patreon.com/api/oauth2/api/campaigns/" . $patreon_campaign_id . "/pledges";
 
         while ($link !== null) {
-            $reply = json_decode(get_curl(
+            $cacheKey = array(
                 $link,
-                "GET",
-                array(
-                    "Content-Type: application/json",
-                    "Authorization: Bearer " . $key
-                ),
-                null,
-                3
-            ));
+                "patreon-1-links"
+            );
+            $reply = get_key_value_pair($cacheKey);
+
+            if ($reply === null) {
+                $reply = json_decode(get_curl(
+                    $link,
+                    "GET",
+                    array(
+                        "Content-Type: application/json",
+                        "Authorization: Bearer " . $key
+                    ),
+                    null,
+                    3
+                ));
+                set_key_value_pair($cacheKey, $reply, $sql_max_cache_time);
+            }
 
             if (isset($reply->data) && isset($reply->included)) {
                 $userIDs = array();
@@ -103,16 +114,25 @@ function get_patreon2_subscriptions($ignoreTiers = null, $targetTiers = null): a
             . str_replace("[", "%5B", str_replace("]", "%5D", $arguments));
 
         while ($link !== null) {
-            $reply = json_decode(get_curl(
+            $cacheKey = array(
                 $link,
-                "GET",
-                array(
-                    "Content-Type: application/json",
-                    "Authorization: Bearer " . $key
-                ),
-                null,
-                3
-            ));
+                "patreon-2-links"
+            );
+            $reply = get_key_value_pair($cacheKey);
+
+            if ($reply === null) {
+                $reply = json_decode(get_curl(
+                    $link,
+                    "GET",
+                    array(
+                        "Content-Type: application/json",
+                        "Authorization: Bearer " . $key
+                    ),
+                    null,
+                    3
+                ));
+                set_key_value_pair($cacheKey, $reply, $sql_max_cache_time);
+            }
 
             if (isset($reply->data)) {
                 foreach ($reply->data as $patron) {
