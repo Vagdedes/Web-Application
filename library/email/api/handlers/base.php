@@ -4,11 +4,10 @@ $email_credentials_directory = "/var/www/.structure/private/email_credentials";
 class EmailBase
 {
     public const
-        email_credential_lines = 10,
+        email_credential_lines = 8,
         VAGDEDES_CONTACT = 2,
-        VAGDEDES_NO_REPLY = 4,
-        IDEALISTIC_CONTACT = 6,
-        IDEALISTIC_NO_REPLY = 8;
+        IDEALISTIC_CONTACT = 4,
+        IDEALISTIC_NO_REPLY = 6;
 }
 
 function personal_self_email($from, $subject, $content): bool|string
@@ -83,7 +82,7 @@ function services_self_email($from, $subject, $content, $startingLinePosition = 
     return true;
 }
 
-function services_email($to, $from, $subject, $content, $startingLinePosition = EmailBase::IDEALISTIC_CONTACT): bool|string
+function services_email($to, $from, $subject, $content, $startingLinePosition = EmailBase::IDEALISTIC_NO_REPLY): bool|string
 {
     global $email_credentials_directory;
     $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
