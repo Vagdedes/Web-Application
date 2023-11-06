@@ -358,7 +358,14 @@ function get_domain($subdomains = true): string
     }
     if (empty($domain) || is_ip_address($domain)) {
         global $backup_domain;
-        return $backup_domain;
+
+        if ($subdomains) {
+            return $backup_domain;
+        } else {
+            $domain = explode(".", $backup_domain);
+            $size = sizeof($domain);
+            return $domain[$size - 2] . "." . $domain[$size - 1];
+        }
     } else {
         return $domain;
     }
@@ -515,7 +522,7 @@ function unstuck_words_from_capital_letters($word): string
     return $rebuild;
 }
 
-function get_keys_from_file($file, $amount): ?array
+function get_keys_from_file($file, $amount = 1): ?array
 {
     $contents = @file_get_contents($file);
 
