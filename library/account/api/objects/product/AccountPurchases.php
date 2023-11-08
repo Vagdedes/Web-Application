@@ -35,9 +35,10 @@ class AccountPurchases
             $clearMemory = false;
 
             foreach ($query as $row) {
+                $product = $this->account->getProduct()->find($row->product_id);
+
                 if ($row->expiration_date !== null && $row->expiration_date < $date) {
                     $clearMemory = true;
-                    $product = $this->account->getProduct()->find($row->product_id);
 
                     if ($product->isPositiveOutcome()) {
                         $this->account->getEmail()->send("productExpiration",
@@ -46,8 +47,19 @@ class AccountPurchases
                             )
                         );
                     }
-                } else {
+                } else if ($product->isPositiveOutcome()) {
+                    $product = $product->getObject()[0];
                     $array[$row->product_id] = $row;
+
+                    if (isset($product->tiers->all[$row->tier_id])) {
+                        $tier = $product->tiers->all[$row->tier_id];
+
+                        if ($tier->give_permission !== null) {
+                            $this->account->getPermissions()->addSystemPermission(
+                                explode("|", $tier->give_permission)
+                            );
+                        }
+                    }
                 }
             }
 

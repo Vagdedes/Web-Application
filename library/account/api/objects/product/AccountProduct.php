@@ -114,12 +114,15 @@ class AccountProduct
                         $object->is_free = true;
 
                         if (!empty($object->tiers->all)) {
-                            foreach ($object->tiers->all as $tier) {
+                            foreach ($object->tiers->all as $childArrayKey => $tier) {
+                                unset($object->tiers->all[$childArrayKey]);
+                                $object->tiers->all[$tier->id] = $tier;
+
                                 if ($tier->price === null) {
-                                    $object->tiers->free[] = $tier;
+                                    $object->tiers->free[$tier->id] = $tier;
                                 } else {
                                     $object->is_free = false;
-                                    $object->tiers->paid[] = $tier;
+                                    $object->tiers->paid[$tier->id] = $tier;
                                 }
                             }
                         }
