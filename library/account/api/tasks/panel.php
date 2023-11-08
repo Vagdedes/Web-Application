@@ -86,13 +86,20 @@ if (is_private_connection()) {
 
     $valid_products = $account->getProduct()->find(null, false);
     $valid_products = $valid_products->getObject();
-    $valid_product_names = $valid_products;
+    $valid_product_names = array();
+    $valid_product_tiers = array();
 
     if (!empty($valid_products)) {
         foreach ($valid_products as $arrayKey => $validProductObject) {
             $validProductObject->name = strip_tags($validProductObject->name);
             $valid_products[$arrayKey] = $validProductObject;
             $valid_product_names[$arrayKey] = $validProductObject->name;
+
+            if (!empty($validProductObject->tiers->all)) {
+                foreach ($validProductObject->tiers->all as $tier) {
+                    $valid_product_tiers[$tier->id] = $validProductObject->name . ": " . $tier->name;
+                }
+            }
         }
     }
 
@@ -470,16 +477,35 @@ if (is_private_connection()) {
                                 foreach ($valid_products as $validProductObject) {
                                     if ($product == $validProductObject->name) {
                                         $creationDate = get_form_post("creation_date");
-                                        var_dump($account->getPurchases()->add(
-                                            $validProductObject->id,
-                                            null,
-                                            null,
-                                            null,
-                                            !empty($creationDate) ? $creationDate : null,
-                                            !empty($duration) ? $duration : null,
-                                            !empty(get_form_post("email")),
-                                            !empty(get_form_post("additional_products"))
-                                        ));
+                                        $tierForm = get_form_post("tier");
+
+                                        if (empty($tierForm)) {
+                                            $tier = null;
+                                        } else {
+                                            $tier = false;
+
+                                            foreach ($valid_product_tiers as $tierKey => $tierValue) {
+                                                if ($tierForm == $tierValue) {
+                                                    $tier = $tierKey;
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        if ($tier !== false) {
+                                            var_dump($account->getPurchases()->add(
+                                                $validProductObject->id,
+                                                $tier,
+                                                null,
+                                                null,
+                                                !empty($creationDate) ? $creationDate : null,
+                                                !empty($duration) ? $duration : null,
+                                                !empty(get_form_post("email")),
+                                                !empty(get_form_post("additional_products"))
+                                            ));
+                                        } else {
+                                            var_dump("Invalid tier");
+                                        }
                                         break;
                                     }
                                 }
@@ -884,6 +910,7 @@ if (is_private_connection()) {
         if ($hasWebsiteAccount) {
             createForm("post", true);
             addFormInput("text", "product", $valid_product_names);
+            addFormInput("text", "tier", $valid_product_tiers);
             addFormInput("text", "creation_date", "Creation Date");
             addFormInput("text", "duration", "Time Duration");
             addFormInput("number", "email", "Email");
