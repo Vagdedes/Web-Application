@@ -350,7 +350,7 @@ function get_domain($subdomains = true): string
     if ($subdomains) {
         $domain = $_SERVER['SERVER_NAME'] ?? "";
     } else if (isset($_SERVER['SERVER_NAME'])) {
-        $domain = explode(".", $_SERVER['HTTP_HOST'] ?? "");
+        $domain = explode(".", $_SERVER['SERVER_NAME']);
         $size = sizeof($domain);
         $domain = $domain[$size - 2] . "." . $domain[$size - 1];
     } else {

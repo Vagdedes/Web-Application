@@ -55,8 +55,7 @@ class TwoFactorAuthentication
                 $key = $this->session->createKey();
 
                 if (strlen($key) !== AccountSession::session_token_length) {
-                    $this->session->deleteKey();
-                    $key = $this->session->createKey();
+                    $key = $this->session->createKey(true);
                 }
 
                 // Separator

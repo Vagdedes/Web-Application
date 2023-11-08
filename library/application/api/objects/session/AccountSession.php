@@ -108,12 +108,12 @@ class AccountSession
         }
     }
 
-    public function createKey(): string
+    public function createKey(bool $force = false): string
     {
-        if ($this->customKey !== null) {
+        if ($this->isCustom()) {
             return $this->customKey;
         } else {
-            $key = get_cookie(self::session_key_name);
+            $key = $force ? null : get_cookie(self::session_key_name);
 
             if ($key === null) {
                 $key = random_string(self::session_token_length);
@@ -125,11 +125,7 @@ class AccountSession
 
     public function deleteKey(): bool
     {
-        if ($this->customKey === null) {
-            return delete_cookie(self::session_key_name);
-        } else {
-            return true;
-        }
+        return $this->isCustom() || delete_cookie(self::session_key_name);
     }
 
     private function clearTokenCache($token): void
@@ -221,7 +217,7 @@ class AccountSession
                         return new MethodReply(true, null, $account);
                     } else {
                         global $account_sessions_table;
-                        $this->deleteKey();
+                        $this->createKey(true);
                         set_sql_query(
                             $account_sessions_table,
                             array(
@@ -238,7 +234,7 @@ class AccountSession
                 }
             }
         } else { // Delete session cookie if key is at incorrect length
-            $this->deleteKey();
+            $this->createKey(true);
         }
         return new MethodReply(false, null, new Account($this->applicationID, 0));
     }
@@ -259,7 +255,7 @@ class AccountSession
             $key = $this->createKey();
 
             if (!$hasCustomKey && strlen($key) !== self::session_token_length) { // Check if length of key is correct
-                $this->deleteKey();
+                $this->createKey(true);
                 continue;
             }
             $key = $hasCustomKey
@@ -322,12 +318,12 @@ class AccountSession
                     $this->clearTokenCache($key);
                     return new MethodReply(true, null, $account);
                 } else {
-                    $this->deleteKey();
+                    $this->createKey(true);
                     $this->clearTokenCache($key);
                     return new MethodReply(false, "Failed to create session in the database.");
                 }
             } else {
-                $this->deleteKey();
+                $this->createKey(true);
             }
         }
         return new MethodReply(false, "Failed to find available session.");
@@ -337,7 +333,7 @@ class AccountSession
     {
         $key = $this->createKey();
         $hasCustomKey = $this->isCustom();
-        $this->deleteKey();
+        $this->createKey(true);
 
         if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
             global $account_sessions_table;
