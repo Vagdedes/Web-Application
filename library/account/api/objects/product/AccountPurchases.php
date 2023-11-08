@@ -59,10 +59,10 @@ class AccountPurchases
         if ($products->isPositiveOutcome()) {
             foreach ($products->getObject() as $product) {
                 if (!array_key_exists($product->id, $array)) {
-                    $tierID = false;
+                    $tierObject = false;
 
                     if ($product->is_free) {
-                        $tierID = null;
+                        $tierObject = null;
                     } else {
                         foreach ($product->tiers->paid as $tier) {
                             if ($tier->required_products !== null) {
@@ -75,19 +75,26 @@ class AccountPurchases
                                 }
                             }
                             if ($tier->required_permission !== null
-                                && $this->account->getPermissions()->hasPermission($tier->required_permission)) {
-                                $tierID = $tier->id;
+                                && $this->account->getPermissions()->hasPermission(
+                                    explode("|", $tier->required_permission)
+                                )) {
+                                $tierObject = $tier;
                                 break;
                             }
                         }
                     }
 
-                    if ($tierID !== false) {
+                    if ($tierObject !== false) {
+                        if ($tierObject->give_permission !== null) {
+                            $this->account->getPermissions()->addSystemPermission(
+                                explode("|", $tierObject->give_permission)
+                            );
+                        }
                         $object = new stdClass();
                         $object->id = random_number();
                         $object->account_id = $this->account->getDetail("id");
                         $object->product_id = $product->id;
-                        $object->tier_id = $tierID;
+                        $object->tier_id = $tierObject->id;
                         $object->exchange_id = null;
                         $object->transaction_id = null;
                         $object->creation_date = $date;

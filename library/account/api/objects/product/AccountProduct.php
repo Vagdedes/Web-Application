@@ -109,10 +109,7 @@ class AccountProduct
                                 array("product_id", $productID),
                                 array("deletion_date", null),
                             ),
-                            array(
-                                "ASC",
-                                "price"
-                            )
+                            "give_permission DESC, price ASC"
                         );
                         $object->is_free = true;
 
