@@ -227,6 +227,7 @@ class AccountProduct
                                 "file_rename",
                                 "file_type",
                                 "required_permission",
+                                "give_permission",
                                 "version",
                                 "note",
                                 "name",

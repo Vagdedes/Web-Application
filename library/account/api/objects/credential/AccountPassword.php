@@ -97,6 +97,11 @@ class AccountPassword
             && $locallyLoggedIn->getObject()->getDetail("id") !== $array->account_id) {
             return new MethodReply(false, "This change password token is invalid.");
         }
+        $parameter = new ParameterVerification($password, null, 8);
+
+        if (!$parameter->getOutcome()->isPositiveOutcome()) {
+            return new MethodReply(false, $parameter->getOutcome()->getMessage());
+        }
         $password = encrypt_password($password);
 
         if (!$password) {
