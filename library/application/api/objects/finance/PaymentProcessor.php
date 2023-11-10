@@ -241,9 +241,10 @@ class PaymentProcessor
                                     }
                                     if ($credential !== null) {
                                         if ($additionalProducts !== null) {
+                                            $additionalProductsArray = explode("|", $additionalProducts);
                                             $additionalProducts = array();
 
-                                            foreach (explode("|", $additionalProducts) as $part) {
+                                            foreach ($additionalProductsArray as $part) {
                                                 if (is_numeric($part)) {
                                                     $additionalProducts[$part] = null;
                                                 } else {

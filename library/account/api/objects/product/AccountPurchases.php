@@ -22,8 +22,8 @@ class AccountPurchases
     private function clearCache(): void
     {
         clear_memory(array(
-            $this->getCacheKey(true),
-            $this->getCacheKey(false)
+            manipulate_memory_key($this->getCacheKey(true)),
+            manipulate_memory_key($this->getCacheKey(false))
         ));
     }
 
