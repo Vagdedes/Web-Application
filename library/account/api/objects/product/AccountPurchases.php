@@ -11,13 +11,13 @@ class AccountPurchases
 
     public function getCurrent(): array
     {
-        global $product_purchases_table, $sql_max_cache_time;
         $cacheKey = array(self::class, "account_id" => $this->account->getDetail("id"), "current");
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
             return $cache;
         }
+        global $product_purchases_table, $sql_max_cache_time;
         $array = array();
         $date = get_current_date();
         $products = $this->account->getProduct()->find(null, false);
@@ -50,15 +50,12 @@ class AccountPurchases
                 } else if ($product->isPositiveOutcome()) {
                     $product = $product->getObject()[0];
                     $array[$row->product_id] = $row;
+                    $tier = $product->tiers->all[$row->tier_id] ?? null;
 
-                    if (isset($product->tiers->all[$row->tier_id])) {
-                        $tier = $product->tiers->all[$row->tier_id];
-
-                        if ($tier->give_permission !== null) {
-                            $this->account->getPermissions()->addSystemPermission(
-                                explode("|", $tier->give_permission)
-                            );
-                        }
+                    if ($tier !== null && $tier->give_permission !== null) {
+                        $this->account->getPermissions()->addSystemPermission(
+                            explode("|", $tier->give_permission)
+                        );
                     }
                 }
             }
@@ -71,11 +68,11 @@ class AccountPurchases
         if ($products->isPositiveOutcome()) {
             foreach ($products->getObject() as $product) {
                 if (!array_key_exists($product->id, $array)) {
-                    $tierObject = false;
-
                     if ($product->is_free) {
                         $tierObject = null;
                     } else {
+                        $tierObject = false;
+
                         foreach ($product->tiers->paid as $tier) {
                             if ($tier->required_products !== null) {
                                 foreach (explode("|", $tier->required_products) as $requiredProduct) {
@@ -86,18 +83,13 @@ class AccountPurchases
                                     }
                                 }
                             }
-                            if ($tier->required_permission !== null
-                                && $this->account->getPermissions()->hasPermission(
-                                    explode("|", $tier->required_permission)
-                                )) {
-                                $tierObject = $tier;
-                                break;
-                            }
+                            $tierObject = $tier;
                         }
                     }
 
                     if ($tierObject !== false) {
-                        if ($tierObject->give_permission !== null) {
+                        if ($tierObject !== null
+                            && $tierObject->give_permission !== null) {
                             $this->account->getPermissions()->addSystemPermission(
                                 explode("|", $tierObject->give_permission)
                             );
@@ -106,7 +98,7 @@ class AccountPurchases
                         $object->id = random_number();
                         $object->account_id = $this->account->getDetail("id");
                         $object->product_id = $product->id;
-                        $object->tier_id = $tierObject->id;
+                        $object->tier_id = $tierObject?->id;
                         $object->exchange_id = null;
                         $object->transaction_id = null;
                         $object->creation_date = $date;
@@ -236,7 +228,7 @@ class AccountPurchases
             return new MethodReply(false, "This product is free and cannot be purchased.");
         }
         if ($tierID === null) {
-            $tier = $product->tiers->paid[0];
+            $tier = array_shift($product->tiers->paid);
             $tierID = $tier->id;
             $price = $tier->price;
             $currency = $tier->currency;

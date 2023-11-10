@@ -104,7 +104,7 @@ class AccountProduct
                         $object->tiers->paid = array();
                         $object->tiers->all = get_sql_query(
                             $product_tiers_table,
-                            array("id", "name", "price", "currency", "required_permission", "required_products"),
+                            array("id", "name", "price", "currency", "required_permission", "give_permission", "required_products"),
                             array(
                                 array("product_id", $productID),
                                 array("deletion_date", null),
@@ -227,7 +227,6 @@ class AccountProduct
                                 "file_rename",
                                 "file_type",
                                 "required_permission",
-                                "give_permission",
                                 "version",
                                 "note",
                                 "name",
