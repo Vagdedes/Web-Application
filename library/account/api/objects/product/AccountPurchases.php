@@ -9,14 +9,27 @@ class AccountPurchases
         $this->account = $account;
     }
 
-    public function getCurrent(bool $databaseOnly = false): array
+    private function getCacheKey(bool $databaseOnly): array
     {
-        $cacheKey = array(
+        return array(
             self::class,
             "account_id" => $this->account->getDetail("id"),
             "current",
             $databaseOnly
         );
+    }
+
+    private function clearCache(): void
+    {
+        clear_memory(array(
+            $this->getCacheKey(true),
+            $this->getCacheKey(false)
+        ));
+    }
+
+    public function getCurrent(bool $databaseOnly = false): array
+    {
+        $cacheKey = $this->getCacheKey($databaseOnly);
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
@@ -65,7 +78,7 @@ class AccountPurchases
             }
 
             if ($clearMemory) {
-                $this->account->clearMemory(self::class);
+                $this->clearCache();
             }
         }
 
@@ -159,7 +172,7 @@ class AccountPurchases
             }
 
             if ($clearMemory) {
-                $this->account->clearMemory(self::class);
+                $this->clearCache();
             }
         }
         return $query;
@@ -327,7 +340,7 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $this->account->clearMemory(self::class);
+        $this->clearCache();
 
         if (!$this->account->getHistory()->add("buy_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -356,7 +369,7 @@ class AccountPurchases
             $this->account->getEmail()->send($sendEmail, $details);
         }
 
-        if ($additionalProducts !== null) {
+        if (!empty($additionalProducts)) {
             foreach ($additionalProducts as $additionalProduct => $additionalProductDuration) {
                 $this->add(
                     $additionalProduct,
@@ -365,7 +378,7 @@ class AccountPurchases
                     $transactionID,
                     $creationDate,
                     $additionalProductDuration === null ? $duration : $additionalProductDuration,
-                    $sendEmail
+                    $sendEmail,
                 );
             }
         }
@@ -401,7 +414,7 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $this->account->clearMemory(self::class);
+        $this->clearCache();
 
         if (!$this->account->getHistory()->add("remove_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -482,7 +495,7 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database (3).");
         }
-        $this->account->clearMemory(self::class);
+        $this->clearCache();
 
         if (!$this->account->getHistory()->add("exchange_product", $productID, $newProductID)) {
             return new MethodReply(false, "Failed to update user history.");

@@ -241,15 +241,14 @@ class PaymentProcessor
                                     }
                                     if ($credential !== null) {
                                         if ($additionalProducts !== null) {
-                                            $explode = explode("|", $additionalProducts);
                                             $additionalProducts = array();
 
-                                            foreach ($explode as $part) {
+                                            foreach (explode("|", $additionalProducts) as $part) {
                                                 if (is_numeric($part)) {
                                                     $additionalProducts[$part] = null;
                                                 } else {
-                                                    $explodeFurther = explode(":", $part, 2);
-                                                    $additionalProducts[$explodeFurther[0]] = $explodeFurther[1];
+                                                    $part = explode(":", $part, 2);
+                                                    $additionalProducts[$part[0]] = $part[1];
                                                 }
                                             }
                                         }
@@ -364,6 +363,20 @@ class PaymentProcessor
 
                                         if ($account->exists()) {
                                             if ($ownership->active) {
+                                                $additionalProducts = array();
+
+                                                foreach ($product->transaction_search as $transactionSearchProperties) {
+                                                    if ($transactionSearchProperties->additional_products !== null) {
+                                                        foreach (explode("|", $transactionSearchProperties->additional_products) as $part) {
+                                                            if (is_numeric($part)) {
+                                                                $additionalProducts[$part] = null;
+                                                            } else {
+                                                                $part = explode(":", $part, 2);
+                                                                $additionalProducts[$part[0]] = $part[1];
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                                 $account->getPurchases()->add(
                                                     $product->id,
                                                     null,
@@ -372,7 +385,7 @@ class PaymentProcessor
                                                     $ownership->creation_date,
                                                     $ownership->expiration_date,
                                                     "productPurchase",
-                                                    true,
+                                                    $additionalProducts,
                                                 );
                                             } else {
                                                 $account->getPurchases()->remove($product->id, null, $ownership->transaction_id);

@@ -493,15 +493,28 @@ if (is_private_connection()) {
                                         }
 
                                         if ($tier !== false) {
+                                            $duration = !empty($duration) ? $duration : null;
+                                            $additionalProducts = get_form_post("additional_products");
+
+                                            if (!empty($additionalProducts)) {
+                                                $additionalProducts = explode(",", $additionalProducts);
+
+                                                foreach ($additionalProducts as $arrayKey => $additionalProduct) {
+                                                    unset($additionalProducts[$arrayKey]);
+                                                    $additionalProducts[$additionalProduct] = $duration;
+                                                }
+                                            } else {
+                                                $additionalProducts = null;
+                                            }
                                             var_dump($account->getPurchases()->add(
                                                 $validProductObject->id,
                                                 $tier,
                                                 null,
                                                 null,
                                                 !empty($creationDate) ? $creationDate : null,
-                                                !empty($duration) ? $duration : null,
+                                                $duration,
                                                 !empty(get_form_post("email")),
-                                                !empty(get_form_post("additional_products"))
+                                                $additionalProducts
                                             ));
                                         } else {
                                             var_dump("Invalid tier");
@@ -914,7 +927,7 @@ if (is_private_connection()) {
             addFormInput("text", "creation_date", "Creation Date");
             addFormInput("text", "duration", "Time Duration");
             addFormInput("number", "email", "Email");
-            addFormInput("number", "additional_products", "Additional Products");
+            addFormInput("text", "additional_products", "Additional Products");
             addFormSubmit($addProduct, "Add Product");
             addFormSubmit($removeProduct, "Remove Product");
             endForm();

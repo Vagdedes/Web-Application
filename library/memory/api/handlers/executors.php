@@ -105,7 +105,7 @@ function set_key_value_pair($key, $value = null, $futureTime = null): bool
 
 // Separator
 
-function clear_memory(array $keys, bool$abstractSearch = false, $stopAfterSuccessfulIterations = 0, $localSegments = null): void
+function clear_memory(array $keys, bool $abstractSearch = false, $stopAfterSuccessfulIterations = 0, $localSegments = null): void
 {
     global $memory_object_cache;
     $hasLocalSegments = $localSegments !== null;
