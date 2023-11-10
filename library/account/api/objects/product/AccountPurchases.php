@@ -9,9 +9,14 @@ class AccountPurchases
         $this->account = $account;
     }
 
-    public function getCurrent(): array
+    public function getCurrent(bool $databaseOnly = false): array
     {
-        $cacheKey = array(self::class, "account_id" => $this->account->getDetail("id"), "current");
+        $cacheKey = array(
+            self::class,
+            "account_id" => $this->account->getDetail("id"),
+            "current",
+            $databaseOnly
+        );
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
@@ -20,7 +25,6 @@ class AccountPurchases
         global $product_purchases_table, $sql_max_cache_time;
         $array = array();
         $date = get_current_date();
-        $products = $this->account->getProduct()->find(null, false);
         $query = get_sql_query(
             $product_purchases_table,
             null,
@@ -65,48 +69,52 @@ class AccountPurchases
             }
         }
 
-        if ($products->isPositiveOutcome()) {
-            foreach ($products->getObject() as $product) {
-                if (!array_key_exists($product->id, $array)) {
-                    if ($product->is_free) {
-                        $tierObject = null;
-                    } else {
-                        $tierObject = false;
+        if (!$databaseOnly) {
+            $products = $this->account->getProduct()->find(null, false);
 
-                        foreach ($product->tiers->paid as $tier) {
-                            if ($tier->required_products !== null) {
-                                foreach (explode("|", $tier->required_products) as $requiredProduct) {
-                                    if (!array_key_exists($requiredProduct, $array)) {
-                                        continue 2;
-                                    } else {
-                                        break;
+            if ($products->isPositiveOutcome()) {
+                foreach ($products->getObject() as $product) {
+                    if (!array_key_exists($product->id, $array)) {
+                        if ($product->is_free) {
+                            $tierObject = null;
+                        } else {
+                            $tierObject = false;
+
+                            foreach ($product->tiers->paid as $tier) {
+                                if ($tier->required_products !== null) {
+                                    foreach (explode("|", $tier->required_products) as $requiredProduct) {
+                                        if (!array_key_exists($requiredProduct, $array)) {
+                                            continue 2;
+                                        } else {
+                                            break;
+                                        }
                                     }
                                 }
+                                $tierObject = $tier;
                             }
-                            $tierObject = $tier;
                         }
-                    }
 
-                    if ($tierObject !== false) {
-                        if ($tierObject !== null
-                            && $tierObject->give_permission !== null) {
-                            $this->account->getPermissions()->addSystemPermission(
-                                explode("|", $tierObject->give_permission)
-                            );
+                        if ($tierObject !== false) {
+                            if ($tierObject !== null
+                                && $tierObject->give_permission !== null) {
+                                $this->account->getPermissions()->addSystemPermission(
+                                    explode("|", $tierObject->give_permission)
+                                );
+                            }
+                            $object = new stdClass();
+                            $object->id = random_number();
+                            $object->account_id = $this->account->getDetail("id");
+                            $object->product_id = $product->id;
+                            $object->tier_id = $tierObject?->id;
+                            $object->exchange_id = null;
+                            $object->transaction_id = null;
+                            $object->creation_date = $date;
+                            $object->expiration_date = null;
+                            $object->expiration_notification = null;
+                            $object->deletion_date = null;
+                            $object->coupon = null;
+                            $array[$product->id] = $object;
                         }
-                        $object = new stdClass();
-                        $object->id = random_number();
-                        $object->account_id = $this->account->getDetail("id");
-                        $object->product_id = $product->id;
-                        $object->tier_id = $tierObject?->id;
-                        $object->exchange_id = null;
-                        $object->transaction_id = null;
-                        $object->creation_date = $date;
-                        $object->expiration_date = null;
-                        $object->expiration_notification = null;
-                        $object->deletion_date = null;
-                        $object->coupon = null;
-                        $array[$product->id] = $object;
                     }
                 }
             }
@@ -171,9 +179,9 @@ class AccountPurchases
         );
     }
 
-    public function owns($productID, $tierID = null): MethodReply
+    public function owns($productID, $tierID = null, bool $databaseOnly = false): MethodReply
     {
-        $array = $this->getCurrent();
+        $array = $this->getCurrent($databaseOnly);
 
         if (!empty($array)) {
             $hasTier = $tierID !== null;
@@ -254,24 +262,25 @@ class AccountPurchases
                 return new MethodReply(false, "This product does not have a currency (2).");
             }
         }
-        $purchase = $this->owns($productID, $tierID);
+        $purchase = $this->owns($productID, $tierID, true);
 
         if ($purchase->isPositiveOutcome()) {
             return new MethodReply(false, "This product's tier is already owned.");
         }
         global $product_purchases_table;
 
-        if (!empty(get_sql_query(
-            $product_purchases_table,
-            array("id"),
-            array(
-                array("account_id", $this->account->getDetail("id")),
-                array("product_id", $productID),
-                array("transaction_id", $transactionID)
-            ),
-            null,
-            1
-        ))) {
+        if ($transactionID !== null
+            && !empty(get_sql_query(
+                $product_purchases_table,
+                array("id"),
+                array(
+                    array("account_id", $this->account->getDetail("id")),
+                    array("product_id", $productID),
+                    array("transaction_id", $transactionID)
+                ),
+                null,
+                1
+            ))) {
             return new MethodReply(false, "This transaction has already been processed for this product.");
         }
         $hasCoupon = $coupon !== null;
@@ -370,7 +379,7 @@ class AccountPurchases
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
         }
-        $purchase = $this->owns($productID, $tierID);
+        $purchase = $this->owns($productID, $tierID, true);
 
         if (!$purchase->isPositiveOutcome()) {
             return new MethodReply(false, "Cannot remove purchase that is not owned.");
@@ -420,12 +429,12 @@ class AccountPurchases
         if (!$newProduct->isPositiveOutcome()) {
             return new MethodReply(false, $newProduct->getMessage());
         }
-        $purchase = $this->owns($productID, $tierID);
+        $purchase = $this->owns($productID, $tierID, true);
 
         if (!$purchase->isPositiveOutcome()) {
             return new MethodReply(false, "Cannot exchange purchase that's not owned.");
         }
-        $purchase = $this->owns($newProductID, $newTierID);
+        $purchase = $this->owns($newProductID, $newTierID, true);
 
         if ($purchase->isPositiveOutcome()) {
             return new MethodReply(false, "Cannot exchange purchase that's already owned.");
