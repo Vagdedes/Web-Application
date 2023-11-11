@@ -213,6 +213,8 @@ class Account
         return $this->object;
     }
 
+    // Separator
+
     public function getSettings(): AccountSettings
     {
         return $this->settings;
@@ -338,7 +340,7 @@ class Account
         return $this->verification;
     }
 
-    public function getOffer(): AccountOffer
+    public function getProductOffer(): AccountOffer
     {
         return $this->offer;
     }
