@@ -4,6 +4,10 @@
 require_once '/var/www/.structure/library/account/api/connect.php';
 require_once '/var/www/.structure/library/account/api/variables.php';
 
+// Account
+require_once '/var/www/.structure/library/account/api/objects/account/Account.php';
+require_once '/var/www/.structure/library/account/api/objects/account/AccountRegistry.php';
+
 // Abstract
 require_once '/var/www/.structure/library/account/api/objects/abstract/MinecraftPlatform.php';
 require_once '/var/www/.structure/library/account/api/objects/abstract/MethodReply.php';
@@ -60,3 +64,20 @@ require_once '/var/www/.structure/library/account/api/objects/finance/AccountTra
 // Information
 require_once '/var/www/.structure/library/account/api/objects/information/AccountStatistics.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountReference.php';
+
+// Session
+require_once '/var/www/.structure/library/account/api/objects/session/AccountSession.php';
+require_once '/var/www/.structure/library/account/api/objects/session/TwoFactorAuthentication.php';
+
+// Finance
+require_once '/var/www/.structure/library/account/api/objects/finance/PaymentProcessor.php';
+
+// Communication
+require_once '/var/www/.structure/library/account/api/objects/communication/LanguageTranslation.php';
+
+// Information
+require_once '/var/www/.structure/library/account/api/objects/information/WebsiteKnowledge.php';
+require_once '/var/www/.structure/library/account/api/objects/information/InformationPlaceholder.php';
+
+// Schedulers
+require_once '/var/www/.structure/library/account/api/schedulers/refreshTransactions.php';

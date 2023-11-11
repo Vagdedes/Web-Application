@@ -1,5 +1,8 @@
 <?php
 
+use Account;
+use MethodReply;
+
 class TwoFactorAuthentication
 {
     private AccountSession $session;

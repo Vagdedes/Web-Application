@@ -2,6 +2,12 @@
 
 class Account
 {
+    public const
+        LOAD_BALANCER_IP = "10.0.0.3",
+        IMAGES_PATH = "https://vagdedes.com/.images/",
+        WEBSITE_DESIGN_PATH = "https://vagdedes.com/.css/",
+        DOWNLOADS_PATH = "/var/www/vagdedes/.temporary/";
+
     private $object;
     private bool $exists;
     private AccountSettings $settings;
@@ -37,20 +43,26 @@ class Account
     private AccountStatistics $statistics;
     private AccountReference $reference;
     private AccountFeedback $feedback;
+    private AccountRegistry $registry;
+    private AccountSession $session;
+    private WebsiteKnowledge $knowledge;
+    private LanguageTranslation $translation;
+    private PaymentProcessor $paymentProcessor;
 
     public const IGNORE_APPLICATION = -1;
 
-    public function __construct($applicationID,
-                                $id, $email = null, $username = null,
+    public function __construct($applicationID = null,
+                                $id = null, $email = null, $username = null,
                                 $identification = null,
                                 $checkDeletion = true,
                                 $cache = true)
     {
         $hasID = $id !== null;
+        $hasUsername = $username !== null;
         $hasIdentification = $identification !== null;
 
         if (!$hasIdentification
-            && ($hasID ? (!is_numeric($id) || $id <= 0) : !is_email($email))) {
+            && ($hasID ? (!is_numeric($id) || $id <= 0) : !$hasUsername && !is_email($email))) {
             $this->exists = false;
             $this->object = null;
         } else {
@@ -89,7 +101,7 @@ class Account
                 array(
                     $hasID ? array("id", $id) : "",
                     $email !== null ? array("email_address", strtolower($email)) : "",
-                    $username !== null ? array("name", $username) : "",
+                    $hasUsername ? array("name", $username) : "",
                     $checkDeletion ? array("deletion_date", null) : "",
                     $applicationID !== self::IGNORE_APPLICATION ? array("application_id", $applicationID) : ""
                 ),
@@ -133,13 +145,36 @@ class Account
         $this->cooperation = new AccountCooperation($this);
         $this->communication = new AccountCommunication($this);
         $this->offer = new AccountOffer($this);
-        $this->product = new AccountProduct($this);
         $this->giveaway = new AccountGiveaway($this);
         $this->moderations = new AccountModerations($this);
         $this->functionality = new AccountFunctionality($this);
         $this->wallet = new AccountWallet($this);
         $this->reference = new AccountReference($this);
         $this->feedback = new AccountFeedback($this);
+
+        // Independent
+        $this->product = new AccountProduct($this);
+        $this->registry = new AccountRegistry($applicationID);
+        $this->session = new AccountSession($applicationID);
+        $this->knowledge = new WebsiteKnowledge($applicationID);
+        $this->translation = new LanguageTranslation($applicationID);
+        $this->paymentProcessor = new PaymentProcessor($applicationID);
+    }
+
+    public function getNew($id = null, $email = null, $username = null,
+                           $identification = null,
+                           $checkDeletion = true,
+                           $cache = true): self
+    {
+        return new self(
+            $this->getDetail("application_id"),
+            $id,
+            $email,
+            $username,
+            $identification,
+            $checkDeletion,
+            $cache
+        );
     }
 
     public function exists(): bool
@@ -213,7 +248,7 @@ class Account
         return $this->accounts;
     }
 
-    public function getDownloads(): AccountProductDownloads
+    public function getDownloads(): AccountProductDownloads //todo
     {
         return $this->downloads;
     }
@@ -308,12 +343,7 @@ class Account
         return $this->offer;
     }
 
-    public function getProduct(): AccountProduct
-    {
-        return $this->product;
-    }
-
-    public function getGiveaway(): AccountGiveaway
+    public function getProductGiveaway(): AccountGiveaway
     {
         return $this->giveaway;
     }
@@ -341,6 +371,38 @@ class Account
     public function getFeedback(): AccountFeedback
     {
         return $this->feedback;
+    }
+
+    // Separator
+
+    public function getProduct(): AccountProduct
+    {
+        return $this->product;
+    }
+
+    public function getSession(): AccountSession
+    {
+        return $this->session;
+    }
+
+    public function getRegistry(): AccountRegistry
+    {
+        return $this->registry;
+    }
+
+    public function getLanguageTranslation(): LanguageTranslation
+    {
+        return $this->translation;
+    }
+
+    public function getWebsiteKnowledge(): WebsiteKnowledge
+    {
+        return $this->knowledge;
+    }
+
+    public function getPaymentProcessor(): PaymentProcessor
+    {
+        return $this->paymentProcessor;
     }
 
     // Separator

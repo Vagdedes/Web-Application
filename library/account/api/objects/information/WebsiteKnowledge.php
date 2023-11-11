@@ -9,13 +9,15 @@ class WebsiteKnowledge
         $this->applicationID = $applicationID;
     }
 
-    public function getType() {
+    public function getType()
+    {
         //todo
     }
 
     // Separator
 
-    public function get() {
+    public function get()
+    {
 
     }
 }

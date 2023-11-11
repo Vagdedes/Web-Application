@@ -13,7 +13,5 @@ require_once '/var/www/.structure/library/stripe/init.php';
 require_once '/var/www/.structure/library/builtbybit/init.php';
 require_once '/var/www/.structure/library/polymart/init.php';
 require_once '/var/www/.structure/library/account/init.php';
-require_once '/var/www/.structure/library/application/init.php';
 require_once '/var/www/.structure/library/gameCloud/init.php';
-require_once '/var/www/.structure/library/application/init.php';
 require_once '/var/www/.structure/library/google/init.php';

@@ -56,12 +56,12 @@ if (!$hasLicense) {
 } else if (empty($user_agent)) {
     $accessFailure = 128975028;
 } else {
-    $application = new Application(null);
+    $account = new Account();
     $user_agent_start = $user_agent_explode[0];
 
     // Product Finder
     if (is_numeric($user_agent_start) && $user_agent_start > 0) {
-        $validProductObject = $application->getAccount(0)->getProduct()->find($user_agent_start, false);
+        $validProductObject = $account->getProduct()->find($user_agent_start, false);
 
         if ($validProductObject->isPositiveOutcome()) {
             $productID = $user_agent_start;
@@ -70,7 +70,7 @@ if (!$hasLicense) {
 
     // Token Finder
     if ($productID === null) {
-        $download = $application->getAccount(0)->getDownloads()->find($user_agent_start);
+        $download = $account->getDownloads()->find($user_agent_start);
 
         if ($download->isPositiveOutcome()) {
             $download = $download->getObject();

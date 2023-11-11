@@ -1,5 +1,9 @@
 <?php
 
+use AccountModerations;
+use Account;
+use MethodReply;
+
 class AccountSession
 {
     private ?int $applicationID;

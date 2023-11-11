@@ -47,8 +47,8 @@ if (is_private_connection()) {
     if (empty($session_account_id)) {
         return;
     }
-    $application = new Application(null);
-    $staffAccount = $application->getAccount($session_account_id);
+    $account = new Account();
+    $staffAccount = $account->getNew($session_account_id);
 
     if (!$staffAccount->exists()) {
         return;

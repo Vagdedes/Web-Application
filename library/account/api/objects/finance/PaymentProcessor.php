@@ -110,9 +110,12 @@ class PaymentProcessor
         global $refresh_transactions_function;
 
         try {
-            $application = new Application($this->applicationID);
             $isIndividual = $account !== null;
-            $products = $application->getAccount(0)->getProduct()->find(null, false);
+
+            if (!$isIndividual) {
+                $account = new Account();
+            }
+            $products = $account->getProduct()->find(null, false);
 
             if ($products->isPositiveOutcome()) {
                 $products = $products->getObject();
@@ -273,7 +276,7 @@ class PaymentProcessor
                                             }
                                         } else {
                                             global $added_accounts_table;
-                                            $account = get_sql_query(
+                                            $query = get_sql_query(
                                                 $added_accounts_table,
                                                 array("account_id"),
                                                 array(
@@ -285,11 +288,11 @@ class PaymentProcessor
                                                 1
                                             );
 
-                                            if (!empty($account)) {
-                                                $account = $application->getAccount($account[0]->account_id);
+                                            if (!empty($query)) {
+                                                $account = $account->getNew($query[0]->account_id);
 
                                                 if (!$account->exists()) {
-                                                    $account = $application->getAccount(null, $credential);
+                                                    $account = $account->getNew(null, $credential);
 
                                                     if (!$account->exists()
                                                         || $account->getEmail()->isVerified()) {
@@ -360,7 +363,7 @@ class PaymentProcessor
                                     );
 
                                     if (!empty($query)) {
-                                        $account = $application->getAccount($query[0]->account_id);
+                                        $account = $account->getNew($query[0]->account_id);
 
                                         if ($account->exists()) {
                                             if ($ownership->active) {
@@ -400,12 +403,12 @@ class PaymentProcessor
 
                     // Separator
 
-                    $all = $application->getAccountSession();
+                    $all = $account->getSession();
                     $all = $all->getAlive(array("account_id"), $this::limit);
 
                     if (!empty($all)) {
                         foreach ($all as $row) {
-                            $account = $application->getAccount($row->account_id);
+                            $account = $account->getNew($row->account_id);
 
                             if ($account->exists()) {
                                 $this->run($account);

@@ -65,7 +65,7 @@ class GameCloudInformation
     public function getAccount($checkDeletion = true): Account
     {
         if ($this->account === null) {
-            $application = new Application(null);
+            $account = new Account();
 
             if ($this->user->isValid()) {
                 $query = get_accepted_platforms(array("accepted_account_id"), $this->user->getPlatform());
@@ -86,15 +86,15 @@ class GameCloudInformation
                     );
 
                     if (!empty($query)) {
-                        $this->account = $application->getAccount($query[0]->account_id, null, null, null, $checkDeletion);
+                        $this->account = $account->getNew($query[0]->account_id, null, null, null, $checkDeletion);
                     } else {
-                        $this->account = $application->getAccount(0);
+                        $this->account = $account;
                     }
                 } else {
-                    $this->account = $application->getAccount(0);
+                    $this->account = $account;
                 }
             } else {
-                $this->account = $application->getAccount(0);
+                $this->account = $account;
             }
         }
         return $this->account;

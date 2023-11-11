@@ -94,7 +94,7 @@ class AccountProductDownloads
         if (!file_exists($originalFile)) {
             return new MethodReply(false, "Failed to find original file.");
         }
-        $fileCopy = Application::DOWNLOADS_PATH
+        $fileCopy = Account::DOWNLOADS_PATH
             . ($fileProperties->file_rename !== null ? $fileProperties->file_rename : $fileProperties->file_name)
             . $newToken . "." . $fileProperties->file_type;
 

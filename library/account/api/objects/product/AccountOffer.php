@@ -9,10 +9,10 @@ class AccountOffer
         $this->account = $account;
     }
 
-    public function find($offerID = null, $checkOwnership = true, $accountID = null): MethodReply
+    public function find($offerID = null, $checkOwnership = true): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
-        $hasAccount = $accountID !== null;
+        $hasAccount = $this->account->exists();
         $hasOffer = !$hasAccount && $offerID !== null;
 
         if ($hasOffer) {
@@ -31,7 +31,7 @@ class AccountOffer
                 $product_offers_table,
                 null,
                 array(
-                    $hasAccount ? array("account_id", $accountID) : array("application_id", $applicationID),
+                    $hasAccount ? array("account_id", $this->account->getDetail("application_id")) : array("application_id", $applicationID),
                     array("deletion_date", null),
                     $hasOffer ? array("id", $offerID) : ""
                 ),

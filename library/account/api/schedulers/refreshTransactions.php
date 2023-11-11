@@ -10,7 +10,7 @@ if (function_exists("schedule_function_in_memory")) {
 
         if ($refresh_transactions_run && !has_session_account_id()) { // Staff team should avoid this delay
             private_file_get_contents(
-                "http://" . Application::LOAD_BALANCER_IP . "/async/refreshTransactions/",
+                "http://" . Account::LOAD_BALANCER_IP . "/async/refreshTransactions/",
                 true
             );
         }

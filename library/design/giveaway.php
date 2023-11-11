@@ -3,7 +3,7 @@
 
 function load_account_giveaway(Account $account): void
 {
-    $productGiveaway = $account->getGiveaway();
+    $productGiveaway = $account->getProductGiveaway();
     $currentGiveaway = $productGiveaway->getCurrent(null, 1, "14 days", true);
 
     if ($currentGiveaway->isPositiveOutcome()) { // Check if current giveaway exists

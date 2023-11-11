@@ -3,56 +3,55 @@
 class AccountRegistry
 {
 
-    private MethodReply $outcome;
+    private ?int $applicationID;
     public const DEFAULT_WEBHOOK = "https://discord.com/api/webhooks/1165260206951911524/BmTptuNVPRxpvCaCBZcXCc5r846i-amc38zIWZpF94YZxszlE8VWj_X2NL3unsbIWPlz";
 
-    public function __construct(?int            $applicationID, ?string $email, ?string $password, ?string $name,
-                                ?string         $firstName = null, ?string $middleName = null, ?string $lastName = null,
-                                ?AccountSession $session = null,
-                                ?string         $discordWebhook = self::DEFAULT_WEBHOOK)
+    public function __construct(?int $applicationID)
     {
-        $functionality = new Account($applicationID, 0);
+        $this->applicationID = $applicationID;
+    }
+
+    public function create(?string         $email, ?string $password, ?string $name,
+                           ?string         $firstName = null, ?string $middleName = null, ?string $lastName = null,
+                           ?AccountSession $session = null,
+                           ?string         $discordWebhook = self::DEFAULT_WEBHOOK): MethodReply
+    {
+        $functionality = new Account($this->applicationID, 0);
         $functionality = $functionality->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);
 
         if (!$functionality->isPositiveOutcome()) {
-            $this->outcome = new MethodReply(false, $functionality->getMessage());
-            return;
+            return new MethodReply(false, $functionality->getMessage());
         }
         $parameter = new ParameterVerification($email, ParameterVerification::TYPE_EMAIL, 5, 384);
 
         if (!$parameter->getOutcome()->isPositiveOutcome()) {
-            $this->outcome = new MethodReply(false, $parameter->getOutcome()->getMessage());
-            return;
+            return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
         $parameter = new ParameterVerification($password, null, 8, 64);
 
         if (!$parameter->getOutcome()->isPositiveOutcome()) {
-            $this->outcome = new MethodReply(false, $parameter->getOutcome()->getMessage());
-            return;
+            return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
         $parameter = new ParameterVerification($name, null, 2, 20);
 
         if (!$parameter->getOutcome()->isPositiveOutcome()) {
-            $this->outcome = new MethodReply(false, $parameter->getOutcome()->getMessage());
-            return;
+            return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
         $email = strtolower($email);
-        $account = new Account($applicationID, null, $email);
+        $account = new Account($this->applicationID, null, $email);
 
         if ($account->exists()) {
-            $this->outcome = new MethodReply(false, "Account with this email already exists.");
-            return;
+            return new MethodReply(false, "Account with this email already exists.");
         }
-        $account = new Account($applicationID, null, null, $name);
+        $account = new Account($this->applicationID, null, null, $name);
 
         if ($account->exists()) {
-            $this->outcome = new MethodReply(false, "Account with this name already exists.");
-            return;
+            return new MethodReply(false, "Account with this name already exists.");
         }
         global $accounts_table;
 
         if ($session === null) {
-            $session = new AccountSession($applicationID);
+            $session = new AccountSession($this->applicationID);
             $session->setCustomKey("website", get_client_ip_address());
         }
         if ($session->isCustom() // Protected by captcha when not custom
@@ -60,7 +59,7 @@ class AccountRegistry
                 $accounts_table,
                 array("id"),
                 array(
-                    array("application_id", $session->getApplicationID()),
+                    array("application_id", $this->applicationID),
                     array("type", $session->getType()),
                     array("custom_id", $session->getCustomKey()),
                     array("deletion_date", null),
@@ -69,8 +68,7 @@ class AccountRegistry
                 null,
                 1
             ))) {
-            $this->outcome = new MethodReply(false, "You cannot create more accounts for now, please try again later.");
-            return;
+            return new MethodReply(false, "You cannot create more accounts for now, please try again later.");
         }
         if (!sql_insert($accounts_table,
             array(
@@ -83,22 +81,19 @@ class AccountRegistry
                 "middle_name" => $middleName,
                 "last_name" => $lastName,
                 "creation_date" => get_current_date(),
-                "application_id" => $applicationID
+                "application_id" => $this->applicationID
             ))) {
-            $this->outcome = new MethodReply(false, "Failed to create new account.");
-            return;
+            return new MethodReply(false, "Failed to create new account.");
         }
-        $account = new Account($applicationID, null, $email, null, null, true, false);
+        $account = new Account($this->applicationID, null, $email, null, null, true, false);
 
         if (!$account->exists()) {
-            $this->outcome = new MethodReply(false, "Failed to find newly created account.");
-            return;
+            return new MethodReply(false, "Failed to find newly created account.");
         }
         $account->clearMemory();
 
         if (!$account->getHistory()->add("register", null, $email)) {
-            $this->outcome = new MethodReply(false, "Failed to update user history.");
-            return;
+            return new MethodReply(false, "Failed to update user history.");
         }
         $emailVerification = $account->getEmail()->initiateVerification($email);
 
@@ -106,15 +101,13 @@ class AccountRegistry
             $message = $emailVerification->getMessage();
 
             if ($message !== null) {
-                $this->outcome = new MethodReply(false, $message);
-                return;
+                return new MethodReply(false, $message);
             }
         }
         $session = $session->createSession($account);
 
         if (!$session->isPositiveOutcome()) {
-            $this->outcome = new MethodReply(false, $session->getMessage());
-            return;
+            return new MethodReply(false, $session->getMessage());
         }
         $this->outcome = new MethodReply(true, "Welcome!", $account);
 
@@ -125,24 +118,20 @@ class AccountRegistry
                 array("websiteUsername" => $name)
             );
         }
-    }
-
-    public function getOutcome(): MethodReply
-    {
         return $this->outcome;
     }
 
-    public static function getAccountAmount(?int $applicationID): int
+    public function getAccountAmount(): int
     {
         global $accounts_table;
         set_sql_cache(AccountSession::session_cache_time, self::class);
         return sizeof(get_sql_query(
-            $accounts_table,
-            array("id"),
-            array(
-                array("application_id", $applicationID),
-                array("deletion_date", null),
-            ))
+                $accounts_table,
+                array("id"),
+                array(
+                    array("application_id", $this->applicationID),
+                    array("deletion_date", null),
+                ))
         );
     }
 }

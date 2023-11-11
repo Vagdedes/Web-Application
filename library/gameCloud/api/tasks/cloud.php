@@ -37,7 +37,7 @@ if (true
     $user_agent = get_user_agent();
     $purpose = new GameCloudConnection($data);
     $purpose = $purpose->getProperties();
-    $application = new Application(null);
+    $account = new Account();
 
     if (!is_object($purpose)) {
         if ($data === false) {
@@ -119,7 +119,7 @@ if (true
 
     if (!$isTokenSearch) {
         if (is_numeric($user_agent) && $user_agent > 0) {
-            $validProductObject = $application->getAccount(0)->getProduct()->find($user_agent, false);
+            $validProductObject = $account->getProduct()->find($user_agent, false);
 
             if ($validProductObject->isPositiveOutcome()) {
                 $validProductObject = $validProductObject->getObject()[0];
@@ -134,7 +134,7 @@ if (true
             }
         }
     } else { // Token Finder
-        $download = $application->getAccount(0)->getDownloads()->find($user_agent);
+        $download = $account->getDownloads()->find($user_agent);
 
         if ($download->isPositiveOutcome()) {
             $download = $download->getObject();
@@ -1432,7 +1432,7 @@ if (true
                                         ))) {
                                         $customerSupport = new CustomerSupport();
                                         $customerSupport->clearCache();
-                                        $account = $application->getAccount(null, CustomerSupport::EMAIL);
+                                        $account = $account->getNew(null, CustomerSupport::EMAIL);
 
                                         if ($account->exists()
                                             && !has_memory_cooldown(

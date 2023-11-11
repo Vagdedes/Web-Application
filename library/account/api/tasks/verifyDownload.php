@@ -15,9 +15,8 @@ $cache = get_key_value_pair($cacheKey);
 if (is_string($cache) || is_numeric($cache) && $cache > 0) {
     echo $cache;
 } else {
-    $application = new Application(null);
-    $download = $application->getAccount(0);
-    $download = $download->getDownloads()->find(properly_sql_encode($token));
+    $account = new Account();
+    $download = $account->getDownloads()->find(properly_sql_encode($token));
     $result = "false";
 
     if ($download->isPositiveOutcome()) {

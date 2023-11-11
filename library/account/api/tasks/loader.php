@@ -44,9 +44,9 @@ function load_page(bool $loadContents = true, ?callable $callable = null): void
         <head>" . get_google_analytics() . "
             <title>Idealistic AI | $title</title>
             <meta name='description' content='$metaDescription'>
-        	<link rel='shortcut icon' type='image/png' href='" . Application::IMAGES_PATH . "icon.png'>
+        	<link rel='shortcut icon' type='image/png' href='" . Account::IMAGES_PATH . "icon.png'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <link rel='stylesheet' href='" . Application::WEBSITE_DESIGN_PATH . "universal.css?id=$randomNumber>'>
+            <link rel='stylesheet' href='" . Account::WEBSITE_DESIGN_PATH . "universal.css?id=$randomNumber>'>
             <script src='https://www.google.com/recaptcha/api.js'></script>
         </head>
     <body>";
@@ -55,8 +55,8 @@ function load_page(bool $loadContents = true, ?callable $callable = null): void
         load_page_intro(null, false, $loadContents);
         load_account_page_message("Website Error", "Please stop refreshing the page so frequently");
     } else {
-        $application = new Application(null);
-        $session = $application->getAccountSession();
+        $account = new Account();
+        $session = $account->getSession();
         $sessionObject = $session->getSession();
         $account = $sessionObject->getObject();
         $isLoggedIn = $sessionObject->isPositiveOutcome() && $account->exists();
@@ -64,11 +64,7 @@ function load_page(bool $loadContents = true, ?callable $callable = null): void
 
         switch ($directory) {
             case "changePassword":
-                $callable($account, $isLoggedIn, $application);
-                break;
             case "profile":
-                $callable($isLoggedIn, $application);
-                break;
             case "contact":
             case "exit":
             case "changeEmail":

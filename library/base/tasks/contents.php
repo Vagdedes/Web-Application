@@ -5,9 +5,8 @@ $path = get_form_get("path");
 if (!empty($path)) {
     require_once '/var/www/.structure/library/base/communication.php';
     require_once '/var/www/.structure/library/base/requirements/account_systems.php';
-    $application = new Application(null);
-    $session = $application->getAccountSession();
-    $session = $session->getSession();
+    $account = new Account();
+    $session = $account->getSession()->getSession();
 
     if ($session->isPositiveOutcome()
         && $session->getObject()->getPermissions()->hasPermission(
@@ -32,7 +31,7 @@ if (!empty($path)) {
 
         if (json_decode($contents)) {
             if (isset($_GET["download"])) {
-                copy_and_send_file_download($contents, Application::DOWNLOADS_PATH);
+                copy_and_send_file_download($contents, Account::DOWNLOADS_PATH);
             } else {
                 header('Content-type: Application/JSON');
             }
@@ -48,9 +47,8 @@ if (!empty($path)) {
         if (is_private_connection(true)) {
             header('Content-type: Application/JSON');
             require_once '/var/www/.structure/library/base/requirements/account_systems.php';
-            $application = new Application(null);
-            $session = $application->getAccountSession();
-            $session = $session->getSession();
+            $account = new Account(null);
+            $session = $account->getSession()->getSession();
 
             if (!$session->isPositiveOutcome()) {
                 $includedFiles = get_included_files();
