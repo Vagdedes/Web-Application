@@ -118,6 +118,12 @@ class AccountProduct
                                 unset($object->tiers->all[$childArrayKey]);
                                 $object->tiers->all[$tier->id] = $tier;
 
+                                if ($tier->required_permission !== null) {
+                                    $tier->required_permission = explode("|", $tier->required_permission);
+                                }
+                                if ($tier->give_permission !== null) {
+                                    $tier->give_permission = explode("|", $tier->give_permission);
+                                }
                                 if ($tier->price === null) {
                                     $object->tiers->free[$tier->id] = $tier;
                                 } else {
@@ -257,6 +263,9 @@ class AccountProduct
                             $object->supported_versions = array();
 
                             foreach ($object->downloads as $value) {
+                                if ($value->required_permission !== null) {
+                                    $value->required_permission = explode("|", $value->required_permission);
+                                }
                                 $hash = string_to_integer($value->file_name);
                                 $hash = overflow_integer(($hash * 31) + string_to_integer($value->file_type));
                                 $hash = overflow_integer(($hash * 31) + string_to_integer($value->required_permission));
