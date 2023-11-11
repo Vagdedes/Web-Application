@@ -34,13 +34,11 @@ function get_cookie($name)
     return $_COOKIE[$name] ?? null;
 }
 
-function set_cookie_to_value_if_not($name, $value, $time): bool
+function set_cookie_to_value_if_not($name, $value, $time, bool $force = false): bool
 {
     if (!cookie_exists($name)) {
         return add_cookie($name, $value, $time);
-    } else if ($_COOKIE[$name] != $value) {
-        return delete_cookie($name) && add_cookie($name, $value, $time);
-    } else {
+    } else if ($force || $_COOKIE[$name] != $value) {
         add_cookie($name, $value, $time);
     }
     return false;

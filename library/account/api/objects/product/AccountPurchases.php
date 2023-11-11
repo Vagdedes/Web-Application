@@ -70,9 +70,7 @@ class AccountPurchases
                     $tier = $product->tiers->all[$row->tier_id] ?? null;
 
                     if ($tier !== null && $tier->give_permission !== null) {
-                        $this->account->getPermissions()->addSystemPermission(
-                            explode("|", $tier->give_permission)
-                        );
+                        $this->account->getPermissions()->addSystemPermission($tier->give_permission);
                     }
                 }
             }
@@ -110,9 +108,7 @@ class AccountPurchases
                         if ($tierObject !== false) {
                             if ($tierObject !== null
                                 && $tierObject->give_permission !== null) {
-                                $this->account->getPermissions()->addSystemPermission(
-                                    explode("|", $tierObject->give_permission)
-                                );
+                                $this->account->getPermissions()->addSystemPermission($tierObject->give_permission);
                             }
                             $object = new stdClass();
                             $object->id = random_number();
