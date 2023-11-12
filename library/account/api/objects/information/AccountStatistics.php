@@ -13,7 +13,7 @@ class AccountStatistics
         STRING = 3,
         BOOLEAN = 4;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
         $this->startDate = null;
@@ -21,7 +21,7 @@ class AccountStatistics
         $this->includeAccount = true;
     }
 
-    public function getType($id): MethodReply
+    public function getType(int|string $id): MethodReply
     {
         global $statistic_types_table;
         $query = get_sql_query(
@@ -40,7 +40,7 @@ class AccountStatistics
             : new MethodReply(true, null, $query[0]);
     }
 
-    private function getTable($type): ?string
+    private function getTable(int $type): ?string
     {
         switch ($type) {
             case self::INTEGER:
@@ -63,7 +63,7 @@ class AccountStatistics
         }
     }
 
-    private function getWhereArguments(MethodReply $type, $key): array
+    private function getWhereArguments(MethodReply $type, int|string $key): array
     {
         $account = $this->includeAccount
             ? ($this->account->exists() ? array("account_id", $this->account->getDetail("account_id")) : array("account_id", null))
@@ -94,7 +94,8 @@ class AccountStatistics
 
     // Separator
 
-    private function privateGet($table, MethodReply $type, $key, $limit = 1, $get = null): MethodReply
+    private function privateGet(string $table, MethodReply $type, int|string $key,
+                                int    $limit = 1, $get = null): MethodReply
     {
         if ($type->isPositiveOutcome()) {
             $query = get_sql_query(
@@ -115,7 +116,7 @@ class AccountStatistics
         }
     }
 
-    private function privateSet($date, $table, $row, $value): MethodReply
+    private function privateSet(string $date, string $table, object $row, mixed $value): MethodReply
     {
         return new MethodReply(set_sql_query(
             $table,
@@ -131,7 +132,8 @@ class AccountStatistics
         ));
     }
 
-    private function privateAdd($date, $table, MethodReply $type, $key, $value, $duration = null): MethodReply
+    private function privateAdd(string     $date, string $table, MethodReply $type,
+                                int|string $key, mixed $value, null|int|string $duration = null): MethodReply
     {
         if ($type->isPositiveOutcome()) {
             $account = $this->includeAccount && $this->account->exists()
@@ -156,20 +158,20 @@ class AccountStatistics
 
     // Separator
 
-    public function setDates($startDate, $endDate): void
+    public function setDates(string $startDate, string $endDate): void
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
     }
 
-    public function includeAccount($include): void
+    public function includeAccount(bool $include): void
     {
         $this->includeAccount = $include;
     }
 
     // Separator
 
-    public function get($statisticType, $databaseType, $key): MethodReply
+    public function get(int $statisticType, int|string $databaseType, int|string $key): MethodReply
     {
         $outcome = $this->privateGet(
             $this->getTable($statisticType),
@@ -184,7 +186,8 @@ class AccountStatistics
         );
     }
 
-    public function set($statisticType, $databaseType, $key, $value, $limit = 1): MethodReply
+    public function set(int        $statisticType, int|string $databaseType,
+                        int|string $key, mixed $value, int $limit = 1): MethodReply
     {
         $date = get_current_date();
         $table = $this->getTable($statisticType);
@@ -211,7 +214,8 @@ class AccountStatistics
         }
     }
 
-    public function add($statisticType, $databaseType, $key, $value, $duration): MethodReply
+    public function add(int        $statisticType, int|string $databaseType,
+                        int|string $key, mixed $value, int|string $duration): MethodReply
     {
         return $this->privateAdd(
             get_current_date(),
@@ -223,7 +227,8 @@ class AccountStatistics
         );
     }
 
-    public function delete($statisticType, $databaseType, $key, $limit = 1): MethodReply
+    public function delete(int        $statisticType, int|string $databaseType,
+                           int|string $key, int $limit = 1): MethodReply
     {
         $date = get_current_date();
         $table = $this->getTable($statisticType);
@@ -253,7 +258,8 @@ class AccountStatistics
         }
     }
 
-    public function permanentlyDelete($statisticType, $databaseType, $key, $limit = 1): MethodReply
+    public function permanentlyDelete(int        $statisticType, int|string $databaseType,
+                                      int|string $key, int $limit = 1): MethodReply
     {
         $type = $this->getType($databaseType);
         return new MethodReply(
@@ -267,7 +273,7 @@ class AccountStatistics
         );
     }
 
-    public function exists($statisticType, $databaseType, $key): bool
+    public function exists(int $statisticType, int|string $databaseType, int|string $key): bool
     {
         return $this->privateGet(
             $this->getTable($statisticType),
@@ -278,7 +284,8 @@ class AccountStatistics
         )->isPositiveOutcome();
     }
 
-    public function list($statisticType, $databaseType, $key, $limit = 1): MethodReply
+    public function list(int        $statisticType, int|string $databaseType,
+                         int|string $key, int $limit = 1): MethodReply
     {
         return $this->privateGet(
             $this->getTable($statisticType),

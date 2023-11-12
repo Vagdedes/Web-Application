@@ -6,7 +6,7 @@ class AccountModerations
 
     public const ACCOUNT_BAN = "account_ban";
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
@@ -43,7 +43,7 @@ class AccountModerations
         return $array;
     }
 
-    public function getResult($name, $select = null): MethodReply
+    public function getResult(int|string $name, ?array $select = null): MethodReply
     {
         global $moderations_table;
         $hasSelect = $select !== null;
@@ -89,7 +89,9 @@ class AccountModerations
         }
     }
 
-    public function executeAction($accountID, $moderation, $reason, $duration = null): MethodReply
+    public function executeAction(int|string       $accountID, int|string $moderation,
+                                  int|string|float $reason,
+                                  int|string|null  $duration = null): MethodReply
     {
         if (!is_numeric($moderation)) {
             $moderationObject = $this->getResult($moderation);
@@ -142,7 +144,8 @@ class AccountModerations
         return new MethodReply(false, "Failed to execute moderation action.");
     }
 
-    public function cancelAction($accountID, $moderation, $reason = null): MethodReply
+    public function cancelAction(int|string            $accountID, int|string $moderation,
+                                 int|string|float|null $reason = null): MethodReply
     {
         if (!is_numeric($moderation)) {
             $moderationObject = $this->getResult($moderation);
@@ -193,7 +196,7 @@ class AccountModerations
         return new MethodReply(false, "Failed to execute moderation action.");
     }
 
-    public function getReceivedAction($moderation, $active = true): MethodReply
+    public function getReceivedAction(int|string $moderation, bool $active = true): MethodReply
     {
         if (!is_numeric($moderation)) {
             $moderationObject = $this->getResult($moderation);
@@ -229,7 +232,7 @@ class AccountModerations
             new MethodReply(true, $array[0]["creation_reason"], $array[0]);
     }
 
-    public function hasExecutedAction($moderation, $active = true): bool
+    public function hasExecutedAction(int|string $moderation, bool $active = true): bool
     {
         if (!is_numeric($moderation)) {
             $moderationObject = $this->getResult($moderation);
@@ -259,7 +262,7 @@ class AccountModerations
         ));
     }
 
-    public function listReceivedActions($active = true): array
+    public function listReceivedActions(bool $active = true): array
     {
         global $executed_moderations_table;
         set_sql_cache(null, self::class);
@@ -295,7 +298,7 @@ class AccountModerations
         return $array;
     }
 
-    public function listExecutedActions($active = true): array
+    public function listExecutedActions(bool $active = true): array
     {
         global $executed_moderations_table;
         set_sql_cache(null, self::class);

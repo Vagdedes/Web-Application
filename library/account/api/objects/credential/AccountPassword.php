@@ -6,12 +6,12 @@ class AccountPassword
 
     private const tooManyChanges = 3;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function requestChange($cooldown = "1 minute"): MethodReply
+    public function requestChange(int|string $cooldown = "1 minute"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_PASSWORD, true);
@@ -63,7 +63,7 @@ class AccountPassword
         return new MethodReply(true, "An email has been sent to you to change your password.");
     }
 
-    public function completeChange($token, $password, $cooldown = "1 hour"): MethodReply
+    public function completeChange(string $token, int|float|string $password, int|string $cooldown = "1 hour"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_CHANGE_PASSWORD);

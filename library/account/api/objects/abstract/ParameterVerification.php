@@ -13,11 +13,11 @@ class ParameterVerification
     private MethodReply $outcome;
 
     public function __construct($parameter,
-                                $mustBeType = null,
-                                $minSize = null, $maxSize = null,
-                                $mustContain = null, $mustNotContain = null,
-                                $mustStartWith = null, $mustNotStartWith = null,
-                                $mustEndWidth = null, $mustNotEndWidth = null)
+                                null|array|int $mustBeType = null,
+                                ?int $minSize = null, ?int $maxSize = null,
+                                ?string $mustContain = null, ?string $mustNotContain = null,
+                                ?string $mustStartWith = null, ?string $mustNotStartWith = null,
+                                ?string $mustEndWidth = null, ?string $mustNotEndWidth = null)
     {
         if ($mustBeType !== null) {
             if (is_array($mustBeType)) {

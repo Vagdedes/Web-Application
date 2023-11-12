@@ -4,24 +4,28 @@ class AccountReviews
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function add() {
+    public function add()
+    {
         //todo
     }
 
-    public function remove() {
+    public function remove()
+    {
 
     }
 
-    public function modify() {
+    public function modify()
+    {
 
     }
 
-    public function getHistory() {
+    public function getHistory()
+    {
 
     }
 }

@@ -6,7 +6,7 @@ class MinecraftPlatform
     private ?string $username;
     private ?int $id, $platform;
 
-    public function __construct($url)
+    public function __construct(string $url)
     {
         if (!empty($url)
             && (strpos($url, "/members/") !== false

@@ -72,7 +72,7 @@ class AccountPatreon
         return $this->retrieve;
     }
 
-    private function find($name, $tiers = null): MethodReply
+    private function find(string $name, ?array $tiers = null): MethodReply
     {
         $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers);
 

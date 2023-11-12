@@ -6,7 +6,7 @@ class AccountRole
     private ?string $name, $prefix, $suffix;
     private bool $public;
 
-    public function __construct($applicationID, $id, $checkDeletion = true)
+    public function __construct(?int $applicationID, int|string $id, bool $checkDeletion = true)
     {
         global $roles_table;
         set_sql_cache();
@@ -69,7 +69,7 @@ class AccountRole
         return $this->priority;
     }
 
-    public function hasPermission($permission): bool
+    public function hasPermission(string $permission): bool
     {
         global $role_permissions_table;
         set_sql_cache();
@@ -88,7 +88,7 @@ class AccountRole
 
     public function getPermissions(): array
     {
-        $cacheKey = array(self::class, "role_id"=>$this->id);
+        $cacheKey = array(self::class, "role_id" => $this->id);
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {

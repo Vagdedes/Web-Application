@@ -4,12 +4,12 @@ class AccountEmail
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function requestVerification($email, $cooldown = "1 minute"): MethodReply
+    public function requestVerification(string $email, int|string $cooldown = "1 minute"): MethodReply
     {
         if (!is_email($email)) {
             return new MethodReply(false, "Please enter a valid email address.");
@@ -55,7 +55,7 @@ class AccountEmail
         return new MethodReply($resultOutcome, $result->getMessage());
     }
 
-    public function completeVerification($token, $cooldown = "1 day"): MethodReply
+    public function completeVerification(string $token, int|string $cooldown = "1 day"): MethodReply
     {
         $account = $this->account;
         $exists = $account->exists();
@@ -155,7 +155,7 @@ class AccountEmail
         return new MethodReply(true, "Your email verification has been successfully completed.");
     }
 
-    public function initiateVerification($email = null): MethodReply
+    public function initiateVerification(?string $email = null): MethodReply
     {
         if ($email === null) {
             if ($this->isVerified()) {
@@ -233,7 +233,8 @@ class AccountEmail
         ));
     }
 
-    public function send($case, $detailsArray = null, $type = "account", $unsubscribe = true): bool
+    public function send(string $case, ?array $detailsArray = null,
+                         string $type = "account", bool $unsubscribe = true): bool
     {
         $applicationID = $this->account->getDetail("application_id");
 

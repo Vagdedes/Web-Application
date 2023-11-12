@@ -7,7 +7,7 @@ if (is_private_connection()) {
     require_once '/var/www/.structure/library/base/form.php';
     require_once '/var/www/.structure/library/base/requirements/account_systems.php';
 
-    function addFormInput($type, $key, $preview): void
+    function addFormInput(string $type, int|string $key, int|string|array|float $preview): void
     {
         if (is_array($preview)) {
             if (empty($preview)) {
@@ -25,12 +25,12 @@ if (is_private_connection()) {
         }
     }
 
-    function addFormSubmit($key, $preview): void
+    function addFormSubmit(int|string|null $key, int|string|array|float $preview): void
     {
         echo "<input type='submit'" . ($key == null ? "" : " name='$key' ") . "value='$preview' style='margin: 0; padding: 0;'><br>";
     }
 
-    function createForm($method, $space, $url = null): void
+    function createForm(string $method, bool $space, ?string $url = null): void
     {
         echo ($space ? "<p>" : "") . "<form method='$method'" . ($url == null ? "" : " action='$url' ") . "style='margin: 0; padding: 0;'>";
     }

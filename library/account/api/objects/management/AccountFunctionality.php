@@ -17,7 +17,7 @@ class AccountFunctionality
         AUTO_UPDATER = "auto_updater", ADD_NOTIFICATION = "add_notification", GET_NOTIFICATION = "get_notification",
         VIEW_ACCOUNTS = "view_accounts", COMPLETE_CHANGE_PASSWORD = "complete_change_password";
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
@@ -54,7 +54,7 @@ class AccountFunctionality
         return $array;
     }
 
-    public function getResult($name, $checkCooldown = false, $select = null): MethodReply
+    public function getResult(int|string $name, bool $checkCooldown = false, ?array $select = null): MethodReply
     {
         global $functionalities_table;
         $hasSelect = $select !== null;
@@ -122,7 +122,7 @@ class AccountFunctionality
         );
     }
 
-    public function addInstantCooldown($name, $duration): MethodReply
+    public function addInstantCooldown(string $name, int|string $duration): MethodReply
     {
         if ($this->account->exists()) {
             $this->account->getCooldowns()->addInstant($name, $duration);
@@ -132,7 +132,7 @@ class AccountFunctionality
         }
     }
 
-    public function addBufferCooldown($name, $threshold, $duration): MethodReply
+    public function addBufferCooldown(string $name, int|string $threshold, int|string $duration): MethodReply
     {
         if ($this->account->exists()) {
             $this->account->getCooldowns()->addBuffer($name, $threshold, $duration);
@@ -142,7 +142,8 @@ class AccountFunctionality
         }
     }
 
-    public function executeAction($accountID, $functionality, $reason, $duration = null): MethodReply
+    public function executeAction(int|string       $accountID, int|string $functionality,
+                                  int|float|string $reason, int|string|null $duration = null): MethodReply
     {
         if (!is_numeric($functionality)) {
             $functionalityObject = $this->getResult($functionality);
@@ -191,7 +192,7 @@ class AccountFunctionality
         return new MethodReply(false);
     }
 
-    public function cancelAction($accountID, $functionality, $reason = null): MethodReply
+    public function cancelAction(int|string $accountID, int|string $functionality, string|int|null|float $reason = null): MethodReply
     {
         if (!is_numeric($functionality)) {
             $functionalityObject = $this->getResult($functionality);
@@ -242,7 +243,7 @@ class AccountFunctionality
         return new MethodReply(false, "Failed to execute moderation action.");
     }
 
-    public function getReceivedAction($functionality, $active = true): MethodReply
+    public function getReceivedAction(int|string $functionality, bool $active = true): MethodReply
     {
         if (!is_numeric($functionality)) {
             $functionalityObject = $this->getResult($functionality);
@@ -278,7 +279,7 @@ class AccountFunctionality
             new MethodReply(true, $array[0]["creation_reason"], $array[0]);
     }
 
-    public function hasExecutedAction($functionality, $active = true): bool
+    public function hasExecutedAction(int|string $functionality, bool $active = true): bool
     {
         if (!is_numeric($functionality)) {
             $functionalityObject = $this->getResult($functionality);
@@ -308,7 +309,7 @@ class AccountFunctionality
         ));
     }
 
-    public function listReceivedActions($active = true): array
+    public function listReceivedActions(bool $active = true): array
     {
         global $blocked_functionalities_table;
         set_sql_cache(null, self::class);
@@ -344,7 +345,7 @@ class AccountFunctionality
         return $array;
     }
 
-    public function listExecutedActions($active = true): array
+    public function listExecutedActions(bool $active = true): array
     {
         global $blocked_functionalities_table;
         set_sql_cache(null, self::class);

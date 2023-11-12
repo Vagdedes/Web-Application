@@ -4,12 +4,12 @@ class AccountProductDownloads
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    private function findDownloadableFile($files): MethodReply
+    private function findDownloadableFile(array $files): MethodReply
     {
         if (empty($files)) {
             return new MethodReply(false, "No files available for download.");
@@ -30,7 +30,8 @@ class AccountProductDownloads
             new MethodReply(false, "No download available for you currently.");
     }
 
-    public function sendFileDownload($productID, $requestedByToken = null, $cooldown = "2 seconds"): MethodReply
+    public function sendFileDownload(int|string $productID, int|string $requestedByToken = null,
+                                     int|string $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::DOWNLOAD_PRODUCT, true);
@@ -137,7 +138,7 @@ class AccountProductDownloads
         exit();
     }
 
-    public function getList($active = false, $limit = 0): array
+    public function getList(bool $active = false, int $limit = 0): array
     {
         global $product_downloads_table;
         set_sql_cache(null, self::class);
@@ -153,7 +154,7 @@ class AccountProductDownloads
         );
     }
 
-    public function getCount($active = false, $limit = 0): int
+    public function getCount(bool $active = false, int $limit = 0): int
     {
         global $product_downloads_table;
         set_sql_cache(null, self::class);
@@ -171,12 +172,12 @@ class AccountProductDownloads
         );
     }
 
-    public function has($active = false): bool
+    public function has(bool $active = false): bool
     {
         return $this->getCount($active, 1) > 0;
     }
 
-    public function verify($token, $active = false): bool
+    public function verify(int|string $token, bool $active = false): bool
     {
         global $product_downloads_table;
         set_sql_cache(null, self::class);
@@ -193,7 +194,7 @@ class AccountProductDownloads
         ));
     }
 
-    public function find($token): MethodReply
+    public function find(int|string $token): MethodReply
     {
         global $product_downloads_table;
         $query = get_sql_query(

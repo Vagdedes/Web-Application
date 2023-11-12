@@ -12,7 +12,7 @@ function clear_patreon_subscription_cache(): void
     ), true);
 }
 
-function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): array
+function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTiers = null): array
 {
     $hasIgnoreTiers = $ignoreTiers !== null;
     $hasTargetTiers = $ignoreTiers !== null;
@@ -85,7 +85,7 @@ function get_patreon1_subscriptions($ignoreTiers = null, $targetTiers = null): a
     }
 }
 
-function get_patreon2_subscriptions($ignoreTiers = null, $targetTiers = null): array
+function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTiers = null): array
 {
     $hasIgnoreTiers = $ignoreTiers !== null;
     $hasTargetTiers = $ignoreTiers !== null;

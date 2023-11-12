@@ -13,14 +13,14 @@ class AccountSession
         session_cookie_expiration = 86400 * 30,
         session_cache_time = "1 minute";
 
-    public function __construct($applicationID)
+    public function __construct(?int $applicationID)
     {
         $this->applicationID = $applicationID;
         $this->type = null;
         $this->customKey = null;
     }
 
-    public function setCustomKey($type, $customKey): void
+    public function setCustomKey(int|string $type, int|string $customKey): void
     {
         $this->type = is_numeric($type) ? $type : string_to_integer($type, true);
         $this->customKey = is_numeric($customKey) ? $customKey : string_to_integer($this->customKey, true);
@@ -51,7 +51,7 @@ class AccountSession
         return new TwoFactorAuthentication($this);
     }
 
-    public function getAlive($select = null, $limit = 0): array
+    public function getAlive(?array $select = null, int $limit = 0): array
     {
         global $account_sessions_table;
         $date = get_current_date();
@@ -72,7 +72,7 @@ class AccountSession
         );
     }
 
-    public function getAll($select = array("account_id"), $limit = 0): array
+    public function getAll(array $select = array("account_id"), int $limit = 0): array
     {
         global $account_sessions_table;
         $cacheKey = array(self::class, $select, $limit, "all");
@@ -128,7 +128,7 @@ class AccountSession
         return $this->isCustom() || delete_cookie(self::session_key_name);
     }
 
-    private function clearTokenCache($token): void
+    private function clearTokenCache(int|string $token): void
     {
         clear_memory(array(
             array(
@@ -329,7 +329,7 @@ class AccountSession
         return new MethodReply(false, "Failed to find available session.");
     }
 
-    public function deleteSession($accountID): MethodReply
+    public function deleteSession(int|string $accountID): MethodReply
     {
         $key = $this->createKey();
         $hasCustomKey = $this->isCustom();

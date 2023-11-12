@@ -6,28 +6,33 @@ class AccountAffiliate
 
     //todo introduce constants that are null application-id
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function getCampaign() {
+    public function getCampaign()
+    {
 
     }
 
-    public function createCampaign() {
+    public function createCampaign()
+    {
 
     }
 
-    public function deleteCampaign() {
+    public function deleteCampaign()
+    {
 
     }
 
-    public function completeCampaign() {
+    public function completeCampaign()
+    {
 
     }
 
-    public function failCampaign() {
+    public function failCampaign()
+    {
 
     }
 }

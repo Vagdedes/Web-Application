@@ -16,12 +16,12 @@ class PaymentProcessor
         STRIPE = AccountAccounts::STRIPE_EMAIL,
         ALL_TYPES = array(self::PAYPAL, self::STRIPE);
 
-    public function __construct($applicationID)
+    public function __construct(?int $applicationID)
     {
         $this->applicationID = $applicationID;
     }
 
-    public function getSource($transaction, $returnIncomplete = false): ?array
+    public function getSource(object $transaction, bool $returnIncomplete = false): ?array
     {
         if (isset($transaction->CUSTOM)) {
             $custom = $transaction->CUSTOM;
@@ -66,7 +66,7 @@ class PaymentProcessor
         return null;
     }
 
-    public function getDetails($transactionID): MethodReply
+    public function getDetails(int|string $transactionID): MethodReply
     {
         $paypal = find_paypal_transactions_by_id($transactionID);
 
@@ -90,7 +90,7 @@ class PaymentProcessor
         return new MethodReply(false);
     }
 
-    public function queue($transactionID): bool
+    public function queue(int|string $transactionID): bool
     {
         $cache = get_key_value_pair($this::queue_key);
 
@@ -105,7 +105,7 @@ class PaymentProcessor
     /**
      * @throws Exception
      */
-    public function run(Account $account = null)
+    public function run(Account $account = null): void
     {
         global $refresh_transactions_function;
 
@@ -428,7 +428,7 @@ class PaymentProcessor
         }
     }
 
-    private function sendGeneralPurchaseEmail($email, $transactionID, $date): void
+    private function sendGeneralPurchaseEmail(string $email, int|string $transactionID, string $date): void
     {
         global $unknown_email_processing_table;
         $email = strtolower($email);

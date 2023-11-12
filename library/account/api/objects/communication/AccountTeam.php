@@ -6,7 +6,7 @@ class AccountTeam
 
     //todo introduce constants that are null application-id
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
@@ -40,27 +40,33 @@ class AccountTeam
 
     // Separator
 
-    public function invite() {
+    public function invite()
+    {
 
     }
 
-    public function kick() {
+    public function kick()
+    {
 
     }
 
-    public function acceptInvite() {
+    public function acceptInvite()
+    {
 
     }
 
-    public function denyInvite() {
+    public function denyInvite()
+    {
 
     }
 
-    public function deleteInvite() {
+    public function deleteInvite()
+    {
 
     }
 
-    public function modifyInvitation() {
+    public function modifyInvitation()
+    {
 
     }
 }

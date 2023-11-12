@@ -8,7 +8,7 @@ class LanguageTranslation
 
     //todo introduce constants that are null application-id
 
-    public function __construct($applicationID)
+    public function __construct(?int$applicationID)
     {
         $this->applicationID = $applicationID;
     }
@@ -18,7 +18,7 @@ class LanguageTranslation
         $value = null;
 
         if ($replace === null) {
-            return $value;
+            return null;
         } else {
             $placeholder = new InformationPlaceholder();
             return $placeholder->replace($value, $replace);

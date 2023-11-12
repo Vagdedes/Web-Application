@@ -4,7 +4,7 @@ class WebsiteKnowledge
 {
     private ?int $applicationID;
 
-    public function __construct($applicationID)
+    public function __construct(?int $applicationID)
     {
         $this->applicationID = $applicationID;
     }

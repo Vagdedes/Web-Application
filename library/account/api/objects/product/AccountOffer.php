@@ -4,12 +4,12 @@ class AccountOffer
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function find($offerID = null, $checkOwnership = true): MethodReply
+    public function find(int|string $offerID = null, bool $checkOwnership = true): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
         $hasAccount = $this->account->exists();

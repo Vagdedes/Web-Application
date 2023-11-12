@@ -4,12 +4,12 @@ class AccountPhoneNumber
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function send($case, $detailsArray = null, $type = "account"): bool
+    public function send(string $case, ?array $detailsArray = null, string $type = "account"): bool
     {
         $phoneNumber = $this->account->getAccounts()->getAdded(AccountAccounts::PHONE_NUMBER, 1);
 

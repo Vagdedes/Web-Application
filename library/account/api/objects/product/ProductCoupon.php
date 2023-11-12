@@ -4,7 +4,7 @@ class ProductCoupon
 {
     private ?float $discount;
 
-    public function __construct($name, $accountID, $productID)
+    public function __construct(int|float|string $name, int|string $accountID, int|string $productID)
     {
         global $product_coupons_table;
         set_sql_cache(null, self::class);

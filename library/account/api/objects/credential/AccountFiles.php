@@ -3,52 +3,62 @@
 class AccountFiles
 {
     private Account $account;
+
     //todo introduce constants that are null application-id
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function getType() {
+    public function getType()
+    {
 
     }
 
     // Separator
 
-    public function upload() {
+    public function upload()
+    {
 
     }
 
-    public function delete() {
+    public function delete()
+    {
 
     }
 
-    public function getAll() {
+    public function getAll()
+    {
 
     }
 
-    public function getOwned() {
+    public function getOwned()
+    {
 
     }
 
-    public function getShared() {
-
-    }
-
-    // Separator
-
-    public function share() {
-
-    }
-
-    public function unshare() {
+    public function getShared()
+    {
 
     }
 
     // Separator
 
-    public function download() {
+    public function share()
+    {
+
+    }
+
+    public function unshare()
+    {
+
+    }
+
+    // Separator
+
+    public function download()
+    {
 
     }
 }

@@ -4,12 +4,12 @@ class AccountGiveaway
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function hasWon($productID): bool
+    public function hasWon(int|string $productID): bool
     {
         global $giveaway_winners_table;
         set_sql_cache(null, self::class);
@@ -44,7 +44,8 @@ class AccountGiveaway
         return false;
     }
 
-    private function create($productID, $amount, $duration, $requireDownload): bool
+    private function create(int|string|null $productID, int|string $amount,
+                            int|string $duration, bool $requireDownload): bool
     {
         global $product_giveaways_table;
         $array = get_sql_query($product_giveaways_table,
@@ -140,7 +141,8 @@ class AccountGiveaway
         return false;
     }
 
-    public function getCurrent($productID, $amount, $duration, $requireDownload): MethodReply
+    public function getCurrent(int|string|null $productID,
+                               int|string $amount, int|string $duration, bool $requireDownload): MethodReply
     {
         global $product_giveaways_table;
         set_sql_cache(null, self::class);
@@ -215,7 +217,7 @@ class AccountGiveaway
         }
     }
 
-    public function getLast($productID = null): MethodReply
+    public function getLast(int|string|null $productID = null): MethodReply
     {
         if ($this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
             global $product_giveaways_table;
@@ -274,8 +276,9 @@ class AccountGiveaway
         return new MethodReply(false);
     }
 
-    private function finalise($objectID, $productID, $productObject,
-                              $accountsArray, $accountsAmount, $limit): void
+    private function finalise(int|string $objectID,
+                              int|string $productID, object $productObject,
+                              array      $accountsArray, int|string $accountsAmount, int|string $limit): void
     {
         if (!start_memory_process(array(__METHOD__, $productID, $limit))) {
             return;

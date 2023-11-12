@@ -4,12 +4,12 @@ class AccountProduct
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function find($productID = null, $documentation = true, $accountID = null): MethodReply
+    public function find(int|string $productID = null, bool $documentation = true, int|string $accountID = null): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
         $hasAccount = $accountID !== null;

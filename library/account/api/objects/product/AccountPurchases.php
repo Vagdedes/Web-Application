@@ -4,7 +4,7 @@ class AccountPurchases
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
@@ -188,7 +188,8 @@ class AccountPurchases
         );
     }
 
-    public function owns($productID, $tierID = null, bool $databaseOnly = false): MethodReply
+    public function owns(int|string $productID, int|string|null $tierID = null,
+                         bool       $databaseOnly = false): MethodReply
     {
         $array = $this->getCurrent($databaseOnly);
 
@@ -205,7 +206,7 @@ class AccountPurchases
         return new MethodReply(false);
     }
 
-    public function owned($productID, $tierID = null): MethodReply
+    public function owned(int|string $productID, int|string|null $tierID = null): MethodReply
     {
         $array = $this->getExpired();
 
@@ -222,12 +223,12 @@ class AccountPurchases
         return new MethodReply(false);
     }
 
-    public function add($productID, $tierID = null,
-                        $coupon = null,
-                        $transactionID = null,
-                        $creationDate = null, $duration = null,
-                        $sendEmail = null,
-                        $additionalProducts = null): MethodReply
+    public function add(int|string            $productID, int|string|null $tierID = null,
+                        int|string|float|null $coupon = null,
+                        int|string|null       $transactionID = null,
+                        string                $creationDate = null, int|string|null $duration = null,
+                        string|null           $sendEmail = null,
+                        ?array                $additionalProducts = null): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::BUY_PRODUCT);
 
@@ -381,7 +382,8 @@ class AccountPurchases
         return new MethodReply(true, "Successfully made new purchase.");
     }
 
-    public function remove($productID, $tierID = null, $transactionID = null): MethodReply
+    public function remove(int|string      $productID, int|string|null $tierID = null,
+                           int|string|null $transactionID = null): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::REMOVE_PRODUCT);
 
@@ -418,7 +420,9 @@ class AccountPurchases
         return new MethodReply(true, "Successfully removed purchase.");
     }
 
-    public function exchange($productID, $tierID, $newProductID, $newTierID, $sendEmail = true): MethodReply
+    public function exchange(int|string $productID, int|string|null $tierID,
+                             int|string $newProductID, int|string|null $newTierID,
+                             bool       $sendEmail = true): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::EXCHANGE_PRODUCT);
 

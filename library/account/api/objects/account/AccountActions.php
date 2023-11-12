@@ -11,12 +11,12 @@ class AccountActions
         MIDDLE_NAME = "middle_name",
         LAST_NAME = "last_name";
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function logIn($password, ?AccountSession $session = null, bool $twoFactor = true): MethodReply
+    public function logIn(string $password, ?AccountSession $session = null, bool $twoFactor = true): MethodReply
     {
         $parameter = new ParameterVerification($password, null, 8);
 
@@ -98,7 +98,7 @@ class AccountActions
         return new MethodReply(false);
     }
 
-    public function deleteAccount($permanently = false): MethodReply
+    public function deleteAccount(bool $permanently = false): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::DELETE_ACCOUNT);
 
@@ -151,7 +151,7 @@ class AccountActions
         }
     }
 
-    public function changeName($name, $type = self::NAME, $cooldown = "1 day"): MethodReply
+    public function changeName(string $name, string $type = self::NAME, int|string $cooldown = "1 day"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_NAME, true);

@@ -4,16 +4,17 @@ class AccountTransactions
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function clearCache() {
+    public function clearCache(): void
+    {
         $this->account->clearMemory(self::class);
     }
 
-    public function getSuccessful($types = null, $limit = PaymentProcessor::limit): array
+    public function getSuccessful(mixed $types = null, int $limit = PaymentProcessor::limit): array
     {
         $cacheKey = array(self::class, "account_id" => $this->account->getDetail("id"), $types, $limit, "successful");
         $cache = get_key_value_pair($cacheKey);
@@ -60,7 +61,7 @@ class AccountTransactions
         return $array;
     }
 
-    public function getFailed($types = null, $limit = PaymentProcessor::limit): array
+    public function getFailed(mixed $types = null, int $limit = PaymentProcessor::limit): array
     {
         $cacheKey = array(self::class, "account_id" => $this->account->getDetail("id"), $types, $limit, "failed");
         $cache = get_key_value_pair($cacheKey);
@@ -81,7 +82,7 @@ class AccountTransactions
 
     // Utilities
 
-    private function process($transaction)
+    private function process(object $transaction): void
     {
         $paymentProcessor = new PaymentProcessor($this->account->getDetail("application_id"));
         $paymentProcessor = $paymentProcessor->getSource($transaction);
@@ -91,7 +92,7 @@ class AccountTransactions
         }
     }
 
-    private function getTypes($type): array
+    private function getTypes(mixed $type): array
     {
         if ($type === null) {
             $type = PaymentProcessor::ALL_TYPES;

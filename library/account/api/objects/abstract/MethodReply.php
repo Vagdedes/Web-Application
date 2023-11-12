@@ -6,7 +6,7 @@ class MethodReply
     private bool $success;
     private $message, $object;
 
-    public function __construct($success, $message = null, $object = null)
+    public function __construct(bool $success, ?string $message = null, mixed $object = null)
     {
         $this->success = $success;
         $this->message = $message;
@@ -18,12 +18,12 @@ class MethodReply
         return $this->success;
     }
 
-    public function getMessage()
+    public function getMessage(): ?string
     {
         return $this->message;
     }
 
-    public function getObject()
+    public function getObject(): mixed
     {
         return $this->object;
     }

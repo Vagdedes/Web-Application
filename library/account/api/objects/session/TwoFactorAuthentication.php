@@ -4,7 +4,7 @@ class TwoFactorAuthentication
 {
     private AccountSession $session;
 
-    public function __construct($session)
+    public function __construct(AccountSession $session)
     {
         $this->session = $session;
     }

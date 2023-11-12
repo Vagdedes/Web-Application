@@ -6,12 +6,12 @@ class AccountNotifications
 
     public const FORM = 1;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function getType($id): MethodReply
+    public function getType(int|string $id): MethodReply
     {
         global $account_notification_types_table;
         set_sql_cache();
@@ -34,7 +34,8 @@ class AccountNotifications
         }
     }
 
-    public function add($type, $color, $information, $duration, $phone = false, $email = false, $run = false): bool
+    public function add(int|string $type, string $color, string $information, int|string $duration,
+                        bool       $phone = false, bool $email = false, bool $run = false): bool
     {
         if (!$this->account->getFunctionality()->getResult(AccountFunctionality::ADD_NOTIFICATION)->isPositiveOutcome()) {
             return false;
@@ -63,7 +64,7 @@ class AccountNotifications
         return false;
     }
 
-    public function get($type = null, $limit = 0, $complete = false): array
+    public function get(int|string|null $type = null, int $limit = 0, bool $complete = false): array
     {
         if (!$this->account->getFunctionality()->getResult(AccountFunctionality::GET_NOTIFICATION)->isPositiveOutcome()) {
             return array();

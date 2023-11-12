@@ -8,12 +8,12 @@ class AccountAccounts
         DISCORD_TAG = 2, PATREON_FULL_NAME = 4, PLATFORM_USERNAME = 3,
         PHONE_NUMBER = 9;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function getAvailable($select = null, $id = null): array
+    public function getAvailable(?array $select = null, int|string $id = null): array
     {
         global $accepted_accounts_table;
         return get_sql_query(
@@ -28,7 +28,8 @@ class AccountAccounts
         );
     }
 
-    public function add($type, $credential, $deletePreviousIfSurpassing = 0, $cooldown = "2 seconds"): MethodReply
+    public function add(int|string $type, int|float|string $credential, int $deletePreviousIfSurpassing = 0,
+                        int|string $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::ADD_ACCOUNT, true);
@@ -159,7 +160,8 @@ class AccountAccounts
         return new MethodReply(true, "Successfully stored account.");
     }
 
-    public function remove($type, $idOrCredential = null, $limit = 0, $cooldown = "2 seconds"): MethodReply
+    public function remove(int|string $type, int|float|string $idOrCredential = null,
+                           int        $limit = 0, int|string $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::REMOVE_ACCOUNT, true);
@@ -246,7 +248,7 @@ class AccountAccounts
         return $array;
     }
 
-    public function hasAdded($id, $credential = null, $limit = 0): MethodReply
+    public function hasAdded(int|string $id, int|float|string $credential = null, int $limit = 0): MethodReply
     {
         $acceptedAccount = new AcceptedAccount($this->account->getDetail("application_id"), $id);
 

@@ -6,7 +6,7 @@ class AccountFeedback
 
     //todo introduce constants that are null application-id
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }

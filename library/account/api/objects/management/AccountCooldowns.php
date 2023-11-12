@@ -4,12 +4,12 @@ class AccountCooldowns
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function addInstant($action, $duration): bool
+    public function addInstant(string $action, int|string $duration): bool
     {
         $action = string_to_integer($action);
 
@@ -27,7 +27,7 @@ class AccountCooldowns
         return false;
     }
 
-    public function addBuffer($action, $threshold, $duration): bool
+    public function addBuffer(string $action, int|string $threshold, int|string $duration): bool
     {
         $action = string_to_integer($action);
         $reply = $this->internalHas($action, false);
@@ -63,7 +63,7 @@ class AccountCooldowns
         return false;
     }
 
-    private function internalHas($action, $hash = true): MethodReply
+    private function internalHas(string $action, bool $hash = true): MethodReply
     {
         global $account_instant_cooldowns_table, $account_buffer_cooldowns_table;
 
@@ -104,7 +104,7 @@ class AccountCooldowns
         return new MethodReply(false);
     }
 
-    public function has($action, $hash = true): bool
+    public function has(string $action, bool $hash = true): bool
     {
         return $this->internalHas($action, $hash)->isPositiveOutcome();
     }

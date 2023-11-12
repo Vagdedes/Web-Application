@@ -2,63 +2,76 @@
 
 class AccountVerification
 {
-    private ?Account $account;
+    private Account $account;
+
     //todo introduce constants that are null application-id
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function getType() {
+    public function getType()
+    {
 
     }
 
     // Separator
 
-    public function createInstantVerification() {
+    public function createInstantVerification()
+    {
 
     }
 
-    public function deleteInstantVerification() {
+    public function deleteInstantVerification()
+    {
 
     }
 
-    public function getAllInstantVerifications() {
+    public function getAllInstantVerifications()
+    {
 
     }
 
-    public function getSentInstantVerifications() {
+    public function getSentInstantVerifications()
+    {
 
     }
 
-    public function getReceivedInstantVerifications() {
+    public function getReceivedInstantVerifications()
+    {
 
     }
 
     // Separator
 
-    public function createPasswordVerification() {
+    public function createPasswordVerification()
+    {
 
     }
 
-    public function deletePasswordVerification() {
+    public function deletePasswordVerification()
+    {
 
     }
 
-    public function completePasswordVerification() {
+    public function completePasswordVerification()
+    {
 
     }
 
-    public function getAllPasswordVerifications() {
+    public function getAllPasswordVerifications()
+    {
 
     }
 
-    public function getSentPasswordVerifications() {
+    public function getSentPasswordVerifications()
+    {
 
     }
 
-    public function getReceivedPasswordVerifications() {
+    public function getReceivedPasswordVerifications()
+    {
 
     }
 }

@@ -4,12 +4,12 @@ class AccountHistory
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function add($action, $oldData = null, $newData = null): bool
+    public function add(string $action, mixed $oldData = null, mixed $newData = null): bool
     {
         global $account_history_table;
 
@@ -41,7 +41,7 @@ class AccountHistory
             );
     }
 
-    public function get($columns = null, $limit = 0): MethodReply
+    public function get(?array $columns = null, int $limit = 0): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_HISTORY);
 

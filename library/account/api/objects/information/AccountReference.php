@@ -6,22 +6,25 @@ class AccountReference
 
     //todo introduce constants that are null application-id
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function getType() {
+    public function getType()
+    {
 
     }
 
     // Separator
 
-    public function getStorage() {
+    public function getStorage()
+    {
 
     }
 
-    public function store() {
+    public function store()
+    {
 
     }
 }

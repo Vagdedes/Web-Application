@@ -4,12 +4,12 @@ class AccountSettings
 {
     private Account $account;
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function get($option, $default): MethodReply
+    public function get(string $option, mixed $default): MethodReply
     {
         global $account_settings_table;
         set_sql_cache(null, self::class);
@@ -28,13 +28,13 @@ class AccountSettings
             new MethodReply(true, null, $query[0]->option_value);
     }
 
-    public function isEnabled($option, $default = null): bool
+    public function isEnabled(string $option, mixed $default = null): bool
     {
         $option = $this->get($option, $default)->getObject();
         return $option !== null && $option !== false;
     }
 
-    public function modify($option, $value, $cooldown = "2 seconds"): MethodReply
+    public function modify(string $option, mixed $value, int|string $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::MODIFY_OPTION, true);
@@ -88,7 +88,7 @@ class AccountSettings
         return new MethodReply(true);
     }
 
-    public function toggle($option, $cooldown = "2 seconds"): MethodReply
+    public function toggle(string $option, int|string $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::MODIFY_OPTION, true);

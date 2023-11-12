@@ -5,12 +5,12 @@ class AccountCorrelation
     private Account $account;
 
 
-    public function __construct($account)
+    public function __construct(Account $account)
     {
         $this->account = $account;
     }
 
-    public function getType($id): MethodReply
+    public function getType(int|string $id): MethodReply
     {
         global $statistic_types_table;
         $query = get_sql_query(
@@ -31,61 +31,75 @@ class AccountCorrelation
 
     // Separator
 
-    public function createInstant() {
+    public function createInstant()
+    {
 
     }
 
-    public function deleteInstant() {
+    public function deleteInstant()
+    {
 
     }
 
-    public function getAllInstant() {
+    public function getAllInstant()
+    {
 
     }
 
-    public function getSentInstant() {
+    public function getSentInstant()
+    {
 
     }
 
-    public function getReceivedInstant() {
+    public function getReceivedInstant()
+    {
 
     }
 
-    public function getInstant() {
+    public function getInstant()
+    {
 
     }
 
     // Separator
 
-    public function createRequest() {
+    public function createRequest()
+    {
 
     }
 
-    public function acceptRequest() {
+    public function acceptRequest()
+    {
 
     }
 
-    public function denyRequest() {
+    public function denyRequest()
+    {
 
     }
 
-    public function deleteRequest() {
+    public function deleteRequest()
+    {
 
     }
 
-    public function getAllRequests() {
+    public function getAllRequests()
+    {
 
     }
 
-    public function getSentRequests() {
+    public function getSentRequests()
+    {
 
     }
 
-    public function getReceivedRequests() {
+    public function getReceivedRequests()
+    {
 
     }
 
-    public function getRequest() {
+    public function getRequest()
+    {
 
     }
 }

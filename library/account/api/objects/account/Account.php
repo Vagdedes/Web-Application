@@ -51,11 +51,11 @@ class Account
 
     public const IGNORE_APPLICATION = -1;
 
-    public function __construct($applicationID = null,
-                                $id = null, $email = null, $username = null,
-                                $identification = null,
-                                $checkDeletion = true,
-                                $cache = true)
+    public function __construct(?int    $applicationID = null,
+                                ?int    $id = null, ?string $email = null, ?string $username = null,
+                                ?string $identification = null,
+                                bool    $checkDeletion = true,
+                                bool    $cache = true)
     {
         $hasID = $id !== null;
         $hasUsername = $username !== null;
@@ -161,10 +161,10 @@ class Account
         $this->paymentProcessor = new PaymentProcessor($applicationID);
     }
 
-    public function getNew($id = null, $email = null, $username = null,
-                           $identification = null,
-                           $checkDeletion = true,
-                           $cache = true): self
+    public function getNew(?int $id = null, ?string $email = null, $username = null,
+                                $identification = null,
+                           bool $checkDeletion = true,
+                           bool $cache = true): self
     {
         return new self(
             $this->getDetail("application_id"),
@@ -423,7 +423,7 @@ class Account
         }
     }
 
-    public function clearMemory($key = null): void
+    public function clearMemory(mixed $key = null): void
     {
         if (isset($this->object->id)
             && isset($this->object->name)

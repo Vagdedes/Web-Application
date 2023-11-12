@@ -7,7 +7,7 @@ class AccountPermissions
     private int $defaultRoleID;
     private $allPermissions, $rolePermissions, $lastUsed;
 
-    public function __construct($account, $defaultRoleID = 10)
+    public function __construct(Account $account, int $defaultRoleID = 10)
     {
         $this->account = $account;
         $this->allPermissions = null;
@@ -69,7 +69,7 @@ class AccountPermissions
         }
     }
 
-    public function hasRole($role): bool
+    public function hasRole(int|string $role): bool
     {
         if ($role == $this->defaultRoleID) {
             return true;
@@ -167,7 +167,7 @@ class AccountPermissions
         return $this->systemPermissions;
     }
 
-    public function addSystemPermission($permission): void
+    public function addSystemPermission(string|array $permission): void
     {
         if (is_array($permission)) {
             foreach ($permission as $key) {
@@ -178,7 +178,7 @@ class AccountPermissions
         }
     }
 
-    public function hasPermission($permission, $store = false, ?Account $accountAgainst = null): bool
+    public function hasPermission(string|array $permission, bool $store = false, ?Account $accountAgainst = null): bool
     {
         if ($accountAgainst !== null
             && $accountAgainst->getDetail("id") !== $this->account->getDetail("id")
