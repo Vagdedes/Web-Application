@@ -1,12 +1,12 @@
 <?php
 $minecraft_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36";
 
-function get_minecraft_head_image($uuid, $pixels = 100)
+function get_minecraft_head_image($uuid, $pixels = 100): string
 {
     return "https://mc-heads.net/avatar/$uuid/$pixels/";
 }
 
-function get_minecraft_uuid($name, $timeoutSeconds = 0)
+function get_minecraft_uuid($name, $timeoutSeconds = 0): ?string
 {
     global $minecraft_user_agent;
     ini_set("user_agent", $minecraft_user_agent);
@@ -23,7 +23,7 @@ function get_minecraft_uuid($name, $timeoutSeconds = 0)
     return $json->id ?? null;
 }
 
-function get_minecraft_name($uuid, $timeoutSeconds = 0)
+function get_minecraft_name($uuid, $timeoutSeconds = 0): ?string
 {
     global $minecraft_user_agent;
     ini_set("user_agent", $minecraft_user_agent);
