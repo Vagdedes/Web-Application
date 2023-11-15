@@ -53,7 +53,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     null,
                     3
                 ));
-                set_key_value_pair($cacheKey, $reply, $sql_max_cache_time);
+                set_key_value_pair($cacheKey, $reply, $reply === false ? "1 minute" : $sql_max_cache_time);
             }
 
             if (isset($reply->data) && isset($reply->included)) {
@@ -131,7 +131,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     null,
                     3
                 ));
-                set_key_value_pair($cacheKey, $reply, $sql_max_cache_time);
+                set_key_value_pair($cacheKey, $reply, $reply === false ? "1 minute" : $sql_max_cache_time);
             }
 
             if (isset($reply->data)) {
