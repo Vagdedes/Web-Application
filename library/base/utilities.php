@@ -135,7 +135,7 @@ function create_and_close_curl_connection($url, $properties = null): bool|string
     );
 }
 
-function get_curl($url, $type, $headers, $arguments, $timeoutSeconds = 0)
+function get_curl($url, $type, $headers, $arguments, $timeoutSeconds = 25) // 5 because 30 is the max script time usually
 {
     $ch = curl_init();
 
@@ -684,8 +684,10 @@ function string_to_integer($string, $long = false): int
     }
     $result = 1;
 
-    foreach (unpack("C*", $string) as $byte) {
-        $result = $long ? overflow_long(($result * 31) + $byte) : overflow_integer(($result * 31) + $byte);
+    if (!empty($string)) {
+        foreach (unpack("C*", $string) as $byte) {
+            $result = $long ? overflow_long(($result * 31) + $byte) : overflow_integer(($result * 31) + $byte);
+        }
     }
     return $result;
 }

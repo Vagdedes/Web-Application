@@ -111,6 +111,7 @@ if (is_private_connection()) {
     $userObject->staff = $staffAccountObj;
     $userObject->account = new stdClass();
     $userObject->game_cloud = new stdClass();
+    $userObject->memory = new stdClass();
 
     if ($hasWebsiteAccount) {
         $account->refresh();
@@ -118,6 +119,7 @@ if (is_private_connection()) {
         unset($accountObj->password);
         $userObject->account = $accountObj;
         $userObject->account->details = new stdClass();
+        $userObject->memory->purchases = $account->exists() ? $account->getPurchases()->getCurrent() : null;
 
         foreach ($databaseSchemas as $schema) {
             $tables = get_sql_database_tables($schema);
@@ -976,7 +978,7 @@ if (is_private_connection()) {
                 $accepted_accounts_table,
                 array("name"),
                 array(
-                    array("application_id", $application->getID())
+                    array("application_id", $account->getDetail("application_id")),
                 )
             );
 
