@@ -75,8 +75,6 @@ class AccountOffer
                             foreach ($query as $division) {
                                 foreach ($validProducts as $product) {
                                     $division->description = str_replace("%%__product_" . $product->id . "_name__%%", $product->name, $division->description);
-                                    $division->description = str_replace("%%__product_" . $product->id . "_URL__%%", $product->url, $division->description);
-                                    $division->description = str_replace("%%__product_" . $product->id . "_combined__%%", "<a href='{$product->url}'>{$product->name}</a>", $division->description);
                                 }
 
                                 if (array_key_exists($division->family, $divisions)) {

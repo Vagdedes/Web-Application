@@ -15,6 +15,7 @@ $accepted_purposes_table = "gameCloud.acceptedPurposes";
 $discord_webhooks_table = "gameCloud.discordWebhooks";
 $failed_discord_webhooks_table = "gameCloud.failedDiscordWebhooks";
 $accepted_platforms_table = "gameCloud.acceptedPlatforms";
+$staff_announcements_table = "gameCloud.staffAnnouncements";
 
 // Separator
 

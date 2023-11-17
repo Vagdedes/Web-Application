@@ -812,6 +812,50 @@ if (true
             } else {
                 $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data);
             }
+        } else if ($data == "staffAnnouncements") {
+            set_sql_cache("1 minute");
+            $query = get_sql_query(
+                $staff_announcements_table,
+                array("id", "announcement", "cooldown"),
+                array(
+                    array("deletion_date", null),
+                    null,
+                    array("minimum_version", "IS", null, 0),
+                    array("minimum_version", "<=", $version),
+                    null,
+                    null,
+                    array("maximum_version", "IS", null, 0),
+                    array("maximum_version", ">=", $version),
+                    null,
+                    null,
+                    array("platform_id", "IS", null, 0),
+                    array("platform_id", $platformID),
+                    null,
+                    null,
+                    array("license_id", "IS", null, 0),
+                    array("license_id", $licenseID),
+                    null,
+                    null,
+                    array("expiration_date", "IS", null, 0),
+                    array("expiration_date", ">", get_current_date()),
+                    null,
+                ),
+                array(
+                    "DESC",
+                    "priority"
+                )
+            );
+
+            if (!empty($query)) {
+                foreach ($query as $arrayKey => $row) {
+                    $query[$arrayKey] = base64_encode(
+                        $row->id
+                        . $separator . $row->announcement
+                        . $separator . $row->cooldown
+                    );
+                }
+                echo implode($separator, $query);
+            }
         }
     } else if ($action == "add") {
         if ($data == "serverSpecifications") {
