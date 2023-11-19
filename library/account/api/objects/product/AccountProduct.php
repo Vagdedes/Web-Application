@@ -121,6 +121,11 @@ class AccountProduct
                                 if ($tier->required_permission !== null) {
                                     $tier->required_permission = explode("|", $tier->required_permission);
                                 }
+                                if ($tier->required_products === null) {
+                                    $tier->required_products = array();
+                                } else {
+                                    $tier->required_products = explode("|", $tier->required_products);
+                                }
                                 if ($tier->give_permission !== null) {
                                     $tier->give_permission = explode("|", $tier->give_permission);
                                 }

@@ -1329,10 +1329,17 @@ if (true
                 if (!$account->exists()
                     || !$account->getPurchases()->owns(AccountPatreon::SPARTAN_2_0_JAVA)->isPositiveOutcome()
                     && !$account->getPurchases()->owns(AccountPatreon::SPARTAN_2_0_BEDROCK)->isPositiveOutcome()) {
-                    send_discord_webhook_by_plan(
-                        $spartan_anticheat_2_0_discord_advertisement,
-                        $url
-                    );
+                    foreach (array(
+                                 $spartan_anticheat_2_0_discord_advertisement,
+                                 $discord_bot_discord_advertisement
+                             ) as $webhookPlan) {
+                        if (send_discord_webhook_by_plan(
+                                $webhookPlan,
+                                $url
+                            ) === 1) {
+                            break;
+                        }
+                    }
                 }
             }
         } else if ($data == "customerSupport") {

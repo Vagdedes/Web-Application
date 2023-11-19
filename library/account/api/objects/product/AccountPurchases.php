@@ -92,16 +92,24 @@ class AccountPurchases
                             $tierObject = false;
 
                             foreach ($product->tiers->paid as $tier) {
-                                if ($tier->required_products !== null) {
-                                    foreach (explode("|", $tier->required_products) as $requiredProduct) {
+                                if (!empty($tier->required_products)) {
+                                    foreach ($tier->required_products as $requiredProduct) {
                                         if (!array_key_exists($requiredProduct, $array)) {
                                             continue 2;
                                         } else {
                                             break;
                                         }
                                     }
+                                    $tierObject = $tier;
                                 }
-                                $tierObject = $tier;
+                                if (!empty($tier->required_permission)) {
+                                    if (!$this->account->getPermissions()->hasPermission($tier->required_permission)) {
+                                        continue;
+                                    } else {
+                                        $tierObject = $tier;
+                                        break;
+                                    }
+                                }
                             }
                         }
 

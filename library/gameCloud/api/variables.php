@@ -23,6 +23,7 @@ $customer_support_discord_webhook = "https://discord.com/api/webhooks/1165260211
 
 $spartan_anticheat_product_id = 1;
 $spartan_anticheat_2_0_discord_advertisement = "spartan-2-0";
+$discord_bot_discord_advertisement = "custom-discord-bot";
 $spartan_anticheat_check_names = array(
     // Exempted: Speed, MorePackets, IrregularMovements, NoFall
     "Criticals", "FastBow", "FastClicks", "Exploits", "ImpossibleInventory",
