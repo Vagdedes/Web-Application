@@ -30,7 +30,9 @@ class AccountProductDownloads
             new MethodReply(false, "No download available for you currently.");
     }
 
-    public function getOrCreateValidToken(int|string $productID, int|string $maxDownloads = 1): MethodReply
+    public function getOrCreateValidToken(int|string      $productID,
+                                          int|string|null $maxDownloads = null,
+                                          bool            $userTokensOnly = false): MethodReply
     {
         global $product_downloads_table;
         $query = get_sql_query(
@@ -40,6 +42,8 @@ class AccountProductDownloads
                 array("account_id", $this->account->getDetail("id")),
                 array("product_id", $productID),
                 array("deletion_date", null),
+                $userTokensOnly ? array("requested_by_token", null) : "",
+                $maxDownloads !== null ? array("max_downloads", "IS NOT", null) : "",
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
@@ -51,7 +55,6 @@ class AccountProductDownloads
             ),
             1
         );
-
         if (!empty($query)) {
             $query = $query[0];
 
@@ -99,23 +102,25 @@ class AccountProductDownloads
 
             if (!empty($query)) {
                 $query = $query[0];
-                $downloadCount = empty($query->download_count) ? 1 : $query->download_count + 1;
 
-                if ($query->max_downloads !== null
-                    && $downloadCount >= $query->max_downloads) {
-                    return new MethodReply(false, "Download token has reached its max download limit.");
-                } else if (!set_sql_query(
-                    $product_downloads_table,
-                    array(
-                        "download_count" => $downloadCount,
-                    ),
-                    array(
-                        array("id", $query->id)
-                    ),
-                    null,
-                    1
-                )) {
-                    return new MethodReply(false, "(1) Failed to interact with the database.");
+                if ($query->max_downloads !== null) {
+                    $downloadCount = empty($query->download_count) ? 0 : $query->download_count;
+
+                    if ($downloadCount >= $query->max_downloads) {
+                        return new MethodReply(false, "Download token has reached its max download limit.");
+                    } else if (!set_sql_query(
+                        $product_downloads_table,
+                        array(
+                            "download_count" => ($downloadCount + 1),
+                        ),
+                        array(
+                            array("id", $query->id)
+                        ),
+                        null,
+                        1
+                    )) {
+                        return new MethodReply(false, "(1) Failed to interact with the database.");
+                    }
                 }
             } else {
                 return new MethodReply(false, "Download token not found or has expired.");
@@ -126,6 +131,7 @@ class AccountProductDownloads
         if (!$product->isPositiveOutcome()) {
             return new MethodReply(false, $product->getMessage());
         }
+
         $purchase = $this->account->getPurchases()->owns($productID);
 
         if (!$purchase->isPositiveOutcome()) {
@@ -212,20 +218,19 @@ class AccountProductDownloads
             send_file_download($fileCopy, false);
             unlink($fileCopy);
             exit();
+        } else if (!sql_insert(
+            $product_downloads_table,
+            array(
+                "account_id" => $this->account->getDetail("id"),
+                "product_id" => $productID,
+                "token" => $newToken,
+                "requested_by_token" => $requestedByToken,
+                "max_downloads" => $maxDownloads,
+                "creation_date" => get_current_date(),
+                "expiration_date" => get_future_date($duration)
+            ))) {
+            return new MethodReply(false, "(3) Failed to interact with the database.");
         } else {
-            if (!sql_insert(
-                $product_downloads_table,
-                array(
-                    "account_id" => $this->account->getDetail("id"),
-                    "product_id" => $productID,
-                    "token" => $newToken,
-                    "requested_by_token" => $requestedByToken,
-                    "max_downloads" => $maxDownloads,
-                    "creation_date" => get_current_date(),
-                    "expiration_date" => get_future_date($duration)
-                ))) {
-                return new MethodReply(false, "(3) Failed to interact with the database.");
-            }
             return new MethodReply(true, "Download token successfully created.", $newToken);
         }
     }
@@ -246,7 +251,8 @@ class AccountProductDownloads
         );
     }
 
-    public function getCount(bool $active = false, int $limit = 0): int
+    public
+    function getCount(bool $active = false, int $limit = 0): int
     {
         global $product_downloads_table;
         set_sql_cache(null, self::class);
