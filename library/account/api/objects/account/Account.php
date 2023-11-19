@@ -250,7 +250,7 @@ class Account
         return $this->accounts;
     }
 
-    public function getDownloads(): AccountProductDownloads //todo
+    public function getDownloads(): AccountProductDownloads
     {
         return $this->downloads;
     }

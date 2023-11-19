@@ -5,7 +5,7 @@ load_page(false, function (Account $account, bool $isLoggedIn) {
 
     if (is_numeric($id)) {
         if ($isLoggedIn) {
-            $result = $account->getDownloads()->sendFileDownload($id);
+            $result = $account->getDownloads()->makeFileDownload($id);
 
             if (!$result->isPositiveOutcome()) {
                 account_page_redirect($account, true, $result->getMessage());
@@ -27,7 +27,7 @@ load_page(false, function (Account $account, bool $isLoggedIn) {
                 $tokenAccount = $download->account;
 
                 if (!$tokenAccount->exists()
-                    || !$tokenAccount->getDownloads()->sendFileDownload(
+                    || !$tokenAccount->getDownloads()->makeFileDownload(
                         $download->product_id,
                         $download->token
                     )->isPositiveOutcome()) {
