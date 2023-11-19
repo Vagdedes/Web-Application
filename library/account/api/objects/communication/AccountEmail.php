@@ -210,7 +210,7 @@ class AccountEmail
             "verifyEmail",
             array(
                 "token" => $token,
-                "code" => $createdCode
+                "code" => $code ? $createdCode : "(undefined)"
             ),
             "account",
             false
