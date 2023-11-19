@@ -102,6 +102,29 @@ class AccountPassword
         if (!$parameter->getOutcome()->isPositiveOutcome()) {
             return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
+        $comparison = get_sql_query(
+            $change_password_table,
+            array("new_password"),
+            array(
+                array("account_id", $array->account_id),
+                array("new_password", "IS NOT", null), // Not needed but added due to the past system not supporting this
+                array("completion_date", "IS NOT", null),
+                array("creation_date", ">", get_past_date("1 year"))
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            100
+        );
+
+        if (!empty($comparison)) {
+            foreach ($comparison as $row) {
+                if (is_valid_password($password, $row->new_password)) {
+                    return new MethodReply(false, "This password has been used in the past year.");
+                }
+            }
+        }
         $password = encrypt_password($password);
 
         if (!$password) {
@@ -116,7 +139,10 @@ class AccountPassword
         }
         if (!set_sql_query(
             $change_password_table,
-            array("completion_date" => $date),
+            array(
+                "completion_date" => $date,
+                "new_password" => $password
+            ),
             array(
                 array("id", $array->id),
             ),
