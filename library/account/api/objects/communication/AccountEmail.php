@@ -9,7 +9,8 @@ class AccountEmail
         $this->account = $account;
     }
 
-    public function requestVerification(string $email, int|string $cooldown = "1 minute"): MethodReply
+    public function requestVerification(string     $email, bool $code = false,
+                                        int|string $cooldown = "1 minute"): MethodReply
     {
         if (!is_email($email)) {
             return new MethodReply(false, "Please enter a valid email address.");
@@ -44,7 +45,7 @@ class AccountEmail
         if (!$this->account->getHistory()->add("request_email_verification", $currentEmail, $email)) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $result = $this->initiateVerification($email);
+        $result = $this->initiateVerification($email, $code);
         $resultOutcome = $result->isPositiveOutcome();
 
         if ($resultOutcome) {
@@ -55,7 +56,8 @@ class AccountEmail
         return new MethodReply($resultOutcome, $result->getMessage());
     }
 
-    public function completeVerification(string $token, int|string $cooldown = "1 day"): MethodReply
+    public function completeVerification(string     $tokenOrCode, bool $code = false,
+                                         int|string $cooldown = "1 day"): MethodReply
     {
         $account = $this->account;
         $exists = $account->exists();
@@ -74,7 +76,7 @@ class AccountEmail
             $email_verifications_table,
             $exists ? array("id", "email_address") : array("id", "email_address", "account_id"),
             array(
-                array("token", $token),
+                array($code ? "code" : "token", $tokenOrCode),
                 array("completion_date", null),
                 array("expiration_date", ">", $date)
             ),
@@ -83,7 +85,7 @@ class AccountEmail
         );
 
         if (empty($array)) {
-            return new MethodReply(false, "This email verification token is invalid or has expired.");
+            return new MethodReply(false, "This email verification is invalid or has expired.");
         }
         global $accounts_table;
         $object = $array[0];
@@ -155,7 +157,7 @@ class AccountEmail
         return new MethodReply(true, "Your email verification has been successfully completed.");
     }
 
-    public function initiateVerification(?string $email = null): MethodReply
+    public function initiateVerification(?string $email = null, bool $code = false): MethodReply
     {
         if ($email === null) {
             if ($this->isVerified()) {
@@ -183,6 +185,7 @@ class AccountEmail
                 array("expiration_date", ">", $date)
             )
         );
+        $createdCode = $code ? random_string(32) : null;
 
         if (empty($array)) {
             $token = random_string(512);
@@ -191,6 +194,7 @@ class AccountEmail
                 $email_verifications_table,
                 array(
                     "token" => $token,
+                    "code" => $createdCode,
                     "account_id" => $accountID,
                     "email_address" => $email,
                     "creation_date" => $date,
@@ -206,6 +210,7 @@ class AccountEmail
             "verifyEmail",
             array(
                 "token" => $token,
+                "code" => $createdCode
             ),
             "account",
             false
