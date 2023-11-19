@@ -259,11 +259,13 @@ class AccountProduct
 
                         if (empty($object->downloads)) {
                             $object->download_url = null;
+                            $object->download_placeholder = null;
                             $object->latest_version = null;
                             $object->minimum_supported_version = null;
                             $object->supported_versions = array();
                         } else {
                             $object->download_url = $website_domain . "/api/v1/product/downloadFile/?id=" . $productID;
+                            $object->download_placeholder = $website_domain . "/api/v1/product/downloadFile/";
                             $downloads = array();
                             $object->supported_versions = array();
 
