@@ -16,12 +16,12 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
 {
     $hasIgnoreTiers = $ignoreTiers !== null;
     $hasTargetTiers = $ignoreTiers !== null;
-    $cacheKey = array(
+    $totalCacheKey = array(
         $ignoreTiers,
         $targetTiers,
         "patreon-1-subscriptions"
     );
-    $cache = get_key_value_pair($cacheKey);
+    $cache = get_key_value_pair($totalCacheKey);
 
     if (is_array($cache)) {
         return $cache;
@@ -53,7 +53,15 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     null,
                     3
                 ));
-                set_key_value_pair($cacheKey, $reply, $reply === false ? "1 minute" : $sql_max_cache_time);
+
+                if ($reply === false) {
+                    set_key_value_pair($cacheKey, false, "15 seconds");
+                    return array();
+                } else {
+                    set_key_value_pair($cacheKey, $reply, $sql_max_cache_time);
+                }
+            } else if ($reply === false) {
+                return array();
             }
 
             if (isset($reply->data) && isset($reply->included)) {
@@ -78,7 +86,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
             }
             $link = $reply->links->next ?? null;
         }
-        set_key_value_pair($cacheKey, $results, $sql_max_cache_time);
+        set_key_value_pair($totalCacheKey, $results, $sql_max_cache_time);
         return $results;
     } else {
         return array();
@@ -89,12 +97,12 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
 {
     $hasIgnoreTiers = $ignoreTiers !== null;
     $hasTargetTiers = $ignoreTiers !== null;
-    $cacheKey = array(
+    $totalCacheKey = array(
         $ignoreTiers,
         $targetTiers,
         "patreon-2-subscriptions"
     );
-    $cache = get_key_value_pair($cacheKey);
+    $cache = get_key_value_pair($totalCacheKey);
 
     if (is_array($cache)) {
         return $cache;
@@ -131,7 +139,15 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     null,
                     3
                 ));
-                set_key_value_pair($cacheKey, $reply, $reply === false ? "1 minute" : $sql_max_cache_time);
+
+                if ($reply === false) {
+                    set_key_value_pair($cacheKey, false, "15 seconds");
+                    return array();
+                } else {
+                    set_key_value_pair($cacheKey, $reply, $sql_max_cache_time);
+                }
+            } else if ($reply === false) {
+                return array();
             }
 
             if (isset($reply->data)) {
@@ -157,7 +173,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
             }
             $link = $reply->links->next ?? null;
         }
-        set_key_value_pair($cacheKey, $results, $sql_max_cache_time);
+        set_key_value_pair($totalCacheKey, $results, $sql_max_cache_time);
         return $results;
     } else {
         return array();

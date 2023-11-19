@@ -117,8 +117,8 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
                 if (!in_array($rowID, $executed)) {
                     $cooldownExpirationDate = $row->cooldown_expiration_date;
 
-                    if ($cooldownExpirationDate === null
-                        || $currentDate < $cooldownExpirationDate) {
+                    if ($cooldownExpirationDate !== null
+                        && $cooldownExpirationDate > $currentDate) {
                         $executed[] = $rowID;
                     }
                 }
