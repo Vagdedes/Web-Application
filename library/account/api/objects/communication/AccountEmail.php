@@ -40,7 +40,7 @@ class AccountEmail
             null,
             1
         ))) {
-            return new MethodReply(false, "This email address is already in use by another user.");
+            return new MethodReply(false, "This email address process is already in use by another user.");
         }
         if (!$this->account->getHistory()->add("request_email_verification", $currentEmail, $email)) {
             return new MethodReply(false, "Failed to update user history.");

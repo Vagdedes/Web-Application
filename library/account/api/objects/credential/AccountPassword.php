@@ -11,7 +11,7 @@ class AccountPassword
         $this->account = $account;
     }
 
-    public function requestChange(int|string $cooldown = "1 minute"): MethodReply
+    public function requestChange(bool $code = false, int|string $cooldown = "1 minute"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_PASSWORD, true);
@@ -38,12 +38,14 @@ class AccountPassword
             return new MethodReply(false, "Too many change password requests, try again later.");
         }
         $token = random_string(512);
+        $createdCode = $code ? random_string(32) : null;
 
         if (!sql_insert(
             $change_password_table,
             array(
                 "account_id" => $accountID,
                 "token" => $token,
+                "code" => $createdCode,
                 "creation_date" => $date,
                 "expiration_date" => get_future_date("8 hours")
             ))) {
@@ -58,12 +60,13 @@ class AccountPassword
         $this->account->getEmail()->send("changePassword",
             array(
                 "token" => $token,
+                "code" => $code ? $createdCode : "(undefined)",
             ), "account", false
         );
         return new MethodReply(true, "An email has been sent to you to change your password.");
     }
 
-    public function completeChange(string $token, int|float|string $password, int|string $cooldown = "1 hour"): MethodReply
+    public function isValidChange(string $tokenOrCode, bool $code = false): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_CHANGE_PASSWORD);
@@ -72,30 +75,42 @@ class AccountPassword
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         global $change_password_table;
-        $date = get_current_date();
-        $locallyLoggedIn = $this->account->getActions()->isLocallyLoggedIn();
-        $isLocallyLoggedIn = $locallyLoggedIn->isPositiveOutcome();
+        $isLocallyLoggedIn = $this->account->getActions()->isLocallyLoggedIn()->isPositiveOutcome();
         $loggedOut = !$this->account->exists();
         $array = get_sql_query(
             $change_password_table,
             $isLocallyLoggedIn || $loggedOut ? array("id", "account_id") : array("id"),
             array(
-                array("token", $token),
+                array($code ? "code" : "token", $tokenOrCode),
                 array("completion_date", null),
-                array("expiration_date", ">", $date)
+                array("expiration_date", ">", get_current_date())
             ),
             null,
             1
         );
 
-        if (empty($array)) {
-            return new MethodReply(false, "This change password token is invalid or has expired.");
+        return empty($array)
+            ? new MethodReply(false, "This change password process is invalid or has expired.")
+            : new MethodReply(true, "This change password process is valid.", $array[0]);
+    }
+
+    public function completeChange(string $token, int|float|string $password,
+                                   bool   $code = false, int|string $cooldown = "1 hour"): MethodReply
+    {
+        $outcome = $this->isValidChange($token, $code);
+
+        if (!$outcome->isPositiveOutcome()) {
+            return $outcome;
         }
-        $array = $array[0];
+        global $change_password_table;
+        $array = $outcome->getObject();
+        $locallyLoggedIn = $this->account->getActions()->isLocallyLoggedIn();
+        $isLocallyLoggedIn = $locallyLoggedIn->isPositiveOutcome();
+        $loggedOut = !$this->account->exists();
 
         if ($isLocallyLoggedIn
             && $locallyLoggedIn->getObject()->getDetail("id") !== $array->account_id) {
-            return new MethodReply(false, "This change password token is invalid.");
+            return new MethodReply(false, "This change password process is invalid.");
         }
         $parameter = new ParameterVerification($password, null, 8);
 
@@ -140,7 +155,7 @@ class AccountPassword
         if (!set_sql_query(
             $change_password_table,
             array(
-                "completion_date" => $date,
+                "completion_date" => get_current_date(),
                 "new_password" => $password
             ),
             array(
@@ -160,7 +175,7 @@ class AccountPassword
             return new MethodReply(false, "Failed to update user history.");
         }
         if ($cooldown !== null) {
-            $functionality->addInstantCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
+            $this->account->getFunctionality()->addInstantCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
         }
         $this->account->getEmail()->send("passwordChanged");
         return new MethodReply(true, "Successfully changed your password.");
