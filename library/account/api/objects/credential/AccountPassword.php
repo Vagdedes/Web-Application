@@ -146,11 +146,13 @@ class AccountPassword
             return new MethodReply("Password hashing failed.");
         }
         if ($loggedOut) { // In case the process is initiated when logged out
-            $this->account = new Account($this->account->getDetail("application_id"), $array->account_id);
+            $account = new Account($this->account->getDetail("application_id"), $array->account_id);
 
-            if (!$this->account->exists()) {
+            if (!$account->exists()) {
                 return new MethodReply(false, "Failed to find account.");
             }
+        } else {
+            $account = $this->account;
         }
         if (!set_sql_query(
             $change_password_table,
@@ -166,18 +168,18 @@ class AccountPassword
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $change = $this->account->setDetail("password", $password);
+        $change = $account->setDetail("password", $password);
 
         if (!$change->isPositiveOutcome()) {
             return new MethodReply(false, $change->getMessage());
         }
-        if (!$this->account->getHistory()->add("complete_change_password")) {
+        if (!$account->getHistory()->add("complete_change_password")) {
             return new MethodReply(false, "Failed to update user history.");
         }
         if ($cooldown !== null) {
-            $this->account->getFunctionality()->addInstantCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
+            $account->getFunctionality()->addInstantCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
         }
-        $this->account->getEmail()->send("passwordChanged");
+        $account->getEmail()->send("passwordChanged");
         return new MethodReply(true, "Successfully changed your password.");
     }
 }
