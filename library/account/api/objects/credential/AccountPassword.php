@@ -66,7 +66,8 @@ class AccountPassword
         return new MethodReply(true, "An email has been sent to you to change your password.");
     }
 
-    public function isValidChange(string $tokenOrCode, bool $code = false): MethodReply
+    public function completeChange(string $tokenOrCode, int|float|string $password,
+                                   bool   $code = false, int|string $cooldown = "1 hour"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_CHANGE_PASSWORD);
@@ -75,7 +76,10 @@ class AccountPassword
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         global $change_password_table;
-        $isLocallyLoggedIn = !$code && $this->account->getActions()->isLocallyLoggedIn()->isPositiveOutcome();
+        $locallyLoggedIn = $code
+            ? new MethodReply(false)
+            : $this->account->getActions()->isLocallyLoggedIn();
+        $isLocallyLoggedIn = $locallyLoggedIn->isPositiveOutcome();
         $loggedOut = !$this->account->exists();
         $array = get_sql_query(
             $change_password_table,
@@ -89,30 +93,28 @@ class AccountPassword
             1
         );
 
-        return empty($array)
-            ? new MethodReply(false, "This change password process is invalid or has expired.")
-            : new MethodReply(true, "This change password process is valid.", $array[0]);
-    }
-
-    public function completeChange(string $token, int|float|string $password,
-                                   bool   $code = false, int|string $cooldown = "1 hour"): MethodReply
-    {
-        $outcome = $this->isValidChange($token, $code);
-
-        if (!$outcome->isPositiveOutcome()) {
-            return $outcome;
+        if (empty($array)) {
+            return new MethodReply(false, "This change password process is invalid or has expired.");
         }
-        global $change_password_table;
-        $array = $outcome->getObject();
-        $locallyLoggedIn = $code
-            ? new MethodReply(false)
-            : $this->account->getActions()->isLocallyLoggedIn();
-        $isLocallyLoggedIn = $locallyLoggedIn->isPositiveOutcome();
-        $loggedOut = !$this->account->exists();
+        $array = $array[0];
 
         if ($isLocallyLoggedIn
             && $locallyLoggedIn->getObject()->getDetail("id") !== $array->account_id) {
             return new MethodReply(false, "This change password process is invalid.");
+        }
+        $hasCooldown = $cooldown !== null;
+
+        if ($loggedOut) { // In case the process is initiated when logged out
+            $account = new Account($this->account->getDetail("application_id"), $array->account_id);
+
+            if (!$account->exists()) {
+                return new MethodReply(false, "Failed to find account.");
+            }
+        } else {
+            $account = $this->account;
+        }
+        if ($hasCooldown) {
+            $account->getFunctionality()->addInstantCooldown(AccountFunctionality::CHANGE_PASSWORD, "30 seconds");
         }
         $parameter = new ParameterVerification($password, null, 8);
 
@@ -147,15 +149,6 @@ class AccountPassword
         if (!$password) {
             return new MethodReply("Password hashing failed.");
         }
-        if ($loggedOut) { // In case the process is initiated when logged out
-            $account = new Account($this->account->getDetail("application_id"), $array->account_id);
-
-            if (!$account->exists()) {
-                return new MethodReply(false, "Failed to find account.");
-            }
-        } else {
-            $account = $this->account;
-        }
         if (!set_sql_query(
             $change_password_table,
             array(
@@ -178,7 +171,7 @@ class AccountPassword
         if (!$account->getHistory()->add("complete_change_password")) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        if ($cooldown !== null) {
+        if ($hasCooldown) {
             $account->getFunctionality()->addInstantCooldown(AccountFunctionality::CHANGE_PASSWORD, $cooldown);
         }
         $account->getEmail()->send("passwordChanged");
