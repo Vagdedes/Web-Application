@@ -104,7 +104,9 @@ class AccountPassword
         }
         global $change_password_table;
         $array = $outcome->getObject();
-        $locallyLoggedIn = !$code && $this->account->getActions()->isLocallyLoggedIn();
+        $locallyLoggedIn = $code
+            ? new MethodReply(false)
+            : $this->account->getActions()->isLocallyLoggedIn();
         $isLocallyLoggedIn = $locallyLoggedIn->isPositiveOutcome();
         $loggedOut = !$this->account->exists();
 
