@@ -75,7 +75,7 @@ class AccountPassword
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         global $change_password_table;
-        $isLocallyLoggedIn = $this->account->getActions()->isLocallyLoggedIn()->isPositiveOutcome();
+        $isLocallyLoggedIn = !$code && $this->account->getActions()->isLocallyLoggedIn()->isPositiveOutcome();
         $loggedOut = !$this->account->exists();
         $array = get_sql_query(
             $change_password_table,
@@ -104,7 +104,7 @@ class AccountPassword
         }
         global $change_password_table;
         $array = $outcome->getObject();
-        $locallyLoggedIn = $this->account->getActions()->isLocallyLoggedIn();
+        $locallyLoggedIn = !$code && $this->account->getActions()->isLocallyLoggedIn();
         $isLocallyLoggedIn = $locallyLoggedIn->isPositiveOutcome();
         $loggedOut = !$this->account->exists();
 
