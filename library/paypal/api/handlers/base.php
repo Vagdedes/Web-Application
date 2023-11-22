@@ -5,7 +5,7 @@ $paypal_api_signature = "";
 $paypal_api_url = "https://www.paypal.com/cgi-bin/webscr";
 $paypal_api_latest_version = 220;
 
-function access_personal_paypal_account()
+function access_personal_paypal_account(): bool
 {
     $paypal_credentials = get_keys_from_file("/var/www/.structure/private/paypal_credentials", 9);
 
@@ -19,7 +19,7 @@ function access_personal_paypal_account()
     return true;
 }
 
-function access_business_paypal_account()
+function access_business_paypal_account(): bool
 {
     $paypal_credentials = get_keys_from_file("/var/www/.structure/private/paypal_credentials", 9);
 
@@ -33,7 +33,7 @@ function access_business_paypal_account()
     return true;
 }
 
-function access_deactivated_personal_paypal_account()
+function access_deactivated_personal_paypal_account(): bool
 {
     $paypal_credentials = get_keys_from_file("/var/www/.structure/private/paypal_credentials", 9);
 
@@ -47,7 +47,7 @@ function access_deactivated_personal_paypal_account()
     return true;
 }
 
-function exit_paypal_account()
+function exit_paypal_account(): void
 {
     global $paypal_api_username, $paypal_api_password, $paypal_api_signature;
     $paypal_api_username = "";
@@ -55,7 +55,7 @@ function exit_paypal_account()
     $paypal_api_signature = "";
 }
 
-function get_paypal_transaction_details($transaction)
+function get_paypal_transaction_details($transaction): mixed
 {
     global $paypal_api_username, $paypal_api_password, $paypal_api_signature, $paypal_api_latest_version;
 
@@ -83,7 +83,7 @@ function get_paypal_transaction_details($transaction)
     return $result;
 }
 
-function search_paypal_transactions($searchArguments)
+function search_paypal_transactions($searchArguments): mixed
 {
     global $paypal_api_username, $paypal_api_password, $paypal_api_signature, $paypal_api_latest_version;
 
@@ -110,7 +110,7 @@ function search_paypal_transactions($searchArguments)
     return $result;
 }
 
-function refund_paypal_transaction($transactionID, $partial, $amount, $currency, $note = null)
+function refund_paypal_transaction($transactionID, $partial, $amount, $currency, $note = null): mixed
 {
     global $paypal_api_username, $paypal_api_password, $paypal_api_signature, $paypal_api_latest_version;
 
