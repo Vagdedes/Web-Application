@@ -530,8 +530,13 @@ if (true
 
             if ($result) {
                 if ($token !== null) {
-                    echo "You are using an outdated version. "
-                        . "Consider becoming a Patron to receive updates earlier: https://www.patreon.com/Vagdedes";
+                    $account = $gameCloudUser->getInformation()->getAccount();
+                    $text = "You are using an outdated version.";
+
+                    if (!$account->exists() || !$account->getPatreon()->retrieve()->isPositiveOutcome()) {
+                        $text .= " Consider becoming a Patron to receive updates earlier: https://www.patreon.com/Vagdedes";
+                    }
+                    echo $text;
                 } else {
                     echo "You are using an outdated version. "
                         . "Join the Discord server to learn about the auto-updater feature.";
