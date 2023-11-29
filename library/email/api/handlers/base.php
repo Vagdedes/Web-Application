@@ -83,7 +83,7 @@ function services_self_email(string $from, int|string|float $subject, int|string
     return true;
 }
 
-function services_email(string           $to, string $from,
+function services_email(string           $to, ?string $from,
                         int|string|float $subject, int|string|float $content,
                         int              $startingLinePosition = EmailBase::IDEALISTIC_NO_REPLY): bool|string
 {
