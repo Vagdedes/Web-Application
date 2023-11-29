@@ -1,6 +1,8 @@
 <?php
 
-function submit_GameCloud_FailedDiscordWebhook($version, $platform, $licenseID, $productID, $url, $details, $error)
+function submit_GameCloud_FailedDiscordWebhook(int|string $version,
+                                               int|string $platform, int|string $licenseID, int|string $productID,
+                                               string     $url, array $details, ?string $error): void
 {
     global $failed_discord_webhooks_table;
     sql_insert($failed_discord_webhooks_table,
@@ -10,14 +12,15 @@ function submit_GameCloud_FailedDiscordWebhook($version, $platform, $licenseID, 
             "platform_id" => $platform,
             "license_id" => $licenseID,
             "product_id" => $productID,
-            "webhook_Url" => $url,
+            "webhook_url" => $url,
             "details" => json_encode($details),
             "error" => $error
         )
     );
 }
 
-function canSend_GameCloud_DiscordWebhook($platform, $licenseID, $productID, $key = null, $futureTime = "1 second")
+function canSend_GameCloud_DiscordWebhook(int|string $platform, int|string $licenseID, int|string $productID,
+                                          ?string    $key = null, int|string $futureTime = "1 second"): bool
 {
     global $discord_webhooks_table;
     $isKeyNull = $key === null;

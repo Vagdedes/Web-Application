@@ -425,7 +425,7 @@ if (true
                                 foreach ($query as $row) {
                                     $ipAddresses = $row->ip_addresses;
 
-                                    if (strpos($ipAddresses, "[$ip_and_port]") === false) {
+                                    if (!str_contains($ipAddresses, "[$ip_and_port]")) {
                                         $reply .= base64_encode($row->server_name . $separator . base64_decode($row->information)) . $line;
                                         set_sql_query(
                                             $cross_server_information_table,
@@ -478,7 +478,7 @@ if (true
                                 foreach ($query as $row) {
                                     $ipAddresses = $row->ip_addresses;
 
-                                    if (strpos($ipAddresses, "[$ip_and_port]") === false) {
+                                    if (!str_contains($ipAddresses, "[$ip_and_port]")) {
                                         $reply .= $row->information . $line;
                                         set_sql_query(
                                             $cross_server_information_table,
@@ -604,7 +604,7 @@ if (true
                             $isNull = $ipAddresses === null;
                             $ip_and_port = "[" . $ipAddressModified . ":" . $value . "]";
 
-                            if ($isNull || strpos($ipAddresses, $ip_and_port) === false) {
+                            if ($isNull || !str_contains($ipAddresses, $ip_and_port)) {
                                 $ifValue = $row->if_value;
                                 echo $row->file_name . "|" . $row->abstract_option . ":" . $row->value . ($ifValue !== null ? ("|" . $ifValue) : "") . $line;
 
@@ -789,7 +789,7 @@ if (true
                             foreach ($query as $row) {
                                 $ipAddresses = $row->ip_addresses;
 
-                                if (strpos($ipAddresses, "[$ip_and_port]") === false) {
+                                if (!str_contains($ipAddresses, "[$ip_and_port]")) {
                                     $ipAddresses .= "[$ip_and_port]";
                                     set_sql_query(
                                         $customer_support_commands_table,

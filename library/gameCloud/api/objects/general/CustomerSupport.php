@@ -2,10 +2,10 @@
 
 class CustomerSupport
 {
-    private $ignoreSoftwareInformation;
+    private ?array $ignoreSoftwareInformation;
     public const EMAIL = "contact@vagdedes.com";
 
-    public function __construct($ignoreSoftwareInformation = null)
+    public function __construct(?array $ignoreSoftwareInformation = null)
     {
         $this->ignoreSoftwareInformation = $ignoreSoftwareInformation;
     }
@@ -15,7 +15,7 @@ class CustomerSupport
         clear_memory(array(self::class), true);
     }
 
-    public function listTickets($time = "7 days"): array
+    public function listTickets(int|string $time = "7 days"): array
     {
         global $customer_support_table;
         set_sql_cache(null, self::class);
@@ -52,7 +52,7 @@ class CustomerSupport
 
                             foreach ($lines as $linesKey => $linesValue) {
                                 foreach ($this->ignoreSoftwareInformation[$functionality] as $value) {
-                                    if (strpos($linesValue, $value) !== false) {
+                                    if (str_contains($linesValue, $value)) {
                                         unset($lines[$linesKey]);
                                         $counter++;
                                         break;

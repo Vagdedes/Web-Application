@@ -1,6 +1,6 @@
 <?php
 
-function identify_paypal_suspended_transactions($transactions): array
+function identify_paypal_suspended_transactions(object|array $transactions): array
 {
     if (is_array($transactions)) {
         if (!empty($transactions)) {
@@ -60,7 +60,7 @@ function identify_paypal_suspended_transactions($transactions): array
                                         }
                                         break;
                                     case "contains":
-                                        if (strpos($transactionValue, $suspendedTransactionValue) !== false) {
+                                        if (str_contains($transactionValue, $suspendedTransactionValue)) {
                                             $continue = true;
                                         }
                                         break;

@@ -1,7 +1,8 @@
 <?php
+
 use Twilio\Rest\Client;
 
-function send_phone_message($phone, $message)
+function send_phone_message(int|string $phone, string|int|float $message): mixed
 {
     $twilio_credentials = get_keys_from_file("/var/www/.structure/private/twilio_credentials", 4);
 

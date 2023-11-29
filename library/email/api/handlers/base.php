@@ -10,7 +10,7 @@ class EmailBase
         IDEALISTIC_NO_REPLY = 6;
 }
 
-function personal_self_email($from, $subject, $content): bool|string
+function personal_self_email(string $from, int|string|float $subject, int|string|float $content): bool|string
 {
     global $email_credentials_directory;
     $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
@@ -46,7 +46,8 @@ function personal_self_email($from, $subject, $content): bool|string
     return true;
 }
 
-function services_self_email($from, $subject, $content, $startingLinePosition = EmailBase::IDEALISTIC_CONTACT): bool|string
+function services_self_email(string $from, int|string|float $subject, int|string|float $content,
+                             int    $startingLinePosition = EmailBase::IDEALISTIC_CONTACT): bool|string
 {
     global $email_credentials_directory;
     $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
@@ -82,7 +83,9 @@ function services_self_email($from, $subject, $content, $startingLinePosition = 
     return true;
 }
 
-function services_email($to, $from, $subject, $content, $startingLinePosition = EmailBase::IDEALISTIC_NO_REPLY): bool|string
+function services_email(string           $to, string $from,
+                        int|string|float $subject, int|string|float $content,
+                        int              $startingLinePosition = EmailBase::IDEALISTIC_NO_REPLY): bool|string
 {
     global $email_credentials_directory;
     $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
@@ -112,7 +115,7 @@ function services_email($to, $from, $subject, $content, $startingLinePosition = 
     $recipients = explode(",", $to);
 
     foreach ($recipients as $recipient) {
-        if (strlen($recipient) >= 5 && strpos($recipient, "@") !== false && strpos($recipient, ".") !== false) {
+        if (strlen($recipient) >= 5 && str_contains($recipient, "@") && str_contains($recipient, ".")) {
             $mail->addAddress($recipient, null);
         } else {
             throw new Exception("Incorrect email '$recipient'");

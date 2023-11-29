@@ -41,12 +41,12 @@ class GameCloudVerification
 
     private GameCloudUser $user;
 
-    public function __construct($user)
+    public function __construct(GameCloudUser $user)
     {
         $this->user = $user;
     }
 
-    public function isVerified($fileID, $productID, $ipAddress): int
+    public function isVerified(int|string $fileID, int|string $productID, string $ipAddress): int
     {
         $licenseID = $this->user->getLicense();
 
@@ -147,7 +147,7 @@ class GameCloudVerification
         return $result;
     }
 
-    private function isMassVerified($productID, $ipAddress): bool
+    private function isMassVerified(int|string $productID, string $ipAddress): bool
     {
         global $verifications_table, $license_management_table;
         $date = get_current_date();
@@ -293,7 +293,10 @@ class GameCloudVerification
         return $result;
     }
 
-    public function addLicenseManagement($productID, $type, $reason, $extra, $duration, $automated, $newRow = false): bool
+    public function addLicenseManagement(int|string|null $productID, string $type,
+                                         ?string         $reason, ?string $extra,
+                                         ?string         $duration, bool $automated,
+                                         bool            $newRow = false): bool
     {
         if (!in_array($type, $this::managed_license_types)) {
             return false;
@@ -355,7 +358,7 @@ class GameCloudVerification
         return true;
     }
 
-    public function removeLicenseManagement($productID, $type): bool
+    public function removeLicenseManagement(int|string|null $productID, string $type): bool
     {
         if (!in_array($type, $this::managed_license_types)) {
             return false;
@@ -389,7 +392,8 @@ class GameCloudVerification
         return true;
     }
 
-    public function timeoutAccess($version, $productID, $ipAddress, $reason, $exit = true)
+    public function timeoutAccess(int|float|string $version, int|string $productID, string $ipAddress,
+                                  string           $reason, bool $exit = true): void
     {
         $this->addLicenseManagement(
             $productID,

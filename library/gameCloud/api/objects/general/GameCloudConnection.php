@@ -2,9 +2,9 @@
 
 class GameCloudConnection
 {
-    private $properties;
+    private object|bool|null $properties;
 
-    public function __construct($reason, $key = "name")
+    public function __construct(int|string $reason, string $key = "name")
     {
         global $accepted_purposes_table;
         set_sql_cache();

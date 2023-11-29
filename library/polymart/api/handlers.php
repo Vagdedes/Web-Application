@@ -1,6 +1,6 @@
 <?php
 
-function get_polymart_object($service, $parameters, $longCache = true): ?object
+function get_polymart_object(string $service, array $parameters, bool $longCache = true): ?object
 {
     $cacheKey = array(
         $service,

@@ -7,7 +7,7 @@ function performance_metrics_reset(): void
     $memory_metrics_performance_time = microtime(true);
 }
 
-function performance_metrics_store($name): void
+function performance_metrics_store(mixed $name): void
 {
     global $memory_metrics_performance_time;
     $memory_metrics_performance_time = microtime(true) - $memory_metrics_performance_time;

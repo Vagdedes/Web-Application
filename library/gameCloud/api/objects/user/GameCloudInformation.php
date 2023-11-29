@@ -6,13 +6,13 @@ class GameCloudInformation
     private ?Account $account;
 
 
-    public function __construct($user)
+    public function __construct(GameCloudUser $user)
     {
         $this->user = $user;
         $this->account = null;
     }
 
-    public function guessPlatform($ipAddress): ?int
+    public function guessPlatform(string $ipAddress): ?int
     {
         $license = $this->user->getLicense();
 
@@ -41,7 +41,7 @@ class GameCloudInformation
         return null;
     }
 
-    public function getConnectionCount($productID, $ipAddress, $version): int
+    public function getConnectionCount(int|string $productID, string $ipAddress, int|float|string $version): int
     {
         if ($this->user->isValid()) {
             global $connection_count_table; // Do not use cache, table is already memory-based
@@ -62,7 +62,7 @@ class GameCloudInformation
         }
     }
 
-    public function getAccount($checkDeletion = true): Account
+    public function getAccount(bool $checkDeletion = true): Account
     {
         if ($this->account === null) {
             $account = new Account();
@@ -100,7 +100,7 @@ class GameCloudInformation
         return $this->account;
     }
 
-    public function ownsProduct($productID): bool
+    public function ownsProduct(int|string $productID): bool
     {
         $account = $this->getAccount();
         return $account->exists()

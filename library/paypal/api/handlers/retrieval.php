@@ -7,7 +7,7 @@ function get_all_paypal_transactions_count(): int
     return $query != null ? $query->num_rows : 0;
 }
 
-function get_all_paypal_transactions($limit = 0, $date = null): array
+function get_all_paypal_transactions(int $limit = 0, ?string $date = null): array
 {
     global $paypal_successful_transactions_table;
     $transactions = array();
@@ -24,7 +24,7 @@ function get_all_paypal_transactions($limit = 0, $date = null): array
     return $transactions;
 }
 
-function find_paypal_transactions_by_id($transactionID): array
+function find_paypal_transactions_by_id(int|string $transactionID): array
 {
     global $paypal_successful_transactions_table;
     $query = sql_query("SELECT transaction_id, details FROM $paypal_successful_transactions_table WHERE transaction_id = '$transactionID' LIMIT 1;");
@@ -39,7 +39,7 @@ function find_paypal_transactions_by_id($transactionID): array
     }
 }
 
-function find_paypal_transactions_by_contains($contains, $limit = 0): array
+function find_paypal_transactions_by_contains(int|float|bool|string $contains, int $limit = 0): array
 {
     global $paypal_successful_transactions_table;
     $transactions = array();
@@ -53,7 +53,7 @@ function find_paypal_transactions_by_contains($contains, $limit = 0): array
     return $transactions;
 }
 
-function find_paypal_transactions_by_data_pair($keyValueArray, $limit = 0, $sqlOnly = false): array
+function find_paypal_transactions_by_data_pair(array $keyValueArray, int $limit = 0, bool $sqlOnly = false): array
 {
     global $paypal_successful_transactions_table;
     $transactions = array();
@@ -107,7 +107,7 @@ function find_paypal_transactions_by_data_pair($keyValueArray, $limit = 0, $sqlO
 
 // Separator
 
-function queue_paypal_transaction($transactionID): bool
+function queue_paypal_transaction(int|string $transactionID): bool
 {
     global $paypal_transactions_queue_table;
     $query = sql_query("SELECT id FROM $paypal_transactions_queue_table WHERE transaction_id = '$transactionID';");
@@ -121,7 +121,7 @@ function queue_paypal_transaction($transactionID): bool
     return false;
 }
 
-function process_failed_paypal_transaction($transactionID, $checkExistence = true): bool
+function process_failed_paypal_transaction(int|string $transactionID, bool $checkExistence = true): bool
 {
     global $paypal_failed_transactions_table;
     $process = !$checkExistence;
@@ -145,7 +145,7 @@ function process_failed_paypal_transaction($transactionID, $checkExistence = tru
 
 // Separator
 
-function get_failed_paypal_transactions($findFromArray = null, $limit = 0, $date = null): array
+function get_failed_paypal_transactions(?array $findFromArray = null, int $limit = 0, ?string $date = null): array
 {
     global $paypal_failed_transactions_table;
     $query = sql_query("SELECT transaction_id FROM $paypal_failed_transactions_table"
@@ -162,7 +162,9 @@ function get_failed_paypal_transactions($findFromArray = null, $limit = 0, $date
             if ($hasFindFromArray) {
                 $transactionID = $row["transaction_id"];
 
-                if ($numericalArray ? in_array($transactionID, $findFromArray) : array_key_exists($transactionID, $findFromArray)) {
+                if ($numericalArray
+                    ? in_array($transactionID, $findFromArray)
+                    : array_key_exists($transactionID, $findFromArray)) {
                     $array[] = $transactionID;
                 }
             } else {

@@ -1,6 +1,6 @@
 <?php
 
-function update_paypal_storage($startDays, $endDays, $checkFailures): bool
+function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures): bool
 {
     $processedData = false;
 
@@ -81,7 +81,7 @@ function update_paypal_storage($startDays, $endDays, $checkFailures): bool
 
                 if (is_array($transactions) && !empty($transactions)) {
                     foreach ($transactions as $key => $transactionID) {
-                        if (strpos($key, "L_TRANSACTIONID") !== false
+                        if (str_contains($key, "L_TRANSACTIONID")
                             && !in_array($transactionID, $existingSuccessfulTransactions)
                             && !in_array($transactionID, $existingFailedTransactions)
                             && process_successful_paypal_transaction($transactionID)) {
@@ -99,7 +99,7 @@ function update_paypal_storage($startDays, $endDays, $checkFailures): bool
 
                 if (is_array($transactions) && !empty($transactions)) {
                     foreach ($transactions as $key => $transactionID) {
-                        if (strpos($key, "L_TRANSACTIONID") !== false
+                        if (str_contains($key, "L_TRANSACTIONID")
                             && !in_array($transactionID, $existingFailedTransactions)
                             && process_failed_paypal_transaction($transactionID, false)) {
                             $processedData = true;
@@ -167,7 +167,7 @@ function update_paypal_storage($startDays, $endDays, $checkFailures): bool
     return $processedData;
 }
 
-function process_successful_paypal_transaction($transactionID): bool
+function process_successful_paypal_transaction(int|string $transactionID): bool
 {
     $transaction = get_paypal_transaction_details($transactionID);
 

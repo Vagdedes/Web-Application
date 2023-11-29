@@ -28,8 +28,8 @@ function update_stripe_storage(): bool
                             mark_successful_stripe_transaction($transactionID, $transaction, false);
                             $processed = true;
                         }
-                    } else if (strpos($category, "refund") !== false
-                        || strpos($category, "dispute") !== false) {
+                    } else if (str_contains($category, "refund")
+                        || str_contains($category, "dispute")) {
                         $transactionID = $transaction->id;
 
                         if (!array_key_exists($transactionID, $storedTransactions)) {

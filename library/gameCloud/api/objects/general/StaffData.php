@@ -5,7 +5,7 @@ class StaffData
 
     private array $data;
 
-    public function __construct($provider)
+    public function __construct(string|array $provider)
     {
         $data = array();
 

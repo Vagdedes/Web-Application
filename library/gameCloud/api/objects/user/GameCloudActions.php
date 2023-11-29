@@ -4,12 +4,16 @@ class GameCloudActions
 {
     private GameCloudUser $user;
 
-    public function __construct($user)
+    public function __construct(GameCloudUser $user)
     {
         $this->user = $user;
     }
 
-    public function addAutomaticConfigurationChange($version, $file, $option, $value, $productID = null, $email = false): bool
+    public function addAutomaticConfigurationChange(int|float|string $version,
+                                                    string           $file,
+                                                    string           $option, int|float|string|bool $value,
+                                                    int|string|null  $productID = null,
+                                                    bool             $email = false): bool
     {
         global $configuration_changes_table;
         $file = str_replace(" ", "_", $file);
@@ -74,7 +78,10 @@ class GameCloudActions
         return true;
     }
 
-    public function removeAutomaticConfigurationChange($version, $file, $option, $productID = null): bool
+    public function removeAutomaticConfigurationChange(int|float|string $version,
+                                                       string           $file,
+                                                       string           $option,
+                                                       int|string|null  $productID = null): bool
     {
         global $configuration_changes_table;
         $file = str_replace(" ", "_", $file);
@@ -110,7 +117,9 @@ class GameCloudActions
         return true;
     }
 
-    public function addDisabledDetection($pluginVersion, $serverVersion, $check, $detection, $email = false): bool
+    public function addDisabledDetection(int|float|string $pluginVersion, int|float|string $serverVersion,
+                                         string           $check, int|float|string|bool $detection,
+                                         bool             $email = false): bool
     {
         global $disabled_detections_table;
         $detection = str_replace(" ", "__", $detection);
@@ -192,7 +201,7 @@ class GameCloudActions
             $this->resolveCustomerSupport($check);
 
             if ($email) {
-                $this->user->getEmail()->send($platform, $licenseID, "cloudFeatureCorrection",
+                $this->user->getEmail()->send("cloudFeatureCorrection",
                     array(
                         "feature" => "Disabled Detections",
                     )
@@ -202,7 +211,8 @@ class GameCloudActions
         return true;
     }
 
-    public function removeDisabledDetection($pluginVersion, $serverVersion, $check, $detection): bool
+    public function removeDisabledDetection(int|float|string $pluginVersion, int|float|string $serverVersion,
+                                            string           $check, int|float|string|bool $detection): bool
     {
         global $disabled_detections_table;
         $detection = str_replace(" ", "__", $detection);
@@ -280,7 +290,8 @@ class GameCloudActions
         return true;
     }
 
-    public function addCustomerSupportCommand($productID, $version, $user, $functionality): bool
+    public function addCustomerSupportCommand(int|string $productID, int|float|string $version,
+                                              int|string $user, int|string $functionality): bool
     {
         global $customer_support_commands_table;
 
@@ -301,7 +312,7 @@ class GameCloudActions
         return false;
     }
 
-    public function resolveCustomerSupport($functionality): bool
+    public function resolveCustomerSupport(string $functionality): bool
     {
         global $customer_support_table;
 

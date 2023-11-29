@@ -56,7 +56,7 @@ class PaymentProcessor
             }
         } else if ($returnIncomplete
             && isset($transaction->description)
-            && strpos($transaction->description, "Polymart") !== false) {
+            && str_contains($transaction->description, "Polymart")) {
             $depthKey = get_object_depth_key($transaction, "source.billing_details.email");
 
             if ($depthKey[0]) {
@@ -211,7 +211,7 @@ class PaymentProcessor
                                             }
                                             break;
                                         case "contains":
-                                            if (!strpos($actualTransactionValue, $expectedTransactionValue) !== false) {
+                                            if (!str_contains($actualTransactionValue, $expectedTransactionValue)) {
                                                 $skip = true;
                                             }
                                             break;

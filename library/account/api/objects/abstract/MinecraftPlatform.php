@@ -9,12 +9,12 @@ class MinecraftPlatform
     public function __construct(string $url)
     {
         if (!empty($url)
-            && (strpos($url, "/members/") !== false
-                || strpos($url, "/member/") !== false
-                || strpos($url, "/users/") !== false
-                || strpos($url, "/user/") !== false)) {
-            $containsHTTP = strpos($url, "http://") !== false
-                || strpos($url, "https://") !== false;
+            && (str_contains($url, "/members/")
+                || str_contains($url, "/member/")
+                || str_contains($url, "/users/")
+                || str_contains($url, "/user/"))) {
+            $containsHTTP = str_contains($url, "http://")
+                || str_contains($url, "https://");
 
             if (!$containsHTTP) {
                 return;
@@ -52,7 +52,7 @@ class MinecraftPlatform
 
                 if (!empty($query)) {
                     foreach ($query as $acceptedPlatform) {
-                        if (strpos($url, $acceptedPlatform->name . "." . $acceptedPlatform->domain) !== false) {
+                        if (str_contains($url, $acceptedPlatform->name . "." . $acceptedPlatform->domain)) {
                             $platform = $acceptedPlatform->id;
                             break;
                         }

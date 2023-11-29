@@ -1,11 +1,11 @@
 <?php
 
-function send_discord_webhook($webhookURL, $color,
-                              $gameName, $serverName,
-                              $avatarURL, $iconURL, $titleURL,
-                              $titleName, $footerName,
-                              $fields,
-                              $username = null, $content = null)
+function send_discord_webhook(string  $webhookURL, int|string $color,
+                              ?string $gameName, ?string $serverName,
+                              ?string $avatarURL, ?string $iconURL, ?string $titleURL,
+                              string  $titleName, ?string $footerName,
+                              array   $fields,
+                              ?string $username = null, int|string|float|bool $content = null): bool|string
 {
     $hasServerName = $serverName !== null;
     $hasGameName = $gameName !== null;
@@ -43,9 +43,6 @@ function send_discord_webhook($webhookURL, $color,
     }
     if ($hasFooterName && strlen($footerName) > 64) {
         return "Local: Failed footer-name criteria";
-    }
-    if (!is_array($fields)) {
-        return "Local: Failed fields criteria";
     }
     if ($username !== null) {
         //$fields["username"] = $username;

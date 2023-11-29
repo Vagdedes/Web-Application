@@ -1,5 +1,5 @@
 <?php
-function get_builtbybit_wrapper()
+function get_builtbybit_wrapper(): mixed
 {
     $keys = get_keys_from_file("/var/www/.structure/private/builtbybit_credentials", 2);
 
@@ -12,7 +12,7 @@ function get_builtbybit_wrapper()
     return $error ? $error["message"] : $wrapper;
 }
 
-function get_builtbybit_resource_ownerships($resource): array
+function get_builtbybit_resource_ownerships(int|string $resource): array
 {
     $cacheKey = array(
         $resource,
@@ -63,7 +63,7 @@ function get_builtbybit_resource_ownerships($resource): array
     }
 }
 
-function get_builtbybit_individual_resource_ownership($resource, $user): ?object
+function get_builtbybit_individual_resource_ownership(int|string $resource, int|string $user): ?object
 {
     $ownerships = get_builtbybit_resource_ownerships($resource);
     return array_key_exists($user, $ownerships) ? $ownerships[$user] : null;

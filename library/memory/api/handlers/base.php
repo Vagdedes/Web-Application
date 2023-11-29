@@ -16,14 +16,8 @@ function get_reserved_memory_names(): array
 /**
  * @throws Exception
  */
-function reserve_memory_key($name, $key): void
+function reserve_memory_key(string $name, int $key): void
 {
-    if (!is_string($name)) {
-        throw new Exception("Tried to reserve name that's not a string: " . $name);
-    }
-    if (!is_integer($key)) {
-        throw new Exception("Tried to reserve key for name '" . $name . "' that's not an integer: " . $key);
-    }
     global $memory_reserved_keys;
 
     if (isset($memory_reserved_keys[$name])) {
@@ -40,7 +34,7 @@ function reserve_memory_key($name, $key): void
 /**
  * @throws Exception
  */
-function get_reserved_memory_key($name): int
+function get_reserved_memory_key(string $name): int
 {
     global $memory_reserved_keys;
 
@@ -50,7 +44,7 @@ function get_reserved_memory_key($name): int
     return $memory_reserved_keys[$name];
 }
 
-function is_reserved_memory_key($key): bool
+function is_reserved_memory_key(int $key): bool
 {
     global $memory_reserved_keys;
     return in_array($key, $memory_reserved_keys);
@@ -58,7 +52,7 @@ function is_reserved_memory_key($key): bool
 
 // Separator
 
-function get_memory_segment_limit($multiplier = null): int
+function get_memory_segment_limit(int|float|null $multiplier = null): int
 {
     global $memory_reserved_keys;
     $niddle = "max number of segments = ";
@@ -155,12 +149,15 @@ function has_reached_maximum_segment_ids(): bool
 class ThreadMemoryBlock
 {
     // 23 is the length of the max 64-bit negative integer
-    private $key, $block, $noLock, $expiration;
+    private $expiration;
+    private int $key;
+    private string $noLock;
+    private mixed $block;
 
     /**
      * @throws Exception
      */
-    public function __construct($name, $expiration)
+    public function __construct(string $name, int $expiration)
     {
         global $memory_permissions;
         $this->key = get_reserved_memory_key($name);
@@ -186,7 +183,7 @@ class ThreadMemoryBlock
     /**
      * @throws Exception
      */
-    public function lock()
+    public function lock(): void
     {
         $serialized = serialize(time() + $this->expiration);
         $remainingBytes = 23 - strlen($serialized);
@@ -207,7 +204,7 @@ class ThreadMemoryBlock
     /**
      * @throws Exception
      */
-    public function unlock()
+    public function unlock(): void
     {
         if (shmop_write($this->block, $this->noLock, 0) !== 23) {
             $this->throwException("Unable to write to thread-memory-block: " . $this->key);
@@ -244,12 +241,12 @@ class ThreadMemoryBlock
     /**
      * @throws Exception
      */
-    private function throwException($exception, $destroy = true)
+    private function throwException(string $details, bool $destroy = true)
     {
         if ($destroy) {
             $this->destroy();
         }
-        throw new Exception($exception);
+        throw new Exception($details);
     }
 }
 
@@ -263,7 +260,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function __construct($key)
+    public function __construct(mixed $key)
     {
         if (is_integer($key)) { // Used for reserved or existing keys
             $keyToInteger = $key;
@@ -296,25 +293,25 @@ class IndividualMemoryBlock
     {
         global $memory_starting_bytes;
         $exceptionID = 4;
-        $block = $this->internalGetBlock($exceptionID, $this->key, $this->originalKey, $memory_starting_bytes, false);
-        return $this->internalGetBlockSize($exceptionID, $this->originalKey, $block);
+        $block = $this->internalGetBlock($exceptionID, $memory_starting_bytes, false);
+        return $this->internalGetBlockSize($exceptionID, $block);
     }
 
     /**
      * @throws Exception
      */
-    private function getRaw($removeIfExpired = true)
+    private function getRaw(bool $removeIfExpired = true)
     {
         global $memory_starting_bytes;
         $exceptionID = 3;
-        $block = $this->internalGetBlock($exceptionID, $this->key, $this->originalKey, $memory_starting_bytes, false);
+        $block = $this->internalGetBlock($exceptionID, $memory_starting_bytes, false);
 
         if (!$block) {
             return null;
         }
         $readMapBytes = $this->readBlock(
             $block,
-            max($this->internalGetBlockSize($exceptionID, $this->originalKey, $block), $memory_starting_bytes)
+            max($this->internalGetBlockSize($exceptionID, $block), $memory_starting_bytes)
         );
 
         if (!$readMapBytes) {
@@ -349,7 +346,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function get($objectKey = "value", $removeIfExpired = true)
+    public function get(string $objectKey = "value", bool $removeIfExpired = true)
     {
         $raw = $this->getRaw($removeIfExpired);
         return $raw?->{$objectKey};
@@ -358,7 +355,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function exists($removeIfExpired = true): bool
+    public function exists(bool $removeIfExpired = true): bool
     {
         return $this->getRaw($removeIfExpired) !== null;
     }
@@ -366,7 +363,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function clear($ifExpired = false): bool
+    public function clear(bool $ifExpired = false): bool
     {
         if (!is_reserved_memory_key($this->key)
             && (!$ifExpired || $this->getRaw() === null)) {
@@ -384,7 +381,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function set($value, $expiration = false, $ifEmpty = false): bool
+    public function set(mixed $value, int|string|null|bool $expiration = false, bool $ifEmpty = false): bool
     {
         if ($ifEmpty && $this->getRaw() !== null) {
             return false;
@@ -405,8 +402,8 @@ class IndividualMemoryBlock
             $this->throwException("Failed to deflate string '" . $objectToTextRaw . "' of individual-memory-block: " . $this->originalKey);
         }
         $objectToTextLength = strlen($objectToText);
-        $block = $this->internalGetBlock($exceptionID, $this->key, $this->originalKey, $memory_starting_bytes, false, true);
-        $bytesSize = max($this->internalGetBlockSize($exceptionID, $this->originalKey, $block), $memory_starting_bytes); // check default
+        $block = $this->internalGetBlock($exceptionID, $memory_starting_bytes, false, true);
+        $bytesSize = max($this->internalGetBlockSize($exceptionID, $block), $memory_starting_bytes); // check default
 
         if ($objectToTextLength > $bytesSize) {
             if (!$this->internalClose($block, true)) {
@@ -414,7 +411,7 @@ class IndividualMemoryBlock
             }
             $oldBytesSize = $bytesSize;
             $bytesSize = max($bytesSize + $memory_starting_bytes, $objectToTextLength);
-            $block = $this->internalGetBlock(2, $this->key, $this->originalKey, $bytesSize, true, true); // open bigger
+            $block = $this->internalGetBlock(2, $bytesSize, true, true); // open bigger
 
             if (!$block) {
                 return false;
@@ -433,7 +430,7 @@ class IndividualMemoryBlock
                 && !$this->removeExpired()) {
                 return false;
             }
-            $block = $this->internalGetBlock($exceptionID, $this->key, $this->originalKey, $bytesSize, true, true); // open default
+            $block = $this->internalGetBlock($exceptionID, $bytesSize, true, true); // open default
 
             if (!$block) {
                 return false;
@@ -493,11 +490,11 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    private function internalClose($block = null, $ignoreCreation = false): bool
+    private function internalClose(mixed $block = null, bool $ignoreCreation = false): bool
     {
         if ($block === null) {
             global $memory_starting_bytes;
-            $block = $this->internalGetBlock(5, $this->key, $this->originalKey, $memory_starting_bytes, false);
+            $block = $this->internalGetBlock(5, $memory_starting_bytes, false);
         }
         if ($block) {
             return shmop_delete($block);
@@ -510,14 +507,15 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    private function internalGetBlock($exceptionID, $key, $originalKey, $bytes = -1, $create = true, $write = false)
+    private function internalGetBlock(int  $exceptionID, int $bytes = -1,
+                                      bool $create = true, bool $write = false): mixed
     {
         global $memory_permissions, $memory_starting_bytes;
         $bytes = max($memory_starting_bytes, $bytes);
-        $block = @shmop_open($key, $write ? "w" : "a", $memory_permissions, $bytes);
+        $block = @shmop_open($this->key, $write ? "w" : "a", $memory_permissions, $bytes);
 
         if (!$block && $create) {
-            $block = @shmop_open($key, "c", $memory_permissions, $bytes);
+            $block = @shmop_open($this->key, "c", $memory_permissions, $bytes);
 
             if (!$block) {
                 $errors = error_get_last();
@@ -531,7 +529,7 @@ class IndividualMemoryBlock
                         $errorMessage = $errors["message"];
 
                         foreach ($memory_segment_ignore_errors as $ignoreError) {
-                            if (strpos($errorMessage, $ignoreError) !== false) {
+                            if (str_contains($errorMessage, $ignoreError)) {
                                 $throwException = false;
                                 break;
                             }
@@ -541,7 +539,7 @@ class IndividualMemoryBlock
 
                 if ($throwException) {
                     $this->throwException(
-                        "Unable to open/read individual-memory-block (" . $exceptionID . "): " . $originalKey,
+                        "Unable to open/read individual-memory-block (" . $exceptionID . "): " . $this->originalKey,
                         true,
                         $errors
                     );
@@ -554,7 +552,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    private function internalGetBlockSize($exceptionID, $originalKey, $block): int
+    private function internalGetBlockSize(int $exceptionID, mixed $block): int
     {
         if (!$block) {
             return -1;
@@ -562,7 +560,7 @@ class IndividualMemoryBlock
         $size = shmop_size($block);
 
         if (!$size) {
-            $this->throwException("Failed to read size of individual-memory-block (" . $exceptionID . "): " . $originalKey);
+            $this->throwException("Failed to read size of individual-memory-block (" . $exceptionID . "): " . $this->originalKey);
         }
         return $size;
     }
@@ -570,7 +568,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    private function throwException($exception, $close = true, $errors = null)
+    private function throwException(string $details, bool $close = true, ?array $errors = null)
     {
         if ($close) {
             $this->internalClose();
@@ -578,10 +576,10 @@ class IndividualMemoryBlock
         if ($errors === null) {
             $errors = error_get_last();
         }
-        throw new Exception($exception . (!empty($errors) ? " [" . $errors["message"] . "]" : ""));
+        throw new Exception($details . (!empty($errors) ? " [" . $errors["message"] . "]" : ""));
     }
 
-    private function readBlock($block, $bytesSize): bool|string
+    private function readBlock(mixed $block, int $bytesSize): bool|string
     {
         try {
             global $max_32bit_Integer;

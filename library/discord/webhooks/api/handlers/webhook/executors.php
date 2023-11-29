@@ -1,6 +1,8 @@
 <?php
 
-function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null, $cooldown = null): int
+function send_discord_webhook_by_plan(int|string|float $planID, string $webhookPointer,
+                                      ?array           $details = null,
+                                      string|int|null  $cooldown = null): int
 {
     $currentDate = get_current_date();
 
@@ -347,7 +349,7 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
                         }
                         break;
                     case "contains":
-                        if (strpos($credential, $properties->webhook_url) !== false) {
+                        if (str_contains($credential, $properties->webhook_url)) {
                             continue 3;
                         }
                         break;
@@ -384,14 +386,14 @@ function send_discord_webhook_by_plan($planID, $webhookPointer, $details = null,
     return 1;
 }
 
-function insert_new_webhook_url($number, $test): bool
+function insert_new_webhook_url(string $webhookPointer, bool $test): bool
 {
     global $discord_webhook_storage_table;
     $array = get_sql_query(
         $discord_webhook_storage_table,
         array("id"),
         array(
-            array("webhook_url", $number),
+            array("webhook_url", $webhookPointer),
         ),
         null,
         1
@@ -401,7 +403,7 @@ function insert_new_webhook_url($number, $test): bool
         return sql_insert(
                 $discord_webhook_storage_table,
                 array(
-                    "webhook_url" => $number,
+                    "webhook_url" => $webhookPointer,
                     "test" => $test,
                     "creation_date" => get_current_date()
                 )
@@ -410,7 +412,10 @@ function insert_new_webhook_url($number, $test): bool
     return false;
 }
 
-function get_discord_webhook_execution_insert_details($planID, $rowID, $object, $currentDate, $cooldown, $error = null): array
+function get_discord_webhook_execution_insert_details(int|string|float $planID,
+                                                      int|string|null       $rowID, mixed $object,
+                                                      ?string          $currentDate, ?string $cooldown,
+                                                      mixed            $error = null): array
 {
     $array = array(
         "plan_id" => $planID,

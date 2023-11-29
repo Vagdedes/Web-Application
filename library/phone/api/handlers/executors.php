@@ -1,6 +1,8 @@
 <?php
 
-function send_phone_message_by_plan($planID, $phonePointer, $details = null, $cooldown = null): int
+function send_phone_message_by_plan(int|string|float $planID, int|string $phonePointer,
+                                    ?array           $details = null,
+                                    string|int|null  $cooldown = null): int
 {
     $currentDate = get_current_date();
 
@@ -280,7 +282,7 @@ function send_phone_message_by_plan($planID, $phonePointer, $details = null, $co
                         }
                         break;
                     case "contains":
-                        if (strpos($credential, $properties->phone_number) !== false) {
+                        if (str_contains($credential, $properties->phone_number)) {
                             continue 3;
                         }
                         break;
@@ -306,7 +308,7 @@ function send_phone_message_by_plan($planID, $phonePointer, $details = null, $co
     return 1;
 }
 
-function insert_new_phone_number($number, $test): bool
+function insert_new_phone_number(int|string $number, bool $test): bool
 {
     global $phone_storage_table;
     $array = get_sql_query(
@@ -332,7 +334,10 @@ function insert_new_phone_number($number, $test): bool
     return false;
 }
 
-function get_phone_execution_insert_details($planID, $rowID, $contents, $currentDate, $cooldown, $error = null): array
+function get_phone_execution_insert_details(int|string|float $planID,
+                                            int|string|null       $rowID, ?string $contents,
+                                            ?string          $currentDate, ?string $cooldown,
+                                            mixed            $error = null): array
 {
     $array = array(
         "plan_id" => $planID,

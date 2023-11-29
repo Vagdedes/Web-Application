@@ -8,7 +8,7 @@ class MinecraftPlatformConverter
         POLYMART_PLATFORM = 3;
     private ?int $conversion;
 
-    function __construct($platform)
+    function __construct(string $platform)
     {
         $this->conversion = null;
 

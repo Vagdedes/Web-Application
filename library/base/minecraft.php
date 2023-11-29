@@ -1,12 +1,12 @@
 <?php
 $minecraft_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36";
 
-function get_minecraft_head_image($uuid, $pixels = 100): string
+function get_minecraft_head_image(string $uuid, int $pixels = 100): string
 {
     return "https://mc-heads.net/avatar/$uuid/$pixels/";
 }
 
-function get_minecraft_uuid($name, $timeoutSeconds = 0): ?string
+function get_minecraft_uuid(string $name, int $timeoutSeconds = 0): ?string
 {
     global $minecraft_user_agent;
     ini_set("user_agent", $minecraft_user_agent);
@@ -23,7 +23,7 @@ function get_minecraft_uuid($name, $timeoutSeconds = 0): ?string
     return $json->id ?? null;
 }
 
-function get_minecraft_name($uuid, $timeoutSeconds = 0): ?string
+function get_minecraft_name(string $uuid, int $timeoutSeconds = 0): ?string
 {
     global $minecraft_user_agent;
     ini_set("user_agent", $minecraft_user_agent);
@@ -44,11 +44,12 @@ function get_minecraft_name($uuid, $timeoutSeconds = 0): ?string
 class MinecraftServerStatus
 {
 
-    public $server;
-    public $online, $motd, $online_players, $max_players;
-    public $error = "OK";
+    public array $server;
+    public string $motd, $error = "OK";
+    public int $online_players, $max_players;
+    public bool $online;
 
-    function __construct($url, $port = '25565')
+    function __construct(string $url, int|string $port = '25565')
     {
         $this->server = array(
             "url" => $url,

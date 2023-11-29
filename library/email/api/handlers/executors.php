@@ -1,6 +1,9 @@
 <?php
 
-function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscribe = true, $cooldown = null): int
+function send_email_by_plan(int|string|float $planID, string $emailPointer,
+                            ?array           $details = null,
+                            bool             $unsubscribe = true,
+                            int|string|null  $cooldown = null): int
 {
     $currentDate = get_current_date();
 
@@ -295,7 +298,7 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
                         }
                         break;
                     case "contains":
-                        if (strpos($credentialCopy, $properties->email_address) !== false) {
+                        if (str_contains($credentialCopy, $properties->email_address)) {
                             continue 3;
                         }
                         break;
@@ -326,7 +329,7 @@ function send_email_by_plan($planID, $emailPointer, $details = null, $unsubscrib
     return 1;
 }
 
-function get_user_exemption_token($planID, $emailID)
+function get_user_exemption_token(int|string|float $planID, int|string $emailID)
 {
     global $email_user_exemption_keys_table, $email_exempt_token_length;
     $query = get_sql_query(
@@ -372,7 +375,7 @@ function get_user_exemption_token($planID, $emailID)
     return $token;
 }
 
-function insert_new_email($email, $test): bool
+function insert_new_email(string $email, bool $test): bool
 {
     global $email_storage_table;
     $array = get_sql_query(
@@ -398,7 +401,10 @@ function insert_new_email($email, $test): bool
     return false;
 }
 
-function get_email_execution_insert_details($planID, $rowID, $title, $contents, $currentDate, $cooldown, $error = null): array
+function get_email_execution_insert_details(int|string|float $planID,
+                                            int|string|null  $rowID, $title, ?string $contents,
+                                            ?string          $currentDate, ?string $cooldown,
+                                            mixed            $error = null): array
 {
     $array = array(
         "plan_id" => $planID,

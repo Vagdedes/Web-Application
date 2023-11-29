@@ -36,12 +36,12 @@ class GameCloudUser
             && $this->license > 0;
     }
 
-    public function setPlatform($platform)
+    public function setPlatform(int|string $platform): void
     {
         $this->platform = $platform;
     }
 
-    public function setLicense($license)
+    public function setLicense(int|string $license): void
     {
         $this->license = $license;
     }
@@ -66,7 +66,7 @@ class GameCloudUser
         return $this->email;
     }
 
-    public function clearMemory($key = null)
+    public function clearMemory(mixed $key = null): void
     {
         if ($this->isValid()) {
             if ($key === null) {

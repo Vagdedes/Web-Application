@@ -1,6 +1,7 @@
 <?php
 
-function get_accepted_platforms($select = null, $id = null, $acceptedAccountID = null): array
+function get_accepted_platforms(?array     $select = null, int|string $id = null,
+                                int|string $acceptedAccountID = null): array
 {
     global $accepted_platforms_table;
     $hasID = $id !== null;
@@ -15,6 +16,6 @@ function get_accepted_platforms($select = null, $id = null, $acceptedAccountID =
             $hasAcceptedAccountID ? array("accepted_account_id", $acceptedAccountID) : ""
         ),
         null,
-        $hasID || $hasAcceptedAccountID ? 1 : null
+        $hasID || $hasAcceptedAccountID ? 1 : 0
     );
 }

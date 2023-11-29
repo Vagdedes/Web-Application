@@ -1,6 +1,6 @@
 <?php
 
-function get_google_analytics($website = 1): ?string
+function get_google_analytics(int $website = 1): ?string
 {
     switch ($website) {
         case 1: // www.vagdedes.com

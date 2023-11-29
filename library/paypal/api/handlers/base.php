@@ -55,7 +55,7 @@ function exit_paypal_account(): void
     $paypal_api_signature = "";
 }
 
-function get_paypal_transaction_details($transaction): mixed
+function get_paypal_transaction_details(int|string $transactionID): mixed
 {
     global $paypal_api_username, $paypal_api_password, $paypal_api_signature, $paypal_api_latest_version;
 
@@ -64,7 +64,7 @@ function get_paypal_transaction_details($transaction): mixed
         . '&SIGNATURE=' . $paypal_api_signature
         . '&VERSION=' . $paypal_api_latest_version
         . '&METHOD=GetTransactionDetails'
-        . '&TRANSACTIONID=' . $transaction;
+        . '&TRANSACTIONID=' . $transactionID;
 
     $curl = curl_init('https://api-3t.paypal.com/nvp');
     curl_setopt($curl, CURLOPT_FAILONERROR, true);
@@ -83,7 +83,7 @@ function get_paypal_transaction_details($transaction): mixed
     return $result;
 }
 
-function search_paypal_transactions($searchArguments): mixed
+function search_paypal_transactions(string $searchArguments): mixed
 {
     global $paypal_api_username, $paypal_api_password, $paypal_api_signature, $paypal_api_latest_version;
 
@@ -110,7 +110,9 @@ function search_paypal_transactions($searchArguments): mixed
     return $result;
 }
 
-function refund_paypal_transaction($transactionID, $partial, $amount, $currency, $note = null): mixed
+function refund_paypal_transaction(int|string $transactionID,
+                                   bool       $partial, int|float|string|null $amount, string|null $currency,
+                                   ?string    $note = null): mixed
 {
     global $paypal_api_username, $paypal_api_password, $paypal_api_signature, $paypal_api_latest_version;
 

@@ -15,7 +15,7 @@ class ParameterVerification
     public function __construct($parameter,
                                 null|array|int $mustBeType = null,
                                 ?int $minSize = null, ?int $maxSize = null,
-                                ?string $mustContain = null, ?string $mustNotContain = null,
+                                ?array $mustContain = null, ?array $mustNotContain = null,
                                 ?string $mustStartWith = null, ?string $mustNotStartWith = null,
                                 ?string $mustEndWidth = null, ?string $mustNotEndWidth = null)
     {
@@ -141,7 +141,7 @@ class ParameterVerification
         }
         if ($mustContain !== null) {
             foreach ($mustContain as $value) {
-                if (strpos($parameter, $value) === false) {
+                if (!str_contains($parameter, $value)) {
                     $this->outcome = new MethodReply(false, "Parameter must contain $value.", $parameter);
                     return;
                 }
@@ -149,7 +149,7 @@ class ParameterVerification
         }
         if ($mustNotContain !== null) {
             foreach ($mustNotContain as $value) {
-                if (strpos($parameter, $value) !== false) {
+                if (str_contains($parameter, $value)) {
                     $this->outcome = new MethodReply(false, "Parameter must not contain $value.", $parameter);
                     return;
                 }
