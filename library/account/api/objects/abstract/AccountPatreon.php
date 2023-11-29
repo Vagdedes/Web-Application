@@ -11,7 +11,8 @@ class AccountPatreon
         SUPPORTER = 9804213,
         MOTIVATOR = 4064030,
         SPONSOR = 9784720,
-        INVESTOR = 9784718;
+        INVESTOR = 9784718,
+        VISIONARY = 21608146;
 
     public function __construct(Account $account)
     {
@@ -26,7 +27,7 @@ class AccountPatreon
 
             if ($name->isPositiveOutcome()) {
                 $name = $name->getObject()[0];
-                $this->retrieve = $this->find($name, array(self::INVESTOR));
+                $this->retrieve = $this->find($name, array(self::VISIONARY, self::INVESTOR));
 
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(

@@ -38,10 +38,8 @@ require_once '/var/www/.structure/library/account/api/objects/management/Account
 require_once '/var/www/.structure/library/account/api/objects/management/AccountCooldowns.php';
 
 // Credential
-require_once '/var/www/.structure/library/account/api/objects/credential/AccountAccounts.php';
-require_once '/var/www/.structure/library/account/api/objects/credential/AccountPassword.php';
-require_once '/var/www/.structure/library/account/api/objects/credential/AccountFiles.php';
-require_once '/var/www/.structure/library/account/api/objects/credential/AccountVerification.php';
+require_once '/var/www/.structure/library/account/api/objects/security/AccountPassword.php';
+require_once '/var/www/.structure/library/account/api/objects/security/AccountVerification.php';
 
 // Communication
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountEmail.php';
@@ -55,6 +53,7 @@ require_once '/var/www/.structure/library/account/api/objects/communication/Acco
 // Correlation
 require_once '/var/www/.structure/library/account/api/objects/correlation/AcceptedAccount.php';
 require_once '/var/www/.structure/library/account/api/objects/correlation/AccountCorrelation.php';
+require_once '/var/www/.structure/library/account/api/objects/correlation/AccountAccounts.php';
 
 // Finance
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountWallet.php';
@@ -64,6 +63,7 @@ require_once '/var/www/.structure/library/account/api/objects/finance/AccountTra
 // Information
 require_once '/var/www/.structure/library/account/api/objects/information/AccountStatistics.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountReference.php';
+require_once '/var/www/.structure/library/account/api/objects/information/AccountFiles.php';
 
 // Session
 require_once '/var/www/.structure/library/account/api/objects/session/AccountSession.php';
