@@ -1,6 +1,6 @@
 <?php
 
-function running_memory_process($tracker, $time = true, $hash = true): bool
+function running_memory_process(string|int $tracker, bool $time = true, bool $hash = true): bool
 {
     global $memory_processes_table;
     load_sql_database(SqlDatabaseCredentials::MEMORY);
@@ -19,15 +19,12 @@ function running_memory_process($tracker, $time = true, $hash = true): bool
             || $time && $query[0]->next_repetition >= time());
 }
 
-function start_memory_process($tracker, $processSeconds = 0, $forceful = false, $hash = true): bool
+function start_memory_process(string|int $tracker, bool $forceful = false, bool $hash = true): bool
 {
     global $memory_processes_table;
 
     if ($hash) {
         $tracker = string_to_integer($tracker, true);
-    }
-    if ($processSeconds === 0) {
-        $processSeconds = 60; // Max script execution time in seconds
     }
     load_sql_database(SqlDatabaseCredentials::MEMORY);
     $query = get_sql_query(
@@ -46,7 +43,7 @@ function start_memory_process($tracker, $processSeconds = 0, $forceful = false, 
             array(
                 "tracker" => $tracker,
                 "running" => 1,
-                "next_repetition" => (time() + $processSeconds)
+                "next_repetition" => (time() + get_max_script_time())
             )
         )) {
             load_previous_sql_database();
@@ -57,7 +54,7 @@ function start_memory_process($tracker, $processSeconds = 0, $forceful = false, 
             $memory_processes_table,
             array(
                 "running" => 1,
-                "next_repetition" => (time() + $processSeconds)
+                "next_repetition" => (time() + get_max_script_time())
             ),
             array(
                 array("tracker", $tracker)
@@ -67,14 +64,14 @@ function start_memory_process($tracker, $processSeconds = 0, $forceful = false, 
         return true;
     }
     if ($forceful) {
-        return start_memory_process($tracker, $processSeconds, $forceful, $hash);
+        return start_memory_process($tracker, $forceful, false);
     } else {
         load_previous_sql_database();
     }
     return false;
 }
 
-function end_memory_process($tracker, $hash = true): void
+function end_memory_process(string|int $tracker, bool $hash = true): void
 {
     global $memory_processes_table;
     load_sql_database(SqlDatabaseCredentials::MEMORY);

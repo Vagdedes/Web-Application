@@ -1,7 +1,6 @@
 <?php
 
-function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
-                                     $makeProcess = false, $processEnd = true, $processSeconds = 0): void
+function schedule_function_in_memory($function, $arguments = null, int $seconds = 1, ?bool $processEnd = null): void
 {
     global $memory_schedulers_table;
     $identifier = string_to_integer($function, true);
@@ -15,6 +14,7 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
         null,
         1
     );
+    $isProcess = is_bool($processEnd);
 
     if (empty($query)) {
         if (sql_insert(
@@ -24,11 +24,11 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
                     "next_repetition" => time() + $seconds
                 )
             )
-            && (!$makeProcess || start_memory_process($identifier, $processSeconds, false, false))) {
+            && (!$isProcess || start_memory_process($identifier, false, false))) {
             load_previous_sql_database();
             call_user_func_array($function, $arguments === null ? array() : $arguments);
 
-            if ($processEnd) {
+            if ($isProcess && $processEnd) {
                 end_memory_process($identifier, false);
             }
         }
@@ -42,11 +42,11 @@ function schedule_function_in_memory($function, $arguments = null, $seconds = 1,
                 array("tracker", $identifier)
             )
         )
-        && (!$makeProcess || start_memory_process($identifier, $processSeconds, false, false))) {
+        && (!$isProcess || start_memory_process($identifier, false, false))) {
         load_previous_sql_database();
         call_user_func_array($function, $arguments === null ? array() : $arguments);
 
-        if ($processEnd) {
+        if ($isProcess && $processEnd) {
             end_memory_process($identifier, false);
         }
     } else {

@@ -1,24 +1,11 @@
 <?php
 
-function memory_ignore_key_serialization(): void
+function manipulate_memory_key(mixed $key): bool|string
 {
-    global $memory_serialize_key;
-    $memory_serialize_key = false;
+    return $key === null ? false : serialize(is_object($key) ? get_object_vars($key) : $key);
 }
 
-function manipulate_memory_key($key): bool|string
-{
-    global $memory_serialize_key;
-
-    if ($memory_serialize_key) {
-        return $key === null ? false : serialize(is_object($key) ? get_object_vars($key) : $key);
-    } else {
-        $memory_serialize_key = true;
-        return $key;
-    }
-}
-
-function manipulate_memory_date($cooldown, $maxTime = 86400)
+function manipulate_memory_date(mixed $cooldown, int $maxTime = 86400)
 {
     if ($cooldown === null) {
         return false;
@@ -41,7 +28,7 @@ function manipulate_memory_date($cooldown, $maxTime = 86400)
     return min($cooldown, time() + $maxTime);
 }
 
-function map_to_string($array): string
+function map_to_string(array $array): string
 {
     $string = "";
 
@@ -57,7 +44,7 @@ function map_to_string($array): string
     return $string;
 }
 
-function string_to_map($string): array
+function string_to_map(string $string): array
 {
     $explode = preg_split("/(\r)/", $string);
     $array = array();

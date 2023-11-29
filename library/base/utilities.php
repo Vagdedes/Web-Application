@@ -20,6 +20,11 @@ function get_server_identifier($long = false): int
     return string_to_integer(getHostName(), $long);
 }
 
+function get_max_script_time(): bool|string
+{
+    return ini_get('max_execution_time');
+}
+
 // File
 
 function get_domain_directory(): string

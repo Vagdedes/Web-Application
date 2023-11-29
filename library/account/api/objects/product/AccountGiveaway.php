@@ -45,7 +45,7 @@ class AccountGiveaway
     }
 
     private function create(int|string|null $productID, int|string $amount,
-                            int|string $duration, bool $requireDownload): bool
+                            int|string      $duration, bool $requireDownload): bool
     {
         global $product_giveaways_table;
         $array = get_sql_query($product_giveaways_table,
@@ -142,7 +142,7 @@ class AccountGiveaway
     }
 
     public function getCurrent(int|string|null $productID,
-                               int|string $amount, int|string $duration, bool $requireDownload): MethodReply
+                               int|string      $amount, int|string $duration, bool $requireDownload): MethodReply
     {
         global $product_giveaways_table;
         set_sql_cache(null, self::class);
@@ -280,7 +280,7 @@ class AccountGiveaway
                               int|string $productID, object $productObject,
                               array      $accountsArray, int|string $accountsAmount, int|string $limit): void
     {
-        if (!start_memory_process(array(__METHOD__, $productID, $limit))) {
+        if (!start_memory_process(__METHOD__ . $productID . $limit)) {
             return;
         }
         $limit = min($limit, $accountsAmount);

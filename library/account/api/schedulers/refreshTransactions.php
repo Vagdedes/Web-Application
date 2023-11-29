@@ -20,7 +20,6 @@ if (function_exists("schedule_function_in_memory")) {
         $refresh_transactions_function,
         null,
         2,
-        true,
         false
     );
 }
