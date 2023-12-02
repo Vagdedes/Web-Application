@@ -106,8 +106,8 @@ function set_key_value_pair(mixed $key, mixed $value = null, int|string|null $fu
 
 // Separator
 
-function clear_memory(array $keys, bool $abstractSearch = false,
-                      int   $stopAfterSuccessfulIterations = 0, mixed $localSegments = null): void
+function clear_memory(array|null $keys, bool $abstractSearch = false,
+                      int        $stopAfterSuccessfulIterations = 0, mixed $localSegments = null): void
 {
     global $memory_object_cache;
     $hasLocalSegments = $localSegments !== null;

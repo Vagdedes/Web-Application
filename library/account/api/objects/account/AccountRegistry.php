@@ -125,13 +125,15 @@ class AccountRegistry
     {
         global $accounts_table;
         set_sql_cache(AccountSession::session_cache_time, self::class);
-        return sizeof(get_sql_query(
+        return sizeof(
+            get_sql_query(
                 $accounts_table,
                 array("id"),
                 array(
                     array("application_id", $this->applicationID),
                     array("deletion_date", null),
-                ))
+                )
+            )
         );
     }
 }
