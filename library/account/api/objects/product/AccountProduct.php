@@ -12,8 +12,9 @@ class AccountProduct
     public function find(int|string $productID = null, bool $documentation = true, int|string $accountID = null): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
-        $hasAccount = $accountID !== null;
-        $hasProduct = !$hasAccount && $productID !== null;
+        $hasAccountPointer = $accountID !== null;
+        $hasProduct = !$hasAccountPointer && $productID !== null;
+        $accountExists = $this->account->exists();
 
         if ($hasProduct) {
             $functionality = $this->account->getFunctionality();
@@ -26,6 +27,7 @@ class AccountProduct
         $cacheKey = array(
             $this,
             $documentation,
+            $accountExists,
             $productID,
         );
         $array = get_key_value_pair($cacheKey);
@@ -35,7 +37,7 @@ class AccountProduct
             $array = get_sql_query($products_table,
                 null,
                 array(
-                    $hasAccount ? array("account_id", $accountID) : array("application_id", $applicationID),
+                    $hasAccountPointer ? array("account_id", $accountID) : array("application_id", $applicationID),
                     array("deletion_date", null),
                     $hasProduct ? array("id", $productID) : ""
                 ),
@@ -58,10 +60,9 @@ class AccountProduct
                        $product_purchases_table,
                        $product_reviews_table,
                        $product_tiers_table;
-                $accountExists = $this->account->exists();
 
                 foreach ($array as $arrayKey => $object) {
-                    if (!$accountExists || true) {
+                    if ($accountExists || $object->requires_account === null) {
                         $productID = $object->id;
                         $object->transaction_search = get_sql_query(
                             $product_transaction_search_table,
@@ -318,6 +319,8 @@ class AccountProduct
                             $cacheKeyCopy[] = $productID;
                             set_key_value_pair($cacheKeyCopy, array($object), "1 minute"); // Update individual cache conveniently
                         }
+                    } else {
+                        unset($array[$arrayKey]);
                     }
                 }
             }

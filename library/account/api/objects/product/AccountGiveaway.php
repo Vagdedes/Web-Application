@@ -84,6 +84,8 @@ class AccountGiveaway
                     // Search for next product to give away
                     foreach ($validProducts as $arrayKey => $product) {
                         if ($product->is_free
+                            || $product->giveaway === null
+                            || $product->independent === null
                             || $requireDownload && empty($product->downloads)) {
                             unset($validProducts[$arrayKey]);
                         } else {
