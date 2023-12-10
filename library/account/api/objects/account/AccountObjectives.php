@@ -31,7 +31,7 @@ class AccountObjectives
                     "Add your" . (!$paypal ? " PayPal and " : " ") . "Stripe email to have your purchases identified.",
                     $website_account_url . "/profile/addAccount",
                     true,
-                    "14 days"
+                    "7 days"
                 );
             } else if (!$paypal) {
                 $array = $this->create(
@@ -40,7 +40,7 @@ class AccountObjectives
                     "Add your PayPal email to have your purchases identified.",
                     $website_account_url . "/profile/addAccount",
                     true,
-                    "14 days"
+                    "7 days"
                 );
             }
             if (!$this->account->getAccounts()->hasAdded(AccountAccounts::SPIGOTMC_URL, null, 1)->isPositiveOutcome()
@@ -52,7 +52,7 @@ class AccountObjectives
                     "Add your SpigotMC/BuiltByBit/Polymart account URL to have your licenses identified.",
                     $website_account_url . "/profile/addAccount",
                     true,
-                    "14 days"
+                    "7 days"
                 );
             }
             if (!$this->account->getAccounts()->hasAdded(AccountAccounts::DISCORD_TAG, null, 1)->isPositiveOutcome()) {
@@ -62,7 +62,7 @@ class AccountObjectives
                     "Add your Discord-Tag so we can give you roles on Discord now or in the future.",
                     $website_account_url . "/profile/addAccount",
                     true,
-                    "14 days"
+                    "7 days"
                 );
             }
             if (!$this->account->getAccounts()->hasAdded(AccountAccounts::PATREON_FULL_NAME, null, 1)->isPositiveOutcome()) {
@@ -72,7 +72,7 @@ class AccountObjectives
                     "Add your Patreon-Full-Name to have your purchases identified.",
                     $website_account_url . "/profile/addAccount",
                     true,
-                    "14 days"
+                    "7 days"
                 );
             }
             return $array;
