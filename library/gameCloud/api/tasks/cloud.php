@@ -162,6 +162,7 @@ if (true
                                     $productObject = $validProductObject;
                                     $platform = $row->id;
                                     $gameCloudUser->setPlatform($platform);
+                                    $platformID = $platform;
                                     break;
                                 }
                             }
