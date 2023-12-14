@@ -107,7 +107,7 @@ function set_key_value_pair(mixed $key, mixed $value = null, int|string|null $fu
 // Separator
 
 function clear_memory(array|null $keys, bool $abstractSearch = false,
-                      int        $stopAfterSuccessfulIterations = 0, mixed $localSegments = null): void
+                      int|string        $stopAfterSuccessfulIterations = 0, mixed $localSegments = null): void
 {
     global $memory_object_cache;
     $hasLocalSegments = $localSegments !== null;
@@ -117,7 +117,7 @@ function clear_memory(array|null $keys, bool $abstractSearch = false,
     }
 
     if (!empty($keys)) {
-        $hasLimit = $stopAfterSuccessfulIterations > 0;
+        $hasLimit = is_numeric($stopAfterSuccessfulIterations) && $stopAfterSuccessfulIterations > 0;
 
         if ($hasLimit) {
             $iterations = array();

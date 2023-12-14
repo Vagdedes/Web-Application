@@ -9,11 +9,11 @@ class GameCloudActions
         $this->user = $user;
     }
 
-    public function addAutomaticConfigurationChange(int|float|string $version,
-                                                    string           $file,
-                                                    string           $option, int|float|string|bool $value,
-                                                    int|string|null  $productID = null,
-                                                    bool             $email = false): bool
+    public function addAutomaticConfigurationChange(int|float|string|null $version,
+                                                    string|null           $file,
+                                                    string                $option, int|float|string|bool $value,
+                                                    int|string|null       $productID = null,
+                                                    bool                  $email = false): bool
     {
         global $configuration_changes_table;
         $file = str_replace(" ", "_", $file);
@@ -78,10 +78,10 @@ class GameCloudActions
         return true;
     }
 
-    public function removeAutomaticConfigurationChange(int|float|string $version,
-                                                       string           $file,
-                                                       string           $option,
-                                                       int|string|null  $productID = null): bool
+    public function removeAutomaticConfigurationChange(int|float|string|null $version,
+                                                       string                $file,
+                                                       string                $option,
+                                                       int|string|null       $productID = null): bool
     {
         global $configuration_changes_table;
         $file = str_replace(" ", "_", $file);
