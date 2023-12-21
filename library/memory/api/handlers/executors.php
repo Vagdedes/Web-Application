@@ -148,7 +148,7 @@ function clear_memory(array|null $keys, bool $abstractSearch = false,
                                 if ($hasLimit) {
                                     $iterations[$arrayKey]++;
 
-                                    if ($iterations[$arrayKey] === $stopAfterSuccessfulIterations) {
+                                    if ($iterations[$arrayKey] == $stopAfterSuccessfulIterations) {
                                         break 2;
                                     }
                                 }
@@ -159,7 +159,7 @@ function clear_memory(array|null $keys, bool $abstractSearch = false,
                                 if ($hasLimit) {
                                     $iterations[$arrayKey]++;
 
-                                    if ($iterations[$arrayKey] === $stopAfterSuccessfulIterations) {
+                                    if ($iterations[$arrayKey] == $stopAfterSuccessfulIterations) {
                                         break 2;
                                     }
                                 }

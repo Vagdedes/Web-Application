@@ -117,7 +117,7 @@ class GameCloudActions
         return true;
     }
 
-    public function addDisabledDetection(int|float|string $pluginVersion, int|float|string $serverVersion,
+    public function addDisabledDetection(int|float|string|null $pluginVersion, int|float|string|null $serverVersion,
                                          string           $check, int|float|string|bool $detection,
                                          bool             $email = false): bool
     {
