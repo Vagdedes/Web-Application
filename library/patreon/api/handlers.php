@@ -43,6 +43,8 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
             $reply = get_key_value_pair($cacheKey);
 
             if ($reply === null) {
+                $timeout = 3;
+                set_time_limit($timeout + 2);
                 $reply = json_decode(get_curl(
                     $link,
                     "GET",
@@ -51,7 +53,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                         "Authorization: Bearer " . $key
                     ),
                     null,
-                    3
+                    $timeout
                 ));
 
                 if ($reply === false) {
@@ -129,6 +131,8 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
             $reply = get_key_value_pair($cacheKey);
 
             if ($reply === null) {
+                $timeout = 3;
+                set_time_limit($timeout + 2);
                 $reply = json_decode(get_curl(
                     $link,
                     "GET",
@@ -137,7 +141,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                         "Authorization: Bearer " . $key
                     ),
                     null,
-                    3
+                    $timeout
                 ));
 
                 if ($reply === false) {
