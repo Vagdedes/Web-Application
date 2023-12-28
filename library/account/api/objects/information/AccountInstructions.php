@@ -23,33 +23,42 @@ class AccountInstructions
             null,
             array(
                 array("deletion_date", null),
+                null,
+                array("application_id", "IS", null, 0),
                 array("application_id", $this->account->getDetail("application_id")),
+                null,
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
                 null
             ),
-            "plan_id ASC, priority DESC"
+            "priority DESC"
         );
         $this->publicInstructions = get_sql_query(
             InstructionsTable::PUBLIC,
             null,
             array(
                 array("deletion_date", null),
+                null,
+                array("application_id", "IS", null, 0),
                 array("application_id", $this->account->getDetail("application_id")),
+                null,
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
                 null
             ),
-            "plan_id ASC, priority DESC"
+            "priority DESC"
         );
         $this->placeholders = get_sql_query(
             InstructionsTable::PLACEHOLDERS,
             null,
             array(
                 array("deletion_date", null),
+                null,
+                array("application_id", "IS", null, 0),
                 array("application_id", $this->account->getDetail("application_id")),
+                null,
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
@@ -83,39 +92,81 @@ class AccountInstructions
                             bool    $recursive = true): array
     {
         if ($object !== null && !empty($this->placeholders)) {
-            foreach ($messages as $arrayKey => $message) {
+            $placeholders = $this->placeholders;
+
+            foreach ($messages as $messageKey => $message) {
                 if ($message === null) {
-                    $messages[$arrayKey] = "";
+                    $messages[$messageKey] = "";
                 }
             }
-            $placeholders = $this->placeholders;
-            $values = array();
 
             foreach ($placeholders as $arrayKey => $placeholder) {
                 if (isset($object->{$placeholder->placeholder})) {
-                    $values[] = array($placeholder, $object->{$placeholder->code_field} ?? "");
                     unset($placeholders[$arrayKey]);
+                    $value = $this->prepareValue(
+                        $object->{$placeholder->placeholder},
+                        $object,
+                        $dynamicPlaceholders,
+                        $recursive
+                    );
+
+                    foreach ($messages as $messageKey => $message) {
+                        $messages[$messageKey] = str_replace(
+                            $this->placeholderStart . $placeholder->placeholder . $this->placeholderEnd,
+                            $value,
+                            $message
+                        );
+                    }
                 } else if ($placeholder->dynamic === null) {
-                    $values[] = array($placeholder, "");
                     unset($placeholders[$arrayKey]);
                 }
             }
-            if (!empty($placeholders) && !empty($dynamicPlaceholders)) {
-                foreach ($placeholders as $placeholder) {
-                    if ($placeholder->dynamic !== null) {
-                        $explode = explode($this->placeholderMiddle, $placeholder->placeholder);
+            $failedTries = array();
+
+            foreach ($messages as $messageKey => $message) {
+                $position = strpos($message, $this->placeholderStart);
+
+                if ($position !== false) {
+                    $word = substr($message, $position);
+                    $finalPosition = strpos($word, $this->placeholderEnd);
+
+                    if ($finalPosition !== false) {
+                        $word = substr($word, 0, $finalPosition + strlen($this->placeholderEnd));
+                        $validWord = substr($word, strlen($this->placeholderStart), -strlen($this->placeholderEnd));
+                        $explode = explode($this->placeholderMiddle, $validWord);
                         $keyWord = array_shift($explode);
 
                         if (array_key_exists($keyWord, $dynamicPlaceholders)) {
+                            $found = false;
+
+                            foreach ($placeholders as $placeholder) {
+                                if ($placeholder->placeholder == $keyWord) {
+                                    $found = true;
+                                    break;
+                                }
+                            }
+
+                            if (!$found) {
+                                continue;
+                            }
                             $keyWordMethod = $dynamicPlaceholders[$keyWord];
 
                             if (is_array($keyWordMethod)) {
                                 switch (sizeof($keyWordMethod)) {
                                     case 2:
-                                        $value = call_user_func_array(
-                                            $keyWordMethod,
-                                            $explode
-                                        );
+                                        try {
+                                            $value = $this->prepareValue(
+                                                call_user_func_array(
+                                                    $keyWordMethod,
+                                                    $explode
+                                                ),
+                                                $object,
+                                                $dynamicPlaceholders,
+                                                $recursive
+                                            );
+                                        } catch (Throwable $e) {
+                                            $value = "";
+                                        }
                                         break;
                                     case 3:
                                         $parameters = array_pop($keyWordMethod);
@@ -124,92 +175,81 @@ class AccountInstructions
                                             foreach ($parameters as $arrayKey => $parameter) {
                                                 if (is_object($parameter)
                                                     && empty(get_object_vars($parameter))
-                                                    && array_key_exists($arrayKey, $explode)) {
-                                                    $parameters[$arrayKey] = $explode[$arrayKey];
+                                                    && !empty($explode)) {
+                                                    $parameters[$arrayKey] = array_shift($explode);
                                                 }
                                             }
                                         }
-                                        $value = call_user_func_array(
-                                            $keyWordMethod,
-                                            $parameters
-                                        );
+                                        try {
+                                            $value = $this->prepareValue(
+                                                call_user_func_array(
+                                                    $keyWordMethod,
+                                                    $parameters
+                                                ),
+                                                $object,
+                                                $dynamicPlaceholders,
+                                                $recursive
+                                            );
+                                        } catch (Throwable $e) {
+                                            $value = "";
+                                        }
                                         break;
                                     default:
                                         $value = "";
                                         break;
                                 }
                             } else {
-                                $value = call_user_func_array(
-                                    $keyWord,
-                                    $explode
-                                );
+                                try {
+                                    $value = $this->prepareValue(
+                                        call_user_func_array(
+                                            $keyWord,
+                                            $explode
+                                        ),
+                                        $object,
+                                        $dynamicPlaceholders,
+                                        $recursive
+                                    );
+                                } catch (Throwable $e) {
+                                    $value = "";
+                                }
                             }
                         } else {
                             $value = "";
                         }
-                    } else {
-                        $value = "";
-                    }
-                    $values[] = array($placeholder, $value);
-                }
-            }
-            foreach ($values as $value) {
-                $placeholder = $value[0];
-                $value = $value[1];
-
-                if (is_array($value)) {
-                    $array = $value;
-                    $size = sizeof($array);
-                    $value = "";
-
-                    foreach ($array as $arrayKey => $row) {
-                        if ($recursive) {
-                            $value .= $this->replace(
-                                array($row),
-                                $object,
-                                $dynamicPlaceholders,
-                                false
-                            )[0];
-                        } else {
-                            $value .= $row;
-                        }
-
-                        if ($arrayKey !== ($size - 1)) {
-                            $value .= "\n";
-                        }
+                        $message = str_replace($word, $value, $message);
                     }
                 }
-                $object->placeholderArray[] = $value;
-
-                if ($placeholder->include_previous !== null) {
-                    $size = sizeof($object->placeholderArray);
-
-                    for ($position = 1; $position <= min($placeholder->include_previous, $size); $position++) {
-                        $positionValue = $object->placeholderArray[$size - $position];
-
-                        foreach ($messages as $arrayKey => $message) {
-                            if (!empty($message)) {
-                                $messages[$arrayKey] = str_replace(
-                                    $this->placeholderStart . $placeholder->placeholder . $this->placeholderEnd,
-                                    $positionValue,
-                                    $message
-                                );
-                            }
-                        }
-                    }
-                }
-                foreach ($messages as $arrayKey => $message) {
-                    if (!empty($message)) {
-                        $messages[$arrayKey] = str_replace(
-                            $this->placeholderStart . $placeholder->placeholder . $this->placeholderEnd,
-                            $value,
-                            $message
-                        );
-                    }
-                }
+                $messages[$messageKey] = $message;
             }
         }
         return $messages;
+    }
+
+    private function prepareValue(mixed $value, object $object, array $dynamicPlaceholders, bool $recursive): mixed
+    {
+        if (is_array($value)) {
+            $array = $value;
+            $size = sizeof($array) - 1;
+            $value = "";
+
+            foreach ($array as $arrayKey => $row) {
+                if ($recursive) {
+                    $value .= $this->replace(
+                        array($row),
+                        $object,
+                        $dynamicPlaceholders,
+                        false
+                    )[0];
+                } else {
+                    $value .= $row;
+                }
+
+                if ($arrayKey !== $size) {
+                    $value .= "\n";
+                }
+            }
+        }
+        return $value;
     }
 
     // Separator
