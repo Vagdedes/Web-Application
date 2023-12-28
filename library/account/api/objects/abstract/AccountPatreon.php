@@ -27,41 +27,53 @@ class AccountPatreon
 
             if ($name->isPositiveOutcome()) {
                 $name = $name->getObject()[0];
-                $this->retrieve = $this->find($name, array(self::VISIONARY, self::INVESTOR));
+                $this->retrieve = $this->find($name, array(self::VISIONARY));
 
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
-                        "patreon.subscriber.investor",
+                        "patreon.subscriber.visionary",
                         "patreon.subscriber.products",
                         "patreon.subscriber.ultimatestats",
                         "patreon.subscriber.antialtaccount",
                         "patreon.subscriber.filegui"
                     ));
                 } else {
-                    $this->retrieve = $this->find($name, array(self::SPONSOR));
+                    $this->retrieve = $this->find($name, array(self::INVESTOR));
 
                     if ($this->retrieve->isPositiveOutcome()) {
                         $this->account->getPermissions()->addSystemPermission(array(
-                            "patreon.subscriber.sponsor",
+                            "patreon.subscriber.investor",
+                            "patreon.subscriber.products",
+                            "patreon.subscriber.ultimatestats",
                             "patreon.subscriber.antialtaccount",
                             "patreon.subscriber.filegui"
                         ));
                     } else {
-                        $this->retrieve = $this->find($name, array(self::MOTIVATOR));
+                        $this->retrieve = $this->find($name, array(self::SPONSOR));
 
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
-                                "patreon.subscriber.motivator",
-                                "patreon.subscriber.products",
+                                "patreon.subscriber.sponsor",
+                                "patreon.subscriber.antialtaccount",
                                 "patreon.subscriber.filegui"
                             ));
                         } else {
-                            $this->retrieve = $this->find($name, array(self::SUPPORTER));
+                            $this->retrieve = $this->find($name, array(self::MOTIVATOR));
 
                             if ($this->retrieve->isPositiveOutcome()) {
                                 $this->account->getPermissions()->addSystemPermission(array(
-                                    "patreon.subscriber.supporter"
+                                    "patreon.subscriber.motivator",
+                                    "patreon.subscriber.products",
+                                    "patreon.subscriber.filegui"
                                 ));
+                            } else {
+                                $this->retrieve = $this->find($name, array(self::SUPPORTER));
+
+                                if ($this->retrieve->isPositiveOutcome()) {
+                                    $this->account->getPermissions()->addSystemPermission(array(
+                                        "patreon.subscriber.supporter"
+                                    ));
+                                }
                             }
                         }
                     }
