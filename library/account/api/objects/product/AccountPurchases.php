@@ -299,6 +299,19 @@ class AccountPurchases
                 null,
                 1
             ))) {
+            if (!empty($additionalProducts)) {
+                foreach ($additionalProducts as $additionalProduct => $additionalProductDuration) {
+                    $this->add(
+                        $additionalProduct,
+                        null,
+                        null,
+                        $transactionID,
+                        $creationDate,
+                        $additionalProductDuration === null ? $duration : $additionalProductDuration,
+                        $sendEmail,
+                    );
+                }
+            }
             return new MethodReply(false, "This transaction has already been processed for this product.");
         }
         $hasCoupon = $coupon !== null;

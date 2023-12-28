@@ -32,7 +32,9 @@ class AccountProductDownloads
 
     public function getOrCreateValidToken(int|string      $productID,
                                           int|string|null $maxDownloads = null,
-                                          bool            $userTokensOnly = false): MethodReply
+                                          bool            $userTokensOnly = false,
+                                          bool            $sendFile = true,
+                                          int|string|null $customExpiration = null): MethodReply
     {
         global $product_downloads_table;
         $query = get_sql_query(
@@ -63,11 +65,12 @@ class AccountProductDownloads
                 return new MethodReply(true, "Successfully found token.", $query->token);
             }
         }
-        return $this->makeFileDownload($productID, null, $maxDownloads, false);
+        return $this->makeFileDownload($productID, null, $maxDownloads, $sendFile, $customExpiration);
     }
 
     public function makeFileDownload(int|string      $productID, int|string $requestedByToken = null,
                                      int|string|null $maxDownloads = null, bool $sendFile = true,
+                                     int|string|null $customExpiration = null,
                                      int|string      $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
@@ -167,7 +170,7 @@ class AccountProductDownloads
             }
             $newToken = strtoupper(random_string($downloadTokenLength));
         }
-        $duration = "3 months";
+        $duration = $customExpiration !== null ? get_future_date($customExpiration) : get_future_date("3 months");
 
         if ($sendFile) {
             $originalFile = "/var/www/.structure/downloadable/" . $fileProperties->file_name . "." . $fileProperties->file_type;
@@ -201,7 +204,7 @@ class AccountProductDownloads
                     "download_count" => $maxDownloads !== null ? 1 : null,
                     "max_downloads" => $maxDownloads,
                     "creation_date" => get_current_date(),
-                    "expiration_date" => get_future_date($duration)
+                    "expiration_date" => $duration
                 ))) {
                 unlink($fileCopy);
                 return new MethodReply(false, "(2) Failed to interact with the database.");
@@ -227,7 +230,7 @@ class AccountProductDownloads
                 "requested_by_token" => $requestedByToken,
                 "max_downloads" => $maxDownloads,
                 "creation_date" => get_current_date(),
-                "expiration_date" => get_future_date($duration)
+                "expiration_date" => $duration
             ))) {
             return new MethodReply(false, "(3) Failed to interact with the database.");
         } else {
