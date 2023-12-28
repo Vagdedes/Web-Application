@@ -135,3 +135,11 @@ $statistic_boolean_table = "statistic.booleanStatistics";
 
 // E.T.C
 $website_domain = "https://" . get_domain();
+
+class InstructionsTable
+{
+    public const
+        BOT_LOCAL_INSTRUCTIONS = "instructions.local",
+        BOT_PUBLIC_INSTRUCTIONS = "instructions.public",
+        BOT_INSTRUCTION_PLACEHOLDERS = "instructions.placeholders";
+}

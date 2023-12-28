@@ -61,6 +61,8 @@ require_once '/var/www/.structure/library/account/api/objects/finance/AccountAff
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountTransactions.php';
 
 // Information
+require_once '/var/www/.structure/library/account/api/objects/information/WebsiteKnowledge.php';
+require_once '/var/www/.structure/library/account/api/objects/information/AccountInstructions.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountStatistics.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountReference.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountFiles.php';
@@ -74,9 +76,6 @@ require_once '/var/www/.structure/library/account/api/objects/finance/PaymentPro
 
 // Communication
 require_once '/var/www/.structure/library/account/api/objects/communication/LanguageTranslation.php';
-
-// Information
-require_once '/var/www/.structure/library/account/api/objects/information/WebsiteKnowledge.php';
 
 // Schedulers
 require_once '/var/www/.structure/library/account/api/schedulers/refreshTransactions.php';

@@ -48,6 +48,7 @@ class Account
     private WebsiteKnowledge $knowledge;
     private LanguageTranslation $translation;
     private PaymentProcessor $paymentProcessor;
+    private AccountInstructions $instructions;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -151,6 +152,7 @@ class Account
         $this->wallet = new AccountWallet($this);
         $this->reference = new AccountReference($this);
         $this->feedback = new AccountFeedback($this);
+        $this->instructions = new AccountInstructions($this);
 
         // Independent
         $this->product = new AccountProduct($this);
