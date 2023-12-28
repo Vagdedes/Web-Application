@@ -77,7 +77,6 @@ require_once '/var/www/.structure/library/account/api/objects/communication/Lang
 
 // Information
 require_once '/var/www/.structure/library/account/api/objects/information/WebsiteKnowledge.php';
-require_once '/var/www/.structure/library/account/api/objects/information/InformationPlaceholder.php';
 
 // Schedulers
 require_once '/var/www/.structure/library/account/api/schedulers/refreshTransactions.php';

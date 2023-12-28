@@ -38,6 +38,9 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
             global $email_default_email_name;
             $details["defaultEmailName"] = $email_default_email_name;
         }
+        if (!array_key_exists("year", $details)) {
+            $details["year"] = date("Y");
+        }
     } else {
         global $email_default_company_name, $email_default_email_name;
         $details = array(

@@ -15,13 +15,6 @@ class LanguageTranslation
 
     public function getText($key, $replace = null): ?string
     {
-        $value = null;
-
-        if ($replace === null) {
-            return null;
-        } else {
-            $placeholder = new InformationPlaceholder();
-            return $placeholder->replace($value, $replace);
-        }
+        return null;
     }
 }
