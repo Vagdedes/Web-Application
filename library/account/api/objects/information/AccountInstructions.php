@@ -8,9 +8,9 @@ class AccountInstructions
     private string $placeholderStart, $placeholderMiddle, $placeholderEnd;
 
     public const
-        DEFAULT_PLACEHOLDER_START = "%%__",
-        DEFAULT_PLACEHOLDER_MIDDLE = "__",
-        DEFAULT_PLACEHOLDER_END = "__%%";
+        DEFAULT_PLACEHOLDER_START = InformationPlaceholder::STARTER,
+        DEFAULT_PLACEHOLDER_MIDDLE = InformationPlaceholder::DIVISOR_REPLACEMENT,
+        DEFAULT_PLACEHOLDER_END = InformationPlaceholder::ENDER;
 
     public function __construct(Account $account)
     {
@@ -19,7 +19,7 @@ class AccountInstructions
         $this->placeholderMiddle = self::DEFAULT_PLACEHOLDER_MIDDLE;
         $this->placeholderEnd = self::DEFAULT_PLACEHOLDER_END;
         $this->localInstructions = get_sql_query(
-            InstructionsTable::BOT_LOCAL_INSTRUCTIONS,
+            InstructionsTable::LOCAL,
             null,
             array(
                 array("deletion_date", null),
@@ -32,7 +32,7 @@ class AccountInstructions
             "plan_id ASC, priority DESC"
         );
         $this->publicInstructions = get_sql_query(
-            InstructionsTable::BOT_PUBLIC_INSTRUCTIONS,
+            InstructionsTable::PUBLIC,
             null,
             array(
                 array("deletion_date", null),
@@ -45,7 +45,7 @@ class AccountInstructions
             "plan_id ASC, priority DESC"
         );
         $this->placeholders = get_sql_query(
-            InstructionsTable::BOT_INSTRUCTION_PLACEHOLDERS,
+            InstructionsTable::PLACEHOLDERS,
             null,
             array(
                 array("deletion_date", null),
@@ -77,48 +77,85 @@ class AccountInstructions
 
     // Separator
 
-    public function replace(array  $messages, ?object $object,
-                            string $placeholderStart = self::DEFAULT_PLACEHOLDER_START,
-                            string $placeholderMiddle = self::DEFAULT_PLACEHOLDER_MIDDLE,
-                            string $placeholderEnd = self::DEFAULT_PLACEHOLDER_END,
-                            bool   $recursive = true): array
+    public function replace(array   $messages,
+                            ?object $object,
+                            ?array  $dynamicPlaceholders,
+                            bool    $recursive = true): array
     {
         if ($object !== null && !empty($this->placeholders)) {
-            $replaceFurther = false;
-
             foreach ($messages as $arrayKey => $message) {
                 if ($message === null) {
                     $messages[$arrayKey] = "";
                 }
             }
-            foreach ($this->placeholders as $placeholder) {
-                if (isset($object->{$placeholder->placeholder})) {
-                    $value = $object->{$placeholder->code_field};
-                } else if ($placeholder->dynamic !== null) {
-                    $keyWord = explode($placeholderMiddle, $placeholder->placeholder, 3);
-                    $limit = sizeof($keyWord) === 2 ? $keyWord[1] : 0;
+            $placeholders = $this->placeholders;
+            $values = array();
 
-                    switch ($keyWord[0]) {
-                        case "publicInstructions":
-                            $value = $this->getPublic();
-                            $replaceFurther = $recursive;
-                            break;
-                        case "botReplies":
-                            $value = $this->plan->conversation->getReplies($object->userID, $limit, false);
-                            break;
-                        case "botMessages":
-                            $value = $this->plan->conversation->getMessages($object->userID, $limit, false);
-                            break;
-                        case "allMessages":
-                            $value = $this->plan->conversation->getConversation($object->userID, $limit, false);
-                            break;
-                        default:
-                            $value = "";
-                            break;
-                    }
-                } else {
-                    $value = "";
+            foreach ($placeholders as $arrayKey => $placeholder) {
+                if (isset($object->{$placeholder->placeholder})) {
+                    $values[] = array($placeholder, $object->{$placeholder->code_field} ?? "");
+                    unset($placeholders[$arrayKey]);
+                } else if ($placeholder->dynamic === null) {
+                    $values[] = array($placeholder, "");
+                    unset($placeholders[$arrayKey]);
                 }
+            }
+            if (!empty($placeholders) && !empty($dynamicPlaceholders)) {
+                foreach ($placeholders as $placeholder) {
+                    if ($placeholder->dynamic !== null) {
+                        $explode = explode($this->placeholderMiddle, $placeholder->placeholder);
+                        $keyWord = array_shift($explode);
+
+                        if (array_key_exists($keyWord, $dynamicPlaceholders)) {
+                            $keyWordMethod = $dynamicPlaceholders[$keyWord];
+
+                            if (is_array($keyWordMethod)) {
+                                switch (sizeof($keyWordMethod)) {
+                                    case 2:
+                                        $value = call_user_func_array(
+                                            $keyWordMethod,
+                                            $explode
+                                        );
+                                        break;
+                                    case 3:
+                                        $parameters = array_pop($keyWordMethod);
+
+                                        if (!empty($parameters)) {
+                                            foreach ($parameters as $arrayKey => $parameter) {
+                                                if (is_object($parameter)
+                                                    && empty(get_object_vars($parameter))
+                                                    && array_key_exists($arrayKey, $explode)) {
+                                                    $parameters[$arrayKey] = $explode[$arrayKey];
+                                                }
+                                            }
+                                        }
+                                        $value = call_user_func_array(
+                                            $keyWordMethod,
+                                            $parameters
+                                        );
+                                        break;
+                                    default:
+                                        $value = "";
+                                        break;
+                                }
+                            } else {
+                                $value = call_user_func_array(
+                                    $keyWord,
+                                    $explode
+                                );
+                            }
+                        } else {
+                            $value = "";
+                        }
+                    } else {
+                        $value = "";
+                    }
+                    $values[] = array($placeholder, $value);
+                }
+            }
+            foreach ($values as $value) {
+                $placeholder = $value[0];
+                $value = $value[1];
 
                 if (is_array($value)) {
                     $array = $value;
@@ -126,13 +163,11 @@ class AccountInstructions
                     $value = "";
 
                     foreach ($array as $arrayKey => $row) {
-                        if ($replaceFurther) {
+                        if ($recursive) {
                             $value .= $this->replace(
                                 array($row),
                                 $object,
-                                $placeholderStart,
-                                $placeholderMiddle,
-                                $placeholderEnd,
+                                $dynamicPlaceholders,
                                 false
                             )[0];
                         } else {
@@ -155,7 +190,7 @@ class AccountInstructions
                         foreach ($messages as $arrayKey => $message) {
                             if (!empty($message)) {
                                 $messages[$arrayKey] = str_replace(
-                                    $placeholderStart . $placeholder->placeholder . $placeholderEnd,
+                                    $this->placeholderStart . $placeholder->placeholder . $this->placeholderEnd,
                                     $positionValue,
                                     $message
                                 );
@@ -166,7 +201,7 @@ class AccountInstructions
                 foreach ($messages as $arrayKey => $message) {
                     if (!empty($message)) {
                         $messages[$arrayKey] = str_replace(
-                            $placeholderStart . $placeholder->placeholder . $placeholderEnd,
+                            $this->placeholderStart . $placeholder->placeholder . $this->placeholderEnd,
                             $value,
                             $message
                         );
@@ -179,6 +214,11 @@ class AccountInstructions
 
     // Separator
 
+    public function getPlaceholders(): array
+    {
+        return $this->placeholders;
+    }
+
     public function getLocal(): array
     {
         return $this->localInstructions;
@@ -186,7 +226,7 @@ class AccountInstructions
 
     public function getPublic(): array
     {
-        $cacheKey = array(__METHOD__, $this->plan->applicationID, $this->plan->planID);
+        $cacheKey = array(__METHOD__, $this->account->getDetail("application_id"));
         $cache = get_key_value_pair($cacheKey);
 
         if ($cache !== null) {
@@ -196,8 +236,6 @@ class AccountInstructions
             $array = $this->publicInstructions;
 
             if (!empty($array)) {
-                global $logger;
-
                 foreach ($array as $arrayKey => $row) {
                     $timeKey = strtotime(get_future_date($row->information_duration));
 
@@ -214,7 +252,7 @@ class AccountInstructions
                             $times[$timeKey] = $row->information_duration;
                             $array[$arrayKey] = $doc;
                             set_sql_query(
-                                InstructionsTable::BOT_PUBLIC_INSTRUCTIONS,
+                                InstructionsTable::PUBLIC,
                                 array(
                                     "information_value" => $doc,
                                     "information_expiration" => get_future_date($row->information_duration)
@@ -226,12 +264,9 @@ class AccountInstructions
                                 1
                             );
                         } else {
-                            $logger->logError($this->plan->planID, "Failed to retrieve value for: " . $row->information_url);
-
                             if ($row->information_value !== null) {
                                 $times[$timeKey] = $row->information_duration;
                                 $array[$arrayKey] = $row->information_value;
-                                $logger->logError($this->plan->planID, "Used backup value for: " . $row->information_url);
                             } else {
                                 unset($array[$arrayKey]);
                             }

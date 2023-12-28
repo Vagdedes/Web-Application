@@ -6,7 +6,7 @@ class InformationPlaceholder
     public const
         STARTER = "%%__",
         DIVISOR = " ",
-        DIVISOR_REPLACEMENT = "_",
+        DIVISOR_REPLACEMENT = "__",
         ENDER = "__%%";
 
     private string $starter, $divisor, $divisorReplacement, $ender;

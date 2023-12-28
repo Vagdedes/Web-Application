@@ -409,6 +409,11 @@ class Account
         return $this->paymentProcessor;
     }
 
+    public function getInstructions(): AccountInstructions
+    {
+        return $this->instructions;
+    }
+
     // Separator
 
     public function refresh(): void
