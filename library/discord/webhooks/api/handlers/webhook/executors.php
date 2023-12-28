@@ -20,27 +20,24 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         ));
         return $code;
     }
+    $informationPlaceholder = new InformationPlaceholder("___", null, "___");
 
     // Verify details
     if (is_array($details)) {
-        if (!array_key_exists("defaultDomainName", $details)) {
-            $details["defaultDomainName"] = get_domain();
-        }
-        if (!array_key_exists("defaultCompanyName", $details)) {
-            global $discord_webhook_default_company_name;
-            $details["defaultCompanyName"] = $discord_webhook_default_company_name;
-        }
-        if (!array_key_exists("defaultEmailName", $details)) {
-            global $discord_webhook_default_email_name;
-            $details["defaultEmailName"] = $discord_webhook_default_email_name;
-        }
-    } else {
         global $discord_webhook_default_company_name, $discord_webhook_default_email_name;
-        $details = array(
+        $informationPlaceholder->setAll($details);
+        $informationPlaceholder->addAll(array(
             "defaultDomainName" => get_domain(),
             "defaultCompanyName" => $discord_webhook_default_company_name,
             "defaultEmailName" => $discord_webhook_default_email_name
-        );
+        ));
+    } else {
+        global $discord_webhook_default_company_name, $discord_webhook_default_email_name;
+        $informationPlaceholder->setAll(array(
+            "defaultDomainName" => get_domain(),
+            "defaultCompanyName" => $discord_webhook_default_company_name,
+            "defaultEmailName" => $discord_webhook_default_email_name
+        ));
     }
 
     // Verify cooldown
@@ -55,7 +52,7 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
     $cacheKey = array(
         $planID,
         $webhookPointer,
-        $details,
+        $informationPlaceholder->getReplacements(),
         $cooldown,
         "discord-webhook"
     );
@@ -208,57 +205,20 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         $planObject->fields = array();
 
         foreach ($webhookNames as $key => $value) {
-            $name = $value;
-            $value = $webhookValues[$key];
-
-            foreach ($details as $arrayKey => $arrayValue) {
-                if (!empty($arrayKey)) {
-                    $arrayKey = "___" . $arrayKey . "___";
-                    $arrayValue = empty($arrayValue) ? "" : $arrayValue;
-                    $name = str_replace($arrayKey, $arrayValue, $name);
-                    $value = str_replace($arrayKey, $arrayValue, $value);
-                }
-            }
             $planObject->fields[] = array(
-                "name" => $name,
-                "value" => $value,
+                "name" => $informationPlaceholder->replace($value),
+                "value" => $informationPlaceholder->replace($webhookValues[$key]),
                 "inline" => false
             );
         }
-        foreach ($details as $arrayKey => $arrayValue) {
-            if (!empty($arrayKey)) {
-                $arrayKey = "___" . $arrayKey . "___";
-                $arrayValue = empty($arrayValue) ? "" : $arrayValue;
-
-                if ($planObject->color !== null) {
-                    $planObject->color = str_replace($arrayKey, $arrayValue, $planObject->color);
-                }
-                if ($planObject->avatar_image !== null) {
-                    $planObject->avatar_image = str_replace($arrayKey, $arrayValue, $planObject->avatar_image);
-                }
-                if ($planObject->icon_image !== null) {
-                    $planObject->icon_image = str_replace($arrayKey, $arrayValue, $planObject->icon_image);
-                }
-                if ($planObject->redirect_url !== null) {
-                    $planObject->redirect_url = str_replace($arrayKey, $arrayValue, $planObject->redirect_url);
-                }
-                if ($planObject->title !== null) {
-                    $planObject->title = str_replace($arrayKey, $arrayValue, $planObject->title);
-                }
-                if ($planObject->footer !== null) {
-                    $planObject->footer = str_replace($arrayKey, $arrayValue, $planObject->footer);
-                }
-                if ($planObject->user !== null) {
-                    $planObject->user = str_replace($arrayKey, $arrayValue, $planObject->user);
-                }
-                if ($planObject->information !== null) {
-                    $planObject->information = str_replace($arrayKey, $arrayValue, $planObject->information);
-                }
-                if ($planObject->user !== null) {
-                    $planObject->user = str_replace($arrayKey, $arrayValue, $planObject->user);
-                }
-            }
-        }
+        $informationPlaceholder->replace($planObject->color);
+        $informationPlaceholder->replace($planObject->avatar_image);
+        $informationPlaceholder->replace($planObject->icon_image);
+        $informationPlaceholder->replace($planObject->redirect_url);
+        $informationPlaceholder->replace($planObject->title);
+        $informationPlaceholder->replace($planObject->footer);
+        $informationPlaceholder->replace($planObject->information);
+        $informationPlaceholder->replace($planObject->user);
     } else {
         global $discord_webhook_failed_executions_table;
         $code = 398054234;
@@ -413,7 +373,7 @@ function insert_new_webhook_url(string $webhookPointer, bool $test): bool
 }
 
 function get_discord_webhook_execution_insert_details(int|string|float $planID,
-                                                      int|string|null       $rowID, mixed $object,
+                                                      int|string|null  $rowID, mixed $object,
                                                       ?string          $currentDate, ?string $cooldown,
                                                       mixed            $error = null): array
 {

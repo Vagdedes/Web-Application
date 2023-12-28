@@ -22,25 +22,23 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
     }
 
     // Verify details
+    $informationPlaceholder = new InformationPlaceholder();
+
     if (is_array($details)) {
-        if (!array_key_exists("defaultDomainName", $details)) {
-            $details["defaultDomainName"] = get_domain();
-        }
-        if (!array_key_exists("defaultCompanyName", $details)) {
-            global $phone_default_company_name;
-            $details["defaultCompanyName"] = $phone_default_company_name;
-        }
-        if (!array_key_exists("defaultEmailName", $details)) {
-            global $phone_default_email_name;
-            $details["defaultEmailName"] = $phone_default_email_name;
-        }
-    } else {
         global $phone_default_company_name, $phone_default_email_name;
-        $details = array(
+        $informationPlaceholder->setAll($details);
+        $informationPlaceholder->addAll(array(
             "defaultDomainName" => get_domain(),
             "defaultCompanyName" => $phone_default_company_name,
             "defaultEmailName" => $phone_default_email_name
-        );
+        ));
+    } else {
+        global $phone_default_company_name, $phone_default_email_name;
+        $informationPlaceholder->setAll(array(
+            "defaultDomainName" => get_domain(),
+            "defaultCompanyName" => $phone_default_company_name,
+            "defaultEmailName" => $phone_default_email_name
+        ));
     }
 
     // Verify cooldown
@@ -55,7 +53,7 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
     $cacheKey = array(
         $planID,
         $phonePointer,
-        $details,
+        $informationPlaceholder->getReplacements(),
         $cooldown,
         "phone"
     );
@@ -199,15 +197,7 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
     }
 
     // Prepare details
-    $contents = $planObject->contents;
-
-    foreach ($details as $arrayKey => $arrayValue) {
-        if (!empty($arrayKey)) {
-            $arrayKey = "%%__" . $arrayKey . "__%%";
-            $arrayValue = empty($arrayValue) ? "" : $arrayValue;
-            $contents = str_replace($arrayKey, $arrayValue, $contents);
-        }
-    }
+    $contents = $informationPlaceholder->replace($planObject->contents);
 
     // Adjust for default cooldown
     if (!$hasCooldown) {
@@ -335,7 +325,7 @@ function insert_new_phone_number(int|string $number, bool $test): bool
 }
 
 function get_phone_execution_insert_details(int|string|float $planID,
-                                            int|string|null       $rowID, ?string $contents,
+                                            int|string|null  $rowID, ?string $contents,
                                             ?string          $currentDate, ?string $cooldown,
                                             mixed            $error = null): array
 {

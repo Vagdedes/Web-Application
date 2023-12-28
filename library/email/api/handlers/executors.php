@@ -25,29 +25,23 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
 
     // Verify details
     $domain = get_domain();
+    $informationPlaceholder = new InformationPlaceholder();
 
     if (is_array($details)) {
-        if (!array_key_exists("defaultDomainName", $details)) {
-            $details["defaultDomainName"] = $domain;
-        }
-        if (!array_key_exists("defaultCompanyName", $details)) {
-            global $email_default_company_name;
-            $details["defaultCompanyName"] = $email_default_company_name;
-        }
-        if (!array_key_exists("defaultEmailName", $details)) {
-            global $email_default_email_name;
-            $details["defaultEmailName"] = $email_default_email_name;
-        }
-        if (!array_key_exists("year", $details)) {
-            $details["year"] = date("Y");
-        }
-    } else {
         global $email_default_company_name, $email_default_email_name;
-        $details = array(
+        $informationPlaceholder->setAll($details);
+        $informationPlaceholder->addAll(array(
             "defaultDomainName" => $domain,
             "defaultCompanyName" => $email_default_company_name,
             "defaultEmailName" => $email_default_email_name
-        );
+        ));
+    } else {
+        global $email_default_company_name, $email_default_email_name;
+        $informationPlaceholder->setAll(array(
+            "defaultDomainName" => $domain,
+            "defaultCompanyName" => $email_default_company_name,
+            "defaultEmailName" => $email_default_email_name
+        ));
     }
 
     // Verify cooldown
@@ -62,7 +56,7 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
     $cacheKey = array(
         $planID,
         $emailPointer,
-        $details,
+        $informationPlaceholder->getReplacements(),
         $unsubscribe,
         $cooldown,
         "email"
@@ -208,17 +202,8 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
     }
 
     // Prepare details
-    $title = $planObject->title;
-    $contents = $planObject->contents;
-
-    foreach ($details as $arrayKey => $arrayValue) {
-        if (!empty($arrayKey)) {
-            $arrayKey = "%%__" . $arrayKey . "__%%";
-            $arrayValue = empty($arrayValue) ? "" : $arrayValue;
-            $title = str_replace($arrayKey, $arrayValue, $title);
-            $contents = str_replace($arrayKey, $arrayValue, $contents);
-        }
-    }
+    $title = $informationPlaceholder->replace($planObject->title);
+    $contents = $informationPlaceholder->replace($planObject->contents);
 
     // Adjust for default cooldown
     if (!$hasCooldown) {
