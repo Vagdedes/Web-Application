@@ -32,7 +32,7 @@ function load_page_intro(?Account $account, bool $isLoggedIn, bool $loadNavigati
     }
 }
 
-function load_page(bool $loadContents = true, ?callable $callable = null): void
+function load_page(bool $loadContents = true, ?callable $callable = null, bool $cooldown = true): void
 {
     $directory = get_final_directory();
     $title = unstuck_words_from_capital_letters($directory);
@@ -51,7 +51,7 @@ function load_page(bool $loadContents = true, ?callable $callable = null): void
         </head>
     <body>";
 
-    if (has_memory_limit(array(get_client_ip_address(), "website"), 60, "1 minute")) {
+    if ($cooldown && has_memory_limit(array(get_client_ip_address(), "website"), 60, "1 minute")) {
         load_page_intro(null, false, $loadContents);
         load_account_page_message("Website Error", "Please stop refreshing the page so frequently");
     } else {

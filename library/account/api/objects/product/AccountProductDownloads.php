@@ -4,6 +4,13 @@ class AccountProductDownloads
 {
     private Account $account;
 
+    private const
+        DEFAULT_COOLDOWN = "2 seconds";
+
+    public const
+        TOKEN_SEARCH_SECONDS = 60,
+        TOKEN_SEARCH_LIMIT = 30;
+
     public function __construct(Account $account)
     {
         $this->account = $account;
@@ -34,7 +41,8 @@ class AccountProductDownloads
                                           int|string|null $maxDownloads = null,
                                           bool            $userTokensOnly = false,
                                           bool            $sendFile = true,
-                                          int|string|null $customExpiration = null): MethodReply
+                                          int|string|null $customExpiration = null,
+                                          int|string|null      $cooldown = self::DEFAULT_COOLDOWN): MethodReply
     {
         global $product_downloads_table;
         $query = get_sql_query(
@@ -65,13 +73,13 @@ class AccountProductDownloads
                 return new MethodReply(true, "Successfully found token.", $query->token);
             }
         }
-        return $this->makeFileDownload($productID, null, $maxDownloads, $sendFile, $customExpiration);
+        return $this->makeFileDownload($productID, null, $maxDownloads, $sendFile, $customExpiration, $cooldown);
     }
 
     public function makeFileDownload(int|string      $productID, int|string $requestedByToken = null,
                                      int|string|null $maxDownloads = null, bool $sendFile = true,
                                      int|string|null $customExpiration = null,
-                                     int|string      $cooldown = "2 seconds"): MethodReply
+                                     int|string|null      $cooldown = self::DEFAULT_COOLDOWN): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::DOWNLOAD_PRODUCT, true);
