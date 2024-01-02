@@ -20,7 +20,7 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         ));
         return $code;
     }
-    $informationPlaceholder = new InformationPlaceholder("___", null, "___");
+    $informationPlaceholder = new InformationPlaceholder("___", null, null, "___");
 
     // Verify details
     if (is_array($details)) {
@@ -211,14 +211,14 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
                 "inline" => false
             );
         }
-        $informationPlaceholder->replace($planObject->color);
-        $informationPlaceholder->replace($planObject->avatar_image);
-        $informationPlaceholder->replace($planObject->icon_image);
-        $informationPlaceholder->replace($planObject->redirect_url);
-        $informationPlaceholder->replace($planObject->title);
-        $informationPlaceholder->replace($planObject->footer);
-        $informationPlaceholder->replace($planObject->information);
-        $informationPlaceholder->replace($planObject->user);
+        $planObject->color = $informationPlaceholder->replace($planObject->color);
+        $planObject->avatar_image = $informationPlaceholder->replace($planObject->avatar_image);
+        $planObject->icon_image = $informationPlaceholder->replace($planObject->icon_image);
+        $planObject->redirect_url = $informationPlaceholder->replace($planObject->redirect_url);
+        $planObject->title = $informationPlaceholder->replace($planObject->title);
+        $planObject->footer = $informationPlaceholder->replace($planObject->footer);
+        $planObject->information = $informationPlaceholder->replace($planObject->information);
+        $planObject->user = $informationPlaceholder->replace($planObject->user);
     } else {
         global $discord_webhook_failed_executions_table;
         $code = 398054234;

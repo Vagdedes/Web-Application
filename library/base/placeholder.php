@@ -28,18 +28,18 @@ class InformationPlaceholder
     {
         if (is_array($input)) {
             foreach ($input as $key => $value) {
-                $input[$key] = $this->build($value, $this->replacements);
+                $input[$key] = $this->build($value);
             }
             return $input;
         } else if (is_object($input)) {
             $object = new stdClass();
 
             foreach (json_decode(json_encode($input), true) as $key => $value) {
-                $object->{$key} = $this->build($value, $this->replacements);
+                $object->{$key} = $this->build($value);
             }
             return $object;
         } else {
-            return $this->build($input, $this->replacements);
+            return $this->build($input);
         }
     }
 
@@ -91,15 +91,12 @@ class InformationPlaceholder
         $this->add("second", date("s"));
     }
 
-    private function build(?string $input, array|object $replacements): ?string
+    private function build(?string $input): ?string
     {
-        if ($input === null || empty($replacements)) {
+        if ($input === null || empty($this->replacements)) {
             return $input;
         } else {
-            if (is_object($replacements)) {
-                $replacements = json_decode(json_encode($replacements), true);
-            }
-            foreach ($replacements as $current => $replacement) {
+            foreach ($this->replacements as $current => $replacement) {
                 $input = str_replace(
                     $this->starter . str_replace($this->divisor, $this->divisorReplacement, $current) . $this->ender,
                     $replacement,
