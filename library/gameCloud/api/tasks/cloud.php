@@ -530,18 +530,17 @@ if (true
             }
 
             if ($result) {
-                if ($token !== null) {
-                    $account = $gameCloudUser->getInformation()->getAccount();
-                    $text = "You are using an outdated version.";
-
-                    if (!$account->exists() || !$account->getPatreon()->retrieve()->isPositiveOutcome()) {
-                        $text .= " Consider becoming a Patron to receive updates earlier: https://www.patreon.com/Vagdedes";
-                    }
-                    echo $text;
-                } else {
-                    echo "You are using an outdated version. "
-                        . "Join the Discord server to learn about the auto-updater feature.";
-                }
+                $gameCloudUser->getActions()->addStaffAnnouncement(
+                    $productID,
+                    GameCloudActions::OUTDATED_VERSION_PRIORITY,
+                    $version,
+                    $version,
+                    60 * 60 * 12,
+                    null,
+                    "You are using an outdated version. Download your favorite plugin via"
+                    . " https://www.idealistic.ai/discord and save time with our Auto Updater."
+                );
+                echo "true";
             } else {
                 echo "false";
             }

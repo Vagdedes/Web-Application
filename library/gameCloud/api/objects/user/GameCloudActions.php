@@ -4,9 +4,61 @@ class GameCloudActions
 {
     private GameCloudUser $user;
 
+    public const
+        OUTDATED_VERSION_PRIORITY = 2,
+        RESOLVED_CUSTOMER_SUPPORT_PRIORITY = 1;
+
     public function __construct(GameCloudUser $user)
     {
         $this->user = $user;
+    }
+
+    public function addStaffAnnouncement(int|string|null  $productID,
+                                         int|string|null  $priority,
+                                         int|string|null  $minimumVersion, int|string|null $maximumVersion,
+                                         int|string|null  $cooldown, int|string|null $duration,
+                                         int|string|float $announcement,
+                                         bool             $avoidRedundantAnnouncements = true): bool
+    {
+        if ($this->user->isValid()) {
+            global $staff_announcements_table;
+
+            if ((
+                    !$avoidRedundantAnnouncements
+                    || empty(get_sql_query(
+                        $avoidRedundantAnnouncements,
+                        array("id"),
+                        array(
+                            array("announcement", $announcement),
+                            null,
+                            array("expiration_date", "IS", null, 0),
+                            array("expiration_date", ">", get_current_date())
+                        ),
+                        null,
+                        1
+                    ))
+                ) && sql_insert(
+                    $staff_announcements_table,
+                    array(
+                        "license_id" => $this->user->getLicense(),
+                        "platform_id" => $this->user->getPlatform(),
+                        "priority" => $priority,
+                        "product_id" => $productID,
+                        "minimum_version" => $minimumVersion,
+                        "maximum_version" => $maximumVersion,
+                        "cooldown" => $cooldown,
+                        "announcement" => $announcement,
+                        "creation_date" => get_current_date(),
+                        "expiration_date" => ($duration !== null ? get_future_date($duration) : null)
+                    )
+                )) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     public function addAutomaticConfigurationChange(int|float|string|null $version,
@@ -118,8 +170,8 @@ class GameCloudActions
     }
 
     public function addDisabledDetection(int|float|string|null $pluginVersion, int|float|string|null $serverVersion,
-                                         string           $check, int|float|string|bool $detection,
-                                         bool             $email = false): bool
+                                         string                $check, int|float|string|bool $detection,
+                                         bool                  $email = false): bool
     {
         global $disabled_detections_table;
         $detection = str_replace(" ", "__", $detection);
@@ -332,6 +384,15 @@ class GameCloudActions
         )) {
             $customerSupport = new CustomerSupport();
             $customerSupport->clearCache();
+            $this->addStaffAnnouncement(
+                null,
+                self::RESOLVED_CUSTOMER_SUPPORT_PRIORITY,
+                null,
+                null,
+                60 * 60 * 24,
+                "1 day",
+                "The '$functionality' customer-support ticket has been dealt with by our support team."
+            );
             return true;
         }
         return false;
