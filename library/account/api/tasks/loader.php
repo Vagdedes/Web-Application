@@ -32,7 +32,7 @@ function load_page_intro(?Account $account, bool $isLoggedIn, bool $loadNavigati
     }
 }
 
-function load_page(bool $loadContents = true, ?callable $callable = null, bool $cooldown = true): void
+function load_page(bool $loadContents = true, ?callable $callable = null, bool $cooldown = true, bool $simpleFooter = false): void
 {
     $directory = get_final_directory();
     $title = unstuck_words_from_capital_letters($directory);
@@ -82,7 +82,7 @@ function load_page(bool $loadContents = true, ?callable $callable = null, bool $
         }
     }
     if ($loadContents) {
-        include("/var/www/.structure/library/design/account/footer/footer.php");
+        include("/var/www/.structure/library/design/account/footer/" . ($simpleFooter ? "simpleFooter" : "footer") . ".php");
     }
     echo "</body></html>";
 }
@@ -102,7 +102,7 @@ function load_account_page_message($title, $reason): void
         </div>";
 }
 
-function account_page_redirect(?Account $account, bool $isLoggedIn, ?string $message): void
+function account_page_redirect(?Account $account, bool $isLoggedIn, ?string $message, bool $redirect = true): void
 {
     global $website_account_url;
     $redirectURL = get_user_url();
@@ -116,7 +116,9 @@ function account_page_redirect(?Account $account, bool $isLoggedIn, ?string $mes
     } else {
         $hasURLMessage = !empty($message);
     }
-    redirect_to_url($website_account_url . "/profile/"
+    redirect_to_url(
+        ($redirect ? $website_account_url . "/profile/" : "")
         . ($hasURLMessage ? "?message=" . $message : "")
-        . (starts_with($redirectURL, $website_account_url) ? ($hasURLMessage ? "&" : "?") . "redirectURL=" . $redirectURL : ""));
+        . (starts_with($redirectURL, $website_account_url) ? ($hasURLMessage ? "&" : "?") . "redirectURL=" . $redirectURL : "")
+    );
 }
