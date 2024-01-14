@@ -110,12 +110,21 @@ class AccountAccounts
         );
 
         if (!empty($query)) {
-            return new MethodReply(
-                false,
-                $query[0]->account_id == $accountID ?
-                    "You have already added this account."
-                    : "Someone else has already added this account."
-            );
+            if ($query[0]->account_id == $accountID) {
+                return new MethodReply(false, "You have already added this account.");
+            } else {
+                $account = new Account($this->account->getDetail("application_id"), $query[0]->account_id);
+
+                if ($account->exists()) {
+                    $email = $account->getDetail("email_address");
+                    $at = strpos($email, "@");
+
+                    for ($i = 0; $i < max($at / 2, 1); $i++) {
+                        $email[$i] = "*";
+                    }
+                    return new MethodReply(false, "Some else has already added this account with email: " . $email);
+                }
+            }
         }
         $date = get_current_date();
 

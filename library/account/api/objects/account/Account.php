@@ -128,7 +128,6 @@ class Account
                 $this->patreon = new AccountPatreon($this);
                 $this->correlation = new AccountCorrelation($this);
                 $this->verification = new AccountVerification($this);
-                $this->statistics = new AccountStatistics($this);
             } else {
                 $this->exists = false;
                 $this->object = new stdClass();
@@ -153,6 +152,7 @@ class Account
         $this->reference = new AccountReference($this);
         $this->feedback = new AccountFeedback($this);
         $this->instructions = new AccountInstructions($this);
+        $this->statistics = new AccountStatistics($this);
 
         // Independent
         $this->product = new AccountProduct($this);

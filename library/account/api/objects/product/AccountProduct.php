@@ -27,7 +27,7 @@ class AccountProduct
         $cacheKey = array(
             $this,
             $documentation,
-            $accountExists,
+            $accountID,
             $productID,
         );
         $array = get_key_value_pair($cacheKey);
