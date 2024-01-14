@@ -257,4 +257,37 @@ class AccountEmail
                 $unsubscribe
             ) === 1;
     }
+
+    public function getSupportEmailDetails(bool $isLoggedIn, string $subject, string $info, string $email = null): array
+    {
+        $account = $email !== null ? $this->account->getNew(null, $email) : $this->account;
+        $found = $account->exists();
+
+        if ($found) {
+            $accounts = $account->getAccounts()->getAdded();
+
+            if (!empty($accounts)) {
+                $platformsString = "Accounts:\r\n";
+
+                foreach ($accounts as $row) {
+                    $platformsString .= $row->accepted_account->name . ": " . $row->credential . "\r\n";
+                }
+                $platformsString .= "\r\n";
+            }
+        } else {
+            $platformsString = null;
+        }
+        $id = rand(0, 2147483647);
+        $email = $found ? $account->getDetail("email_address") : ($email !== null ? $email : "Not Specified");
+        $subject = strip_tags($subject);
+        $title = get_domain() . " - $subject [ID: $id]";
+        $content = "ID: $id" . "\r\n"
+            . "Subject: $subject" . "\r\n"
+            . "Email: $email" . "\r\n"
+            . "Type: " . ($isLoggedIn ? "Logged In" : "Logged Out")
+            . "\r\n"
+            . ($platformsString !== null ? $platformsString : "\r\n")
+            . strip_tags($info);
+        return array($email, $title, $content);
+    }
 }
