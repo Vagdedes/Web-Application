@@ -95,7 +95,7 @@ class AccountRegistry
         if (!$account->getHistory()->add("register", null, $email)) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $emailVerification = $account->getEmail()->initiateVerification($email);
+        $emailVerification = $account->getEmail()->initiateVerification($email,  $session->isCustom());
 
         if (!$emailVerification->isPositiveOutcome()) {
             $message = $emailVerification->getMessage();
