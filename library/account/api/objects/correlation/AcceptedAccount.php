@@ -4,7 +4,7 @@ class AcceptedAccount
 {
     private ?object $object;
 
-    public function __construct(?int $applicationID, int|string $id, string $name = null)
+    public function __construct(?int $applicationID, int|string $id, string $name = null, bool $manual = true)
     {
         global $accepted_accounts_table;
         set_sql_cache();
@@ -14,6 +14,7 @@ class AcceptedAccount
             array(
                 $id !== null ? array("id", $id) : "",
                 $name !== null ? array("name", $name) : "",
+                $manual ? array("manual", "IS NOT", null) : "",
                 array("deletion_date", null),
                 array("application_id", $applicationID)
             ),

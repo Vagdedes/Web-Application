@@ -44,7 +44,12 @@ class AccountAccounts
             return new MethodReply(false, "You must verify your email first, an email has been sent to you.");
         }
         $isNumeric = is_numeric($type);
-        $acceptedAccount = new AcceptedAccount($this->account->getDetail("application_id"), $isNumeric ? $type : null, $isNumeric ? null : $type);
+        $acceptedAccount = new AcceptedAccount(
+            $this->account->getDetail("application_id"),
+            $isNumeric ? $type : null,
+            $isNumeric ? null : $type,
+            false
+        );
 
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false, "This account type does not exist.");
@@ -179,7 +184,12 @@ class AccountAccounts
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         $isNumeric = is_numeric($type);
-        $acceptedAccount = new AcceptedAccount($this->account->getDetail("application_id"), $isNumeric ? $type : null, $isNumeric ? null : $type);
+        $acceptedAccount = new AcceptedAccount(
+            $this->account->getDetail("application_id"),
+            $isNumeric ? $type : null,
+            $isNumeric ? null : $type,
+            false
+        );
 
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false, "This account type does not exist.");
@@ -218,7 +228,7 @@ class AccountAccounts
         return new MethodReply(true, "Successfully deleted account.");
     }
 
-    public function getAdded($id = null, $limit = 0): array
+    public function getAdded($id = null, $limit = 0, bool $manual = false): array
     {
         if (!$this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_ACCOUNTS)->isPositiveOutcome()) {
             return array();
@@ -244,7 +254,7 @@ class AccountAccounts
             $applicationID = $this->account->getDetail("application_id");
 
             foreach ($array as $key => $value) {
-                $acceptedAccount = new AcceptedAccount($applicationID, $value->accepted_account_id);
+                $acceptedAccount = new AcceptedAccount($applicationID, $value->accepted_account_id, null, $manual);
 
                 if ($acceptedAccount->exists()) {
                     $value->accepted_account = $acceptedAccount->getObject();
@@ -257,9 +267,9 @@ class AccountAccounts
         return $array;
     }
 
-    public function hasAdded(int|string $id, int|float|string $credential = null, int $limit = 0): MethodReply
+    public function hasAdded(int|string $id, int|float|string $credential = null, int $limit = 0, bool $manual = false): MethodReply
     {
-        $acceptedAccount = new AcceptedAccount($this->account->getDetail("application_id"), $id);
+        $acceptedAccount = new AcceptedAccount($this->account->getDetail("application_id"), $id, null, $manual);
 
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false);
