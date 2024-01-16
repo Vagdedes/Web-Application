@@ -44,8 +44,7 @@ class AccountGiveaway
         return false;
     }
 
-    private function create(int|string|null $productID, int|string $amount,
-                            int|string      $duration, bool $requireDownload): bool
+    private function create(int|string|null $productID, int|string $amount, int|string $duration): bool
     {
         global $product_giveaways_table;
         $array = get_sql_query($product_giveaways_table,
@@ -84,14 +83,13 @@ class AccountGiveaway
                     // Search for next product to give away
                     foreach ($validProducts as $arrayKey => $product) {
                         if ($product->is_free
-                            || $product->giveaway === null
-                            || $product->independent === null
-                            || $requireDownload && empty($product->downloads)) {
+                            || $product->giveaway === null) {
                             unset($validProducts[$arrayKey]);
                         } else {
                             $loopID = $product->id;
 
                             if ($loopID == $productID) {
+                                unset($validProducts[$arrayKey]);
                                 $queueNext = true;
                             } else if ($queueNext) {
                                 $nextProductID = $loopID; // Take the next product
@@ -101,21 +99,9 @@ class AccountGiveaway
                     }
 
                     // Reset loop if search reached limits
-                    if ($nextProductID === null) {
-                        if (!empty($validProducts)) {
-                            foreach ($validProducts as $product) {
-                                $loopID = $product->id;
-
-                                if ($loopID != $productID) {
-                                    $nextProductID = $loopID; // Take the first product but not the same
-                                    break;
-                                }
-                            }
-
-                            if ($nextProductID === null) {
-                                $nextProductID = $validProducts[0]->id; // Take the same product
-                            }
-                        }
+                    if ($nextProductID === null && !empty($validProducts)) {
+                        $product = array_shift($validProducts);
+                        $nextProductID = $product->id; // Take the first product but not the same
                     }
                 }
             } else {
@@ -143,8 +129,8 @@ class AccountGiveaway
         return false;
     }
 
-    public function getCurrent(int|string|null $productID,
-                                int|string      $amount, int|string $duration, bool $requireDownload): MethodReply
+    public function getCurrent(int|string|null $specifiedProductID,
+                               int|string      $amount, int|string $duration): MethodReply
     {
         global $product_giveaways_table;
         set_sql_cache(null, self::class);
@@ -166,7 +152,7 @@ class AccountGiveaway
             $foundProduct = $this->account->getProduct()->find($productID, false);
 
             if (!$foundProduct->isPositiveOutcome()) {
-                return new MethodReply(false, "Product not found");
+                return new MethodReply(false, "Product not found.");
             }
             $foundProduct = $foundProduct->getObject()[0];
             $object->product = $foundProduct;
@@ -176,22 +162,26 @@ class AccountGiveaway
 
                 // Separator
                 if ($date > $object->expiration_date) {
-                    if ($this->account->getFunctionality()->getResult(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
-                        global $accounts_table;
-                        $objectID = $object->id;
+                    $objectID = $object->id;
 
-                        // Invalidate current giveaway and create new one before searching for winners to avoid concurrency issues
-                        set_sql_query($product_giveaways_table,
-                            array(
-                                "completion_date" => $date
-                            ),
-                            array(
-                                array("id", $objectID)
-                            ),
-                            null,
-                            1
-                        );
-                        $this->create($productID, $amount, $duration, $requireDownload);
+                    // Invalidate current giveaway
+                    set_sql_query($product_giveaways_table,
+                        array(
+                            "completion_date" => $date
+                        ),
+                        array(
+                            array("id", $objectID)
+                        ),
+                        null,
+                        1
+                    );
+
+                    if ($this->account->getFunctionality()->getResult(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
+                        // Create new one before searching for winners to avoid concurrency issues
+                        if (!$this->create($specifiedProductID, $amount, $duration)) {
+                            return new MethodReply(false, "Giveaway could not be created. (1)", $object);
+                        }
+                        global $accounts_table;
 
                         // Search for available accounts for the giveaway
                         $accounts = get_sql_query(
@@ -205,9 +195,18 @@ class AccountGiveaway
                         $size = sizeof($accounts);
 
                         if ($size > 0) {
-                            return $this->finalise($objectID, $productID, $foundProduct, $accounts, $size, $object->amount);
+                            $outcome = $this->finalise($objectID, $productID, $foundProduct, $accounts, $size, $object->amount);
+                            return new MethodReply(
+                                $outcome->isPositiveOutcome(),
+                                $outcome->getMessage(),
+                                $this->getCurrent(null, 0, $duration)->getObject()
+                            );
                         } else {
-                            return new MethodReply(false, "Giveaway has no accounts available so it can finish.", $object);
+                            return new MethodReply(
+                                false,
+                                "Giveaway has no accounts available so it can finish.",
+                                $this->getCurrent(null, 0, $duration)->getObject()
+                            );
                         }
                     } else {
                         return new MethodReply(true, "Giveaway disabled from finishing.", $object);
@@ -218,11 +217,11 @@ class AccountGiveaway
             } else {
                 return new MethodReply(true, "Giveaway found but not selected for recreation.", $object);
             }
-        } else if ($create && $this->create(null, $amount, $duration, $requireDownload)) {
+        } else if ($create && $this->create($specifiedProductID, $amount, $duration)) {
             // Create new one if non-existent and set create to 'false' to prevent loops
-            return $this->getCurrent($productID, 0, $duration, $requireDownload); // Set amount to 0 to stop creation
+            return $this->getCurrent(null, 0, $duration); // Set amount to 0 to stop creation
         } else {
-            return new MethodReply(false, "Giveaway could not be created.");
+            return new MethodReply(false, "Giveaway could not be created. (2)");
         }
     }
 
@@ -289,11 +288,6 @@ class AccountGiveaway
                               int|string $productID, object $productObject,
                               array      $accountsArray, int|string $accountsAmount, int|string $limit): MethodReply
     {
-        $memoryProcessKey = __METHOD__ . $productID . $limit;
-
-        if (!start_memory_process($memoryProcessKey)) {
-            return new MethodReply(false, "Hit giveaway finalisation cooldown.");
-        }
         $limit = min($limit, $accountsAmount);
         $oneWinner = $limit == 1;
 
@@ -335,23 +329,19 @@ class AccountGiveaway
                         );
 
                         if ($oneWinner) {
-                            end_memory_process($memoryProcessKey);
                             return new MethodReply(true, "Giveaway found 1 winner.");
                         } else {
                             $winnerCounter++;
 
                             if ($winnerCounter == $limit) {
-                                end_memory_process($memoryProcessKey);
                                 return new MethodReply(true, "Giveaway was limited at " . $winnerCounter . " winners.");
                             }
                         }
                     }
                 }
             }
-            end_memory_process($memoryProcessKey);
             return new MethodReply(true, "Giveaway found " . $winnerCounter . " winners.");
         } else {
-            end_memory_process($memoryProcessKey);
             return new MethodReply(false, "Giveaway allowed winner amount is invalid: " . $limit);
         }
     }
