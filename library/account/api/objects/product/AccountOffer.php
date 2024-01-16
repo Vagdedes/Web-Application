@@ -87,7 +87,6 @@ class AccountOffer
                         } else {
                             $offer->divisions = $query;
                         }
-                        $offer->url = $website_account_url . "/viewOffer/?id=" . $offer->id;
 
                         if ($offer->included_products !== null) {
                             $offer->included_products = explode("|", $offer->included_products);

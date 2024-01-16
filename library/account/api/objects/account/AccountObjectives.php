@@ -19,8 +19,6 @@ class AccountObjectives
                 "Verify your email by clicking the verification link we have emailed you.",
             );
         } else {
-            global $website_account_url;
-
             $array = array();
             $paypal = $this->account->getAccounts()->hasAdded(AccountAccounts::PAYPAL_EMAIL, null, 1)->isPositiveOutcome();
 
@@ -29,7 +27,7 @@ class AccountObjectives
                     $array,
                     "Purchases & Transactions",
                     "Add your" . (!$paypal ? " PayPal and " : " ") . "Stripe email to have your purchases identified.",
-                    $website_account_url . "/profile/addAccount",
+                    null,
                     true,
                     "7 days"
                 );
@@ -38,7 +36,7 @@ class AccountObjectives
                     $array,
                     "Purchases & Transactions",
                     "Add your PayPal email to have your purchases identified.",
-                    $website_account_url . "/profile/addAccount",
+                    null,
                     true,
                     "7 days"
                 );
@@ -50,7 +48,7 @@ class AccountObjectives
                     $array,
                     "Minecraft Platform",
                     "Add your SpigotMC/BuiltByBit/Polymart account URL to have your licenses identified.",
-                    $website_account_url . "/profile/addAccount",
+                    null,
                     true,
                     "7 days"
                 );
@@ -60,7 +58,7 @@ class AccountObjectives
                     $array,
                     "Discord Tag",
                     "Add your Discord-Tag so we can give you roles on Discord now or in the future.",
-                    $website_account_url . "/profile/addAccount",
+                    null,
                     true,
                     "7 days"
                 );
@@ -70,10 +68,27 @@ class AccountObjectives
                     $array,
                     "Patreon Full Name",
                     "Add your Patreon-Full-Name to have your purchases identified.",
-                    $website_account_url . "/profile/addAccount",
+                    null,
                     true,
                     "7 days"
                 );
+            } else if ($this->account->getPatreon()->retrieve()->isPositiveOutcome()) {
+                if (!$this->account->getPurchases()->owns(AccountPatreon::SPARTAN_1_0_JAVA)->isPositiveOutcome()) {
+                    $array = $this->create(
+                        $array,
+                        "Spartan 2.0: Java Edition",
+                        'Thanks for subscribing to our Patreon. '
+                        . '"Spartan 2.0: Java Edition" requires you to own "Spartan 1.0: Java Edition"'
+                    );
+                }
+                if (!$this->account->getPurchases()->owns(AccountPatreon::SPARTAN_1_0_BEDROCK)->isPositiveOutcome()) {
+                    $array = $this->create(
+                        $array,
+                        "Spartan 2.0: Bedrock Edition",
+                        'Thanks for subscribing to our Patreon. '
+                        . '"Spartan 2.0: Bedrock Edition" requires you to own "Spartan 1.0: Bedrock Edition"'
+                    );
+                }
             }
             return $array;
         }
