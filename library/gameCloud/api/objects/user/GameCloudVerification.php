@@ -82,6 +82,7 @@ class GameCloudVerification
             array("type", "number", "extra", "expiration_date"),
             array(
                 array("platform_id", $platform),
+                array("deletion_date", null),
                 null,
                 array("number", "=", $licenseID, 0),
                 array("number", $fileID),
@@ -162,6 +163,7 @@ class GameCloudVerification
                 array("platform_id", "=", $platform),
                 array("number", "=", $licenseID),
                 array("product_id", "=", $productID),
+                array("deletion_date", null),
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", $date),
@@ -316,6 +318,7 @@ class GameCloudVerification
                 array("type", $type),
                 array("number", $licenseID),
                 array("platform_id", $platform),
+                array("deletion_date", null),
                 $productID !== null ? array("product_id", $productID) : "",
             ),
             null,
@@ -373,6 +376,7 @@ class GameCloudVerification
                 array("type", $type),
                 array("number", $licenseID),
                 array("platform_id", $platform),
+                array("deletion_Date", null),
                 $productID !== null ? array("product_id", $productID) : "",
             ),
             null,
@@ -380,11 +384,16 @@ class GameCloudVerification
         );
 
         if (!empty($query)
-            && !delete_sql_query(
+            && !set_sql_query(
                 $license_management_table,
                 array(
+                    "deletion_date" => get_current_date()
+                ),
+                array(
                     array("id", $query[0]->id)
-                )
+                ),
+                null,
+                1
             )) {
             return false;
         }

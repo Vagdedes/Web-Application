@@ -8,4 +8,4 @@ $paypal_suspended_transactions_table = "paypal.suspendedTransactions";
 
 $paypal_me_url = "https://paypal.me/";
 $paypal_me_name_personal = "EvangelosBilling";
-$paypal_me_name_business = "VagdedesBilling";
+$paypal_me_name_business = "IdealisticAI";
