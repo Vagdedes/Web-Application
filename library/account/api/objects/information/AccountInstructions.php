@@ -4,7 +4,7 @@ class AccountInstructions
 {
 
     private Account $account;
-    private array $localInstructions, $publicInstructions, $placeholders;
+    private array $localInstructions, $publicInstructions, $placeholders, $browse, $replacements;
     private string $placeholderStart, $placeholderMiddle, $placeholderEnd;
 
     public const
@@ -52,6 +52,36 @@ class AccountInstructions
         );
         $this->placeholders = get_sql_query(
             InstructionsTable::PLACEHOLDERS,
+            null,
+            array(
+                array("deletion_date", null),
+                null,
+                array("application_id", "IS", null, 0),
+                array("application_id", $this->account->getDetail("application_id")),
+                null,
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
+            )
+        );
+        $this->browse = get_sql_query(
+            InstructionsTable::BROWSE,
+            null,
+            array(
+                array("deletion_date", null),
+                null,
+                array("application_id", "IS", null, 0),
+                array("application_id", $this->account->getDetail("application_id")),
+                null,
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
+            )
+        );
+        $this->replacements = get_sql_query(
+            InstructionsTable::REPLACEMENTS,
             null,
             array(
                 array("deletion_date", null),
@@ -121,7 +151,6 @@ class AccountInstructions
                     unset($placeholders[$arrayKey]);
                 }
             }
-            $failedTries = array();
 
             foreach ($messages as $messageKey => $message) {
                 $position = strpos($message, $this->placeholderStart);
@@ -252,6 +281,37 @@ class AccountInstructions
         return $value;
     }
 
+    private function prepareRow(object $row, string $data): string
+    {
+        if ($row->replace !== null && !empty($this->replacements)) {
+            foreach ($this->replacements as $replace) {
+                $data = str_replace(
+                    $replace->find,
+                    $replace->replacement,
+                    $data
+                );
+            }
+        }
+        if ($row->browse !== null && !empty($this->browse)) {
+            foreach ($this->browse as $browse) {
+                if (str_contains($data, $browse->information_url)) {
+                    $data .= ($browse->prefix ?? "")
+                        . ($this->getURLData($row->information_url) ?? "")
+                        . ($browse->suffix ?? "");
+                }
+            }
+        }
+        return $data;
+    }
+
+    private function getURLData($url): ?string
+    {
+        $data = get_domain_from_url($url) == "docs.google.com"
+            ? get_raw_google_doc($url) :
+            timed_file_get_contents($url);
+        return is_string($data) ? $data : null;
+    }
+
     // Separator
 
     public function getPlaceholders(): array
@@ -261,7 +321,16 @@ class AccountInstructions
 
     public function getLocal(): array
     {
-        return $this->localInstructions;
+        if (!empty($this->localInstructions)) {
+            $array = $this->localInstructions;
+
+            foreach ($array as $value) {
+                $value->information = $this->prepareRow($value, $value->information);
+            }
+            return $array;
+        } else {
+            return array();
+        }
     }
 
     public function getPublic(): array
@@ -284,11 +353,10 @@ class AccountInstructions
                         $times[$timeKey] = $row->information_duration;
                         $array[$arrayKey] = $row->information_value;
                     } else {
-                        $doc = get_domain_from_url($row->information_url) == "docs.google.com"
-                            ? get_raw_google_doc($row->information_url) :
-                            timed_file_get_contents($row->information_url);
+                        $doc = $this->getURLData($row->information_url);
 
                         if ($doc !== null) {
+                            $doc = $this->prepareRow($row, $doc);
                             $times[$timeKey] = $row->information_duration;
                             $array[$arrayKey] = $doc;
                             set_sql_query(
