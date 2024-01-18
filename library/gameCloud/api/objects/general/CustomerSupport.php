@@ -3,7 +3,7 @@
 class CustomerSupport
 {
     private ?array $ignoreSoftwareInformation;
-    public const EMAIL = "contact@vagdedes.com";
+    public const EMAIL = "contact@idealistic.ai";
 
     public function __construct(?array $ignoreSoftwareInformation = null)
     {
