@@ -6,11 +6,8 @@ class AccountPatreon
     private ?MethodReply $retrieve;
 
     public const
-        SPARTAN_1_0_JAVA = 1,
-        SPARTAN_1_0_BEDROCK = 16,
         SPARTAN_2_0_JAVA = 21,
         SPARTAN_2_0_BEDROCK = 22,
-        SUPPORTER = 9804213,
         MOTIVATOR = 4064030,
         SPONSOR = 9784720,
         INVESTOR = 9784718,
@@ -34,7 +31,6 @@ class AccountPatreon
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
                         "patreon.subscriber.visionary",
-                        "patreon.subscriber.products",
                         "patreon.subscriber.ultimatestats",
                         "patreon.subscriber.antialtaccount",
                         "patreon.subscriber.filegui"
@@ -45,7 +41,6 @@ class AccountPatreon
                     if ($this->retrieve->isPositiveOutcome()) {
                         $this->account->getPermissions()->addSystemPermission(array(
                             "patreon.subscriber.investor",
-                            "patreon.subscriber.products",
                             "patreon.subscriber.ultimatestats",
                             "patreon.subscriber.antialtaccount",
                             "patreon.subscriber.filegui"
@@ -56,6 +51,7 @@ class AccountPatreon
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
                                 "patreon.subscriber.sponsor",
+                                "patreon.subscriber.ultimatestats",
                                 "patreon.subscriber.antialtaccount",
                                 "patreon.subscriber.filegui"
                             ));
@@ -64,18 +60,8 @@ class AccountPatreon
 
                             if ($this->retrieve->isPositiveOutcome()) {
                                 $this->account->getPermissions()->addSystemPermission(array(
-                                    "patreon.subscriber.motivator",
-                                    "patreon.subscriber.products",
-                                    "patreon.subscriber.filegui"
+                                    "patreon.subscriber.motivator"
                                 ));
-                            } else {
-                                $this->retrieve = $this->find($name, array(self::SUPPORTER));
-
-                                if ($this->retrieve->isPositiveOutcome()) {
-                                    $this->account->getPermissions()->addSystemPermission(array(
-                                        "patreon.subscriber.supporter"
-                                    ));
-                                }
                             }
                         }
                     }
