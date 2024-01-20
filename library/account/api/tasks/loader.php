@@ -57,7 +57,7 @@ function load_page(bool $loadContents = true, ?callable $callable = null, bool $
     } else {
         $account = new Account();
         $session = $account->getSession();
-        $sessionObject = $session->getSession();
+        $sessionObject = $session->find();
         $account = $sessionObject->getObject();
         $isLoggedIn = $sessionObject->isPositiveOutcome() && $account->exists();
         load_page_intro($account, $isLoggedIn, $loadContents);

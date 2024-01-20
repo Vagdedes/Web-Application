@@ -6,7 +6,7 @@ if (!empty($path)) {
     require_once '/var/www/.structure/library/base/communication.php';
     require_once '/var/www/.structure/library/base/requirements/account_systems.php';
     $account = new Account();
-    $session = $account->getSession()->getSession();
+    $session = $account->getSession()->find();
 
     if ($session->isPositiveOutcome()
         && $session->getObject()->getPermissions()->hasPermission(
@@ -48,7 +48,7 @@ if (!empty($path)) {
             header('Content-type: Application/JSON');
             require_once '/var/www/.structure/library/base/requirements/account_systems.php';
             $account = new Account(null);
-            $session = $account->getSession()->getSession();
+            $session = $account->getSession()->find();
 
             if (!$session->isPositiveOutcome()) {
                 $includedFiles = get_included_files();

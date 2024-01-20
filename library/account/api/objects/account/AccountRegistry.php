@@ -3,20 +3,20 @@
 class AccountRegistry
 {
 
-    private ?int $applicationID;
+    private Account $account;
     public const DEFAULT_WEBHOOK = "https://discord.com/api/webhooks/1165260206951911524/BmTptuNVPRxpvCaCBZcXCc5r846i-amc38zIWZpF94YZxszlE8VWj_X2NL3unsbIWPlz";
 
-    public function __construct(?int $applicationID)
+    public function __construct(Account $account)
     {
-        $this->applicationID = $applicationID;
+        $this->account = $account;
     }
 
-    public function create(?string         $email, ?string $password, ?string $name,
-                           ?string         $firstName = null, ?string $middleName = null, ?string $lastName = null,
-                           ?AccountSession $session = null,
-                           ?string         $discordWebhook = self::DEFAULT_WEBHOOK): MethodReply
+    public function create(?string $email, ?string $password, ?string $name,
+                           ?string $firstName = null, ?string $middleName = null, ?string $lastName = null,
+                           ?string $discordWebhook = self::DEFAULT_WEBHOOK): MethodReply
     {
-        $functionality = new Account($this->applicationID, 0);
+        $applicationID = $this->account->getDetail("application_id");
+        $functionality = new Account($applicationID, 0);
         $functionality = $functionality->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);
 
         if (!$functionality->isPositiveOutcome()) {
@@ -38,30 +38,26 @@ class AccountRegistry
             return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
         $email = strtolower($email);
-        $account = new Account($this->applicationID, null, $email);
+        $account = new Account($applicationID, null, $email);
 
         if ($account->exists()) {
             return new MethodReply(false, "Account with this email already exists.");
         }
-        $account = new Account($this->applicationID, null, null, $name);
+        $account = new Account($applicationID, null, null, $name);
 
         if ($account->exists()) {
             return new MethodReply(false, "Account with this name already exists.");
         }
         global $accounts_table;
 
-        if ($session === null) {
-            $session = new AccountSession($this->applicationID);
-            $session->setCustomKey("website", get_client_ip_address());
-        }
-        if ($session->isCustom() // Protected by captcha when not custom
+        if ($this->account->getSession()->isCustom() // Protected by captcha when not custom
             && !empty(get_sql_query(
                 $accounts_table,
                 array("id"),
                 array(
                     array("application_id", $this->applicationID),
-                    array("type", $session->getType()),
-                    array("custom_id", $session->getCustomKey()),
+                    array("type", $this->account->getSession()->getType()),
+                    array("custom_id", $this->account->getSession()->getCustomKey()),
                     array("deletion_date", null),
                     array("creation_date", ">", get_past_date("1 day")),
                 ),
@@ -72,8 +68,8 @@ class AccountRegistry
         }
         if (!sql_insert($accounts_table,
             array(
-                "type" => $session->getType(),
-                "custom_id" => $session->getCustomKey(),
+                "type" => $this->account->getSession()->getType(),
+                "custom_id" => $this->account->getSession()->getCustomKey(),
                 "email_address" => $email,
                 "password" => encrypt_password($password),
                 "name" => $name,
@@ -81,11 +77,11 @@ class AccountRegistry
                 "middle_name" => $middleName,
                 "last_name" => $lastName,
                 "creation_date" => get_current_date(),
-                "application_id" => $this->applicationID
+                "application_id" => $applicationID
             ))) {
             return new MethodReply(false, "Failed to create new account.");
         }
-        $account = new Account($this->applicationID, null, $email, null, null, true, false);
+        $account = new Account($applicationID, null, $email, null, null, true, false);
 
         if (!$account->exists()) {
             return new MethodReply(false, "Failed to find newly created account.");
@@ -95,7 +91,7 @@ class AccountRegistry
         if (!$account->getHistory()->add("register", null, $email)) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $emailVerification = $account->getEmail()->initiateVerification($email,  $session->isCustom());
+        $emailVerification = $account->getEmail()->initiateVerification($email, $this->account->getSession()->isCustom());
 
         if (!$emailVerification->isPositiveOutcome()) {
             $message = $emailVerification->getMessage();
@@ -104,7 +100,7 @@ class AccountRegistry
                 return new MethodReply(false, $message);
             }
         }
-        $session = $session->createSession($account);
+        $session = $this->account->getSession()->create($account);
 
         if (!$session->isPositiveOutcome()) {
             return new MethodReply(false, $session->getMessage());
@@ -130,7 +126,7 @@ class AccountRegistry
                 $accounts_table,
                 array("id"),
                 array(
-                    array("application_id", $this->applicationID),
+                    array("application_id", $this->account->getDetail("application_id")),
                     array("deletion_date", null),
                 )
             )

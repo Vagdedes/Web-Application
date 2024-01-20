@@ -156,7 +156,7 @@ class Account
 
         // Independent
         $this->product = new AccountProduct($this);
-        $this->registry = new AccountRegistry($applicationID);
+        $this->registry = new AccountRegistry($this);
         $this->session = new AccountSession($applicationID);
         $this->knowledge = new WebsiteKnowledge($applicationID);
         $this->translation = new LanguageTranslation($applicationID);
@@ -168,7 +168,7 @@ class Account
                            bool $checkDeletion = true,
                            bool $cache = true): self
     {
-        return new self(
+        $account = new self(
             $this->getDetail("application_id"),
             $id,
             $email,
@@ -177,6 +177,11 @@ class Account
             $checkDeletion,
             $cache
         );
+        $account->getSession()->setCustomKey(
+            $this->getSession()->getType(),
+            $this->getSession()->getCustomKey()
+        );
+        return $account;
     }
 
     public function exists(): bool

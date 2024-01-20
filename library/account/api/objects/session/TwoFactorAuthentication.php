@@ -134,7 +134,7 @@ class TwoFactorAuthentication
                 if (!$account->getHistory()->add("instant_log_in")) {
                     return new MethodReply(false, "Failed to update user history.");
                 }
-                $session = $this->session->createSession($account);
+                $session = $this->session->create($account);
 
                 if (!$session->isPositiveOutcome()) {
                     return new MethodReply(false, $session->getMessage());

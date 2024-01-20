@@ -16,7 +16,7 @@ class AccountActions
         $this->account = $account;
     }
 
-    public function logIn(string $password, ?AccountSession $session = null, bool $twoFactor = true): MethodReply
+    public function logIn(string $password, bool $twoFactor = true): MethodReply
     {
         $parameter = new ParameterVerification($password, null, 8);
 
@@ -37,12 +37,9 @@ class AccountActions
         if ($punishment->isPositiveOutcome()) {
             return new MethodReply(false, $punishment->getMessage());
         }
-        if ($session === null) {
-            $session = new AccountSession($this->account->getDetail("application_id"));
-        }
         if ($twoFactor
             && $this->account->getSettings()->isEnabled("two_factor_authentication")) {
-            $twoFactor = $session->getTwoFactorAuthentication();
+            $twoFactor = $this->account->getSession()->getTwoFactorAuthentication();
             $twoFactor = $twoFactor->initiate($this->account);
 
             if ($twoFactor->isPositiveOutcome()) {
@@ -52,7 +49,7 @@ class AccountActions
         if (!$this->account->getHistory()->add("log_in")) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $session = $session->createSession($this->account);
+        $session = $this->account->getSession()->create($this->account);
 
         if (!$session->isPositiveOutcome()) {
             return new MethodReply(false, $session->getMessage());
@@ -62,7 +59,7 @@ class AccountActions
         return new MethodReply(true, "You have been logged in.");
     }
 
-    public function logOut(?AccountSession $session = null): MethodReply
+    public function logOut(): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::LOG_OUT, true);
@@ -70,10 +67,7 @@ class AccountActions
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
-        if ($session === null) {
-            $session = new AccountSession($this->account->getDetail("application_id"));
-        }
-        $session = $session->deleteSession($this->account->getDetail("id"));
+        $session = $this->account->getSession()->delete($this->account->getDetail("id"));
 
         if ($session->isPositiveOutcome()) {
             $functionality->addInstantCooldown(AccountFunctionality::LOG_OUT, self::log_in_out_cooldown);
@@ -88,8 +82,8 @@ class AccountActions
     {
         $session = new AccountSession($this->account->getDetail("application_id"));
 
-        if ($session->getSession()->isPositiveOutcome()) {
-            $session = $session->getSession()->getObject();
+        if ($session->find()->isPositiveOutcome()) {
+            $session = $session->find()->getObject();
 
             if ($this->account->getDetail("id") == $session->getDetail("id")) {
                 return new MethodReply(true, null, $session);

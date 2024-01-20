@@ -20,7 +20,7 @@ class AccountSession
         $this->customKey = null;
     }
 
-    public function setCustomKey(int|string $type, int|string $customKey): void
+    public function setCustomKey(int|string|null $type, int|string|null $customKey): void
     {
         $this->type = is_numeric($type) ? $type : string_to_integer($type, true);
         $this->customKey = is_numeric($customKey) ? $customKey : string_to_integer($this->customKey, true);
@@ -138,7 +138,7 @@ class AccountSession
         ), true, 1);
     }
 
-    public function getSession(): MethodReply
+    public function find(): MethodReply
     {
         global $account_sessions_table;
         $key = $this->createKey();
@@ -239,12 +239,12 @@ class AccountSession
         return new MethodReply(false, null, new Account($this->applicationID, 0));
     }
 
-    public function createSession(Account $account): MethodReply
+    public function create(Account $account): MethodReply
     {
         $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
         if ($punishment->isPositiveOutcome()) {
-            $this->deleteSession($account->getDetail("id"));
+            $this->delete($account->getDetail("id"));
             return new MethodReply(false, $punishment->getMessage());
         }
         global $account_sessions_table;
@@ -329,7 +329,7 @@ class AccountSession
         return new MethodReply(false, "Failed to find available session.");
     }
 
-    public function deleteSession(int|string $accountID): MethodReply
+    public function delete(int|string $accountID): MethodReply
     {
         $key = $this->createKey();
         $hasCustomKey = $this->isCustom();
