@@ -6,6 +6,8 @@ class AccountPatreon
     private ?MethodReply $retrieve;
 
     public const
+        SPARTAN_1_0_JAVA = 1,
+        SPARTAN_1_0_BEDROCK = 16,
         SPARTAN_2_0_JAVA = 21,
         SPARTAN_2_0_BEDROCK = 22,
         MOTIVATOR = 4064030,
