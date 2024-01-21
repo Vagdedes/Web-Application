@@ -263,7 +263,7 @@ class AccountGiveaway
 
                 if (!empty($winners)) {
                     foreach ($winners as $arrayKey => $winner) {
-                        $account = new Account($this->account->getDetail("application_id"), $winner->account_id);
+                        $account = $this->account->getNew($winner->account_id);
 
                         if ($account->exists()
                             && !$account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN)->isPositiveOutcome()
@@ -301,7 +301,7 @@ class AccountGiveaway
                 $winnerPosition = array_rand($accountsArray);
 
                 if (isset($accountsArray[$winnerPosition])) { // Check if it exists as it may have been removed
-                    $account = new Account($this->account->getDetail("application_id"), $accountsArray[$winnerPosition]->id); // Get object before unsetting it
+                    $account = $this->account->getNew($accountsArray[$winnerPosition]->id); // Get object before unsetting it
                     unset($accountsArray[$winnerPosition]); // Unset object to pick a different winner in the next potential loop
 
                     // add the product to the winner's account

@@ -118,7 +118,7 @@ class AccountAccounts
             if ($query[0]->account_id == $accountID) {
                 return new MethodReply(false, "You have already added this account.");
             } else {
-                $account = new Account($this->account->getDetail("application_id"), $query[0]->account_id);
+                $account = $this->account->getNew($query[0]->account_id);
 
                 if ($account->exists()) {
                     $email = $account->getDetail("email_address");

@@ -69,10 +69,8 @@ function load_page(bool $loadContents = true, ?callable $callable = null, bool $
             case "exit":
             case "changeEmail":
             case "downloadFile":
-                $callable($account, $isLoggedIn);
-                break;
             case "instantLogin":
-                $callable($account, $isLoggedIn, $session);
+                $callable($account, $isLoggedIn);
                 break;
             default:
                 if ($callable !== null) {

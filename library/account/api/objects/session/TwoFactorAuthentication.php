@@ -2,11 +2,11 @@
 
 class TwoFactorAuthentication
 {
-    private AccountSession $session;
+    private Account $account;
 
-    public function __construct(AccountSession $session)
+    public function __construct(Account $account)
     {
-        $this->session = $session;
+        $this->account = $account;
     }
 
     public function initiate(Account $account): MethodReply
@@ -52,10 +52,10 @@ class TwoFactorAuthentication
                 $token = random_string(AccountSession::session_token_length);
 
                 // Separator
-                $key = $this->session->createKey();
+                $key = $this->account->getSession()->createKey();
 
                 if (strlen($key) !== AccountSession::session_token_length) {
-                    $key = $this->session->createKey(true);
+                    $key = $this->account->getSession()->createKey(true);
                 }
 
                 // Separator
@@ -106,7 +106,7 @@ class TwoFactorAuthentication
                     array("expiration_date", ">", $date),
                     null,
                     array("ip_address", "=", get_client_ip_address(), 0),
-                    array("access_token", $this->session->createKey()),
+                    array("access_token", $this->account->getSession()->createKey()),
                     null,
                 ),
                 null,
@@ -115,7 +115,7 @@ class TwoFactorAuthentication
 
             if (!empty($query)) {
                 $object = $query[0];
-                $account = new Account($this->session->getApplicationID(), $object->account_id);
+                $account = $this->account->getNew($object->account_id);
 
                 if (!$account->exists()) {
                     return new MethodReply(false, "Failed to find account.");
@@ -134,7 +134,7 @@ class TwoFactorAuthentication
                 if (!$account->getHistory()->add("instant_log_in")) {
                     return new MethodReply(false, "Failed to update user history.");
                 }
-                $session = $this->session->create($account);
+                $session = $this->account->getSession()->create($account);
 
                 if (!$session->isPositiveOutcome()) {
                     return new MethodReply(false, $session->getMessage());

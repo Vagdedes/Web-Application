@@ -16,7 +16,7 @@ class AccountRegistry
                            ?string $discordWebhook = self::DEFAULT_WEBHOOK): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
-        $functionality = new Account($applicationID, 0);
+        $functionality = $this->account->getNew(0);
         $functionality = $functionality->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);
 
         if (!$functionality->isPositiveOutcome()) {
@@ -38,12 +38,12 @@ class AccountRegistry
             return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
         $email = strtolower($email);
-        $account = new Account($applicationID, null, $email);
+        $account = $this->account->getNew(null, $email);
 
         if ($account->exists()) {
             return new MethodReply(false, "Account with this email already exists.");
         }
-        $account = new Account($applicationID, null, null, $name);
+        $account = $this->account->getNew(null, null, $name);
 
         if ($account->exists()) {
             return new MethodReply(false, "Account with this name already exists.");
@@ -81,7 +81,7 @@ class AccountRegistry
             ))) {
             return new MethodReply(false, "Failed to create new account.");
         }
-        $account = new Account($applicationID, null, $email, null, null, true, false);
+        $account = $this->account->getNew(null, $email, null, null, true, false);
 
         if (!$account->exists()) {
             return new MethodReply(false, "Failed to find newly created account.");

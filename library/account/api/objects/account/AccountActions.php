@@ -39,7 +39,7 @@ class AccountActions
         }
         if ($twoFactor
             && $this->account->getSettings()->isEnabled("two_factor_authentication")) {
-            $twoFactor = $this->account->getSession()->getTwoFactorAuthentication();
+            $twoFactor = $this->account->getTwoFactorAuthentication();
             $twoFactor = $twoFactor->initiate($this->account);
 
             if ($twoFactor->isPositiveOutcome()) {
@@ -80,10 +80,10 @@ class AccountActions
 
     public function isLocallyLoggedIn(): MethodReply
     {
-        $session = new AccountSession($this->account->getDetail("application_id"));
+        $session = $this->account->getSession()->find();
 
-        if ($session->find()->isPositiveOutcome()) {
-            $session = $session->find()->getObject();
+        if ($session->isPositiveOutcome()) {
+            $session = $session->getObject();
 
             if ($this->account->getDetail("id") == $session->getDetail("id")) {
                 return new MethodReply(true, null, $session);

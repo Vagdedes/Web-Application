@@ -92,7 +92,7 @@ class AccountEmail
         $applicationID = $account->getDetail("application_id");
 
         if (!$exists) {
-            $account = new Account($applicationID, $object->account_id);
+            $account = $this->account->getNew($object->account_id);
 
             if (!$account->exists()) {
                 return new MethodReply(false, "Failed to find account related to email.");

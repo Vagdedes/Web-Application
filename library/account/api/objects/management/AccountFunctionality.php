@@ -154,7 +154,7 @@ class AccountFunctionality
                 $functionality = $functionalityObject->getObject();
             }
         }
-        $account = new Account($this->account->getDetail("application_id"), $accountID);
+        $account = $this->account->getNew($accountID);
 
         if (!$account->exists()) {
             return new MethodReply(false, "Account does not exist.");
@@ -203,7 +203,7 @@ class AccountFunctionality
                 $functionality = $functionalityObject->getObject();
             }
         }
-        $account = new Account($this->account->getDetail("application_id"), $accountID);
+        $account = $this->account->getNew($accountID);
 
         if (!$account->exists()) {
             return new MethodReply(false, "Account does not exist.");

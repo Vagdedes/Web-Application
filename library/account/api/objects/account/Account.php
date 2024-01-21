@@ -45,6 +45,7 @@ class Account
     private AccountFeedback $feedback;
     private AccountRegistry $registry;
     private AccountSession $session;
+    private TwoFactorAuthentication $twoFactorAuthentication;
     private WebsiteKnowledge $knowledge;
     private LanguageTranslation $translation;
     private PaymentProcessor $paymentProcessor;
@@ -157,7 +158,8 @@ class Account
         // Independent
         $this->product = new AccountProduct($this);
         $this->registry = new AccountRegistry($this);
-        $this->session = new AccountSession($applicationID);
+        $this->session = new AccountSession($this);
+        $this->twoFactorAuthentication = new TwoFactorAuthentication($this);
         $this->knowledge = new WebsiteKnowledge($applicationID);
         $this->translation = new LanguageTranslation($applicationID);
         $this->paymentProcessor = new PaymentProcessor($applicationID);
@@ -392,6 +394,11 @@ class Account
     public function getSession(): AccountSession
     {
         return $this->session;
+    }
+
+    public function getTwoFactorAuthentication(): TwoFactorAuthentication
+    {
+        return $this->twoFactorAuthentication;
     }
 
     public function getRegistry(): AccountRegistry

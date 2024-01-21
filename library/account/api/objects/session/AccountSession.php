@@ -2,7 +2,7 @@
 
 class AccountSession
 {
-    private ?int $applicationID;
+    private Account $account;
     private ?int $customKey, $type;
 
     private const session_key_name = "vagdedes_account_session",
@@ -13,9 +13,9 @@ class AccountSession
         session_cookie_expiration = 86400 * 30,
         session_cache_time = "1 minute";
 
-    public function __construct(?int $applicationID)
+    public function __construct(Account $account)
     {
-        $this->applicationID = $applicationID;
+        $this->account = $account;
         $this->type = null;
         $this->customKey = null;
     }
@@ -39,16 +39,6 @@ class AccountSession
     public function getCustomKey(): ?int
     {
         return $this->customKey;
-    }
-
-    public function getApplicationID(): ?int
-    {
-        return $this->applicationID;
-    }
-
-    public function getTwoFactorAuthentication(): TwoFactorAuthentication
-    {
-        return new TwoFactorAuthentication($this);
     }
 
     public function getAlive(?array $select = null, int $limit = 0): array
@@ -169,7 +159,7 @@ class AccountSession
 
             if (!empty($array)) { // Check if session exists
                 $object = $array[0];
-                $account = new Account($this->applicationID, $object->account_id);
+                $account = $this->account->getNew($object->account_id);
 
                 if ($account->exists()) { // Check if session account exists
                     if (!has_memory_cooldown(
@@ -194,7 +184,7 @@ class AccountSession
                             ); // Delete session from database
                             $this->clearTokenCache($key);
                             $account->clearMemory(self::class);
-                            return new MethodReply(false, null, new Account($this->applicationID, 0));
+                            return new MethodReply(false, null, $this->account->getNew(0));
                         } else {
                             set_sql_query(
                                 $account_sessions_table,
@@ -236,7 +226,7 @@ class AccountSession
         } else { // Delete session cookie if key is at incorrect length
             $this->createKey(true);
         }
-        return new MethodReply(false, null, new Account($this->applicationID, 0));
+        return new MethodReply(false, null, $this->account->getNew(0));
     }
 
     public function create(Account $account): MethodReply
@@ -359,7 +349,7 @@ class AccountSession
             );
 
             $this->clearTokenCache($key);
-            $account = new Account($this->applicationID, $accountID);
+            $account = $this->account->getNew($accountID);
             $account->clearMemory(self::class);
 
             if (!empty($array)) { // Check if session exists

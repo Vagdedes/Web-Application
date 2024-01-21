@@ -105,7 +105,7 @@ class AccountPassword
         $hasCooldown = $cooldown !== null;
 
         if ($loggedOut) { // In case the process is initiated when logged out
-            $account = new Account($this->account->getDetail("application_id"), $array->account_id);
+            $account = $this->account->getNew($array->account_id);
 
             if (!$account->exists()) {
                 return new MethodReply(false, "Failed to find account.");
