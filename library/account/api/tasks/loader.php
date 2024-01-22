@@ -36,7 +36,7 @@ function load_page(bool $loadContents = true, ?callable $callable = null, bool $
 {
     $directory = get_final_directory();
     $title = unstuck_words_from_capital_letters($directory);
-    $metaDescription = "";
+    $metaDescription = "Science, technology & engineering";
     $randomNumber = rand(0, 2147483647);
 
     echo "<!DOCTYPE html>
@@ -56,8 +56,7 @@ function load_page(bool $loadContents = true, ?callable $callable = null, bool $
         load_account_page_message("Website Error", "Please stop refreshing the page so frequently");
     } else {
         $account = new Account();
-        $session = $account->getSession();
-        $sessionObject = $session->find();
+        $sessionObject = $account->getSession()->find();
         $account = $sessionObject->getObject();
         $isLoggedIn = $sessionObject->isPositiveOutcome() && $account->exists();
         load_page_intro($account, $isLoggedIn, $loadContents);

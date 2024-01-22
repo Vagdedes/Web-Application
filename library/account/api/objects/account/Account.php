@@ -179,10 +179,12 @@ class Account
             $checkDeletion,
             $cache
         );
-        $account->getSession()->setCustomKey(
-            $this->getSession()->getType(),
-            $this->getSession()->getCustomKey()
-        );
+        if ($account->getSession()->isCustom()) {
+            $account->getSession()->setCustomKey(
+                $this->getSession()->getType(),
+                $this->getSession()->getCustomKey()
+            );
+        }
         return $account;
     }
 
