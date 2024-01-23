@@ -230,4 +230,19 @@ class ChatAI
                 return null;
         }
     }
+
+    public function getCost(object $model, ?object $object): ?string
+    {
+        switch ($model->modelID) {
+            case AIModel::CHAT_GPT_3_5_DIALOGUE:
+            case AIModel::CHAT_GPT_3_5_INSTRUCTIONS:
+            case AIModel::CHAT_GPT_4_COMPLEX:
+            case AIModel::CHAT_GPT_4:
+            case AIModel::CHAT_GPT_4_EXPANDED:
+                return ($object->usage->prompt_tokens * $model->sent_token_cost)
+                    + ($object->usage->completion_tokens * $model->received_token_cost);
+            default:
+                return null;
+        }
+    }
 }
