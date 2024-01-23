@@ -22,8 +22,10 @@ class AccountSession
 
     public function setCustomKey(int|string|null $type, int|string|null $customKey): void
     {
-        $this->type = is_numeric($type) ? $type : string_to_integer($type, true);
-        $this->customKey = is_numeric($customKey) ? $customKey : string_to_integer($this->customKey, true);
+        $this->type = $type === null ? null :
+            (is_numeric($type) ? $type : string_to_integer($type, true));
+        $this->customKey = $customKey === null ? null :
+            (is_numeric($customKey) ? $customKey : string_to_integer($this->customKey, true));
     }
 
     public function isCustom(): bool
@@ -368,5 +370,24 @@ class AccountSession
             }
         }
         return new MethodReply(false, "You are not logged in.");
+    }
+
+    public function getLastKnown(): ?object
+    {
+        global $account_sessions_table;
+        $query = get_sql_query(
+            $account_sessions_table,
+            null,
+            array(
+                array("type", $this->type),
+                array("token", $this->customKey),
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        );
+        return !empty($query) ? $query[0] : null;
     }
 }
