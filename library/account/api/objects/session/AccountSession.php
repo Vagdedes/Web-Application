@@ -321,52 +321,54 @@ class AccountSession
         return new MethodReply(false, "Failed to find available session.");
     }
 
-    public function delete(int|string $accountID): MethodReply
+    public function delete(int|string|null $accountID): MethodReply
     {
-        $key = $this->createKey();
-        $hasCustomKey = $this->isCustom();
-        $this->createKey(true);
+        if ($accountID !== null) {
+            $key = $this->createKey();
+            $hasCustomKey = $this->isCustom();
+            $this->createKey(true);
 
-        if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
-            global $account_sessions_table;
-            $key = $hasCustomKey
-                ? $this->customKey
-                : string_to_integer($key, true);
-            $date = get_current_date();
-            $array = get_sql_query(
-                $account_sessions_table,
-                array("id"),
-                array(
-                    array("type", $this->type),
-                    array("token", $key),
-                    array("deletion_date", null),
-                    array("end_date", ">", $date),
-                    array("expiration_date", ">", $date)
-                ),
-                array(
-                    "DESC",
-                    "id"
-                ),
-                1
-            );
-
-            $this->clearTokenCache($key);
-            $account = $this->account->getNew($accountID);
-            $account->clearMemory(self::class);
-
-            if (!empty($array)) { // Check if session exists
-                set_sql_query(
+            if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
+                global $account_sessions_table;
+                $key = $hasCustomKey
+                    ? $this->customKey
+                    : string_to_integer($key, true);
+                $date = get_current_date();
+                $array = get_sql_query(
                     $account_sessions_table,
+                    array("id"),
                     array(
-                        "deletion_date" => $date
+                        array("type", $this->type),
+                        array("token", $key),
+                        array("deletion_date", null),
+                        array("end_date", ">", $date),
+                        array("expiration_date", ">", $date)
                     ),
                     array(
-                        array("id", $array[0]->id)
+                        "DESC",
+                        "id"
                     ),
-                    null,
                     1
-                ); // Delete session from database
-                return new MethodReply(true, "You have been logged out.", $account);
+                );
+
+                $this->clearTokenCache($key);
+                $account = $this->account->getNew($accountID);
+                $account->clearMemory(self::class);
+
+                if (!empty($array)) { // Check if session exists
+                    set_sql_query(
+                        $account_sessions_table,
+                        array(
+                            "deletion_date" => $date
+                        ),
+                        array(
+                            array("id", $array[0]->id)
+                        ),
+                        null,
+                        1
+                    ); // Delete session from database
+                    return new MethodReply(true, "You have been logged out.", $account);
+                }
             }
         }
         return new MethodReply(false, "You are not logged in.");
