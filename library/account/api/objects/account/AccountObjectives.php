@@ -73,21 +73,30 @@ class AccountObjectives
                     "7 days"
                 );
             } else if ($this->account->getPatreon()->retrieve()->isPositiveOutcome()) {
-                if (!$this->account->getPurchases()->owns(AccountPatreon::SPARTAN_1_0_JAVA)->isPositiveOutcome()) {
+                if (empty($this->account->getPatreon()->retrieve()->getMessage())) {
                     $array = $this->create(
                         $array,
-                        "Spartan 2.0: Java Edition",
-                        'Thanks for subscribing to our Patreon. '
-                        . '"Spartan 2.0: Java Edition" requires you to own "Spartan 1.0: Java Edition"'
+                        "Patron Found",
+                        'Thanks for becoming a free Patreon. '
+                        . '"Consider subscribing to a paid tier to enjoy benefits!"'
                     );
-                }
-                if (!$this->account->getPurchases()->owns(AccountPatreon::SPARTAN_1_0_BEDROCK)->isPositiveOutcome()) {
-                    $array = $this->create(
-                        $array,
-                        "Spartan 2.0: Bedrock Edition",
-                        'Thanks for subscribing to our Patreon. '
-                        . '"Spartan 2.0: Bedrock Edition" requires you to own "Spartan 1.0: Bedrock Edition"'
-                    );
+                } else {
+                    if (!$this->account->getPurchases()->owns(AccountPatreon::SPARTAN_1_0_JAVA)->isPositiveOutcome()) {
+                        $array = $this->create(
+                            $array,
+                            "Spartan 2.0: Java Edition",
+                            'Thanks for subscribing to our Patreon. '
+                            . '"Spartan 2.0: Java Edition" requires you to own "Spartan 1.0: Java Edition"'
+                        );
+                    }
+                    if (!$this->account->getPurchases()->owns(AccountPatreon::SPARTAN_1_0_BEDROCK)->isPositiveOutcome()) {
+                        $array = $this->create(
+                            $array,
+                            "Spartan 2.0: Bedrock Edition",
+                            'Thanks for subscribing to our Patreon. '
+                            . '"Spartan 2.0: Bedrock Edition" requires you to own "Spartan 1.0: Bedrock Edition"'
+                        );
+                    }
                 }
             }
             return $array;

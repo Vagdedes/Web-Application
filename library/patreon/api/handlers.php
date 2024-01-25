@@ -100,13 +100,14 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
     }
 }
 
-function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTiers = null): array
+function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTiers = null, bool $paid = true): array
 {
     $hasIgnoreTiers = $ignoreTiers !== null;
     $hasTargetTiers = $ignoreTiers !== null;
     $totalCacheKey = array(
         $ignoreTiers,
         $targetTiers,
+        $paid,
         "patreon-2-subscriptions"
     );
     $cache = get_key_value_pair($totalCacheKey);
@@ -166,20 +167,22 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
             if (isset($reply->data)) {
                 foreach ($reply->data as $patron) {
                     if (isset($patron->type)
-                        && $patron->type == "member"
-                        && isset($patron->attributes->patron_status)
-                        && $patron->attributes->patron_status == "active_patron"
-                        && isset($patron->relationships->currently_entitled_tiers->data)) {
-                        if ($hasIgnoreTiers || $hasTargetTiers) {
-                            foreach ($patron->relationships->currently_entitled_tiers->data as $tier) {
-                                if (isset($data->relationships->reward->data->id)
-                                    && (!$hasIgnoreTiers || !in_array($tier->id, $ignoreTiers))
-                                    && (!$hasTargetTiers || in_array($tier->id, $targetTiers))) {
-                                    $results[] = $patron;
+                        && $patron->type == "member") {
+                        if (!$paid
+                            || isset($patron->attributes->patron_status)
+                            && $patron->attributes->patron_status == "active_patron"
+                            && isset($patron->relationships->currently_entitled_tiers->data)) {
+                            if ($hasIgnoreTiers || $hasTargetTiers) {
+                                foreach ($patron->relationships->currently_entitled_tiers->data as $tier) {
+                                    if (isset($data->relationships->reward->data->id)
+                                        && (!$hasIgnoreTiers || !in_array($tier->id, $ignoreTiers))
+                                        && (!$hasTargetTiers || in_array($tier->id, $targetTiers))) {
+                                        $results[] = $patron;
+                                    }
                                 }
+                            } else {
+                                $results[] = $patron;
                             }
-                        } else {
-                            $results[] = $patron;
                         }
                     }
                 }

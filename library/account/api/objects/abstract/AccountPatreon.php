@@ -64,6 +64,8 @@ class AccountPatreon
                                 $this->account->getPermissions()->addSystemPermission(array(
                                     "patreon.subscriber.motivator"
                                 ));
+                            } else {
+                                $this->retrieve = $this->find($name, null, false);
                             }
                         }
                     }
@@ -75,16 +77,16 @@ class AccountPatreon
         return $this->retrieve;
     }
 
-    private function find(string $name, ?array $tiers = null): MethodReply
+    private function find(string $name, ?array $tiers = null, bool $paid = true): MethodReply
     {
-        $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers);
+        $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers, $paid);
 
         if (!empty($patreonSubscriptions)) {
             $name = trim($name);
 
             foreach ($patreonSubscriptions as $subscription) {
                 if (trim($subscription->attributes->full_name) == $name) {
-                    return new MethodReply(true, null, $subscription);
+                    return new MethodReply(true, $paid ? "active" : null, $subscription);
                 }
             }
         }
