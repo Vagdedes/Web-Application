@@ -356,9 +356,14 @@ class AccountInstructions
         }
     }
 
-    public function getPublic(): array
+    public function getPublic(?array $allow = null, ?array $dismiss = null): array
     {
-        $cacheKey = array(__METHOD__, $this->account->getDetail("application_id"));
+        $cacheKey = array(
+            __METHOD__,
+            $this->account->getDetail("application_id"),
+            $allow,
+            $dismiss
+        );
         $cache = get_key_value_pair($cacheKey);
 
         if ($cache !== null) {
@@ -369,37 +374,40 @@ class AccountInstructions
 
             if (!empty($array)) {
                 foreach ($array as $arrayKey => $row) {
-                    $timeKey = strtotime(get_future_date($row->information_duration));
+                    if (($allow === null || in_array($row->id, $allow))
+                        && ($dismiss === null || !in_array($row->id, $dismiss))) {
+                        $timeKey = strtotime(get_future_date($row->information_duration));
 
-                    if ($row->information_expiration !== null
-                        && $row->information_expiration > get_current_date()) {
-                        $times[$timeKey] = $row->information_duration;
-                        $array[$arrayKey] = $row->information_value;
-                    } else {
-                        $doc = $this->getURLData($row->information_url);
-
-                        if ($doc !== null) {
-                            $doc = $this->prepareRow($row, $doc);
+                        if ($row->information_expiration !== null
+                            && $row->information_expiration > get_current_date()) {
                             $times[$timeKey] = $row->information_duration;
-                            $array[$arrayKey] = $doc;
-                            set_sql_query(
-                                InstructionsTable::PUBLIC,
-                                array(
-                                    "information_value" => $doc,
-                                    "information_expiration" => get_future_date($row->information_duration)
-                                ),
-                                array(
-                                    array("id", $row->id)
-                                ),
-                                null,
-                                1
-                            );
+                            $array[$arrayKey] = $row->information_value;
                         } else {
-                            if ($row->information_value !== null) {
+                            $doc = $this->getURLData($row->information_url);
+
+                            if ($doc !== null) {
+                                $doc = $this->prepareRow($row, $doc);
                                 $times[$timeKey] = $row->information_duration;
-                                $array[$arrayKey] = $row->information_value;
+                                $array[$arrayKey] = $doc;
+                                set_sql_query(
+                                    InstructionsTable::PUBLIC,
+                                    array(
+                                        "information_value" => $doc,
+                                        "information_expiration" => get_future_date($row->information_duration)
+                                    ),
+                                    array(
+                                        array("id", $row->id)
+                                    ),
+                                    null,
+                                    1
+                                );
                             } else {
-                                unset($array[$arrayKey]);
+                                if ($row->information_value !== null) {
+                                    $times[$timeKey] = $row->information_duration;
+                                    $array[$arrayKey] = $row->information_value;
+                                } else {
+                                    unset($array[$arrayKey]);
+                                }
                             }
                         }
                     }

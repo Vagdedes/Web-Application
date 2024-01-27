@@ -168,10 +168,13 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                 foreach ($reply->data as $patron) {
                     if (isset($patron->type)
                         && $patron->type == "member") {
-                        if (!$paid
-                            || isset($patron->attributes->patron_status)
+                        if ($paid
+                            ? (isset($patron->attributes->patron_status)
                             && $patron->attributes->patron_status == "active_patron"
-                            && isset($patron->relationships->currently_entitled_tiers->data)) {
+                            && isset($patron->relationships->currently_entitled_tiers->data))
+                            : (!isset($patron->attributes->patron_status)
+                                || $patron->attributes->patron_status != "active_patron"
+                                || !isset($patron->relationships->currently_entitled_tiers->data))) {
                             if ($hasIgnoreTiers || $hasTargetTiers) {
                                 foreach ($patron->relationships->currently_entitled_tiers->data as $tier) {
                                     if (isset($data->relationships->reward->data->id)
