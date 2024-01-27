@@ -374,8 +374,8 @@ class AccountInstructions
 
             if (!empty($array)) {
                 foreach ($array as $arrayKey => $row) {
-                    if (($allow === null && $row->default_use !== null || in_array($row->id, $allow))
-                        && ($dismiss === null && $row->default_use !== null || !in_array($row->id, $dismiss))) {
+                    if (($allow === null ? $row->default_use !== null : in_array($row->id, $allow))
+                        && ($dismiss === null ? $row->default_use !== null : !in_array($row->id, $dismiss))) {
                         $timeKey = strtotime(get_future_date($row->information_duration));
 
                         if ($row->information_expiration !== null
