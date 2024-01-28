@@ -265,8 +265,8 @@ class AccountProduct
                             $object->minimum_supported_version = null;
                             $object->supported_versions = array();
                         } else {
-                            $object->download_url = $website_domain . "/api/v1/product/downloadFile/?id=" . $productID;
                             $object->download_placeholder = $website_domain . "/api/v1/product/downloadFile/";
+                            $object->download_url = $object->download_placeholder . "?id=" . $productID;
                             $downloads = array();
                             $object->supported_versions = array();
 
