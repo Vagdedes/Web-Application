@@ -356,13 +356,12 @@ class AccountInstructions
         }
     }
 
-    public function getPublic(?array $allow = null, ?array $dismiss = null): array
+    public function getPublic(?array $allow = null): array
     {
         $cacheKey = array(
             __METHOD__,
             $this->account->getDetail("application_id"),
-            $allow,
-            $dismiss
+            $allow
         );
         $cache = get_key_value_pair($cacheKey);
 
@@ -373,9 +372,10 @@ class AccountInstructions
             $array = $this->publicInstructions;
 
             if (!empty($array)) {
+                $hasSpecific = $allow !== null;
+
                 foreach ($array as $arrayKey => $row) {
-                    if (($allow === null ? $row->default_use !== null : in_array($row->id, $allow))
-                        && ($dismiss === null ? $row->default_use !== null : !in_array($row->id, $dismiss))) {
+                    if ($hasSpecific ? in_array($row->id, $allow) : ($row->default_use !== null)) {
                         $timeKey = strtotime(get_future_date($row->information_duration));
 
                         if ($row->information_expiration !== null
@@ -410,6 +410,8 @@ class AccountInstructions
                                 }
                             }
                         }
+                    } else {
+                        unset($array[$arrayKey]);
                     }
                 }
 
