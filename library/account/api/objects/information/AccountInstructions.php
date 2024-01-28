@@ -375,7 +375,7 @@ class AccountInstructions
                 $hasSpecific = $allow !== null;
 
                 foreach ($array as $arrayKey => $row) {
-                    if ($hasSpecific ? in_array($row->id, $allow) : ($row->default_use !== null)) {
+                    if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
                         $timeKey = strtotime(get_future_date($row->information_duration));
 
                         if ($row->information_expiration !== null
