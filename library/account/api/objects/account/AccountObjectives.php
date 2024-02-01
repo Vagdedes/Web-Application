@@ -53,16 +53,6 @@ class AccountObjectives
                     "7 days"
                 );
             }
-            if (!$this->account->getAccounts()->hasAdded(AccountAccounts::DISCORD_TAG, null, 1)->isPositiveOutcome()) {
-                $array = $this->create(
-                    $array,
-                    "Discord Tag",
-                    "Add your Discord-Tag so we can give you roles on Discord now or in the future.",
-                    null,
-                    true,
-                    "7 days"
-                );
-            }
             if (!$this->account->getAccounts()->hasAdded(AccountAccounts::PATREON_FULL_NAME, null, 1)->isPositiveOutcome()) {
                 $array = $this->create(
                     $array,
