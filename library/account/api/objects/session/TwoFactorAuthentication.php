@@ -37,26 +37,28 @@ class TwoFactorAuthentication
                     array("completion_date", null),
                 )
             );
-            $token = null;
-            $createdCode = $code ? random_string(32) : null;
+            $credential = null;
 
             if (!empty($array)) {
                 foreach ($array as $object) {
                     if ($date <= $object->expiration_date) {
-                        $token = $object->token;
+                        $credential = $code ? $object->code : $object->token;
                         break;
                     }
                 }
             }
 
-            if ($token === null) { // Create
-                $token = random_string(AccountSession::session_token_length);
-
-                // Separator
+            if ($credential === null) { // Create
                 $key = $this->account->getSession()->createKey();
 
-                if (strlen($key) !== AccountSession::session_token_length) {
-                    $key = $this->account->getSession()->createKey(true);
+                if ($code) {
+                    $credential = random_string(32);
+                } else {
+                    $credential = random_string(AccountSession::session_token_length);
+
+                    if (strlen($key) !== AccountSession::session_token_length) {
+                        $key = $this->account->getSession()->createKey(true);
+                    }
                 }
 
                 // Separator
@@ -64,8 +66,7 @@ class TwoFactorAuthentication
                     $instant_logins_table,
                     array(
                         "account_id" => $accountID,
-                        "token" => $token,
-                        "code" => $createdCode,
+                        ($code ? "code" : "token") => $credential,
                         "ip_address" => $ipAddress,
                         "access_token" => $key,
                         "creation_date" => $date,
@@ -79,8 +80,8 @@ class TwoFactorAuthentication
                 $account->getEmail()->send(
                     "instantLogin" . ($code ? "Code" : "Token"),
                     array(
-                        "URL" => ($website_account_url . "/profile/instantLogin/?token=" . $token),
-                        "code" => $code ? $createdCode : "(undefined)"
+                        ($code ? "code" : "URL") =>
+                            ($code ? $credential : ($website_account_url . "/profile/instantLogin/?token=" . $credential)),
                     ),
                     "account",
                     false
@@ -151,5 +152,22 @@ class TwoFactorAuthentication
             false,
             "Failed to authenticate user, this " . ($hasCode ? "code" : "token") . " is invalid or has expired."
         );
+    }
+
+    public function isPending(): bool
+    {
+        global $instant_logins_table;
+        return !empty(get_sql_query(
+            $instant_logins_table,
+            array("id", "account_id"),
+            array(
+                array("completion_date", null),
+                array("expiration_date", ">", get_current_date()),
+                array("account_id", $this->account->getDetail("id")),
+                array("ip_address", get_client_ip_address()),
+            ),
+            null,
+            1
+        ));
     }
 }
