@@ -53,7 +53,7 @@ class AccountRegistry
                 if ($timePassed < (60 * 60 * 24)) {
                     return new MethodReply(false, $message);
                 } else {
-                    $account->getActions()->deleteAccount();
+                    $account->getActions()->deleteAccount(false);
                 }
             }
         }

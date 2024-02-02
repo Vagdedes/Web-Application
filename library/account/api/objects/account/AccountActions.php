@@ -47,12 +47,7 @@ class AccountActions
 
         if (!$twoFactor && $this->account->getSession()->isCustom()) {
             $object = $this->account->getSession()->getLastKnown();
-
-            if ($object !== null) {
-                $twoFactor = $object->account_id != $this->account->getDetail("id")
-                    || $object->type != $this->account->getSession()->getType()
-                    || $object->token != $this->account->getSession()->getCustomKey();
-            }
+            $twoFactor = $object === null || $object->account_id != $this->account->getDetail("id");
         }
         if ($twoFactor) {
             if (empty($twoFactorCode)) {
