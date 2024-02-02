@@ -43,7 +43,19 @@ class AccountRegistry
         $account = $this->account->getNew(null, $email);
 
         if ($account->exists()) {
-            return new MethodReply(false, "Account with this email already exists.");
+            $message = "Account with this email already exists.";
+
+            if ($account->getEmail()->isVerified()) {
+                return new MethodReply(false, $message);
+            } else {
+                $timePassed = time() - strtotime($account->getDetail("creation_date"));
+
+                if ($timePassed < (60 * 60 * 24)) {
+                    return new MethodReply(false, $message);
+                } else {
+                    $account->getActions()->deleteAccount();
+                }
+            }
         }
         $account = $this->account->getNew(null, null, $name);
 
