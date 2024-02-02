@@ -8,35 +8,38 @@ if (!empty($path)) {
     $account = new Account();
     $session = $account->getSession()->find();
 
-    if ($session->isPositiveOutcome()
-        && $session->getObject()->getPermissions()->hasPermission(
+    if ($session->isPositiveOutcome()) {
+        if ($session->getObject()->getPermissions()->hasPermission(
             "view.path." . str_replace("/", ".", $path)
         )) {
-        set_session_account_id($session->getObject()->getDetail("id"));
-        unset($_GET["path"]);
-        $domain = get_form_get("domain");
+            set_session_account_id($session->getObject()->getDetail("id"));
+            unset($_GET["path"]);
+            $domain = get_form_get("domain");
 
-        if (empty($domain)) {
-            $domain = "https://" . get_domain();
-        } else {
-            if (is_numeric(str_replace(".", "", $domain))) { // Ip Address
-                $domain = "http://" . $domain;
+            if (empty($domain)) {
+                $domain = "https://" . get_domain();
             } else {
-                $domain = "https://" . $domain;
+                if (is_numeric(str_replace(".", "", $domain))) { // Ip Address
+                    $domain = "http://" . $domain;
+                } else {
+                    $domain = "https://" . $domain;
+                }
+                unset($_GET["domain"]);
             }
-            unset($_GET["domain"]);
-        }
-        $url = $domain . "/" . $path . "/?" . http_build_query($_GET);
-        $contents = private_file_get_contents($url);
+            $url = $domain . "/" . $path . "/?" . http_build_query($_GET);
+            $contents = private_file_get_contents($url);
 
-        if (json_decode($contents)) {
-            if (isset($_GET["download"])) {
-                copy_and_send_file_download($contents, Account::DOWNLOADS_PATH);
-            } else {
-                header('Content-type: Application/JSON');
+            if (json_decode($contents)) {
+                if (isset($_GET["download"])) {
+                    copy_and_send_file_download($contents, Account::DOWNLOADS_PATH);
+                } else {
+                    header('Content-type: Application/JSON');
+                }
             }
+            echo $contents;
         }
-        echo $contents;
+    } else {
+        include '/var/www/idealistic/account/profile/index.php';
     }
 } else {
     $scripts = get_form_get("scripts");

@@ -5,36 +5,39 @@ $website_account_url = "https://" . get_domain() . "/account";
 
 function load_page_intro(?Account $account, bool $isLoggedIn, bool $loadNavigation): void
 {
-    $notification = $isLoggedIn
-        ? $account->getNotifications()->get(AccountNotifications::FORM, 1, true)
-        : get_form_get("message");
-
-    if (!$isLoggedIn && $loadNavigation && empty($notification)) {
-        $notification = "We use the necessary cookies to offer you access to our system.";
-
-        if (!set_cookie_to_value_if_not(
-            string_to_integer($notification),
-            true,
-            AccountSession::session_cookie_expiration
-        )) {
-            $notification = null;
-        }
-    }
-    if (!empty($notification)) {
-        if (is_object($notification[0])) {
-            $notification = $notification[0]->information;
-        }
-        echo "<div class='message'>" . htmlspecialchars($notification, ENT_QUOTES, 'UTF-8') . "</div>";
-    }
-
     if ($loadNavigation) {
+        if ($isLoggedIn) {
+            $notification = $account->getNotifications()->get(AccountNotifications::FORM, 1, true);
+        } else {
+            $notification = get_form_get("message");
+
+            if (empty($notification)) {
+                $notification = "We use the necessary cookies to offer you access to our system.";
+
+                if (!set_cookie_to_value_if_not(
+                    string_to_integer($notification),
+                    true,
+                    AccountSession::session_cookie_expiration
+                )) {
+                    $notification = null;
+                }
+            }
+        }
+        if (!empty($notification)) {
+            if (is_object($notification[0])) {
+                $notification = $notification[0]->information;
+            }
+            echo "<div class='message'>" . htmlspecialchars($notification, ENT_QUOTES, 'UTF-8') . "</div>";
+        }
         include("/var/www/.structure/library/design/account/footer/footerNavigation.php");
     }
 }
 
-function load_page(bool $loadContents = true, ?callable $callable = null, bool $cooldown = true, bool $simpleFooter = false): void
+function load_page(bool    $loadContents = true, ?callable $callable = null,
+                   bool    $cooldown = true, ?bool $simpleFooter = false,
+                   ?string $forceDirectory = null, ?string $forceRedirectURL = null): void
 {
-    $directory = get_final_directory();
+    $directory = $forceDirectory !== null ? $forceDirectory : get_final_directory();
     $title = unstuck_words_from_capital_letters($directory);
     $metaDescription = "Science, technology & engineering";
     $randomNumber = rand(0, 2147483647);
@@ -62,14 +65,14 @@ function load_page(bool $loadContents = true, ?callable $callable = null, bool $
         load_page_intro($account, $isLoggedIn, $loadContents);
 
         switch ($directory) {
-            case "changePassword":
-            case "profile":
             case "contact":
             case "exit":
-            case "changeEmail":
             case "downloadFile":
             case "instantLogin":
                 $callable($account, $isLoggedIn);
+                break;
+            case "profile":
+                $callable($account, $isLoggedIn, $forceRedirectURL);
                 break;
             default:
                 if ($callable !== null) {
@@ -78,7 +81,7 @@ function load_page(bool $loadContents = true, ?callable $callable = null, bool $
                 break;
         }
     }
-    if ($loadContents) {
+    if ($loadContents && $simpleFooter !== null) {
         include("/var/www/.structure/library/design/account/footer/" . ($simpleFooter ? "simpleFooter" : "footer") . ".php");
     }
     echo "</body></html>";
