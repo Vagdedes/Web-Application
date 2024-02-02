@@ -258,35 +258,90 @@ class AccountEmail
             ) === 1;
     }
 
-    public function getSupportEmailDetails(bool $isLoggedIn, string $subject, string $info, string $email = null): array
+    public function createTicket(string $subject, string $info, ?string $email = null): array
     {
-        $account = $email !== null ? $this->account->getNew(null, $email) : $this->account;
+        global $tickets_email_table;
+        $hasEmail = $email !== null;
+        $account = $hasEmail ? $this->account->getNew(null, $email) : $this->account;
         $found = $account->exists();
+        $subject = strip_tags($subject);
+        $info = strip_tags($info);
 
         if ($found) {
             $accounts = $account->getAccounts()->getAdded();
+            $platformsString = "";
 
             if (!empty($accounts)) {
-                $platformsString = "Accounts:\r\n";
+                $platformsString .= "\r\nAccounts:\r\n";
 
                 foreach ($accounts as $row) {
                     $platformsString .= $row->accepted_account->name . ": " . $row->credential . "\r\n";
                 }
                 $platformsString .= "\r\n";
             }
+            $purchases = $account->getPurchases()->getCurrent();
+
+            if (!empty($purchases)) {
+                if (empty($platformsString)) {
+                    $platformsString .= "\r\n";
+                }
+                $platformsString .= "Purchases:\r\n";
+
+                foreach ($purchases as $row) {
+                    $products = $this->account->getProduct()->find($row->product_id, false);
+
+                    if ($products->isPositiveOutcome()) {
+                        $platformsString .= strip_tags($products->getObject()[0]->name) . "\r\n";
+                    }
+                }
+                $platformsString .= "\r\n";
+            }
         } else {
             $platformsString = null;
         }
-        $id = rand(0, 2147483647);
-        $email = $found ? $account->getDetail("email_address") : ($email !== null ? $email : "Not Specified");
+
+        if (!$hasEmail) {
+            $email = $found ? $account->getDetail("email_address") : null;
+        }
+
+        while (true) {
+            $id = rand(0, 2147483647);
+
+            if (empty(get_sql_query(
+                $tickets_email_table,
+                array("identifier"),
+                array(
+                    array("identifier", $id)
+                ),
+                null,
+                1
+            ))) {
+                sql_insert(
+                    $tickets_email_table,
+                    array(
+                        "identifier" => $id,
+                        "account_id" => $found ? $account->getDetail("id") : null,
+                        "session_type" => $this->account->getSession()->getType(),
+                        "session_key" => $this->account->getSession()->getCustomKey(),
+                        "logged_in" => !$hasEmail && $found,
+                        "email_address" => $email,
+                        "subject" => $subject,
+                        "information" => $info,
+                        "creation_date" => get_current_date()
+                    )
+                );
+                break;
+            }
+        }
+
         $subject = strip_tags($subject);
-        $title = get_domain() . " - $subject [ID: $id]";
-        $content = "ID: $id" . "\r\n"
-            . "Subject: $subject" . "\r\n"
-            . "Email: $email" . "\r\n"
-            . "Type: " . ($isLoggedIn ? "Logged In" : "Logged Out")
+        $title = get_domain() . " - " . $subject . " [ID: " . $id . "]";
+        $content = "ID: " . $id . "\r\n"
+            . "Subject: " . $subject . "\r\n"
+            . "Email: " . $email . "\r\n"
+            . "Type: " . ($hasEmail ? "Logged Out" : "Logged In")
             . "\r\n"
-            . ($platformsString !== null ? $platformsString : "\r\n")
+            . (!empty($platformsString) ? $platformsString : "\r\n")
             . strip_tags($info);
         return array($email, $title, $content);
     }

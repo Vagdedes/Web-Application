@@ -96,6 +96,9 @@ $correlation_instants_table = "correlation.instant";
 $correlation_requests_table = "correlation.requests";
 $correlation_types_table = "correlation.types";
 
+// Tickets
+$tickets_email_table = "tickets.email";
+
 // Files
 $file_files_table = "file.files";
 $file_sharing_table = "file.sharing";

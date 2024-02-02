@@ -77,7 +77,7 @@ class TwoFactorAuthentication
             }
             if ($account->getCooldowns()->addInstant("instant_login", "1 minute")) {
                 $account->getEmail()->send(
-                    "instantLogin",
+                    "instantLogin" . ($code ? "Code" : "Token"),
                     array(
                         "URL" => ($website_account_url . "/profile/instantLogin/?token=" . $token),
                         "code" => $code ? $createdCode : "(undefined)"

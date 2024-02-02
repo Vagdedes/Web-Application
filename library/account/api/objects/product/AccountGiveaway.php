@@ -209,13 +209,13 @@ class AccountGiveaway
                             );
                         }
                     } else {
-                        return new MethodReply(true, "Giveaway disabled from finishing.", $object);
+                        return new MethodReply(false, "Giveaway disabled from finishing.", $object);
                     }
                 } else {
-                    return new MethodReply(true, "Giveaway not finished yet.", $object);
+                    return new MethodReply(false, "Giveaway not finished yet.", $object);
                 }
             } else {
-                return new MethodReply(true, "Giveaway found but not selected for recreation.", $object);
+                return new MethodReply(false, "Giveaway found but not selected for recreation.", $object);
             }
         } else if ($create && $this->create($specifiedProductID, $amount, $duration)) {
             // Create new one if non-existent and set create to 'false' to prevent loops
