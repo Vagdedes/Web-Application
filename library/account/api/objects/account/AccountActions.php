@@ -16,12 +16,21 @@ class AccountActions
         $this->account = $account;
     }
 
-    public function logIn(string $password, bool $twoFactor = true): MethodReply
+    public function logIn(?string $password = null, ?string $twoFactorCode = null): MethodReply
     {
-        $parameter = new ParameterVerification($password, null, 8);
+        if ($password !== null) {
+            $parameter = new ParameterVerification($password, null, 8);
 
-        if (!$parameter->getOutcome()->isPositiveOutcome()) {
-            return new MethodReply(false, $parameter->getOutcome()->getMessage());
+            if (!$parameter->getOutcome()->isPositiveOutcome()) {
+                return new MethodReply(false, $parameter->getOutcome()->getMessage());
+            }
+            $passwordAgainst = $this->account->getDetail("password");
+
+            if ($passwordAgainst === null) {
+                return new MethodReply(false, "Account password is not set.");
+            } else if (!is_valid_password($password, $passwordAgainst)) {
+                return new MethodReply(false, "Incorrect account password");
+            }
         }
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::LOG_IN, true);
@@ -29,21 +38,38 @@ class AccountActions
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
-        if (!is_valid_password($password, $this->account->getDetail("password"))) {
-            return new MethodReply(false, "Incorrect account password");
-        }
         $punishment = $this->account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
         if ($punishment->isPositiveOutcome()) {
             return new MethodReply(false, $punishment->getMessage());
         }
-        if ($twoFactor
-            && $this->account->getSettings()->isEnabled("two_factor_authentication")) {
-            $twoFactor = $this->account->getTwoFactorAuthentication();
-            $twoFactor = $twoFactor->initiate($this->account);
+        $twoFactor = $this->account->getSettings()->isEnabled("two_factor_authentication");
 
-            if ($twoFactor->isPositiveOutcome()) {
-                return new MethodReply(false, $twoFactor->getMessage());
+        if (!$twoFactor && $this->account->getSession()->isCustom()) {
+            $object = $this->account->getSession()->getLastKnown();
+
+            if ($object !== null) {
+                $twoFactor = $object->account_id != $this->account->getDetail("id")
+                    || $object->type != $this->account->getSession()->getType()
+                    || $object->token != $this->account->getSession()->getCustomKey();
+            }
+        }
+        if ($twoFactor) {
+            if (empty($twoFactorCode)) {
+                $twoFactor = $this->account->getTwoFactorAuthentication()->initiate(
+                    $this->account,
+                    $twoFactorCode !== null
+                );
+
+                if ($twoFactor->isPositiveOutcome()) {
+                    return new MethodReply(false, $twoFactor->getMessage());
+                }
+            } else {
+                $twoFactor = $this->account->getTwoFactorAuthentication()->verify(null, $twoFactorCode);
+
+                if (!$twoFactor->isPositiveOutcome()) {
+                    return new MethodReply(false, $twoFactor->getMessage());
+                }
             }
         }
         if (!$this->account->getHistory()->add("log_in")) {

@@ -9,12 +9,12 @@ class TwoFactorAuthentication
         $this->account = $account;
     }
 
-    public function initiate(Account $account): MethodReply
+    public function initiate(Account $account, bool $code = false): MethodReply
     {
         global $account_sessions_table;
         $accountID = $account->getDetail("id");
         $ipAddress = get_client_ip_address();
-        $array = get_sql_query(
+        $array = empty($ipAddress) ? null : get_sql_query(
             $account_sessions_table,
             array("id"),
             array(
@@ -38,6 +38,7 @@ class TwoFactorAuthentication
                 )
             );
             $token = null;
+            $createdCode = $code ? random_string(32) : null;
 
             if (!empty($array)) {
                 foreach ($array as $object) {
@@ -64,6 +65,7 @@ class TwoFactorAuthentication
                     array(
                         "account_id" => $accountID,
                         "token" => $token,
+                        "code" => $createdCode,
                         "ip_address" => $ipAddress,
                         "access_token" => $key,
                         "creation_date" => $date,
@@ -77,7 +79,8 @@ class TwoFactorAuthentication
                 $account->getEmail()->send(
                     "instantLogin",
                     array(
-                        "URL" => ($website_account_url . "/profile/instantLogin/?token=" . $token)
+                        "URL" => ($website_account_url . "/profile/instantLogin/?token=" . $token),
+                        "code" => $code ? $createdCode : "(undefined)"
                     ),
                     "account",
                     false
@@ -85,23 +88,25 @@ class TwoFactorAuthentication
             }
             return new MethodReply(
                 true,
-                "No recent connection in this device, a security email has been sent."
+                "A authentication email has been sent as a security measurement."
             );
         } else {
             return new MethodReply(false);
         }
     }
 
-    public function verify($token): MethodReply
+    public function verify(?string $token, ?string $code = null): MethodReply
     {
-        if (strlen($token) === AccountSession::session_token_length) {
+        $hasCode = $code !== null;
+
+        if ($hasCode || strlen($token) === AccountSession::session_token_length) {
             global $instant_logins_table;
             $date = get_current_date();
             $query = get_sql_query(
                 $instant_logins_table,
                 array("id", "account_id"),
                 array(
-                    array("token", $token),
+                    $hasCode ? array("code", $code) : array("token", $token),
                     array("completion_date", null),
                     array("expiration_date", ">", $date),
                     null,
@@ -144,7 +149,7 @@ class TwoFactorAuthentication
         }
         return new MethodReply(
             false,
-            "Failed to authenticate user, this token is invalid or has expired."
+            "Failed to authenticate user, this " . ($hasCode ? "code" : "token") . " is invalid or has expired."
         );
     }
 }

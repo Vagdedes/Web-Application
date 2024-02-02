@@ -27,10 +27,12 @@ class AccountRegistry
         if (!$parameter->getOutcome()->isPositiveOutcome()) {
             return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
-        $parameter = new ParameterVerification($password, null, 8, 64);
+        if ($password !== null) {
+            $parameter = new ParameterVerification($password, null, 8, 64);
 
-        if (!$parameter->getOutcome()->isPositiveOutcome()) {
-            return new MethodReply(false, $parameter->getOutcome()->getMessage());
+            if (!$parameter->getOutcome()->isPositiveOutcome()) {
+                return new MethodReply(false, $parameter->getOutcome()->getMessage());
+            }
         }
         $parameter = new ParameterVerification($name, null, 2, 20);
 
@@ -71,7 +73,7 @@ class AccountRegistry
                 "type" => $this->account->getSession()->getType(),
                 "custom_id" => $this->account->getSession()->getCustomKey(),
                 "email_address" => $email,
-                "password" => encrypt_password($password),
+                "password" => $password === null ? null : encrypt_password($password),
                 "name" => $name,
                 "first_name" => $firstName,
                 "middle_name" => $middleName,
