@@ -1,41 +1,8 @@
 <?php
 require_once '/var/www/.structure/library/base/form.php';
 require_once '/var/www/.structure/library/base/requirements/account_systems.php';
-$website_account_url = "https://" . get_domain() . "/account";
 
-function load_page_intro(?Account $account, bool $isLoggedIn, bool $loadNavigation): void
-{
-    if ($loadNavigation) {
-        if ($isLoggedIn) {
-            $notification = $account->getNotifications()->get(AccountNotifications::FORM, 1, true);
-        } else {
-            $notification = get_form_get("message");
-
-            if (empty($notification)) {
-                $notification = "We use the necessary cookies to offer you access to our system.";
-
-                if (!set_cookie_to_value_if_not(
-                    string_to_integer($notification),
-                    true,
-                    AccountSession::session_cookie_expiration
-                )) {
-                    $notification = null;
-                }
-            }
-        }
-        if (!empty($notification)) {
-            if (is_object($notification[0])) {
-                $notification = $notification[0]->information;
-            }
-            echo "<div class='message'>" . htmlspecialchars($notification, ENT_QUOTES, 'UTF-8') . "</div>";
-        }
-        include("/var/www/.structure/library/design/account/footer/footerNavigation.php");
-    }
-}
-
-function load_page(bool    $loadContents = true, ?callable $callable = null,
-                   bool    $cooldown = true, ?bool $simpleFooter = false,
-                   ?string $forceDirectory = null, ?string $forceRedirectURL = null): void
+function load_page(bool $loadContents = true, ?callable $callable = null, ?string $forceDirectory = null): void
 {
     $directory = $forceDirectory !== null ? $forceDirectory : get_final_directory();
     $title = unstuck_words_from_capital_letters($directory);
@@ -47,32 +14,53 @@ function load_page(bool    $loadContents = true, ?callable $callable = null,
         <head>" . get_google_analytics() . "
             <title>Idealistic AI | $title</title>
             <meta name='description' content='$metaDescription'>
-        	<link rel='shortcut icon' type='image/png' href='" . Account::IMAGES_PATH . "icon.png'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <link rel='stylesheet' href='" . Account::WEBSITE_DESIGN_PATH . "universal.css?id=$randomNumber>'>
-            <script src='https://www.google.com/recaptcha/api.js'></script>
+        	<link rel='shortcut icon' type='image/png' href='" . Account::IMAGES_PATH . "idealistic/logo.png'>"
+        . ($loadContents
+            ? "<link rel='stylesheet' href='" . Account::WEBSITE_DESIGN_PATH . "universal.css?id=$randomNumber>'>"
+            . "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
+            : "")
+        . "<script src='https://www.google.com/recaptcha/api.js'></script>
         </head>
     <body>";
 
-    if ($cooldown && has_memory_limit(array(get_client_ip_address(), "website"), 60, "1 minute")) {
-        load_page_intro(null, false, $loadContents);
-        load_account_page_message("Website Error", "Please stop refreshing the page so frequently");
+    if (has_memory_limit(array(get_client_ip_address(), "website"), 60, "1 minute")) {
+        echo json_encode("Please stop refreshing the page so frequently.");
     } else {
         $account = new Account();
-        $sessionObject = $account->getSession()->find();
-        $account = $sessionObject->getObject();
-        $isLoggedIn = $sessionObject->isPositiveOutcome() && $account->exists();
-        load_page_intro($account, $isLoggedIn, $loadContents);
+        $account = $account->getSession()->find()->getObject();
 
+        if ($loadContents) {
+            if ($account->exists()) {
+                $notification = $account->getNotifications()->get(AccountNotifications::FORM, 1, true);
+            } else {
+                $notification = get_form_get("message");
+
+                if (empty($notification)) {
+                    $notification = "We use the necessary cookies to offer you access to our system.";
+
+                    if (!set_cookie_to_value_if_not(
+                        string_to_integer($notification),
+                        true,
+                        AccountSession::session_cookie_expiration
+                    )) {
+                        $notification = null;
+                    }
+                }
+            }
+            if (!empty($notification)) {
+                if (is_object($notification[0])) {
+                    $notification = $notification[0]->information;
+                }
+                echo "<div class='message'>" . htmlspecialchars($notification, ENT_QUOTES, 'UTF-8') . "</div>";
+            }
+        }
         switch ($directory) {
             case "contact":
             case "exit":
             case "downloadFile":
             case "instantLogin":
-                $callable($account, $isLoggedIn);
-                break;
             case "profile":
-                $callable($account, $isLoggedIn, $forceRedirectURL);
+                $callable($account);
                 break;
             default:
                 if ($callable !== null) {
@@ -81,33 +69,15 @@ function load_page(bool    $loadContents = true, ?callable $callable = null,
                 break;
         }
     }
-    if ($loadContents && $simpleFooter !== null) {
-        include("/var/www/.structure/library/design/account/footer/" . ($simpleFooter ? "simpleFooter" : "footer") . ".php");
-    }
     echo "</body></html>";
 }
 
-function load_account_page_message($title, $reason): void
+function account_page_redirect(?Account $account, ?string $message, bool $redirect = true): void
 {
-    echo "<div class='area'>
-            <div class='area_logo'>
-                <div class='question_mark'></div>
-            </div>
-            <div class='area_title'>
-                $title
-            </div>
-            <div class='area_text'>
-                $reason
-            </div>
-        </div>";
-}
-
-function account_page_redirect(?Account $account, bool $isLoggedIn, ?string $message, bool $redirect = true): void
-{
-    global $website_account_url;
+    $website_account_url = "https://" . get_domain() . "/account";
     $redirectURL = get_user_url();
 
-    if ($isLoggedIn) {
+    if ($account !== null && $account->exists()) {
         $hasURLMessage = false;
 
         if (!empty($message)) {

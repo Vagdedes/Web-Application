@@ -1,22 +1,17 @@
 <?php
 require '/var/www/.structure/library/account/api/tasks/loader.php';
-load_page(
-    false,
-    function (Account $account, bool $isLoggedIn) {
+load_page(false, function (Account $account) {
     $id = get_form_get("id");
 
     if (is_numeric($id)) {
-        if ($isLoggedIn) {
+        if ($account->exists()) {
             $result = $account->getDownloads()->getOrCreateValidToken($id, 1, true);
 
             if (!$result->isPositiveOutcome()) {
-                account_page_redirect($account, true, $result->getMessage());
+                echo json_encode($result->getMessage());
             }
         } else {
-            global $website_account_url;
-            redirect_to_url($website_account_url . "/profile/"
-                . "?redirectURL=" . get_user_url()
-                . "&message=You must be logged in to download this file.");
+            echo json_encode("You must be logged in to download files via ID.");
         }
     } else {
         $token = get_form_get("token");
@@ -53,9 +48,8 @@ load_page(
                 }
             }
         } else {
-            account_page_redirect(null, false, "You must be logged in to access downloads.");
+            echo json_encode("You specify a Token to download its correlated file.");
         }
     }
-},
-false
+}
 );

@@ -26,7 +26,7 @@ class TwoFactorAuthentication
         );
 
         if (empty($array)) {
-            global $website_account_url, $instant_logins_table;
+            global $instant_logins_table;
             $date = date("Y-m-d H:i:s");
             $array = get_sql_query(
                 $instant_logins_table,
@@ -81,7 +81,7 @@ class TwoFactorAuthentication
                     "instantLogin" . ($code ? "Code" : "Token"),
                     array(
                         ($code ? "code" : "URL") =>
-                            ($code ? $credential : ($website_account_url . "/profile/instantLogin/?token=" . $credential)),
+                            ($code ? $credential : ("https://" . get_domain() . "/profile/instantLogin/?token=" . $credential)),
                     ),
                     "account",
                     false

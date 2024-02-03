@@ -44,7 +44,7 @@ class AccountOffer
             );
 
             if (!empty($offers)) {
-                global $website_account_url, $product_offer_divisions_table;
+                global $product_offer_divisions_table;
                 $validProducts = $validProducts->getObject();
                 $accountExists = $this->account->exists();
                 $purchases = $accountExists ? $this->account->getPurchases()->getCurrent() : array();
