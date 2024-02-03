@@ -66,7 +66,7 @@ class GameCloudUser
         return $this->email;
     }
 
-    public function clearMemory(mixed $key = null): void
+    public function clearMemory(mixed $key = null, ?callable $callable = null): void
     {
         if ($this->isValid()) {
             if ($key === null) {
@@ -74,14 +74,22 @@ class GameCloudUser
                     array(array(
                         get_sql_cache_key("platform_id", $this->platform),
                         get_sql_cache_key("license_id", $this->license)
-                    )), true, 1
+                    )),
+                    true,
+                    1,
+                    $callable
                 );
             } else if (is_array($key)) {
                 $key1 = get_sql_cache_key("platform_id", $this->platform);
                 $key2 = get_sql_cache_key("license_id", $this->license);
 
                 foreach ($key as $item) {
-                    clear_memory(array(array($item, $key1, $key2)), true, 1);
+                    clear_memory(
+                        array(array($item, $key1, $key2)),
+                        true,
+                        1,
+                        $callable
+                    );
                 }
             } else {
                 clear_memory(
@@ -89,7 +97,10 @@ class GameCloudUser
                         $key,
                         get_sql_cache_key("platform_id", $this->platform),
                         get_sql_cache_key("license_id", $this->license)
-                    )), true, 1
+                    )),
+                    true,
+                    1,
+                    $callable
                 );
             }
         } else if ($key !== null) {

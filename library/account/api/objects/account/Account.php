@@ -442,18 +442,23 @@ class Account
         }
     }
 
-    public function clearMemory(mixed $key = null): void
+    public function clearMemory(mixed $key = null, ?callable $callable = null): void
     {
         if (isset($this->object->id)
             && isset($this->object->name)
             && isset($this->object->email_address)) {
             if ($key === null) {
-                clear_memory(array(
-                    get_sql_cache_key("account_id", $this->object->id),
-                    get_sql_cache_key("id", $this->object->id),
-                    get_sql_cache_key("name", $this->object->name),
-                    get_sql_cache_key("email_address", $this->object->email_address)
-                ), true, 1);
+                clear_memory(
+                    array(
+                        get_sql_cache_key("account_id", $this->object->id),
+                        get_sql_cache_key("id", $this->object->id),
+                        get_sql_cache_key("name", $this->object->name),
+                        get_sql_cache_key("email_address", $this->object->email_address)
+                    ),
+                    true,
+                    1,
+                    $callable
+                );
             } else if (is_array($key)) {
                 $key1 = get_sql_cache_key("account_id", $this->object->id);
                 $key2 = get_sql_cache_key("id", $this->object->id);
@@ -461,12 +466,17 @@ class Account
                 $key4 = get_sql_cache_key("email_address", $this->object->email_address);
 
                 foreach ($key as $item) {
-                    clear_memory(array(
-                        array($item, $key1),
-                        array($item, $key2),
-                        array($item, $key3),
-                        array($item, $key4)
-                    ), true, 1);
+                    clear_memory(
+                        array(
+                            array($item, $key1),
+                            array($item, $key2),
+                            array($item, $key3),
+                            array($item, $key4)
+                        ),
+                        true,
+                        1,
+                        $callable
+                    );
                 }
             } else {
                 clear_memory(
@@ -482,7 +492,10 @@ class Account
                     ), array(
                         $key,
                         get_sql_cache_key("email_address", $this->object->email_address)
-                    )), true, 1
+                    )),
+                    true,
+                    1,
+                    $callable
                 );
             }
         } else if ($key !== null) {

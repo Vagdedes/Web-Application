@@ -25,6 +25,7 @@ class AccountPurchases
             manipulate_memory_key($this->getCacheKey(true)),
             manipulate_memory_key($this->getCacheKey(false))
         ));
+        $this->account->clearMemory(self::class);
     }
 
     public function getCurrent(bool $databaseOnly = false): array
