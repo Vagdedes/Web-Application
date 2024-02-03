@@ -192,8 +192,11 @@ function clear_memory(array|null $keys,
         if (!empty($segments)) {
             foreach ($segments as $segment) {
                 $memoryBlock = new IndividualMemoryBlock($segment);
-                $memoryBlock->clear();
-                unset($memory_object_cache[$segment]);
+
+                if ($valueVerifier === null || $valueVerifier($memoryBlock->get())) {
+                    $memoryBlock->clear();
+                    unset($memory_object_cache[$segment]);
+                }
             }
         }
     }

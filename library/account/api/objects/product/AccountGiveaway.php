@@ -121,7 +121,9 @@ class AccountGiveaway
                         "expiration_date" => get_future_date($duration)
                     )
                 )) {
-                    clear_memory(array(self::class), true);
+                    clear_memory(array(self::class), true, 0, function ($value) {
+                        return is_array($value);
+                    });
                     return true;
                 }
             }

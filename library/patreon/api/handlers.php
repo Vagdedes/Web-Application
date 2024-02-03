@@ -4,12 +4,28 @@ $patreon2_credentials_directory = "/var/www/.structure/private/patreon_2_credent
 
 function clear_patreon_subscription_cache(): void
 {
-    clear_memory(array(
-        "patreon-1-links",
-        "patreon-1-subscriptions",
-        "patreon-2-links",
-        "patreon-2-subscriptions"
-    ), true);
+    clear_memory(
+        array(
+            "patreon-1-links",
+            "patreon-2-links",
+        ),
+        true,
+        0,
+        function ($value) {
+            return is_object($value);
+        }
+    );
+    clear_memory(
+        array(
+            "patreon-1-subscriptions",
+            "patreon-2-subscriptions"
+        ),
+        true,
+        0,
+        function ($value) {
+            return is_array($value);
+        }
+    );
 }
 
 function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTiers = null): array
@@ -59,7 +75,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     ),
                     null,
                     $timeout
-                ));
+                ), false);
 
                 if ($reply === false) {
                     set_key_value_pair($cacheKey, false, "15 seconds");
@@ -152,7 +168,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     ),
                     null,
                     $timeout
-                ));
+                ), false);
 
                 if ($reply === false) {
                     set_key_value_pair($cacheKey, false, "15 seconds");
@@ -170,8 +186,8 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                         && $patron->type == "member") {
                         if ($paid
                             ? (isset($patron->attributes->patron_status)
-                            && $patron->attributes->patron_status == "active_patron"
-                            && isset($patron->relationships->currently_entitled_tiers->data))
+                                && $patron->attributes->patron_status == "active_patron"
+                                && isset($patron->relationships->currently_entitled_tiers->data))
                             : (!isset($patron->attributes->patron_status)
                                 || $patron->attributes->patron_status != "active_patron"
                                 || !isset($patron->relationships->currently_entitled_tiers->data))) {

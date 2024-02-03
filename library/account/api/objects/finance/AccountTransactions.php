@@ -16,7 +16,13 @@ class AccountTransactions
 
     public function getSuccessful(mixed $types = null, int $limit = PaymentProcessor::limit): array
     {
-        $cacheKey = array(self::class, "account_id" => $this->account->getDetail("id"), $types, $limit, "successful");
+        $cacheKey = array(
+            self::class,
+            "account_id" => $this->account->getDetail("id"),
+            $types,
+            $limit,
+            "successful"
+        );
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
@@ -63,7 +69,13 @@ class AccountTransactions
 
     public function getFailed(mixed $types = null, int $limit = PaymentProcessor::limit): array
     {
-        $cacheKey = array(self::class, "account_id" => $this->account->getDetail("id"), $types, $limit, "failed");
+        $cacheKey = array(
+            self::class,
+            "account_id" => $this->account->getDetail("id"),
+            $types,
+            $limit,
+            "failed"
+        );
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {

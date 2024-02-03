@@ -12,7 +12,9 @@ class CustomerSupport
 
     public function clearCache(): void
     {
-        clear_memory(array(self::class), true);
+        clear_memory(array(self::class), true, 1, function ($value) {
+            return is_array($value);
+        });
     }
 
     public function listTickets(int|string $time = "7 days"): array

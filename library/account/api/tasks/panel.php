@@ -875,6 +875,7 @@ if (is_private_connection()) {
                                 empty($key) ? array() : array($key),
                                 !empty(get_form_post("abstract")),
                                 get_form_post("limit"),
+                                null,
                                 !empty(get_form_post("global")) ? null : get_memory_segment_ids()
                             );
                         } else {
