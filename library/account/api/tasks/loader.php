@@ -2,7 +2,7 @@
 require_once '/var/www/.structure/library/base/form.php';
 require_once '/var/www/.structure/library/base/requirements/account_systems.php';
 
-function load_page(bool $loadContents = true, ?callable $callable = null, ?string $forceDirectory = null): void
+function load_account_page(bool $loadContents = true, ?callable $callable = null, ?string $forceDirectory = null): void
 {
     $directory = $forceDirectory !== null ? $forceDirectory : get_final_directory();
     $title = unstuck_words_from_capital_letters($directory);
@@ -72,11 +72,8 @@ function load_page(bool $loadContents = true, ?callable $callable = null, ?strin
     echo "</body></html>";
 }
 
-function account_page_redirect(?Account $account, ?string $message, bool $redirect = true): void
+function add_account_page_message(?Account $account, ?string $message): void
 {
-    $website_account_url = "https://" . get_domain() . "/account";
-    $redirectURL = get_user_url();
-
     if ($account !== null && $account->exists()) {
         $hasURLMessage = false;
 
@@ -86,9 +83,5 @@ function account_page_redirect(?Account $account, ?string $message, bool $redire
     } else {
         $hasURLMessage = !empty($message);
     }
-    redirect_to_url(
-        ($redirect ? $website_account_url . "/profile/" : "")
-        . ($hasURLMessage ? "?message=" . $message : "")
-        . (starts_with($redirectURL, $website_account_url) ? ($hasURLMessage ? "&" : "?") . "redirectURL=" . $redirectURL : "")
-    );
+    redirect_to_url($hasURLMessage ? "?message=" . $message : "?");
 }

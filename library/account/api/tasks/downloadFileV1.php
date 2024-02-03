@@ -1,6 +1,6 @@
 <?php
 require '/var/www/.structure/library/account/api/tasks/loader.php';
-load_page(false, function (Account $account) {
+load_account_page(false, function (Account $account) {
     $id = get_form_get("id");
 
     if (is_numeric($id)) {
