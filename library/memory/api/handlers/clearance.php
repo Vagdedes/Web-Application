@@ -46,7 +46,12 @@ function check_clear_memory(): void
                     if ($segments === null) {
                         $segments = get_memory_segment_ids();
                     }
-                    clear_memory($array, $row->abstract_search !== null, 0, $segments);
+                    clear_memory($array,
+                        $row->abstract_search !== null,
+                        0,
+                        null,
+                        $segments
+                    );
                 }
             }
         }

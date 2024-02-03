@@ -33,7 +33,7 @@ class AccountTransactions
 
                     if ($credential->isPositiveOutcome()) {
                         foreach ($credential->getObject() as $credential) {
-                            foreach (find_paypal_transactions_by_data_pair(array("EMAIL" => extra_sql_encode($credential)), $limit, true) as $transactionID => $transaction) {
+                            foreach (find_paypal_transactions_by_data_pair(array("EMAIL" => abstract_search_sql_encode($credential)), $limit, true) as $transactionID => $transaction) {
                                 $loopArray[$transactionID] = $transaction;
                                 $this->process($transaction);
                             }
@@ -45,7 +45,7 @@ class AccountTransactions
 
                     if ($credential->isPositiveOutcome()) {
                         foreach ($credential->getObject() as $credential) {
-                            foreach (find_stripe_transactions_by_data_pair(array("source.billing_details.email" => extra_sql_encode($credential)), $limit) as $transactionID => $transaction) {
+                            foreach (find_stripe_transactions_by_data_pair(array("source.billing_details.email" => abstract_search_sql_encode($credential)), $limit) as $transactionID => $transaction) {
                                 $loopArray[$transactionID] = $transaction;
                                 $this->process($transaction);
                             }

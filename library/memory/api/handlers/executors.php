@@ -106,13 +106,15 @@ function set_key_value_pair(mixed $key, mixed $value = null, int|string|null $fu
 
 // Separator
 
-function clear_memory(array|null $keys, bool $abstractSearch = false,
-                      int|string        $stopAfterSuccessfulIterations = 0, mixed $localSegments = null): void
+function clear_memory(array|null $keys,
+                      bool       $abstractSearch = false,
+                      int|string $stopAfterSuccessfulIterations = 0,
+                      ?callable  $valueVerifier = null,
+                      mixed      $localSegments = null): void
 {
     global $memory_object_cache;
-    $hasLocalSegments = $localSegments !== null;
 
-    if (!$hasLocalSegments) {
+    if ($localSegments === null) {
         share_clear_memory($keys, $abstractSearch);
     }
 
@@ -134,7 +136,8 @@ function clear_memory(array|null $keys, bool $abstractSearch = false,
                     $memoryBlock = new IndividualMemoryBlock($segment);
                     $memoryKey = $memoryBlock->get("key");
 
-                    if ($memoryKey !== null) {
+                    if ($memoryKey !== null
+                        && ($valueVerifier === null || $valueVerifier($memoryBlock->get()))) {
                         foreach ($keys as $arrayKey => $key) {
                             if (is_array($key)) {
                                 foreach ($key as $subKey) {
@@ -175,8 +178,11 @@ function clear_memory(array|null $keys, bool $abstractSearch = false,
                 foreach ($keys as $key) {
                     $name .= $key;
                     $memoryBlock = new IndividualMemoryBlock($name);
-                    $memoryBlock->clear();
-                    unset($memory_object_cache[$name]);
+
+                    if ($valueVerifier === null || $valueVerifier($memoryBlock->get())) {
+                        $memoryBlock->clear();
+                        unset($memory_object_cache[$name]);
+                    }
                 }
             }
         }

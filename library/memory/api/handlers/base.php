@@ -90,7 +90,7 @@ function get_memory_segment_ids(): array
         }
     }
     global $memory_permissions_string;
-    $stringToFix = "echo 32768 >/proc/sys/kernel/shmmni";
+    //$stringToFix = "echo 32768 >/proc/sys/kernel/shmmni";
     $oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
     $array = explode(chr(32), shell_exec("ipcs -m"));
 
@@ -141,112 +141,6 @@ function has_reached_maximum_segment_ids(): bool
         return $result;
     } else {
         return $memoryBlock->get() === true;
-    }
-}
-
-// Separator
-
-class ThreadMemoryBlock
-{
-    // 23 is the length of the max 64-bit negative integer
-    private $expiration;
-    private int $key;
-    private string $noLock;
-    private mixed $block;
-
-    /**
-     * @throws Exception
-     */
-    public function __construct(string $name, int $expiration)
-    {
-        global $memory_permissions;
-        $this->key = get_reserved_memory_key($name);
-        $this->expiration = $expiration; // 30 seconds
-
-        $noLock = serialize(0);
-        $remainingBytes = 23 - strlen($noLock);
-
-        if ($remainingBytes > 0) {
-            global $memory_filler_character;
-            $noLock .= str_repeat($memory_filler_character, $remainingBytes);
-        }
-        $this->noLock = $noLock;
-
-        $block = @shmop_open($this->key, "c", $memory_permissions, 23);
-
-        if (!$block) {
-            $this->throwException("Unable to open thread-memory-block: " . $this->key, false);
-        }
-        $this->block = $block;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function lock(): void
-    {
-        $serialized = serialize(time() + $this->expiration);
-        $remainingBytes = 23 - strlen($serialized);
-
-        if ($remainingBytes > 0) {
-            global $memory_filler_character;
-            $serialized .= str_repeat($memory_filler_character, $remainingBytes);
-        }
-        $block = $this->block; // Prepare before to save performance
-
-        while ($this->isLocked()) {
-        }
-        if (shmop_write($block, $serialized, 0) !== 23) {
-            $this->throwException("Unable to write to thread-memory-block: " . $this->key);
-        }
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function unlock(): void
-    {
-        if (shmop_write($this->block, $this->noLock, 0) !== 23) {
-            $this->throwException("Unable to write to thread-memory-block: " . $this->key);
-        }
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function isLocked(): bool
-    {
-        $readMapBytes = shmop_read($this->block, 0, 23);
-
-        if (!$readMapBytes) {
-            $this->throwException("Unable to read thread-memory-block: " . $this->key);
-        }
-        return @unserialize($readMapBytes) >= time();
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function destroy(): bool
-    {
-        $block = $this->block;
-
-        if (!shmop_delete($block)) {
-            $this->throwException("Unable to close thread-memory-block: " . $this->key, false);
-        }
-        //shmop_close($block); DEPRECATED
-        return true;
-    }
-
-    /**
-     * @throws Exception
-     */
-    private function throwException(string $details, bool $destroy = true)
-    {
-        if ($destroy) {
-            $this->destroy();
-        }
-        throw new Exception($details);
     }
 }
 
