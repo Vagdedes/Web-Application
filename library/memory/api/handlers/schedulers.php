@@ -1,6 +1,6 @@
 <?php
 
-function schedule_function_in_memory($function, $arguments = null, int $seconds = 1, ?bool $processEnd = null): void
+function schedule_function_in_memory(mixed $function, ?array $arguments = null, int $seconds = 1, ?bool $processEnd = null): void
 {
     global $memory_schedulers_table;
     $identifier = string_to_integer($function, true);

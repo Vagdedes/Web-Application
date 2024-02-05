@@ -115,9 +115,8 @@ function clear_memory(array|null $keys,
     global $memory_object_cache;
 
     if ($localSegments === null) {
-        share_clear_memory($keys, $abstractSearch);
+        //share_clear_memory($keys, $abstractSearch);
     }
-
     if (!empty($keys)) {
         $hasLimit = is_numeric($stopAfterSuccessfulIterations) && $stopAfterSuccessfulIterations > 0;
 
@@ -136,8 +135,7 @@ function clear_memory(array|null $keys,
                     $memoryBlock = new IndividualMemoryBlock($segment);
                     $memoryKey = $memoryBlock->get("key");
 
-                    if ($memoryKey !== null
-                        && ($valueVerifier === null || $valueVerifier($memoryBlock->get()))) {
+                    if ($memoryKey !== null) {
                         foreach ($keys as $arrayKey => $key) {
                             if (is_array($key)) {
                                 foreach ($key as $subKey) {
@@ -145,17 +143,20 @@ function clear_memory(array|null $keys,
                                         continue 2;
                                     }
                                 }
-                                $memoryBlock->clear();
-                                unset($memory_object_cache[$segment]);
+                                if ($valueVerifier === null || $valueVerifier($memoryBlock->get())) {
+                                    $memoryBlock->clear();
+                                    unset($memory_object_cache[$segment]);
 
-                                if ($hasLimit) {
-                                    $iterations[$arrayKey]++;
+                                    if ($hasLimit) {
+                                        $iterations[$arrayKey]++;
 
-                                    if ($iterations[$arrayKey] == $stopAfterSuccessfulIterations) {
-                                        break 2;
+                                        if ($iterations[$arrayKey] == $stopAfterSuccessfulIterations) {
+                                            break 2;
+                                        }
                                     }
                                 }
-                            } else if (str_contains($memoryKey, $key)) {
+                            } else if (str_contains($memoryKey, $key)
+                                && ($valueVerifier === null || $valueVerifier($memoryBlock->get()))) {
                                 $memoryBlock->clear();
                                 unset($memory_object_cache[$segment]);
 
@@ -178,11 +179,8 @@ function clear_memory(array|null $keys,
                 foreach ($keys as $key) {
                     $name .= $key;
                     $memoryBlock = new IndividualMemoryBlock($name);
-
-                    if ($valueVerifier === null || $valueVerifier($memoryBlock->get())) {
-                        $memoryBlock->clear();
-                        unset($memory_object_cache[$name]);
-                    }
+                    $memoryBlock->clear();
+                    unset($memory_object_cache[$name]);
                 }
             }
         }
@@ -192,11 +190,8 @@ function clear_memory(array|null $keys,
         if (!empty($segments)) {
             foreach ($segments as $segment) {
                 $memoryBlock = new IndividualMemoryBlock($segment);
-
-                if ($valueVerifier === null || $valueVerifier($memoryBlock->get())) {
-                    $memoryBlock->clear();
-                    unset($memory_object_cache[$segment]);
-                }
+                $memoryBlock->clear();
+                unset($memory_object_cache[$segment]);
             }
         }
     }

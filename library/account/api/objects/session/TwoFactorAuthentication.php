@@ -81,7 +81,7 @@ class TwoFactorAuthentication
                     "instantLogin" . ($code ? "Code" : "Token"),
                     array(
                         ($code ? "code" : "URL") =>
-                            ($code ? $credential : ("https://" . get_domain() . "/profile/instantLogin/?token=" . $credential)),
+                            ($code ? $credential : ("https://" . get_domain() . "/account/profile/instantLogin/?token=" . $credential)),
                     ),
                     "account",
                     false
@@ -145,7 +145,7 @@ class TwoFactorAuthentication
                 if (!$session->isPositiveOutcome()) {
                     return new MethodReply(false, $session->getMessage());
                 }
-                return new MethodReply(true, null, $account);
+                return new MethodReply(true, "Successfully verified account.", $account);
             }
         }
         return new MethodReply(
