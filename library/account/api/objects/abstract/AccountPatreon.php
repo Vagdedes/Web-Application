@@ -21,7 +21,7 @@ class AccountPatreon
         $this->retrieve = null;
     }
 
-    public function retrieve(): MethodReply
+    public function retrieve(?array $specificTiers = null): MethodReply
     {
         if ($this->retrieve === null) {
             $name = $this->account->getAccounts()->hasAdded(AccountAccounts::PATREON_FULL_NAME, null, 1);
@@ -32,30 +32,21 @@ class AccountPatreon
 
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
-                        "patreon.subscriber.visionary",
-                        "patreon.subscriber.ultimatestats",
-                        "patreon.subscriber.antialtaccount",
-                        "patreon.subscriber.filegui"
+                        "patreon.subscriber.visionary"
                     ));
                 } else {
                     $this->retrieve = $this->find($name, array(self::INVESTOR));
 
                     if ($this->retrieve->isPositiveOutcome()) {
                         $this->account->getPermissions()->addSystemPermission(array(
-                            "patreon.subscriber.investor",
-                            "patreon.subscriber.ultimatestats",
-                            "patreon.subscriber.antialtaccount",
-                            "patreon.subscriber.filegui"
+                            "patreon.subscriber.investor"
                         ));
                     } else {
                         $this->retrieve = $this->find($name, array(self::SPONSOR));
 
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
-                                "patreon.subscriber.sponsor",
-                                "patreon.subscriber.ultimatestats",
-                                "patreon.subscriber.antialtaccount",
-                                "patreon.subscriber.filegui"
+                                "patreon.subscriber.sponsor"
                             ));
                         } else {
                             $this->retrieve = $this->find($name, array(self::MOTIVATOR));
@@ -74,7 +65,22 @@ class AccountPatreon
                 $this->retrieve = new MethodReply(false);
             }
         }
-        return $this->retrieve;
+        if (empty($specificTiers)) {
+            return $this->retrieve;
+        } else if (!empty($this->retrieve->getMessage())) {
+            $object = $this->retrieve->getObject();
+            return new MethodReply(
+                patreon_object_has_tier($object, null, $specificTiers),
+                $this->retrieve->getMessage(),
+                $object
+            );
+        } else {
+            return new MethodReply(
+                false,
+                $this->retrieve->getMessage(),
+                $this->retrieve->getObject()
+            );
+        }
     }
 
     private function find(string $name, ?array $tiers = null, bool $paid = true): MethodReply

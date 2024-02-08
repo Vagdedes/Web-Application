@@ -9,7 +9,10 @@ class AccountProduct
         $this->account = $account;
     }
 
-    public function find(int|string $productID = null, bool $documentation = true, int|string $accountID = null): MethodReply
+    public function find(int|string $productID = null,
+                         bool       $documentation = true,
+                         bool       $calculateBuyers = true,
+                         int|string $accountID = null): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
         $hasAccountPointer = $accountID !== null;
@@ -28,6 +31,7 @@ class AccountProduct
             $this,
             $documentation,
             $accountID,
+            $calculateBuyers,
             $productID,
         );
         $array = get_key_value_pair($cacheKey);
@@ -63,6 +67,7 @@ class AccountProduct
 
                 foreach ($array as $arrayKey => $object) {
                     if ($accountExists || $object->requires_account === null) {
+                        $uniquePatreonTiers = array();
                         $productID = $object->id;
                         $object->transaction_search = get_sql_query(
                             $product_transaction_search_table,
@@ -105,7 +110,8 @@ class AccountProduct
                         $object->tiers->paid = array();
                         $object->tiers->all = get_sql_query(
                             $product_tiers_table,
-                            array("id", "name", "price", "currency", "required_permission", "give_permission", "required_products"),
+                            array("id", "name", "price", "currency", "required_patreon_tiers",
+                                "required_permission", "give_permission", "required_products"),
                             array(
                                 array("product_id", $productID),
                                 array("deletion_date", null),
@@ -117,9 +123,10 @@ class AccountProduct
                         if (!empty($object->tiers->all)) {
                             foreach ($object->tiers->all as $childArrayKey => $tier) {
                                 unset($object->tiers->all[$childArrayKey]);
-                                $object->tiers->all[$tier->id] = $tier;
 
-                                if ($tier->required_permission !== null) {
+                                if ($tier->required_permission === null) {
+                                    $tier->required_permission = array();
+                                } else {
                                     $tier->required_permission = explode("|", $tier->required_permission);
                                 }
                                 if ($tier->required_products === null) {
@@ -127,8 +134,23 @@ class AccountProduct
                                 } else {
                                     $tier->required_products = explode("|", $tier->required_products);
                                 }
-                                if ($tier->give_permission !== null) {
+                                if ($tier->give_permission === null) {
+                                    $tier->give_permission = array();
+                                } else {
                                     $tier->give_permission = explode("|", $tier->give_permission);
+                                }
+                                if ($tier->required_patreon_tiers === null) {
+                                    $tier->required_patreon_tiers = array();
+                                } else {
+                                    $tier->required_patreon_tiers = explode("|", $tier->required_patreon_tiers);
+
+                                    if (!empty($tier->required_patreon_tiers)) {
+                                        foreach ($tier->required_patreon_tiers as $patreonTier) {
+                                            if (!in_array($patreonTier, $uniquePatreonTiers)) {
+                                                $uniquePatreonTiers[] = $patreonTier;
+                                            }
+                                        }
+                                    }
                                 }
                                 if ($tier->price === null) {
                                     $object->tiers->free[$tier->id] = $tier;
@@ -136,14 +158,10 @@ class AccountProduct
                                     $object->is_free = false;
                                     $object->tiers->paid[$tier->id] = $tier;
                                 }
+                                $object->tiers->all[$tier->id] = $tier;
                             }
                         }
-                        if ($object->patreon_tiers === null) {
-                            $object->patreon_tiers = array();
-                        } else {
-                            $object->patreon_tiers = explode("|", $object->patreon_tiers);
-                        }
-                        if ($object->is_free) {
+                        if ($object->is_free || !$calculateBuyers) {
                             $object->registered_buyers = 0;
                         } else {
                             $object->registered_buyers = sizeof(get_sql_query(
@@ -154,8 +172,8 @@ class AccountProduct
                                     array("deletion_date", null)
                                 )
                             ));
-                            if (!empty($object->patreon_tiers)) {
-                                $object->registered_buyers += sizeof(get_patreon2_subscriptions(null, $object->patreon_tiers));
+                            if (!empty($uniquePatreonTiers)) {
+                                $object->registered_buyers += sizeof(get_patreon2_subscriptions(null, $uniquePatreonTiers));
                             }
                         }
                         $object->divisions = new stdClass();

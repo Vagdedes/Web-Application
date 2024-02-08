@@ -192,12 +192,8 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                                 || $patron->attributes->patron_status != "active_patron"
                                 || !isset($patron->relationships->currently_entitled_tiers->data))) {
                             if ($hasIgnoreTiers || $hasTargetTiers) {
-                                foreach ($patron->relationships->currently_entitled_tiers->data as $tier) {
-                                    if (isset($data->relationships->reward->data->id)
-                                        && (!$hasIgnoreTiers || !in_array($tier->id, $ignoreTiers))
-                                        && (!$hasTargetTiers || in_array($tier->id, $targetTiers))) {
-                                        $results[] = $patron;
-                                    }
+                                if (patreon_object_has_tier($patron, $ignoreTiers, $targetTiers)) {
+                                    $results[] = $patron;
                                 }
                             } else {
                                 $results[] = $patron;
@@ -213,4 +209,20 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
     } else {
         return array();
     }
+}
+
+function patreon_object_has_tier(object $object, ?array $ignoreTiers = null, ?array $targetTiers = null): bool
+{
+    if (isset($object->relationships->currently_entitled_tiers->data)) {
+        $hasIgnoreTiers = $ignoreTiers !== null;
+        $hasTargetTiers = $ignoreTiers !== null;
+
+        foreach ($object->relationships->currently_entitled_tiers->data as $tier) {
+            if ((!$hasIgnoreTiers || !in_array($tier->id, $ignoreTiers))
+                && (!$hasTargetTiers || in_array($tier->id, $targetTiers))) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

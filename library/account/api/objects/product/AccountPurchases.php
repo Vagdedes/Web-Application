@@ -86,26 +86,33 @@ class AccountPurchases
             if ($products->isPositiveOutcome()) {
                 foreach ($products->getObject() as $product) {
                     if (!array_key_exists($product->id, $array)) {
-                        if ($product->is_free) {
-                            $tierObject = null;
-                        } else {
-                            $tierObject = false;
+                        $tierObject = null;
 
+                        if (!$product->is_free) {
                             foreach ($product->tiers->paid as $tier) {
-                                if (!empty($tier->required_products)) {
-                                    foreach ($tier->required_products as $requiredProduct) {
-                                        if (!array_key_exists($requiredProduct, $array)) {
-                                            continue 2;
-                                        } else {
-                                            break;
+                                if (!empty($tier->required_products)
+                                    || !empty($tier->required_permission)
+                                    || !empty($tier->required_patreon_tiers)) {
+                                    if (empty($tier->required_products)) {
+                                        $passed = true;
+                                    } else {
+                                        $passed = false;
+
+                                        foreach ($tier->required_products as $requiredProduct) {
+                                            if (array_key_exists($requiredProduct, $array)) {
+                                                $passed = true;
+                                                break;
+                                            }
                                         }
                                     }
-                                    $tierObject = $tier;
-                                }
-                                if (!empty($tier->required_permission)) {
-                                    if (!$this->account->getPermissions()->hasPermission($tier->required_permission)) {
-                                        continue;
-                                    } else {
+
+                                    if ($passed
+                                        && (empty($tier->required_permission)
+                                            || $this->account->getPermissions()->hasPermission($tier->required_permission))
+                                        && (empty($tier->required_patreon_tiers)
+                                            || $this->account->getPatreon()->retrieve(
+                                                $tier->required_patreon_tiers
+                                            )->isPositiveOutcome())) {
                                         $tierObject = $tier;
                                         break;
                                     }
@@ -113,9 +120,8 @@ class AccountPurchases
                             }
                         }
 
-                        if ($tierObject !== false) {
-                            if ($tierObject !== null
-                                && $tierObject->give_permission !== null) {
+                        if ($tierObject !== null) {
+                            if ($tierObject->give_permission !== null) {
                                 $this->account->getPermissions()->addSystemPermission($tierObject->give_permission);
                             }
                             $object = new stdClass();
