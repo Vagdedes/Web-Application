@@ -130,20 +130,6 @@ function get_memory_segment_ids(): array
     return $array;
 }
 
-function has_reached_maximum_segment_ids(): bool
-{
-    global $memory_reserved_keys;
-    $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
-
-    if (!$memoryBlock->exists(false)) {
-        $result = sizeof(get_memory_segment_ids()) >= get_memory_segment_limit(0.999); // 99.9% due to potential multi-threading and the one-second cooldown
-        $memoryBlock->set($result, time() + 1); // Cooldown before next check
-        return $result;
-    } else {
-        return $memoryBlock->get() === true;
-    }
-}
-
 // Separator
 
 class IndividualMemoryBlock
@@ -214,7 +200,7 @@ class IndividualMemoryBlock
         global $memory_filler_character;
         $rawData = trim($readMapBytes, $memory_filler_character);
 
-        if (strlen($rawData) >= 21) { // Minimum length of serialized and deflated object.
+        if (isset($rawData[20])) { // Minimum length (21) of serialized and deflated object.
             $value = @gzinflate($rawData);
 
             if ($value !== false) {
@@ -319,14 +305,10 @@ class IndividualMemoryBlock
                 return false;
             }
         } else if (!$block) {
-            if (!is_reserved_memory_key($this->key)
-                && has_reached_maximum_segment_ids()
-                && !$this->removeExpired()) {
-                return false;
-            }
             $block = $this->internalGetBlock($exceptionID, $bytesSize, true, true); // open default
 
             if (!$block) {
+                $this->removeExpired(1);
                 return false;
             }
         }
@@ -347,7 +329,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    private function removeExpired(): bool
+    private function removeExpired(int $makeSpace = 0): void
     {
         $segments = get_memory_segment_ids();
 
@@ -358,7 +340,11 @@ class IndividualMemoryBlock
                 $memoryBlock = new IndividualMemoryBlock($segment);
 
                 if ($memoryBlock->clear(true)) {
-                    return true;
+                    $makeSpace--;
+
+                    if ($makeSpace == 0) {
+                        return;
+                    }
                 } else {
                     $time = $memoryBlock->get("creation");
 
@@ -368,17 +354,16 @@ class IndividualMemoryBlock
                 }
             }
 
-            if (!empty($sortedByCreation)) {
+            if ($makeSpace > 0 && !empty($sortedByCreation)) {
                 ksort($sortedByCreation); // Sort in ascending order, so we start from the least recent
 
                 foreach ($sortedByCreation as $memoryBlock) {
                     if ($memoryBlock->clear()) {
-                        return true;
+                        return;
                     }
                 }
             }
         }
-        return false;
     }
 
     /**
