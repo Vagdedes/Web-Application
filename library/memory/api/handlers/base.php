@@ -20,7 +20,7 @@ function reserve_memory_key(string $name, int $key): void
 {
     global $memory_reserved_keys;
 
-    if (isset($memory_reserved_keys[$name])) {
+    if (array_key_exists($name, $memory_reserved_keys)) {
         $existingKey = $memory_reserved_keys[$name];
 
         if ($existingKey !== $key) {
@@ -38,10 +38,11 @@ function get_reserved_memory_key(string $name): int
 {
     global $memory_reserved_keys;
 
-    if (!isset($memory_reserved_keys[$name])) {
+    if (!array_key_exists($name, $memory_reserved_keys)) {
         throw new Exception("Tried to use name that is not reserved: " . $name);
+    } else {
+        return $memory_reserved_keys[$name];
     }
-    return $memory_reserved_keys[$name];
 }
 
 function is_reserved_memory_key(int $key): bool
@@ -52,82 +53,93 @@ function is_reserved_memory_key(int $key): bool
 
 // Separator
 
-function get_memory_segment_limit(int|float|null $multiplier = null): int
+function get_memory_segment_limit(): int
 {
     global $memory_reserved_keys;
     $niddle = "max number of segments = ";
     $integer = substr(shell_exec("ipcs -l | grep '$niddle'"), strlen($niddle), -1) - sizeof($memory_reserved_keys);
-    return $multiplier !== null ? round($integer * $multiplier) : $integer;
+    return $integer;
 }
+
 
 function get_memory_segment_ids(): array
 {
-    global $memory_segments_table;
-    $time = time();
-    $identifer = get_server_identifier(true);
-    load_sql_database(SqlDatabaseCredentials::MEMORY);
-    $query = get_sql_query(
-        $memory_segments_table,
-        array("array", "next_repetition"),
-        array(
-            array("identifier", $identifer)
-        ),
-        null,
-        1
-    );
-    $empty = empty($query);
+    global $memory_reserved_keys;
+    $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
+    $array = $memoryBlock->get();
 
-    if (!$empty) {
-        $query = $query[0];
-
-        if ($time <= $query->next_repetition) {
-            $query = @unserialize($query->array);
-
-            if (is_array($query)) {
-                load_previous_sql_database();
-                return $query;
-            }
-        }
-    }
-    global $memory_permissions_string;
-    //$stringToFix = "echo 32768 >/proc/sys/kernel/shmmni";
-    $oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
-    $array = explode(chr(32), shell_exec("ipcs -m"));
-
-    if (!empty($array)) {
-        foreach ($array as $key => $value) {
-            if (empty($value) || is_numeric($value) || $value[0] === "w") {
-                unset($array[$key]);
-            } else {
-                $array[$key] = @hexdec($value);
-            }
-        }
-    }
-    if ($empty) {
-        sql_insert(
-            $memory_segments_table,
-            array(
-                "identifier" => $identifer,
-                "array" => serialize($array),
-                "next_repetition" => time() + 1
-            )
-        );
+    if (is_array($array)) {
+        return $array;
     } else {
-        set_sql_query(
-            $memory_segments_table,
-            array(
-                "array" => serialize($array),
-                "next_repetition" => time() + 1
-            ),
-            array(
-                array("identifier", $identifer)
-            ),
-            null,
-            1
-        );
+        global $memory_permissions_string;
+        //$stringToFix = "echo 32768 >/proc/sys/kernel/shmmni";
+        $oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
+        $timeToCalculate = microtime(true);
+        $array = explode(chr(32), shell_exec("ipcs -m"));
+
+        if (!empty($array)) {
+            foreach ($array as $key => $value) {
+                if (empty($value) || is_numeric($value) || $value[0] === "w") {
+                    unset($array[$key]);
+                } else {
+                    $array[$key] = @hexdec($value);
+                }
+            }
+        }
+        $memoryBlock->set($array);
+
+        if (microtime(true) - $timeToCalculate >= 0.1) {
+            clear_memory_expired_segments();
+        }
+        return $array;
     }
-    load_previous_sql_database();
-    return $array;
+}
+
+function clear_memory_segment_ids_cache(): void
+{
+    global $memory_reserved_keys;
+    $segmentIDCacheBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
+    $segmentIDCacheBlock->clear(false, true);
+}
+
+function clear_memory_expired_segments(int $makeSpace = 0): void
+{
+    $segments = get_memory_segment_ids();
+
+    if (!empty($segments)) {
+        $sortedByCreation = array();
+        $countSpace = $makeSpace > 0;
+
+        foreach ($segments as $segment) {
+            $memoryBlock = new IndividualMemoryBlock($segment);
+
+            if ($memoryBlock->clear(true)) {
+                if ($countSpace) {
+                    $makeSpace--;
+
+                    if ($makeSpace == 0) {
+                        return;
+                    }
+                }
+            } else {
+                $time = $memoryBlock->get("creation");
+
+                if ($time !== null) {
+                    $sortedByCreation[$time] = $memoryBlock;
+                }
+            }
+        }
+
+        if ($countSpace && !empty($sortedByCreation)) {
+            ksort($sortedByCreation); // Sort in ascending order, so we start from the least recent
+
+            foreach ($sortedByCreation as $memoryBlock) {
+                if ($memoryBlock->clear()) {
+                    return;
+                }
+            }
+        }
+    }
 }
 
 // Separator
@@ -180,7 +192,7 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    private function getRaw(bool $removeIfExpired = true)
+    private function getRaw()
     {
         global $memory_starting_bytes;
         $exceptionID = 3;
@@ -210,9 +222,6 @@ class IndividualMemoryBlock
                     if ($object->expiration === false || $object->expiration >= time()) {
                         return $object;
                     }
-                    if ($removeIfExpired) {
-                        $this->internalClose();
-                    }
                 } else {
                     $this->throwException("Unable to use individual-memory-block object of key '" . $this->originalKey . "': " . $value);
                 }
@@ -226,26 +235,25 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function get(string $objectKey = "value", bool $removeIfExpired = true)
+    public function get(string $objectKey = "value")
     {
-        $raw = $this->getRaw($removeIfExpired);
-        return $raw?->{$objectKey};
+        return $this->getRaw()?->{$objectKey};
     }
 
     /**
      * @throws Exception
      */
-    public function exists(bool $removeIfExpired = true): bool
+    public function exists(): bool
     {
-        return $this->getRaw($removeIfExpired) !== null;
+        return $this->getRaw() !== null;
     }
 
     /**
      * @throws Exception
      */
-    public function clear(bool $ifExpired = false): bool
+    public function clear(bool $ifExpired = false, bool $ignoreReserves = false): bool
     {
-        if (!is_reserved_memory_key($this->key)
+        if (($ignoreReserves || !is_reserved_memory_key($this->key))
             && (!$ifExpired || $this->getRaw() === null)) {
             if (!$this->internalClose(null, true)) {
                 $this->throwException("Unable to manually close current individual-memory-block: " . $this->originalKey, false);
@@ -308,8 +316,14 @@ class IndividualMemoryBlock
             $block = $this->internalGetBlock($exceptionID, $bytesSize, true, true); // open default
 
             if (!$block) {
-                $this->removeExpired(1);
+                clear_memory_expired_segments(1);
                 return false;
+            } else {
+                global $memory_reserved_keys;
+
+                if ($this->key !== $memory_reserved_keys[0]) {
+                    clear_memory_segment_ids_cache();
+                }
             }
         }
         $remainingBytes = $bytesSize - $objectToTextLength;
@@ -329,46 +343,6 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    private function removeExpired(int $makeSpace = 0): void
-    {
-        $segments = get_memory_segment_ids();
-
-        if (!empty($segments)) {
-            $sortedByCreation = array();
-
-            foreach ($segments as $segment) {
-                $memoryBlock = new IndividualMemoryBlock($segment);
-
-                if ($memoryBlock->clear(true)) {
-                    $makeSpace--;
-
-                    if ($makeSpace == 0) {
-                        return;
-                    }
-                } else {
-                    $time = $memoryBlock->get("creation");
-
-                    if ($time !== null) {
-                        $sortedByCreation[$time] = $memoryBlock;
-                    }
-                }
-            }
-
-            if ($makeSpace > 0 && !empty($sortedByCreation)) {
-                ksort($sortedByCreation); // Sort in ascending order, so we start from the least recent
-
-                foreach ($sortedByCreation as $memoryBlock) {
-                    if ($memoryBlock->clear()) {
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @throws Exception
-     */
     private function internalClose(mixed $block = null, bool $ignoreCreation = false): bool
     {
         if ($block === null) {
@@ -376,7 +350,16 @@ class IndividualMemoryBlock
             $block = $this->internalGetBlock(5, $memory_starting_bytes, false);
         }
         if ($block) {
-            return shmop_delete($block);
+            if (shmop_delete($block)) {
+                global $memory_reserved_keys;
+
+                if ($this->key !== $memory_reserved_keys[0]) {
+                    clear_memory_segment_ids_cache();
+                }
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return $ignoreCreation;
         }

@@ -55,7 +55,7 @@ function has_memory_cooldown(mixed $key, int|string|null $futureTime = null,
             global $memory_reserved_names;
             $memoryBlock = memory_get_object_cache($memory_reserved_names[0] . $key);
 
-            if (!$force && $memoryBlock->exists(!$set)) {
+            if (!$force && $memoryBlock->exists()) {
                 return true;
             }
             if ($set) {

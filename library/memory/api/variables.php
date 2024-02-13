@@ -2,7 +2,7 @@
 $memory_object_cache = array();
 
 $memory_reserved_keys = array(
-    0 => 0xff1 // Natively reserved for managing individual-memory-block full method
+    0 => 0xff1, // Reserved for caching memory segment ids
 );
 
 $memory_permissions = 0644;
@@ -21,7 +21,6 @@ $memory_clearance_tracking_table = "memory.clearMemoryTracking";
 $memory_schedulers_table = "memory.schedulers";
 $memory_performance_metrics_table = "memory.performanceMetrics";
 $memory_processes_table = "memory.processes";
-$memory_segments_table = "memory.memorySegments";
 
 $memory_clearance_past = 60; // 1 minute
 $memory_clearance_row_limit = 50;
