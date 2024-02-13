@@ -356,7 +356,7 @@ class AccountInstructions
         }
     }
 
-    public function getPublic(?array $allow = null): array
+    public function getPublic(?array $allow = null, ?string $userInput = null): array
     {
         $cacheKey = array(
             __METHOD__,
