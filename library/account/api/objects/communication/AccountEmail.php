@@ -262,7 +262,8 @@ class AccountEmail
             ) === 1;
     }
 
-    public function createTicket(string $subject, string $info, ?string $email = null): array
+    public function createTicket(string $subject, string $info, ?string $email = null,
+                                 ?array $extra = null): array
     {
         global $tickets_email_table;
         $hasEmail = $email !== null;
@@ -272,11 +273,11 @@ class AccountEmail
         $info = strip_tags($info);
 
         if ($found) {
-            $accounts = $account->getAccounts()->getAdded();
             $platformsString = "";
+            $accounts = $account->getAccounts()->getAdded();
 
             if (!empty($accounts)) {
-                $platformsString .= "\r\nAccounts:\r\n";
+                $platformsString .= "Accounts:\r\n";
 
                 foreach ($accounts as $row) {
                     $platformsString .= $row->accepted_account->name . ": " . $row->credential . "\r\n";
@@ -286,9 +287,6 @@ class AccountEmail
             $purchases = $account->getPurchases()->getCurrent();
 
             if (!empty($purchases)) {
-                if (empty($platformsString)) {
-                    $platformsString .= "\r\n";
-                }
                 $platformsString .= "Purchases:\r\n";
 
                 foreach ($purchases as $row) {
@@ -299,6 +297,13 @@ class AccountEmail
                     }
                 }
                 $platformsString .= "\r\n";
+            }
+            if (!empty($extra)) {
+                $platformsString .= "Extra:\r\n";
+
+                foreach ($purchases as $key => $value) {
+                    $platformsString .= $key . ": " . $value . "\r\n";
+                }
             }
         } else {
             $platformsString = null;
@@ -344,8 +349,8 @@ class AccountEmail
             . "Subject: " . $subject . "\r\n"
             . "Email: " . $email . "\r\n"
             . "Type: " . ($hasEmail ? "Logged Out" : "Logged In")
-            . "\r\n"
-            . (!empty($platformsString) ? $platformsString : "\r\n")
+            . "\r\n" . "\r\n"
+            . (!empty($platformsString) ? $platformsString : "")
             . strip_tags($info);
         return array($email, $title, $content);
     }
