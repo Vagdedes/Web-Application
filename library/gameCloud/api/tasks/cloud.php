@@ -1067,6 +1067,7 @@ if (true
                         $type = $split[9];
                         $information = str_replace($line, " | ", $split[10]);
 
+                        $author = !empty($gameName) ? $gameName . (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "") : "";
                         $timeCooldown = $allowedInformation[$webhookVersion][$type] ?? null;
 
                         if ($timeCooldown !== null
@@ -1091,10 +1092,10 @@ if (true
                                         "value" => "``$information``",
                                         "inline" => false)
                                 );
-                                $response = send_discord_webhook($url, $color,
-                                    $gameName, $server,
-                                    null, null, null,
-                                    $titleName, null,
+                                $response = send_discord_webhook($url, null,
+                                    $color, $author,
+                                    null, $titleName, null,
+                                    null, null,
                                     $details);
 
                                 if ($response === true) {
@@ -1137,6 +1138,7 @@ if (true
                         $information = str_replace($line, " | ", $split[10]);
                         $showEcosystem = $split[11] == "true";
 
+                        $author = !empty($gameName) ? $gameName . (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "") : "";
                         $timeCooldown = $allowedInformation[$webhookVersion][$type] ?? null;
 
                         if ($timeCooldown !== null
@@ -1161,10 +1163,10 @@ if (true
                                         "value" => "``$information``",
                                         "inline" => false)
                                 );
-                                $response = send_discord_webhook($url, $color,
-                                    $gameName, $server,
-                                    null, null, null,
-                                    $titleName, null,
+                                $response = send_discord_webhook($url, null,
+                                    $color, $author,
+                                    null, $titleName, null,
+                                    null, null,
                                     $details);
 
                                 if ($response === true) {
@@ -1204,6 +1206,7 @@ if (true
                         $information = str_replace($line, " | ", $split[7]);
                         $showEcosystem = $split[8] == "true";
 
+                        $author = !empty($gameName) ? $gameName . (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "") : "";
                         $timeCooldown = $allowedInformation[$webhookVersion][$action] ?? null;
 
                         if ($timeCooldown !== null
@@ -1227,10 +1230,10 @@ if (true
                                         "value" => "``$information``",
                                         "inline" => false)
                                 );
-                                $response = send_discord_webhook($url, $color,
-                                    $gameName, $server,
-                                    null, null, null,
-                                    $titleName, null,
+                                $response = send_discord_webhook($url, null,
+                                    $color, $author,
+                                    null, $titleName, null,
+                                    null, null,
                                     $details);
 
                                 if ($response === true) {
@@ -1270,6 +1273,8 @@ if (true
                         $information = str_replace($line, " | ", $split[7]);
                         $showEcosystem = $split[8] == "true";
 
+                        $author = !empty($gameName) ? $gameName . (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "") : "";
+
                         if (in_array($statistic, $allowedInformation)
                             && !empty($player) && strlen($player) <= $nameLength
                             && strlen($uuid) <= $uuidLength
@@ -1291,10 +1296,10 @@ if (true
                                         "value" => "``$information``",
                                         "inline" => false)
                                 );
-                                $response = send_discord_webhook($url, $color,
-                                    $gameName, $server,
-                                    null, null, null,
-                                    $titleName, null,
+                                $response = send_discord_webhook($url, null,
+                                    $color, $author,
+                                    null, $titleName, null,
+                                    null, null,
                                     $details);
 
                                 if ($response === true) {
@@ -1325,27 +1330,6 @@ if (true
                 default:
                     $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-version");
                     break;
-            }
-
-            if ($showEcosystem && $url !== null) {
-                $account = $gameCloudUser->getInformation()->getAccount();
-
-                // Spartan 2.0
-                if (!$account->exists()
-                    || !$account->getPurchases()->owns(AccountPatreon::SPARTAN_2_0_JAVA)->isPositiveOutcome()
-                    && !$account->getPurchases()->owns(AccountPatreon::SPARTAN_2_0_BEDROCK)->isPositiveOutcome()) {
-                    foreach (array(
-                                 $spartan_anticheat_2_0_discord_advertisement,
-                                 $discord_bot_discord_advertisement
-                             ) as $webhookPlan) {
-                        if (send_discord_webhook_by_plan(
-                                $webhookPlan,
-                                $url
-                            ) === 1) {
-                            break;
-                        }
-                    }
-                }
             }
         } else if ($data == "customerSupport") {
             if (!$productObject->is_free) {

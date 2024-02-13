@@ -213,8 +213,8 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         }
         $planObject->color = $informationPlaceholder->replace($planObject->color);
         $planObject->avatar_image = $informationPlaceholder->replace($planObject->avatar_image);
-        $planObject->icon_image = $informationPlaceholder->replace($planObject->icon_image);
-        $planObject->redirect_url = $informationPlaceholder->replace($planObject->redirect_url);
+        $planObject->footer_image = $informationPlaceholder->replace($planObject->footer_image);
+        $planObject->title_url = $informationPlaceholder->replace($planObject->title_url);
         $planObject->title = $informationPlaceholder->replace($planObject->title);
         $planObject->footer = $informationPlaceholder->replace($planObject->footer);
         $planObject->information = $informationPlaceholder->replace($planObject->information);
@@ -320,14 +320,15 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         }
         $execution = send_discord_webhook(
             $webhookPointer,
-            $planObject->color, null, null,
             $planObject->avatar_image,
-            $planObject->icon_image,
-            $planObject->redirect_url,
+            $planObject->color,
+            $planObject->author_name,
+            $planObject->author_url,
             $planObject->title,
+            $planObject->title_url,
             $planObject->footer,
+            $planObject->footer_image,
             $planObject->fields,
-            $planObject->user,
             empty($planObject->information) ? "" : $planObject->information
         );
 

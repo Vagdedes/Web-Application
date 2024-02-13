@@ -1,16 +1,17 @@
 <?php
 
-function send_discord_webhook(string  $webhookURL, int|string $color,
-                              ?string $gameName, ?string $serverName,
-                              ?string $avatarURL, ?string $iconURL, ?string $titleURL,
-                              string  $titleName, ?string $footerName,
-                              array   $fields,
-                              ?string $username = null, int|string|float|bool $content = null): bool|string
+function send_discord_webhook(string                $webhookURL,
+                              ?string               $avatarURL,
+                              int|string            $color,
+                              ?string               $authorName, ?string $authorURL,
+                              string                $titleName, ?string $titleURL,
+                              ?string               $footerName, ?string $footerURL,
+                              array                 $fields,
+                              int|string|float|bool $content = null): bool|string
 {
-    $hasServerName = $serverName !== null;
-    $hasGameName = $gameName !== null;
+    $hasAuthorURL = $authorURL !== null;
     $hasAvatarURL = $avatarURL !== null;
-    $hasIconURL = $iconURL !== null;
+    $hasFooterURL = $footerURL !== null;
     $hasTitleURL = $titleURL !== null;
     $hasFooterName = $footerName !== null;
 
@@ -26,14 +27,14 @@ function send_discord_webhook(string  $webhookURL, int|string $color,
     if (strlen($color) < 3 || strlen($color) > 6) {
         return "Local: Failed color criteria";
     }
-    if ($hasServerName && (empty($serverName) || strlen($serverName) > 32)) {
-        return "Local: Failed server-name criteria";
+    if ($hasAuthorURL && !is_url($authorURL)) {
+        return "Local: Failed author-url criteria";
     }
     if ($hasAvatarURL && !is_url($avatarURL)) {
         return "Local: Failed avatar-url criteria";
     }
-    if ($hasIconURL && !is_url($iconURL)) {
-        return "Local: Failed icon-url criteria";
+    if ($hasFooterURL && !is_url($footerURL)) {
+        return "Local: Failed footer-url criteria";
     }
     if ($hasTitleURL && !is_url($titleURL)) {
         return "Local: Failed title-url criteria";
@@ -44,12 +45,9 @@ function send_discord_webhook(string  $webhookURL, int|string $color,
     if ($hasFooterName && strlen($footerName) > 64) {
         return "Local: Failed footer-name criteria";
     }
-    if ($username !== null) {
-        //$fields["username"] = $username;
-    }
+    $hasAuthorName = $authorName !== null;
     $array = array(
         "content" => $content !== null ? $content : "",
-        //"username" => $username !== null ? $username : "",
         "avatar_url" => ($hasAvatarURL ? $avatarURL : ""),
         "tts" => false,
         "file" => "",
@@ -67,7 +65,7 @@ function send_discord_webhook(string  $webhookURL, int|string $color,
                 // Footer
                 "footer" => array(
                     "text" => ($hasFooterName ? $footerName : ""),
-                    "icon_url" => ($hasIconURL ? $iconURL : "")
+                    "icon_url" => ($hasFooterURL ? $footerURL : "")
                 ),
 
                 // Image to send
@@ -82,8 +80,8 @@ function send_discord_webhook(string  $webhookURL, int|string $color,
 
                 // Author
                 "author" => array(
-                    "name" => ($hasGameName ? $gameName . ($hasServerName && $serverName != "NULL" ? " (" . $serverName . ")" : "") : ""),
-                    "url" => ""
+                    "name" => ($hasAuthorName ? $authorName : ""),
+                    "url" => ($hasAuthorName && $hasAuthorURL ? $authorURL : ""),
                 ),
 
                 // Additional Fields array

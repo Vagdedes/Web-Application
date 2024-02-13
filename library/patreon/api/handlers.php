@@ -191,11 +191,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                             : (!isset($patron->attributes->patron_status)
                                 || $patron->attributes->patron_status != "active_patron"
                                 || !isset($patron->relationships->currently_entitled_tiers->data))) {
-                            if ($hasIgnoreTiers || $hasTargetTiers) {
-                                if (patreon_object_has_tier($patron, $ignoreTiers, $targetTiers)) {
-                                    $results[] = $patron;
-                                }
-                            } else {
+                            if (patreon_object_has_tier($patron, $ignoreTiers, $targetTiers)) {
                                 $results[] = $patron;
                             }
                         }
@@ -215,7 +211,7 @@ function patreon_object_has_tier(object $object, ?array $ignoreTiers = null, ?ar
 {
     if (isset($object->relationships->currently_entitled_tiers->data)) {
         $hasIgnoreTiers = $ignoreTiers !== null;
-        $hasTargetTiers = $ignoreTiers !== null;
+        $hasTargetTiers = $targetTiers !== null;
 
         foreach ($object->relationships->currently_entitled_tiers->data as $tier) {
             if ((!$hasIgnoreTiers || !in_array($tier->id, $ignoreTiers))
