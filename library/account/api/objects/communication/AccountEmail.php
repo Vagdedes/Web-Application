@@ -301,9 +301,10 @@ class AccountEmail
             if (!empty($extra)) {
                 $platformsString .= "Extra:\r\n";
 
-                foreach ($purchases as $key => $value) {
+                foreach ($extra as $key => $value) {
                     $platformsString .= $key . ": " . $value . "\r\n";
                 }
+                $platformsString .= "\r\n";
             }
         } else {
             $platformsString = null;
@@ -336,6 +337,7 @@ class AccountEmail
                         "email_address" => $email,
                         "subject" => $subject,
                         "information" => $info,
+                        "extra" => $extra !== null ? json_encode($extra) : null,
                         "creation_date" => get_current_date()
                     )
                 );
