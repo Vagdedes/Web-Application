@@ -4,7 +4,8 @@ class AccountInstructions
 {
 
     private Account $account;
-    private array $localInstructions, $publicInstructions, $placeholders, $browse, $replacements;
+    private array $localInstructions, $publicInstructions,
+        $placeholders, $browse, $replacements;
     private string $placeholderStart, $placeholderMiddle, $placeholderEnd;
 
     public const
@@ -80,6 +81,17 @@ class AccountInstructions
                 null
             )
         );
+
+        if (!empty($this->browse)) {
+            foreach ($this->browse as $arrayKey => $browse) {
+                if ($browse->contains === null) {
+                    $browse->contains = array();
+                } else {
+                    $browse->contains = explode("|", $browse->contains);
+                }
+                $this->browse[$arrayKey] = $browse;
+            }
+        }
         $this->replacements = get_sql_query(
             InstructionsTable::REPLACEMENTS,
             null,
@@ -294,43 +306,85 @@ class AccountInstructions
         return $value;
     }
 
-    private function prepareRow(object $row, string $data): string
+    private function prepareRow(object $row, string $data, ?string $userInput = null): string
     {
-        if ($row->replace !== null && !empty($this->replacements)) {
-            foreach ($this->replacements as $replace) {
-                $data = str_replace(
-                    $replace->find,
-                    $replace->replacement,
-                    $data
-                );
-            }
-        }
         if ($row->browse !== null && !empty($this->browse)) {
             foreach ($this->browse as $browse) {
                 if (str_contains($data, $browse->information_url)) {
-                    $data .= ($browse->prefix ?? "")
-                        . "Start of '" . $browse->information_url . "':\n"
-                        . ($this->getURLData($browse->information_url) ?? "")
-                        . "\nEnd of '" . $browse->information_url . "'"
-                        . ($browse->suffix ?? "");
+                    if ($userInput === null || empty($browse->contains)) {
+                        $continue = true;
+                    } else {
+                        $continue = false;
+
+                        foreach ($browse->contains as $contains) {
+                            if (str_contains($userInput, $contains)) {
+                                $continue = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($continue) {
+                        $url = $this->getURLData($browse, InstructionsTable::BROWSE);
+                        var_dump($browse->id, $url !== null);
+
+                        if ($url !== null) {
+                            $data .= ($browse->prefix ?? "")
+                                . "Start of '" . $browse->information_url . "':\n"
+                                . $url
+                                . "\nEnd of '" . $browse->information_url . "'"
+                                . ($browse->suffix ?? "");
+                        }
+                    }
                 }
             }
         }
         return $data;
     }
 
-    private function getURLData($url): ?string
+    private function getURLData(object $row, string $table): ?string
     {
-        if (get_domain_from_url($url) == "docs.google.com") {
-            $doc = get_raw_google_doc($url);
+        if ($row->information_expiration !== null
+            && $row->information_expiration > get_current_date()) {
+            return $row->information_value;
         } else {
-            $doc = get_raw_google_doc($url);
+            $url = $row->information_url;
 
-            if ($doc === null) {
-                $doc = timed_file_get_contents($url);
+            if (get_domain_from_url($url) == "docs.google.com") {
+                $doc = get_raw_google_doc($url);
+            } else {
+                $doc = get_raw_google_doc($url);
+
+                if ($doc === null) {
+                    $doc = timed_file_get_contents($url);
+                }
+            }
+            if (is_string($doc)) {
+                if ($row->replace !== null && !empty($this->replacements)) {
+                    foreach ($this->replacements as $replace) {
+                        $doc = str_replace(
+                            $replace->find,
+                            $replace->replacement,
+                            $doc
+                        );
+                    }
+                }
+                set_sql_query(
+                    $table,
+                    array(
+                        "information_value" => $doc,
+                        "information_expiration" => get_future_date($row->information_duration)
+                    ),
+                    array(
+                        array("id", $row->id)
+                    ),
+                    null,
+                    1
+                );
+                return $doc;
             }
         }
-        return is_string($doc) ? $doc : null;
+        return null;
     }
 
     // Separator
@@ -340,14 +394,14 @@ class AccountInstructions
         return $this->placeholders;
     }
 
-    public function getLocal(): array
+    public function getLocal(?string $userInput = null): array
     {
         if (!empty($this->localInstructions)) {
             $array = $this->localInstructions;
 
             foreach ($array as $value) {
                 if ($value->information !== null) {
-                    $value->information = $this->prepareRow($value, $value->information);
+                    $value->information = $this->prepareRow($value, $value->information, $userInput);
                 }
             }
             return $array;
@@ -358,71 +412,25 @@ class AccountInstructions
 
     public function getPublic(?array $allow = null, ?string $userInput = null): array
     {
-        $cacheKey = array(
-            __METHOD__,
-            $this->account->getDetail("application_id"),
-            $allow
-        );
-        $cache = get_key_value_pair($cacheKey);
+        $array = $this->publicInstructions;
 
-        if ($cache !== null) {
-            return $cache;
-        } else {
-            $times = array();
-            $array = $this->publicInstructions;
+        if (!empty($array)) {
+            $hasSpecific = $allow !== null;
 
-            if (!empty($array)) {
-                $hasSpecific = $allow !== null;
+            foreach ($array as $arrayKey => $row) {
+                if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
+                    $doc = $this->getURLData($row, InstructionsTable::PUBLIC);
 
-                foreach ($array as $arrayKey => $row) {
-                    if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
-                        $timeKey = strtotime(get_future_date($row->information_duration));
-
-                        if ($row->information_expiration !== null
-                            && $row->information_expiration > get_current_date()) {
-                            $times[$timeKey] = $row->information_duration;
-                            $array[$arrayKey] = $row->information_value;
-                        } else {
-                            $doc = $this->getURLData($row->information_url);
-
-                            if ($doc !== null) {
-                                $doc = $this->prepareRow($row, $doc);
-                                $times[$timeKey] = $row->information_duration;
-                                $array[$arrayKey] = $doc;
-                                set_sql_query(
-                                    InstructionsTable::PUBLIC,
-                                    array(
-                                        "information_value" => $doc,
-                                        "information_expiration" => get_future_date($row->information_duration)
-                                    ),
-                                    array(
-                                        array("id", $row->id)
-                                    ),
-                                    null,
-                                    1
-                                );
-                            } else {
-                                if ($row->information_value !== null) {
-                                    $times[$timeKey] = $row->information_duration;
-                                    $array[$arrayKey] = $row->information_value;
-                                } else {
-                                    unset($array[$arrayKey]);
-                                }
-                            }
-                        }
+                    if ($doc !== null) {
+                        $array[$arrayKey] = $this->prepareRow($row, $doc, $userInput);
                     } else {
                         unset($array[$arrayKey]);
                     }
-                }
-
-                if (!empty($times)) {
-                    ksort($times);
-                    set_key_value_pair($cacheKey, $array, array_shift($times));
                 } else {
-                    set_key_value_pair($cacheKey, $array, "1 minute");
+                    unset($array[$arrayKey]);
                 }
             }
-            return $array;
         }
+        return $array;
     }
 }
