@@ -19,6 +19,7 @@ class AccountInstructions
         $this->placeholderStart = self::DEFAULT_PLACEHOLDER_START;
         $this->placeholderMiddle = self::DEFAULT_PLACEHOLDER_MIDDLE;
         $this->placeholderEnd = self::DEFAULT_PLACEHOLDER_END;
+        set_sql_cache(null, self::class);
         $this->localInstructions = get_sql_query(
             InstructionsTable::LOCAL,
             null,
@@ -35,6 +36,7 @@ class AccountInstructions
             ),
             "priority DESC"
         );
+        set_sql_cache(null, self::class);
         $this->publicInstructions = get_sql_query(
             InstructionsTable::PUBLIC,
             null,
@@ -51,6 +53,7 @@ class AccountInstructions
             ),
             "priority DESC"
         );
+        set_sql_cache(null, self::class);
         $this->placeholders = get_sql_query(
             InstructionsTable::PLACEHOLDERS,
             null,
@@ -66,6 +69,7 @@ class AccountInstructions
                 null
             )
         );
+        set_sql_cache(null, self::class);
         $this->browse = get_sql_query(
             InstructionsTable::BROWSE,
             null,
@@ -92,6 +96,7 @@ class AccountInstructions
                 $this->browse[$arrayKey] = $browse;
             }
         }
+        set_sql_cache(null, self::class);
         $this->replacements = get_sql_query(
             InstructionsTable::REPLACEMENTS,
             null,
@@ -326,7 +331,6 @@ class AccountInstructions
 
                     if ($continue) {
                         $url = $this->getURLData($browse, InstructionsTable::BROWSE);
-                        var_dump($browse->id, $url !== null);
 
                         if ($url !== null) {
                             $data .= ($browse->prefix ?? "")
