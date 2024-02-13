@@ -1,6 +1,6 @@
 <?php
 
-function get_polymart_object(string $service, array $parameters, bool $longCache = true): ?object
+function get_polymart_object(string $version, string $service, array $parameters, bool $longCache = true): ?object
 {
     $cacheKey = array(
         $service,
@@ -20,18 +20,20 @@ function get_polymart_object(string $service, array $parameters, bool $longCache
     if ($polymart_credentials === null) {
         return null;
     }
-    global $polymart_object_LongRefreshTime, $polymart_object_ShortRefreshTime;
-    $longCache = $longCache ? $polymart_object_LongRefreshTime :
-        $polymart_object_ShortRefreshTime;
+    global $polymart_object_refreshTime;
     $parameters["api_key"] = $polymart_credentials[0];
-    $json = get_json_object("https://api.polymart.org/v1/" . $service . "/", $parameters, 3);
+    $json = get_json_object(
+        "https://api.polymart.org/" . $version . "/" . $service . "/",
+        $parameters,
+        3
+    );
 
     if ($json === false
         || !isset($json->response->success)
         || !$json->response->success) {
-        set_key_value_pair($cacheKey, false, $longCache);
+        set_key_value_pair($cacheKey, false, $polymart_object_refreshTime);
         return null;
     }
-    set_key_value_pair($cacheKey, $json, $longCache);
+    set_key_value_pair($cacheKey, $json, $polymart_object_refreshTime);
     return $json;
 }

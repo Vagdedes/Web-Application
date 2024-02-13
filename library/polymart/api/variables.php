@@ -1,5 +1,4 @@
 <?php
 
-$polymart_object_LongRefreshTime = "10 minutes";
-$polymart_object_ShortRefreshTime = "10 seconds";
+$polymart_object_refreshTime = "5 minutes";
 
