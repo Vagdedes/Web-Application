@@ -54,7 +54,9 @@ class AccountNotifications
                 "expiration_date" => get_future_date($duration),
             )
         )) {
-            $this->account->clearMemory(self::class);
+            $this->account->clearMemory(self::class, function ($value) {
+                return is_array($value);
+            });
 
             if ($run) {
                 $this->get($type, 1, true);
@@ -124,7 +126,9 @@ class AccountNotifications
             }
 
             if ($complete) {
-                $this->account->clearMemory(self::class);
+                $this->account->clearMemory(self::class, function ($value) {
+                    return is_array($value);
+                });
             }
         }
         return $query;

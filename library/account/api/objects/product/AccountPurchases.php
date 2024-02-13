@@ -9,27 +9,14 @@ class AccountPurchases
         $this->account = $account;
     }
 
-    private function getCacheKey(bool $databaseOnly): array
+    public function getCurrent(bool $databaseOnly = false): array
     {
-        return array(
+        $cacheKey = array(
             self::class,
             "account_id" => $this->account->getDetail("id"),
             "current",
             $databaseOnly
         );
-    }
-
-    private function clearCache(): void
-    {
-        clear_memory(array(
-            manipulate_memory_key($this->getCacheKey(true)),
-            manipulate_memory_key($this->getCacheKey(false))
-        ));
-    }
-
-    public function getCurrent(bool $databaseOnly = false): array
-    {
-        $cacheKey = $this->getCacheKey($databaseOnly);
         $cache = get_key_value_pair($cacheKey);
 
         if (is_array($cache)) {
@@ -76,7 +63,9 @@ class AccountPurchases
             }
 
             if ($clearMemory) {
-                $this->clearCache();
+                $this->account->clearMemory(self::class, function ($value) {
+                    return is_array($value);
+                });
             }
         }
 
@@ -182,7 +171,9 @@ class AccountPurchases
             }
 
             if ($clearMemory) {
-                $this->clearCache();
+                $this->account->clearMemory(self::class, function ($value) {
+                    return is_array($value);
+                });
             }
         }
         return $query;
@@ -364,7 +355,9 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $this->clearCache();
+        $this->account->clearMemory(self::class, function ($value) {
+            return is_array($value);
+        });
 
         if (!$this->account->getHistory()->add("buy_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -439,7 +432,9 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $this->clearCache();
+        $this->account->clearMemory(self::class, function ($value) {
+            return is_array($value);
+        });
 
         if (!$this->account->getHistory()->add("remove_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -522,7 +517,9 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database (3).");
         }
-        $this->clearCache();
+        $this->account->clearMemory(self::class, function ($value) {
+            return is_array($value);
+        });
 
         if (!$this->account->getHistory()->add("exchange_product", $productID, $newProductID)) {
             return new MethodReply(false, "Failed to update user history.");

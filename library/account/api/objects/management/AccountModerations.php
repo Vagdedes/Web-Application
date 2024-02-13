@@ -137,8 +137,12 @@ class AccountModerations
                 "expiration_date" => ($duration ? get_future_date($duration) : null),
             )
         )) {
-            $this->account->clearMemory(self::class);
-            $account->clearMemory(self::class);
+            $this->account->clearMemory(self::class, function ($value) {
+                return is_array($value);
+            });
+            $account->clearMemory(self::class, function ($value) {
+                return is_array($value);
+            });
             return new MethodReply(true, "Executed moderation action successfully.");
         }
         return new MethodReply(false, "Failed to execute moderation action.");
@@ -189,8 +193,12 @@ class AccountModerations
             null,
             1
         )) {
-            $this->account->clearMemory(self::class);
-            $account->clearMemory(self::class);
+            $this->account->clearMemory(self::class, function ($value) {
+                return is_array($value);
+            });
+            $account->clearMemory(self::class, function ($value) {
+                return is_array($value);
+            });
             return new MethodReply(true, "Cancelled moderation action successfully.");
         }
         return new MethodReply(false, "Failed to execute moderation action.");

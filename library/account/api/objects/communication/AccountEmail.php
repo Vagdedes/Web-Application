@@ -133,7 +133,9 @@ class AccountEmail
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $account->clearMemory(self::class);
+        $account->clearMemory(self::class, function ($value) {
+            return is_array($value);
+        });
         $oldEmail = $account->getDetail("email_address");
         $change = $account->setDetail("email_address", $email);
 
@@ -202,7 +204,9 @@ class AccountEmail
                 ))) {
                 return new MethodReply(false, "Failed to interact with the database.");
             }
-            $this->account->clearMemory(self::class);
+            $this->account->clearMemory(self::class, function ($value) {
+                return is_array($value);
+            });
         } else {
             $token = $array[0]->token;
         }

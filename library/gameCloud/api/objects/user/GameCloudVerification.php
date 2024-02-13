@@ -2,7 +2,6 @@
 
 class GameCloudVerification
 {
-    private const cache_key = "game-cloud-verification";
 
     // Piracy
     public const
@@ -68,7 +67,7 @@ class GameCloudVerification
             $fileID,
             $productID,
             $ipAddress,
-            $this::cache_key
+            self::class
         );
         $cache = get_key_value_pair($cacheKey);
 
@@ -397,7 +396,9 @@ class GameCloudVerification
             )) {
             return false;
         }
-        $this->user->clearMemory($this::cache_key);
+        $this->user->clearMemory(self::class, function ($value) {
+            return is_numeric($value);
+        });
         return true;
     }
 

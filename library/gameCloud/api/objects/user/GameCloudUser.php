@@ -69,6 +69,8 @@ class GameCloudUser
     public function clearMemory(mixed $key = null, ?callable $callable = null): void
     {
         if ($this->isValid()) {
+            $potentialKeys = 2;
+
             if ($key === null) {
                 clear_memory(
                     array(array(
@@ -76,7 +78,7 @@ class GameCloudUser
                         get_sql_cache_key("license_id", $this->license)
                     )),
                     true,
-                    1,
+                    $potentialKeys,
                     $callable
                 );
             } else if (is_array($key)) {
@@ -87,7 +89,7 @@ class GameCloudUser
                     clear_memory(
                         array(array($item, $key1, $key2)),
                         true,
-                        1,
+                        $potentialKeys,
                         $callable
                     );
                 }
@@ -99,7 +101,7 @@ class GameCloudUser
                         get_sql_cache_key("license_id", $this->license)
                     )),
                     true,
-                    1,
+                    $potentialKeys,
                     $callable
                 );
             }

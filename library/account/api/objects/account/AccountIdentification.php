@@ -49,7 +49,9 @@ class AccountIdentification
                             "expiration_date" => get_future_date(self::expiration_time)
                         )
                     )) {
-                        $this->account->clearMemory(self::class);
+                        $this->account->clearMemory(self::class, function ($value) {
+                            return is_array($value);
+                        });
                         $this->identification = $code;
                         return;
                     }
@@ -89,7 +91,9 @@ class AccountIdentification
                             null,
                             1
                         )) {
-                            $this->account->clearMemory(self::class);
+                            $this->account->clearMemory(self::class, function ($value) {
+                                return is_array($value);
+                            });
                             $this->identification = $code;
                             return;
                         }

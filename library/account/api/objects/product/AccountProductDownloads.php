@@ -42,7 +42,7 @@ class AccountProductDownloads
                                           bool            $userTokensOnly = false,
                                           bool            $sendFile = true,
                                           int|string|null $customExpiration = null,
-                                          int|string|null      $cooldown = self::DEFAULT_COOLDOWN): MethodReply
+                                          int|string|null $cooldown = self::DEFAULT_COOLDOWN): MethodReply
     {
         global $product_downloads_table;
         $query = get_sql_query(
@@ -79,7 +79,7 @@ class AccountProductDownloads
     public function makeFileDownload(int|string      $productID, int|string $requestedByToken = null,
                                      int|string|null $maxDownloads = null, bool $sendFile = true,
                                      int|string|null $customExpiration = null,
-                                     int|string|null      $cooldown = self::DEFAULT_COOLDOWN): MethodReply
+                                     int|string|null $cooldown = self::DEFAULT_COOLDOWN): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::DOWNLOAD_PRODUCT, true);
@@ -225,7 +225,9 @@ class AccountProductDownloads
                 unlink($fileCopy);
                 return new MethodReply(false, "Failed to update user history.");
             }
-            $this->account->clearMemory(self::class);
+            $this->account->clearMemory(self::class, function ($value) {
+                return is_array($value);
+            });
             send_file_download($fileCopy, false);
             unlink($fileCopy);
             exit();

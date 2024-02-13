@@ -11,7 +11,9 @@ class AccountTransactions
 
     public function clearCache(): void
     {
-        $this->account->clearMemory(self::class);
+        $this->account->clearMemory(self::class, function ($value) {
+            return is_array($value);
+        });
     }
 
     public function getSuccessful(mixed $types = null, int $limit = PaymentProcessor::limit): array

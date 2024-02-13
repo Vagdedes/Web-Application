@@ -447,6 +447,8 @@ class Account
         if (isset($this->object->id)
             && isset($this->object->name)
             && isset($this->object->email_address)) {
+            $potentialKeys = 4;
+
             if ($key === null) {
                 clear_memory(
                     array(
@@ -456,7 +458,7 @@ class Account
                         get_sql_cache_key("email_address", $this->object->email_address)
                     ),
                     true,
-                    1,
+                    $potentialKeys,
                     $callable
                 );
             } else if (is_array($key)) {
@@ -474,7 +476,7 @@ class Account
                             array($item, $key4)
                         ),
                         true,
-                        1,
+                        $potentialKeys,
                         $callable
                     );
                 }
@@ -494,7 +496,7 @@ class Account
                         get_sql_cache_key("email_address", $this->object->email_address)
                     )),
                     true,
-                    1,
+                    $potentialKeys,
                     $callable
                 );
             }
