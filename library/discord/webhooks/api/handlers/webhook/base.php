@@ -1,13 +1,13 @@
 <?php
 
-function send_discord_webhook(string     $webhookURL,
-                              ?string    $avatarURL,
-                              int|string $color,
-                              ?string    $authorName, ?string $authorURL,
-                              ?string    $authorIconURL, string $titleName,
-                              ?string    $titleURL,
-                              ?string    $description, ?string $footerName,
-                              ?string    $footerURL, array $fields, int|string|float|bool $content = null): bool|string
+function send_discord_webhook(string          $webhookURL,
+                              ?string         $avatarURL,
+                              int|string|null $color,
+                              ?string         $authorName, ?string $authorURL,
+                              ?string         $authorIconURL, string $titleName,
+                              ?string         $titleURL,
+                              ?string         $description, ?string $footerName,
+                              ?string         $footerURL, array $fields, int|string|float|bool $content = null): bool|string
 {
     if (!is_url($webhookURL)) {
         return "Local: Failed webhook-url criteria";
@@ -18,7 +18,9 @@ function send_discord_webhook(string     $webhookURL,
             return "Local: Failed to find domain";
         }
     }
-    if (strlen($color) < 3 || strlen($color) > 6) {
+    $hasColor = $color !== null;
+
+    if ($hasColor && (strlen($color) < 3 || strlen($color) > 6)) {
         return "Local: Failed color criteria";
     }
     $hasAuthorURL = $authorURL !== null;
@@ -70,7 +72,7 @@ function send_discord_webhook(string     $webhookURL,
                 "description" => ($hasDescription ? $description : ""),
                 "url" => ($hasTitleURL ? $titleURL : ""),
                 "timestamp" => date("c", strtotime("now")),
-                "color" => hexdec($color),
+                "color" => ($hasColor ? hexdec($color) : "000000"),
 
                 // Footer
                 "footer" => array(

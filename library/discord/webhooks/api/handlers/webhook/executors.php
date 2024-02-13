@@ -2,7 +2,7 @@
 
 function send_discord_webhook_by_plan(int|string|float $planID, string $webhookPointer,
                                       ?array           $details = null,
-                                      string|int|null  $cooldown = null): int
+                                      string|int|null  $cooldown = null): int|string
 {
     $currentDate = get_current_date();
 
@@ -222,7 +222,6 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         $planObject->description = $informationPlaceholder->replace($planObject->description);
         $planObject->footer = $informationPlaceholder->replace($planObject->footer);
         $planObject->information = $informationPlaceholder->replace($planObject->information);
-        $planObject->user = $informationPlaceholder->replace($planObject->user);
     } else {
         global $discord_webhook_failed_executions_table;
         $code = 398054234;
@@ -348,6 +347,7 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         } else {
             $databaseInsertions[$originalCredential]["error"] = $execution;
             sql_insert($discord_webhook_failed_executions_table, $databaseInsertions[$originalCredential]);
+            return $execution;
         }
     }
     return 1;
