@@ -213,9 +213,13 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         }
         $planObject->color = $informationPlaceholder->replace($planObject->color);
         $planObject->avatar_image = $informationPlaceholder->replace($planObject->avatar_image);
+        $planObject->author_name = $informationPlaceholder->replace($planObject->author_name);
+        $planObject->author_url = $informationPlaceholder->replace($planObject->author_url);
+        $planObject->author_icon_url = $informationPlaceholder->replace($planObject->author_icon_url);
         $planObject->footer_image = $informationPlaceholder->replace($planObject->footer_image);
         $planObject->title_url = $informationPlaceholder->replace($planObject->title_url);
         $planObject->title = $informationPlaceholder->replace($planObject->title);
+        $planObject->description = $informationPlaceholder->replace($planObject->description);
         $planObject->footer = $informationPlaceholder->replace($planObject->footer);
         $planObject->information = $informationPlaceholder->replace($planObject->information);
         $planObject->user = $informationPlaceholder->replace($planObject->user);
@@ -324,8 +328,10 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
             $planObject->color,
             $planObject->author_name,
             $planObject->author_url,
+            $planObject->author_icon_url,
             $planObject->title,
             $planObject->title_url,
+            $planObject->description,
             $planObject->footer,
             $planObject->footer_image,
             $planObject->fields,

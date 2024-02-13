@@ -10,6 +10,7 @@ $discord_webhook_default_company_name = "Idealistic AI";
 $discord_webhook_default_email_name = "contact@" . get_domain(false);
 
 $discord_webhooks_accepted_domains = array(
+    "discord.gg",
     "discord.com",
     "discordapp.com"
 );

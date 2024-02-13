@@ -1092,11 +1092,14 @@ if (true
                                         "value" => "``$information``",
                                         "inline" => false)
                                 );
-                                $response = send_discord_webhook($url, null,
-                                    $color, $author,
-                                    null, $titleName, null,
+                                $response = send_discord_webhook(
+                                    $url, null,
+                                    $color,
+                                    $author, null, null,
+                                    $titleName, null, null,
                                     null, null,
-                                    $details);
+                                    $details
+                                );
 
                                 if ($response === true) {
                                     echo "true";
@@ -1163,11 +1166,14 @@ if (true
                                         "value" => "``$information``",
                                         "inline" => false)
                                 );
-                                $response = send_discord_webhook($url, null,
-                                    $color, $author,
-                                    null, $titleName, null,
+                                $response = send_discord_webhook(
+                                    $url, null,
+                                    $color,
+                                    $author, null, null,
+                                    $titleName, null, null,
                                     null, null,
-                                    $details);
+                                    $details
+                                );
 
                                 if ($response === true) {
                                     echo "true";
@@ -1230,11 +1236,14 @@ if (true
                                         "value" => "``$information``",
                                         "inline" => false)
                                 );
-                                $response = send_discord_webhook($url, null,
-                                    $color, $author,
-                                    null, $titleName, null,
+                                $response = send_discord_webhook(
+                                    $url, null,
+                                    $color,
+                                    $author, null, null,
+                                    $titleName, null, null,
                                     null, null,
-                                    $details);
+                                    $details
+                                );
 
                                 if ($response === true) {
                                     echo "true";
@@ -1296,11 +1305,14 @@ if (true
                                         "value" => "``$information``",
                                         "inline" => false)
                                 );
-                                $response = send_discord_webhook($url, null,
-                                    $color, $author,
-                                    null, $titleName, null,
+                                $response = send_discord_webhook(
+                                    $url, null,
+                                    $color,
+                                    $author, null, null,
+                                    $titleName, null, null,
                                     null, null,
-                                    $details);
+                                    $details
+                                );
 
                                 if ($response === true) {
                                     echo "true";
