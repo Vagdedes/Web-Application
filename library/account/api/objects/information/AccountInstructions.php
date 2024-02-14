@@ -70,6 +70,22 @@ class AccountInstructions
             )
         );
         set_sql_cache(null, self::class);
+        $this->replacements = get_sql_query(
+            InstructionsTable::REPLACEMENTS,
+            null,
+            array(
+                array("deletion_date", null),
+                null,
+                array("application_id", "IS", null, 0),
+                array("application_id", $this->account->getDetail("application_id")),
+                null,
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
+            )
+        );
+        //set_sql_cache(null, self::class); // Bot does not load with it for some reason
         $this->browse = get_sql_query(
             InstructionsTable::BROWSE,
             null,
@@ -87,31 +103,15 @@ class AccountInstructions
         );
 
         if (!empty($this->browse)) {
-            foreach ($this->browse as $arrayKey => $browse) {
-                if ($browse->contains === null) {
-                    $browse->contains = array();
+            foreach ($this->browse as $arrayKey => $arrayValue) {
+                if ($arrayValue->contains === null) {
+                    $arrayValue->contains = array();
                 } else {
-                    $browse->contains = explode("|", $browse->contains);
+                    $arrayValue->contains = explode("|", $arrayValue->contains);
                 }
-                $this->browse[$arrayKey] = $browse;
+                $this->browse[$arrayKey] = $arrayValue;
             }
         }
-        set_sql_cache(null, self::class);
-        $this->replacements = get_sql_query(
-            InstructionsTable::REPLACEMENTS,
-            null,
-            array(
-                array("deletion_date", null),
-                null,
-                array("application_id", "IS", null, 0),
-                array("application_id", $this->account->getDetail("application_id")),
-                null,
-                null,
-                array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", get_current_date()),
-                null
-            )
-        );
     }
 
     // Separator
