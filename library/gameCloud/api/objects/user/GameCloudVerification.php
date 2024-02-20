@@ -25,13 +25,9 @@ class GameCloudVerification
         /*1*/
         "file", // file bans
         /*2*/
-        "mass", // mass check exemption
+        "analysis", // mass check exemption
         /*3*/
         "customer-support", // customer-support feature bans
-        /*4*/
-        "timeout", // system timeouts
-        /*5*/
-        "server-limit" // server ip/port limits
     );
 
     private GameCloudUser $user;
@@ -85,9 +81,6 @@ class GameCloudVerification
 
         if (!empty($query)) {
             $date = get_current_date();
-            $licenseType = $this::managed_license_types[0];
-            $fileType = $this::managed_license_types[1];
-            $massType = $this::managed_license_types[2];
 
             foreach ($query as $row) {
                 $expiration_date = $row->expiration_date;
@@ -97,16 +90,16 @@ class GameCloudVerification
                     $number = $row->number;
 
                     if ($number == $licenseID) {
-                        if ($type == $licenseType) { // license
+                        if ($type == $this::managed_license_types[0]) { // license
                             $result = $this::suspended_user_value;
                             break;
                         }
-                        if ($result === $this::ordinary_verification_value && $type == $massType) { // mass exemption
+                        if ($result === $this::ordinary_verification_value && $type == $this::managed_license_types[2]) { // mass exemption
                             $result = $this::skip_analysis_value;
                             // Do not stop as this is not a reason to unverify the user
                         }
                     }
-                    if ($type == $fileType && $number == $fileID) { // file
+                    if ($type == $this::managed_license_types[1] && $number == $fileID) { // file
                         $result = $this::suspended_user_value;
                         break;
                     }
@@ -117,32 +110,40 @@ class GameCloudVerification
         // Result
         if ($result > 0
             && $result !== $this::skip_analysis_value
-            && !$this->isMassVerified($productID, $ipAddress)) {
+            && !$this->isAnalysisVerified($productID, $ipAddress)) {
             $result = $this::failed_analysis_value;
         }
         set_key_value_pair($cacheKey, $result, "1 hour");
         return $result;
     }
 
-    private function isMassVerified(int|string $productID, string $ipAddress): bool
+    private function isAnalysisVerified(int|string $productID, string $ipAddress): bool
     {
-        global $verifications_table, $license_management_table;
-        $date = get_current_date();
         $platform = $this->user->getPlatform();
         $licenseID = $this->user->getLicense();
-        $massType = $this::managed_license_types[2];
+        $cacheKey = array(
+            __METHOD__,
+            $platform,
+            $licenseID
+        );
+        $cache = get_key_value_pair($cacheKey);
+
+        if (is_bool($cache)) {
+            return $cache;
+        }
+        global $verifications_table, $license_management_table;
         $query = get_sql_query(
             $license_management_table,
             array("id"),
             array(
-                array("type", "=", $massType),
+                array("type", "=", $this::managed_license_types[2]),
                 array("platform_id", "=", $platform),
                 array("number", "=", $licenseID),
                 array("product_id", "=", $productID),
                 array("deletion_date", null),
                 null,
                 array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", $date),
+                array("expiration_date", ">", get_current_date()),
                 null,
             ),
             null,
@@ -266,15 +267,13 @@ class GameCloudVerification
                 }
             }
         }
-
-        $this->addLicenseManagement(null, $massType, null, null, "1 day", true);
+        set_key_value_pair($cacheKey, $result, "1 hour");
         return $result;
     }
 
     public function addLicenseManagement(int|string|null $productID, string $type,
                                          ?string         $reason,
-                                         ?string         $duration, bool $automated,
-                                         bool            $newRow = false): bool
+                                         ?string         $duration, bool $automated): bool
     {
         if (!in_array($type, $this::managed_license_types)) {
             return false;
@@ -287,7 +286,7 @@ class GameCloudVerification
         $date = get_current_date();
         $platform = $this->user->getPlatform();
         $licenseID = $this->user->getLicense();
-        $query = $newRow ? null : get_sql_query(
+        $query = get_sql_query(
             $license_management_table,
             array("id"),
             array(

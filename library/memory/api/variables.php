@@ -3,10 +3,10 @@ $memory_object_cache = array();
 
 $memory_reserved_keys = array(
     0 => 0xff1, // Reserved for caching memory segment ids
+    1 => 0xff2 // Reserved for caching memory segment id difference
 );
 
 $memory_permissions = 0644;
-$memory_permissions_string = "644";
 $memory_filler_character = " ";
 $memory_starting_bytes = 2;
 $memory_segment_ignore_errors = array(
@@ -24,6 +24,5 @@ $memory_processes_table = "memory.processes";
 
 $memory_clearance_past = 60; // 1 minute
 $memory_clearance_row_limit = 50;
-$memory_process_default_seconds = 60;
 
 

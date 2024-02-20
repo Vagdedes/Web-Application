@@ -71,9 +71,8 @@ function get_memory_segment_ids(): array
     if (is_array($array)) {
         return $array;
     } else {
-        global $memory_permissions_string;
         //$stringToFix = "echo 32768 >/proc/sys/kernel/shmmni";
-        $oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
+        //$oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
         $timeToCalculate = microtime(true);
         $array = explode(chr(32), shell_exec("ipcs -m"));
 
@@ -88,8 +87,25 @@ function get_memory_segment_ids(): array
         }
         $memoryBlock->set($array);
 
+        // Separator
+        $memoryDifferenceBlock = new IndividualMemoryBlock($memory_reserved_keys[1]);
+        $current = sizeof($array);
+        $difference = $memoryDifferenceBlock->get();
+
+        if (is_numeric($difference)) {
+            $difference = $current - $difference;
+
+            if ($difference < 0) {
+                $memoryDifferenceBlock->set($current);
+            } else if ($difference >= 250) {
+                $memoryDifferenceBlock->set($current);
+                clear_memory_segments();
+            }
+        } else {
+            $memoryDifferenceBlock->set($current);
+        }
         if (microtime(true) - $timeToCalculate >= 0.1) {
-            clear_memory_expired_segments();
+            clear_memory_segments();
         }
         return $array;
     }
@@ -98,11 +114,11 @@ function get_memory_segment_ids(): array
 function clear_memory_segment_ids_cache(): void
 {
     global $memory_reserved_keys;
-    $segmentIDCacheBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
-    $segmentIDCacheBlock->clear(false, true);
+    $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
+    $memoryBlock->clear(false, true);
 }
 
-function clear_memory_expired_segments(int $makeSpace = 0): void
+function clear_memory_segments(int $makeSpace = 0): void
 {
     $segments = get_memory_segment_ids();
 
@@ -269,7 +285,8 @@ class IndividualMemoryBlock
     /**
      * @throws Exception
      */
-    public function set(mixed $value, int|string|null|bool $expiration = false, bool $ifEmpty = false): bool
+    public function set(mixed $value, int|string|null|bool $expiration = false,
+                        bool  $ifEmpty = false, bool $recursion = true): bool
     {
         if ($ifEmpty && $this->getRaw() !== null) {
             return false;
@@ -316,8 +333,13 @@ class IndividualMemoryBlock
             $block = $this->internalGetBlock($exceptionID, $bytesSize, true, true); // open default
 
             if (!$block) {
-                clear_memory_expired_segments(1);
-                return false;
+                clear_memory_segments(1);
+
+                if ($recursion) {
+                    return $this->set($value, $expiration, $ifEmpty, false);
+                } else {
+                    return false;
+                }
             } else {
                 global $memory_reserved_keys;
 
