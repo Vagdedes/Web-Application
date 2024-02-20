@@ -130,145 +130,146 @@ class GameCloudVerification
 
         if (is_bool($cache)) {
             return $cache;
-        }
-        global $verifications_table, $license_management_table;
-        $query = get_sql_query(
-            $license_management_table,
-            array("id"),
-            array(
-                array("type", "=", $this::managed_license_types[2]),
-                array("platform_id", "=", $platform),
-                array("number", "=", $licenseID),
-                array("product_id", "=", $productID),
-                array("deletion_date", null),
-                null,
-                array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", get_current_date()),
-                null,
-            ),
-            null,
-            1
-        );
-        $result = true;
-
-        if (empty($query)) {
+        } else {
+            global $verifications_table, $license_management_table;
             $query = get_sql_query(
-                $verifications_table,
-                array("license_id", "platform_id"),
+                $license_management_table,
+                array("id"),
                 array(
-                    array("ip_address", $ipAddress),
-                    array("last_access_date", ">=", get_past_date("1 month")),
-                )
+                    array("type", "=", $this::managed_license_types[2]),
+                    array("platform_id", "=", $platform),
+                    array("number", "=", $licenseID),
+                    array("product_id", "=", $productID),
+                    array("deletion_date", null),
+                    null,
+                    array("expiration_date", "IS", null, 0),
+                    array("expiration_date", ">", get_current_date()),
+                    null,
+                ),
+                null,
+                1
             );
+            $result = true;
 
-            if (!empty($query)) {
-                $uniqueLicenses = array();
-
-                foreach ($query as $row) {
-                    $rowPlatform = $row->platform_id;
-                    $uniqueLicense = ($rowPlatform === null ? "" : $rowPlatform) . "-" . $row->license_id;
-
-                    if (!in_array($uniqueLicense, $uniqueLicenses)) {
-                        $uniqueLicenses[] = $uniqueLicense;
-
-                        if (sizeof($uniqueLicenses) === $this::maximum_licenses_per_ip) {
-                            $this->addLicenseManagement(null, $this::managed_license_types[0], "maximumLicensesPerIP", null, null, true);
-                            $result = false;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Separator
-
-            if ($result) {
+            if (empty($query)) {
                 $query = get_sql_query(
                     $verifications_table,
-                    array("ip_address", "port", "file_id"),
+                    array("license_id", "platform_id"),
                     array(
-                        array("license_id", $licenseID),
-                        array("platform_id", $platform),
-                        array("last_access_date", ">", get_past_date("1 month")),
+                        array("ip_address", $ipAddress),
+                        array("last_access_date", ">=", get_past_date("1 month")),
                     )
                 );
 
                 if (!empty($query)) {
-                    $ipAddresses = array();
-                    $ports = array();
-                    $files = array();
+                    $uniqueLicenses = array();
 
                     foreach ($query as $row) {
-                        $ipAddress = $row->ip_address;
-                        $port = $row->port;
-                        $file = $row->file_id;
+                        $rowPlatform = $row->platform_id;
+                        $uniqueLicense = ($rowPlatform === null ? "" : $rowPlatform) . "-" . $row->license_id;
 
-                        if (!in_array($ipAddress, $ipAddresses)) {
-                            $ipAddresses[] = $ipAddress;
+                        if (!in_array($uniqueLicense, $uniqueLicenses)) {
+                            $uniqueLicenses[] = $uniqueLicense;
 
-                            if (sizeof($ipAddresses) == $this::monthly_ip_address_limit) {
-                                $this->addLicenseManagement(null, $this::managed_license_types[0], "monthlyIPAddressLimit", null, null, true);
-                                $result = false;
-                                break;
-                            }
-                        }
-                        if (!in_array($port, $ports)) {
-                            $ports[] = $port;
-
-                            if (sizeof($ports) === $this::monthly_ports_limit) {
-                                $this->addLicenseManagement(null, $this::managed_license_types[0], "monthlyPortsLimit", null, null, true);
-                                $result = false;
-                                break;
-                            }
-                        }
-                        if (!in_array($file, $files)) {
-                            $files[] = $file;
-
-                            if (sizeof($files) === $this::monthly_file_limit) {
-                                $this->addLicenseManagement(null, $this::managed_license_types[0], "monthlyFileLimit", null, null, true);
+                            if (sizeof($uniqueLicenses) === $this::maximum_licenses_per_ip) {
+                                $this->addLicenseManagement(null, $this::managed_license_types[0], "maximumLicensesPerIP", null, true);
                                 $result = false;
                                 break;
                             }
                         }
                     }
                 }
-            }
 
-            // Separator
+                // Separator
 
-            if ($result) {
-                global $staff_players_table;
-                $query = get_sql_query(
-                    $staff_players_table,
-                    array("uuid"),
-                    array(
-                        array("license_id", $licenseID),
-                        array("platform_id", $platform),
-                        array("last_access_date", ">", get_past_date("1 month")),
-                    )
-                );
+                if ($result) {
+                    $query = get_sql_query(
+                        $verifications_table,
+                        array("ip_address", "port", "file_id"),
+                        array(
+                            array("license_id", $licenseID),
+                            array("platform_id", $platform),
+                            array("last_access_date", ">", get_past_date("1 month")),
+                        )
+                    );
 
-                if (!empty($query)) {
-                    $uuids = array();
+                    if (!empty($query)) {
+                        $ipAddresses = array();
+                        $ports = array();
+                        $files = array();
 
-                    foreach ($query as $row) {
-                        $uuid = $row->uuid;
+                        foreach ($query as $row) {
+                            $ipAddress = $row->ip_address;
+                            $port = $row->port;
+                            $file = $row->file_id;
 
-                        if (!in_array($uuid, $uuids)) {
-                            $uuids[] = $uuid;
+                            if (!in_array($ipAddress, $ipAddresses)) {
+                                $ipAddresses[] = $ipAddress;
 
-                            if (sizeof($uuids) == $this::monthly_staff_limit) {
-                                $this->addLicenseManagement(null, $this::managed_license_types[0], "monthlyStaffLimit", null, null, true);
-                                $result = false;
-                                break;
+                                if (sizeof($ipAddresses) == $this::monthly_ip_address_limit) {
+                                    $this->addLicenseManagement(null, $this::managed_license_types[0], "monthlyIPAddressLimit", null, true);
+                                    $result = false;
+                                    break;
+                                }
+                            }
+                            if (!in_array($port, $ports)) {
+                                $ports[] = $port;
+
+                                if (sizeof($ports) === $this::monthly_ports_limit) {
+                                    $this->addLicenseManagement(null, $this::managed_license_types[0], "monthlyPortsLimit", null, true);
+                                    $result = false;
+                                    break;
+                                }
+                            }
+                            if (!in_array($file, $files)) {
+                                $files[] = $file;
+
+                                if (sizeof($files) === $this::monthly_file_limit) {
+                                    $this->addLicenseManagement(null, $this::managed_license_types[0], "monthlyFileLimit", null, true);
+                                    $result = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Separator
+
+                if ($result) {
+                    global $staff_players_table;
+                    $query = get_sql_query(
+                        $staff_players_table,
+                        array("uuid"),
+                        array(
+                            array("license_id", $licenseID),
+                            array("platform_id", $platform),
+                            array("last_access_date", ">", get_past_date("1 month")),
+                        )
+                    );
+
+                    if (!empty($query)) {
+                        $uuids = array();
+
+                        foreach ($query as $row) {
+                            $uuid = $row->uuid;
+
+                            if (!in_array($uuid, $uuids)) {
+                                $uuids[] = $uuid;
+
+                                if (sizeof($uuids) == $this::monthly_staff_limit) {
+                                    $this->addLicenseManagement(null, $this::managed_license_types[0], "monthlyStaffLimit", null, true);
+                                    $result = false;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
             }
+            set_key_value_pair($cacheKey, $result, "1 hour");
+            return $result;
         }
-        set_key_value_pair($cacheKey, $result, "1 hour");
-        return $result;
     }
 
     public function addLicenseManagement(int|string|null $productID, string $type,
