@@ -506,14 +506,9 @@ if (true
                             }
                             break;
                         default:
-                            $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-type");
                             break;
                     }
-                } else {
-                    $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-value");
                 }
-            } else {
-                $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
             }
         } else if ($data == "outdatedVersionCheck") {
             $outdatedVersionCheck_refreshRate = array(1, "hour");
@@ -626,8 +621,6 @@ if (true
                         }
                     }
                 }
-            } else {
-                $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-port");
             }
         } else if ($data == "punishedPlayers") {
             if ($gameCloudUser->getInformation()->getConnectionCount($productID, $ipAddressModified, $version)
@@ -736,14 +729,8 @@ if (true
                             }
                             set_key_value_pair($cacheKey, $result, "10 seconds");
                             echo $result;
-                        } else {
-                            $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-ipAddress");
                         }
-                    } else {
-                        $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-uuid");
                     }
-                } else {
-                    $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
                 }
             }
         } else if ($data == "ownsProduct") {
@@ -811,11 +798,7 @@ if (true
                             }
                         }
                     }
-                } else {
-                    $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-value");
                 }
-            } else {
-                $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data);
             }
         } else if ($data == "staffAnnouncements") {
             try {
@@ -922,11 +905,7 @@ if (true
                     } else {
                         echo "false";
                     }
-                } else {
-                    $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-value");
                 }
-            } else {
-                $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
             }
         } else if ($data == "crossServerInformation") {
             $limit = 600;
@@ -988,14 +967,9 @@ if (true
                             echo "true";
                             break;
                         default:
-                            $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-type");
                             break;
                     }
-                } else {
-                    $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-value");
                 }
-            } else {
-                $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
             }
         } else if ($data == "discordWebhooks") {
             $maximum = 12;
@@ -1122,8 +1096,6 @@ if (true
                         } else {
                             echo "false";
                         }
-                    } else {
-                        $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
                     }
                     break;
                 case 2:
@@ -1196,8 +1168,6 @@ if (true
                         } else {
                             echo "false";
                         }
-                    } else {
-                        $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
                     }
                     break;
                 case 3:
@@ -1266,8 +1236,6 @@ if (true
                         } else {
                             echo "false";
                         }
-                    } else {
-                        $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
                     }
                     break;
                 case 4:
@@ -1335,12 +1303,9 @@ if (true
                         } else {
                             echo "false";
                         }
-                    } else {
-                        $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
                     }
                     break;
                 default:
-                    $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-version");
                     break;
             }
         } else if ($data == "customerSupport") {
@@ -1520,19 +1485,13 @@ if (true
                                     }
                                     break;
                                 default:
-                                    $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-columnType");
                                     break;
                             }
                             break;
                         default:
-                            $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-contactPlatform");
                             break;
                     }
-                } else {
-                    $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
                 }
-            } else {
-                $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data);
             }
         } else if ($data == "punishedPlayers") {
             if ($gameCloudUser->getInformation()->getConnectionCount($productID, $ipAddressModified, $version)
@@ -1570,17 +1529,12 @@ if (true
                                         $punishedPlayer->ipAddress = $noPlayerIpAddress ? null : $playerIpAddress;
                                         $punishedPlayers[] = $punishedPlayer;
                                     } else {
-                                        $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-ipAddress");
                                         break;
                                     }
                                 } else {
-                                    $punishedPlayers = array();
-                                    $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-uuid");
                                     break;
                                 }
                             } else {
-                                $punishedPlayers = array();
-                                $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split"); // Attention: added recently
                                 break;
                             }
                         }
@@ -1691,8 +1645,6 @@ if (true
                                 echo "false";
                             }
                         }
-                    } else {
-                        $gameCloudUser->getVerification()->timeoutAccess($version, $productID, $ipAddressModified, $action . "-" . $data . "-split");
                     }
                 }
             }
