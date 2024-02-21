@@ -388,14 +388,19 @@ class AccountInstructions
         return $this->placeholders;
     }
 
-    public function getLocal(?string $userInput = null): array
+    public function getLocal(?array $allow = null, ?string $userInput = null): array
     {
         if (!empty($this->localInstructions)) {
+            $hasSpecific = !empty($allow);
             $array = $this->localInstructions;
 
-            foreach ($array as $value) {
-                if ($value->information !== null) {
-                    $value->information = $this->prepareRow($value, $value->information, $userInput);
+            foreach ($array as $arrayKey=> $row) {
+                if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
+                    if ($row->information !== null) { // Could be just the disclaimer
+                        $row->information = $this->prepareRow($row, $row->information, $userInput);
+                    }
+                } else {
+                    unset($array[$arrayKey]);
                 }
             }
             return $array;
@@ -409,7 +414,7 @@ class AccountInstructions
         $array = $this->publicInstructions;
 
         if (!empty($array)) {
-            $hasSpecific = $allow !== null;
+            $hasSpecific = !empty($allow);
 
             foreach ($array as $arrayKey => $row) {
                 if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
