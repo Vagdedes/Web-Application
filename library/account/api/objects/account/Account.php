@@ -64,9 +64,10 @@ class Account
         $hasIdentification = $identification !== null;
 
         if (!$hasIdentification
-            && ($hasID ? (!is_numeric($id) || $id <= 0) : !$hasUsername && !is_email($email))) {
+            && ($hasID ? $id <= 0 : !$hasUsername && !is_email($email))) {
             $this->exists = false;
-            $this->object = null;
+            $this->object = new stdClass();
+            $this->object->application_id = $applicationID;
         } else {
             if ($hasIdentification) {
                 global $account_identification_table;
