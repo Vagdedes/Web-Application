@@ -43,10 +43,7 @@ class AccountInstructions
             null,
             array(
                 array("deletion_date", null),
-                null,
-                array("application_id", "IS", null, 0),
                 array("application_id", $this->account->getDetail("application_id")),
-                null,
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
@@ -60,10 +57,7 @@ class AccountInstructions
             null,
             array(
                 array("deletion_date", null),
-                null,
-                array("application_id", "IS", null, 0),
                 array("application_id", $this->account->getDetail("application_id")),
-                null,
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
@@ -76,10 +70,7 @@ class AccountInstructions
             null,
             array(
                 array("deletion_date", null),
-                null,
-                array("application_id", "IS", null, 0),
                 array("application_id", $this->account->getDetail("application_id")),
-                null,
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
@@ -394,7 +385,7 @@ class AccountInstructions
             $hasSpecific = !empty($allow);
             $array = $this->localInstructions;
 
-            foreach ($array as $arrayKey=> $row) {
+            foreach ($array as $arrayKey => $row) {
                 if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
                     if ($row->information !== null) { // Could be just the disclaimer
                         $row->information = $this->prepareRow($row, $row->information, $userInput);
