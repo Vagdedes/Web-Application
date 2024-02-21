@@ -73,7 +73,6 @@ function get_memory_segment_ids(): array
     } else {
         //$stringToFix = "echo 32768 >/proc/sys/kernel/shmmni";
         //$oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
-        $timeToCalculate = microtime(true);
         $array = explode(chr(32), shell_exec("ipcs -m"));
 
         if (!empty($array)) {
@@ -93,19 +92,12 @@ function get_memory_segment_ids(): array
         $difference = $memoryDifferenceBlock->get();
 
         if (is_numeric($difference)) {
-            $difference = $current - $difference;
-
-            if ($difference < 0) {
-                $memoryDifferenceBlock->set($current);
-            } else if ($difference >= 250) {
-                $memoryDifferenceBlock->set($current);
+            if ($current - $difference >= 250) {
                 clear_memory_segments();
+                $memoryDifferenceBlock->clear();
             }
         } else {
             $memoryDifferenceBlock->set($current);
-        }
-        if (microtime(true) - $timeToCalculate >= 0.1) {
-            clear_memory_segments();
         }
         return $array;
     }
