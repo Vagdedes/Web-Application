@@ -4,21 +4,23 @@ class AccountInstructions
 {
 
     private Account $account;
-    private array $localInstructions, $publicInstructions,
-        $placeholders, $browse, $replacements;
-    private string $placeholderStart, $placeholderMiddle, $placeholderEnd;
-
-    public const
-        DEFAULT_PLACEHOLDER_START = InformationPlaceholder::STARTER,
-        DEFAULT_PLACEHOLDER_MIDDLE = InformationPlaceholder::DIVISOR_REPLACEMENT,
-        DEFAULT_PLACEHOLDER_END = InformationPlaceholder::ENDER;
+    private array
+        $localInstructions,
+        $publicInstructions,
+        $placeholders,
+        $browse,
+        $replacements;
+    private string
+        $placeholderStart,
+        $placeholderMiddle,
+        $placeholderEnd;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
-        $this->placeholderStart = self::DEFAULT_PLACEHOLDER_START;
-        $this->placeholderMiddle = self::DEFAULT_PLACEHOLDER_MIDDLE;
-        $this->placeholderEnd = self::DEFAULT_PLACEHOLDER_END;
+        $this->placeholderStart = InformationPlaceholder::STARTER;
+        $this->placeholderMiddle = InformationPlaceholder::DIVISOR_REPLACEMENT;
+        $this->placeholderEnd = InformationPlaceholder::ENDER;
         set_sql_cache(null, self::class);
         $this->localInstructions = get_sql_query(
             InstructionsTable::LOCAL,
