@@ -7,7 +7,6 @@ class AccountInstructions
     private array
         $localInstructions,
         $publicInstructions,
-        $placeholders,
         $browse,
         $replacements;
     private string
@@ -54,22 +53,6 @@ class AccountInstructions
                 null
             ),
             "priority DESC"
-        );
-        set_sql_cache(null, self::class);
-        $this->placeholders = get_sql_query(
-            InstructionsTable::PLACEHOLDERS,
-            null,
-            array(
-                array("deletion_date", null),
-                null,
-                array("application_id", "IS", null, 0),
-                array("application_id", $this->account->getDetail("application_id")),
-                null,
-                null,
-                array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", get_current_date()),
-                null
-            )
         );
         set_sql_cache(null, self::class);
         $this->replacements = get_sql_query(
@@ -141,31 +124,34 @@ class AccountInstructions
                             bool    $recursive = true,
                             bool    $local = false): array
     {
-        if ($object !== null && !empty($this->placeholders)) {
-            $placeholders = $this->placeholders;
-
-            foreach ($placeholders as $arrayKey => $placeholder) {
-                if (isset($object->{$placeholder->placeholder})) {
-                    unset($placeholders[$arrayKey]);
-                    $value = $local ? $object->{$placeholder->placeholder}
-                        : $this->prepareValue(
-                            $object->{$placeholder->placeholder},
-                            $object,
-                            $dynamicPlaceholders,
-                            $recursive
-                        );
-
-                    foreach ($messages as $messageKey => $message) {
-                        if (!empty($message)) {
-                            $messages[$messageKey] = str_replace(
-                                $this->placeholderStart . $placeholder->placeholder . $this->placeholderEnd,
-                                $value,
-                                $message
-                            );
-                        }
+        if ($object !== null) {
+            foreach ($object as $objectKey => $objectValue) {
+                if ($local) {
+                    if (!is_string($objectValue)) {
+                        continue;
                     }
-                } else if ($placeholder->dynamic === null) {
-                    unset($placeholders[$arrayKey]);
+                    $value = $objectValue;
+                } else {
+                    $value = $this->prepareValue(
+                        $objectValue,
+                        $object,
+                        $dynamicPlaceholders,
+                        $recursive
+                    );
+
+                    if ($value === null) {
+                        continue;
+                    }
+                }
+
+                foreach ($messages as $messageKey => $message) {
+                    if (!empty($message)) {
+                        $messages[$messageKey] = str_replace(
+                            $this->placeholderStart . $objectKey . $this->placeholderEnd,
+                            $value,
+                            $message
+                        );
+                    }
                 }
             }
 
@@ -185,18 +171,6 @@ class AccountInstructions
                                 $keyWord = array_shift($explode);
 
                                 if (array_key_exists($keyWord, $dynamicPlaceholders)) {
-                                    $found = false;
-
-                                    foreach ($placeholders as $placeholder) {
-                                        if ($placeholder->placeholder == $keyWord) {
-                                            $found = true;
-                                            break;
-                                        }
-                                    }
-
-                                    if (!$found) {
-                                        continue;
-                                    }
                                     $keyWordMethod = $dynamicPlaceholders[$keyWord];
 
                                     if (is_array($keyWordMethod)) {
@@ -212,6 +186,10 @@ class AccountInstructions
                                                         array(),
                                                         $recursive
                                                     );
+
+                                                    if ($value === null) {
+                                                        $value = "";
+                                                    }
                                                 } catch (Throwable $e) {
                                                     $value = "";
                                                 }
@@ -238,6 +216,10 @@ class AccountInstructions
                                                         array(),
                                                         $recursive
                                                     );
+
+                                                    if ($value === null) {
+                                                        $value = "";
+                                                    }
                                                 } catch (Throwable $e) {
                                                     $value = "";
                                                 }
@@ -257,6 +239,10 @@ class AccountInstructions
                                                 array(),
                                                 $recursive
                                             );
+
+                                            if ($value === null) {
+                                                $value = "";
+                                            }
                                         } catch (Throwable $e) {
                                             $value = "";
                                         }
@@ -277,7 +263,7 @@ class AccountInstructions
         return $messages;
     }
 
-    private function prepareValue(mixed $value, object $object, array $dynamicPlaceholders, bool $recursive): mixed
+    private function prepareValue(mixed $value, object $object, array $dynamicPlaceholders, bool $recursive): ?string
     {
         if (is_array($value)) {
             $array = $value;
@@ -301,16 +287,18 @@ class AccountInstructions
                     $value .= "\n";
                 }
             }
-        } else {
-            $value = $this->replace(
+            return $value;
+        } else if (is_string($value)) {
+            return $this->replace(
                 array($value),
                 $object,
                 $dynamicPlaceholders,
                 false,
                 true
             )[0];
+        } else {
+            return null;
         }
-        return $value;
     }
 
     private function prepareRow(object $row, string $data, ?string $userInput = null): string
