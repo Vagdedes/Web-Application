@@ -7,12 +7,7 @@ $memory_reserved_keys = array(
 );
 
 $memory_permissions = 0644;
-$memory_filler_character = " ";
 $memory_starting_bytes = 2;
-$memory_segment_ignore_errors = array(
-    "No such file or directory",
-    "No space left on device"
-);
 
 $memory_reserved_names = array("cooldowns", "limits", "keyValuePairs");
 

@@ -115,7 +115,7 @@ function clear_memory(array|null $keys,
     global $memory_object_cache;
 
     if ($localSegments === null) {
-        //share_clear_memory($keys, $abstractSearch);
+        share_clear_memory($keys, $abstractSearch);
     }
     if (!empty($keys)) {
         $hasLimit = is_numeric($stopAfterSuccessfulIterations) && $stopAfterSuccessfulIterations > 0;
@@ -144,7 +144,7 @@ function clear_memory(array|null $keys,
                                     }
                                 }
                                 if ($valueVerifier === null || $valueVerifier($memoryBlock->get())) {
-                                    $memoryBlock->clear();
+                                    $memoryBlock->delete();
                                     unset($memory_object_cache[$segment]);
 
                                     if ($hasLimit) {
@@ -157,7 +157,7 @@ function clear_memory(array|null $keys,
                                 }
                             } else if (str_contains($memoryKey, $key)
                                 && ($valueVerifier === null || $valueVerifier($memoryBlock->get()))) {
-                                $memoryBlock->clear();
+                                $memoryBlock->delete();
                                 unset($memory_object_cache[$segment]);
 
                                 if ($hasLimit) {
@@ -179,7 +179,7 @@ function clear_memory(array|null $keys,
                 foreach ($keys as $key) {
                     $name .= $key;
                     $memoryBlock = new IndividualMemoryBlock($name);
-                    $memoryBlock->clear();
+                    $memoryBlock->delete();
                     unset($memory_object_cache[$name]);
                 }
             }
@@ -190,7 +190,7 @@ function clear_memory(array|null $keys,
         if (!empty($segments)) {
             foreach ($segments as $segment) {
                 $memoryBlock = new IndividualMemoryBlock($segment);
-                $memoryBlock->clear();
+                $memoryBlock->delete();
                 unset($memory_object_cache[$segment]);
             }
         }
