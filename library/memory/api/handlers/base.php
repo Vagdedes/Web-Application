@@ -21,40 +21,44 @@ function get_memory_segment_ids(): array
     } else {
         //$stringToFix = "echo 32768 >/proc/sys/kernel/shmmni";
         //$oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
-        $array = explode(chr(32), shell_exec("ipcs -m"));
-        $current = 0;
+        $query = explode(chr(32), shell_exec("ipcs -m"));
+        $array = array();
 
-        if (!empty($array)) {
-            foreach ($array as $key => $value) {
-                if (empty($value) || is_numeric($value) || $value[0] === "w") {
-                    unset($array[$key]);
-                } else {
-                    $array[$key] = @hexdec($value);
-                    $current++;
+        if (!empty($query)) {
+            $memoryBlock->set($array, false, false, true); // Prevent redundancy
+            $size = 0;
+
+            foreach ($query as $value) {
+                $char = $value[0] ?? null;
+
+                if ($char !== null
+                    && $char !== "w"
+                    && !is_numeric($value)) {
+                    $array[] = @hexdec($value);
+                    $size++;
                 }
             }
-        }
+            $memoryBlock->set($array, false, false, true);
 
-        // Separator
-        $memoryDifferenceBlock = new IndividualMemoryBlock($memory_reserved_keys[1]);
-        $difference = $memoryDifferenceBlock->get();
+            // Separator
 
-        if (is_numeric($difference)) {
-            $difference = $current - $difference;
+            $memoryDifferenceBlock = new IndividualMemoryBlock($memory_reserved_keys[1]);
+            $difference = $memoryDifferenceBlock->get();
 
-            if ($difference >= 250) {
-                clear_memory_segments($array);
-                $memoryDifferenceBlock->delete(true);
-            } else {
-                $memoryBlock->set($array);
+            if (is_numeric($difference)) {
+                $difference = $size - $difference;
 
-                if ($difference < 0) {
-                    $memoryDifferenceBlock->set($current, false, false, true);
+                if ($difference >= 250) {
+                    clear_memory_segments($array);
+                    $memoryDifferenceBlock->delete(true); // Clears segment ID cache
+                } else if ($difference < 0) { // Correct in case
+                    $memoryDifferenceBlock->set($size, false, false, true);
                 }
+            } else {
+                $memoryDifferenceBlock->set($size, false, false, true);
             }
         } else {
-            $memoryBlock->set($array, false, true, true);
-            $memoryDifferenceBlock->set($current, false, false, true);
+            $memoryBlock->set($array, false, false, true);
         }
         return $array;
     }
@@ -73,7 +77,7 @@ function clear_memory_segments(array $segments, int $deleteBlocksRegardless = 0)
 
             if ($isNull || isset($object->invalid)) {
                 if (!$isNull
-                    && $memoryBlock->delete(true)
+                    && $memoryBlock->delete(false, false)
                     && $deleteBlocks) {
                     $deleteBlocksRegardless--;
 
@@ -90,7 +94,7 @@ function clear_memory_segments(array $segments, int $deleteBlocksRegardless = 0)
             ksort($sortedByCreation); // Sort in ascending order, so we start from the least recent
 
             foreach ($sortedByCreation as $memoryBlock) {
-                if ($memoryBlock->delete()) {
+                if ($memoryBlock->delete(false, false)) {
                     $deleteBlocksRegardless--;
 
                     if ($deleteBlocksRegardless == 0) {
@@ -113,14 +117,8 @@ class IndividualMemoryBlock
     public function __construct(mixed $key)
     {
         global $memory_reserved_keys;
-
-        if (is_integer($key)) { // Used for reserved or existing keys
-            $this->originalKey = $key;
-            $this->key = $key;
-        } else {
-            $this->originalKey = $key;
-            $this->key = string_to_integer($key);
-        }
+        $this->originalKey = $key;
+        $this->key = is_integer($key) ? $key : string_to_integer($key);
         $this->modify = !in_array($this->key, $memory_reserved_keys);
     }
 
@@ -173,16 +171,14 @@ class IndividualMemoryBlock
 
     // Separator
 
-    public function delete(bool $force = false): bool
+    public function delete(bool $force = false, bool $clearCache = true): bool
     {
         if ($this->modify || $force) {
             global $memory_starting_bytes;
             $block = $this->getBlock($memory_starting_bytes, false);
 
-            if ($this->deleteBlock($block, false)) {
-                global $memory_reserved_keys;
-
-                if ($this->key !== $memory_reserved_keys[0]) {
+            if ($block && shmop_delete($block)) {
+                if ($clearCache) {
                     $this->clearSegmentsIdCache();
                 }
                 return true;
@@ -225,21 +221,18 @@ class IndividualMemoryBlock
             if (!$block) {
                 if ($retry) {
                     clear_memory_segments(get_memory_segment_ids(), 1);
+                    $this->clearSegmentsIdCache();
                     return $this->set($value, $expiration, false);
                 } else {
                     return false;
                 }
             } else {
-                global $memory_reserved_keys;
-
-                if ($this->key !== $memory_reserved_keys[0]) {
-                    $this->clearSegmentsIdCache();
-                }
+                $this->clearSegmentsIdCache();
             }
         } else if ($objectToTextLength > $bytesSize) {
             $bytesSize = $objectToTextLength;
 
-            if (!$this->deleteBlock($block)) {
+            if (!shmop_delete($block)) {
                 return false;
             }
             $block = $this->getBlock($bytesSize, true, true); // open bigger
@@ -250,7 +243,7 @@ class IndividualMemoryBlock
         } else if ($objectToTextLength < $bytesSize) {
             $bytesSize = max($objectToTextLength, $memory_starting_bytes);
 
-            if (!$this->deleteBlock($block)) {
+            if (!shmop_delete($block)) {
                 return false;
             }
             $block = $this->getBlock($bytesSize, true, true); // open smaller
@@ -275,16 +268,19 @@ class IndividualMemoryBlock
     private function clearSegmentsIdCache(): void
     {
         global $memory_reserved_keys;
-        $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
-        $memoryBlock->delete(true);
+
+        if ($this->key !== $memory_reserved_keys[0]) {
+            global $memory_starting_bytes;
+            $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
+            $block = $memoryBlock->getBlock($memory_starting_bytes, false);
+
+            if ($block) {
+                shmop_delete($block);
+            }
+        }
     }
 
     // Separator
-
-    private function deleteBlock(mixed $block, bool $returnOnEmpty = true): bool
-    {
-        return $block ? shmop_delete($block) : $returnOnEmpty;
-    }
 
     private function getBlock(int $bytes, bool $create = true, bool $write = false): mixed
     {
