@@ -434,9 +434,7 @@ if (is_private_connection()) {
                                 $productID,
                                 get_form_post("type"),
                                 !empty($reason) ? $reason : null,
-                                null,
-                                !empty($expirationDate) ? $expirationDate : null,
-                                false
+                                !empty($expirationDate) ? $expirationDate : null
                             ));
                         } else if ($hasGameCloudUser) {
                             var_dump("No permission");

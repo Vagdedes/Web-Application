@@ -113,7 +113,8 @@ class AccountInstructions
                             ?object $object,
                             ?array  $dynamicPlaceholders,
                             bool    $recursive = true,
-                            bool    $local = false): array
+                            bool    $local = false,
+                            bool    $debug = false): array
     {
         if ($object !== null) {
             foreach ($object as $objectKey => $objectValue) {
@@ -183,6 +184,10 @@ class AccountInstructions
                                                     }
                                                 } catch (Throwable $e) {
                                                     $value = "";
+
+                                                    if ($debug) {
+                                                        var_dump($e->getMessage(), $e->getLine());
+                                                    }
                                                 }
                                                 break;
                                             case 3: // Object
@@ -213,6 +218,10 @@ class AccountInstructions
                                                     }
                                                 } catch (Throwable $e) {
                                                     $value = "";
+
+                                                    if ($debug) {
+                                                        var_dump($e->getMessage(), $e->getLine());
+                                                    }
                                                 }
                                                 break;
                                             default:
@@ -373,11 +382,6 @@ class AccountInstructions
     }
 
     // Separator
-
-    public function getPlaceholders(): array
-    {
-        return $this->placeholders;
-    }
 
     public function getLocal(?array $allow = null, ?string $userInput = null): array
     {

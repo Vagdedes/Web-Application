@@ -93,9 +93,13 @@ function get_memory_segment_ids(): array
         $difference = $memoryDifferenceBlock->get();
 
         if (is_numeric($difference)) {
-            if ($current - $difference >= 250) {
+            $difference = $current - $difference;
+
+            if ($difference >= 250) {
                 clear_memory_segments();
                 $memoryDifferenceBlock->clear();
+            } else if ($difference < 0) {
+                $memoryDifferenceBlock->set($current);
             }
         } else {
             $memoryDifferenceBlock->set($current);

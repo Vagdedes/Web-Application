@@ -274,7 +274,7 @@ class GameCloudVerification
 
     public function addLicenseManagement(int|string|null $productID, string $type,
                                          ?string         $reason,
-                                         ?string         $duration, bool $automated): bool
+                                         ?string         $duration, bool $automated = false): bool
     {
         if (!in_array($type, $this::managed_license_types)) {
             return false;
