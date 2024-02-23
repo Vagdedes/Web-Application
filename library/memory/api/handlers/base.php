@@ -60,13 +60,6 @@ function get_memory_segment_ids(): array
     }
 }
 
-function clear_memory_segment_ids_cache(): void
-{
-    global $memory_reserved_keys;
-    $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
-    $memoryBlock->delete(true);
-}
-
 function clear_memory_segments(array $segments, int $deleteBlocksRegardless = 0): void
 {
     if (!empty($segments)) {
@@ -190,7 +183,7 @@ class IndividualMemoryBlock
                 global $memory_reserved_keys;
 
                 if ($this->key !== $memory_reserved_keys[0]) {
-                    clear_memory_segment_ids_cache();
+                    $this->clearSegmentsIdCache();
                 }
                 return true;
             } else {
@@ -240,7 +233,7 @@ class IndividualMemoryBlock
                 global $memory_reserved_keys;
 
                 if ($this->key !== $memory_reserved_keys[0]) {
-                    clear_memory_segment_ids_cache();
+                    $this->clearSegmentsIdCache();
                 }
             }
         } else if ($objectToTextLength > $bytesSize) {
@@ -278,6 +271,15 @@ class IndividualMemoryBlock
         $object->invalid = $type;
         return $object;
     }
+
+    private function clearSegmentsIdCache(): void
+    {
+        global $memory_reserved_keys;
+        $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
+        $memoryBlock->delete(true);
+    }
+
+    // Separator
 
     private function deleteBlock(mixed $block, bool $returnOnEmpty = true): bool
     {
