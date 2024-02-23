@@ -139,8 +139,9 @@ class IndividualMemoryBlock
         if (!$block) {
             return null;
         }
-        $readMapBytes = $this->readBlock(
+        $readMapBytes = @shmop_read(
             $block,
+            0,
             $this->getBlockSize($block)
         );
 
@@ -213,11 +214,9 @@ class IndividualMemoryBlock
         $object = new stdClass();
         $object->key = $this->originalKey;
         $object->value = $value;
-        $object->creation = time();
         $object->expiration = is_numeric($expiration) ? $expiration : false;
-
-        $objectToTextRaw = serialize($object);
-        $objectToText = @gzdeflate($objectToTextRaw, 9);
+        $object->creation = time();
+        $objectToText = @gzdeflate(serialize($object), 9);
 
         if ($objectToText === false) {
             return false;
@@ -282,11 +281,7 @@ class IndividualMemoryBlock
 
     private function deleteBlock(mixed $block, bool $returnOnEmpty = true): bool
     {
-        if (!$block) {
-            return $returnOnEmpty;
-        } else {
-            return shmop_delete($block);
-        }
+        return $block ? shmop_delete($block) : $returnOnEmpty;
     }
 
     private function getBlock(int $bytes, bool $create = true, bool $write = false): mixed
@@ -315,15 +310,6 @@ class IndividualMemoryBlock
             } else {
                 return $size;
             }
-        }
-    }
-
-    private function readBlock(mixed $block, int $bytesSize): bool|string
-    {
-        try {
-            return @shmop_read($block, 0, $bytesSize);
-        } catch (Error|Exception $ignored) {
-            return false;
         }
     }
 }
