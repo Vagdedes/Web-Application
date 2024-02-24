@@ -21,11 +21,11 @@ function get_memory_segment_ids(): array
     } else {
         //$stringToFix = "echo 32768 >/proc/sys/kernel/shmmni";
         //$oldCommand = "ipcs -m | grep 'www-data.*$memory_permissions_string'";
-        $query = explode(chr(32), shell_exec("ipcs -m"));
         $array = array();
+        $memoryBlock->set($array, false, false, true); // Prevent redundancy
+        $query = explode(chr(32), shell_exec("ipcs -m"));
 
         if (!empty($query)) {
-            $memoryBlock->set($array, false, false, true); // Prevent redundancy
             $size = 0;
 
             foreach ($query as $value) {
@@ -124,8 +124,7 @@ class IndividualMemoryBlock
 
     public function getObject(): ?object
     {
-        global $memory_starting_bytes;
-        $block = $this->getBlock($memory_starting_bytes, false);
+        $block = $this->getBlock();
 
         if (!$block) {
             return null;
@@ -174,8 +173,7 @@ class IndividualMemoryBlock
     public function delete(bool $force = false, bool $clearCache = true): bool
     {
         if ($this->modify || $force) {
-            global $memory_starting_bytes;
-            $block = $this->getBlock($memory_starting_bytes, false);
+            $block = $this->getBlock();
 
             if ($block && shmop_delete($block)) {
                 if ($clearCache) {
@@ -189,8 +187,6 @@ class IndividualMemoryBlock
             return false;
         }
     }
-
-    // Separator
 
     public function set(mixed $value, int|string|null|bool $expiration = false,
                         bool  $retry = true, bool $force = false): bool
@@ -211,12 +207,12 @@ class IndividualMemoryBlock
             return false;
         }
         $objectToTextLength = strlen($objectToText);
-        $block = $this->getBlock($memory_starting_bytes, false, true);
+        $block = $this->getBlock(true);
         $bytesSize = $this->getBlockSize($block); // check default
 
         if (!$block) {
             $bytesSize = max($objectToTextLength, $memory_starting_bytes);
-            $block = $this->getBlock($bytesSize, true, true); // open default
+            $block = $this->createBlock($bytesSize); // open default
 
             if (!$block) {
                 if ($retry) {
@@ -235,7 +231,7 @@ class IndividualMemoryBlock
             if (!shmop_delete($block)) {
                 return false;
             }
-            $block = $this->getBlock($bytesSize, true, true); // open bigger
+            $block = $this->createBlock($bytesSize); // open bigger
 
             if (!$block) {
                 return false;
@@ -246,7 +242,7 @@ class IndividualMemoryBlock
             if (!shmop_delete($block)) {
                 return false;
             }
-            $block = $this->getBlock($bytesSize, true, true); // open smaller
+            $block = $this->createBlock($bytesSize); // open smaller
 
             if (!$block) {
                 return false;
@@ -270,9 +266,8 @@ class IndividualMemoryBlock
         global $memory_reserved_keys;
 
         if ($this->key !== $memory_reserved_keys[0]) {
-            global $memory_starting_bytes;
             $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
-            $block = $memoryBlock->getBlock($memory_starting_bytes, false);
+            $block = $memoryBlock->getBlock();
 
             if ($block) {
                 shmop_delete($block);
@@ -280,18 +275,15 @@ class IndividualMemoryBlock
         }
     }
 
-    // Separator
+    private function getBlock(bool $write = false): mixed
+    {
+        return @shmop_open($this->key, $write ? "w" : "a", 0, 0);
+    }
 
-    private function getBlock(int $bytes, bool $create = true, bool $write = false): mixed
+    private function createBlock(int $bytes): mixed
     {
         global $memory_permissions;
-        $block = @shmop_open($this->key, $write ? "w" : "a", $memory_permissions, $bytes);
-
-        if (!$block && $create) {
-            return @shmop_open($this->key, "c", $memory_permissions, $bytes);
-        } else {
-            return $block;
-        }
+        return @shmop_open($this->key, "c", $memory_permissions, $bytes);
     }
 
     private function getBlockSize(mixed $block): int
