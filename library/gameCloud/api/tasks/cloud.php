@@ -32,7 +32,6 @@ if (true
     $data = properly_sql_encode($data, true);
     $date = get_current_date();
     $line = "\r\n";
-    $exception = "exception";
     $separator = ">@#&!%<;="; // Old: §@#±&%
     $user_agent = get_user_agent();
     $purpose = new GameCloudConnection($data);
@@ -40,9 +39,6 @@ if (true
     $account = new Account();
 
     if (!is_object($purpose)) {
-        if ($data === false) {
-            echo $exception;
-        }
         return;
     }
 
@@ -69,9 +65,6 @@ if (true
     } else {
         $ipAddressModified = get_client_ip_address();
 
-        if ($purpose->testing_only !== null) {
-            echo $exception;
-        }
         if (empty($user_agent)) {
             return;
         }
@@ -182,8 +175,6 @@ if (true
 
         if ($disabledDetections) {
             echo implode("|__" . $line, $spartan_anticheat_check_names) . "|__";
-        } else {
-            echo $exception;
         }
         return;
     } else if ($requiresVerification) {
@@ -195,8 +186,6 @@ if (true
 
             if ($disabledDetections) {
                 echo implode("|__" . $line, $spartan_anticheat_check_names) . "|__";
-            } else {
-                echo $exception;
             }
             return;
         } else {
@@ -558,8 +547,6 @@ if (true
 
             if (!empty($query)) {
                 echo $query[0]->license_id;
-            } else {
-                echo $exception; // Purposely returns exception if no user is found to prevent unauthorised use of the plugin
             }
         } else if ($data == "automaticConfigurationChanges") {
             if (is_port($value)) {
