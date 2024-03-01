@@ -81,7 +81,7 @@ class ChatAI
     }
 
     // 1: Success, 2: Model, 3: Reply
-    public function getResult(int|string $hash, array $parameters, ?int $timeout = 30): array
+    public function getResult(int|string $hash, array $parameters, ?int $timeout = 60): array
     {
         if (sizeof($this->models) === 1) {
             $model = $this->models[0];
@@ -157,7 +157,7 @@ class ChatAI
                         "Authorization: Bearer " . $this->apiKey
                     ),
                     $parameters,
-                    $timeout
+                    0
                 );
 
                 if ($reply !== null && $reply !== false) {
