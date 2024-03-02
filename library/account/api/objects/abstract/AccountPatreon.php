@@ -10,7 +10,7 @@ class AccountPatreon
         SPARTAN_1_0_BEDROCK = 16,
         SPARTAN_2_0_JAVA = 21,
         SPARTAN_2_0_BEDROCK = 22,
-        MOTIVATOR = 4064030,
+        SUBSCRIBER = 4064030,
         SPONSOR = 9784720,
         INVESTOR = 9784718,
         VISIONARY = 21608146;
@@ -32,28 +32,28 @@ class AccountPatreon
 
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
-                        "patreon.subscriber.visionary"
+                        "patreon.subscriber.subscriber"
                     ));
                 } else {
                     $this->retrieve = $this->find($name, array(self::INVESTOR));
 
                     if ($this->retrieve->isPositiveOutcome()) {
                         $this->account->getPermissions()->addSystemPermission(array(
-                            "patreon.subscriber.investor"
+                            "patreon.subscriber.subscriber"
                         ));
                     } else {
                         $this->retrieve = $this->find($name, array(self::SPONSOR));
 
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
-                                "patreon.subscriber.sponsor"
+                                "patreon.subscriber.subscriber"
                             ));
                         } else {
-                            $this->retrieve = $this->find($name, array(self::MOTIVATOR));
+                            $this->retrieve = $this->find($name, array(self::SUBSCRIBER));
 
                             if ($this->retrieve->isPositiveOutcome()) {
                                 $this->account->getPermissions()->addSystemPermission(array(
-                                    "patreon.subscriber.motivator"
+                                    "patreon.subscriber.subscriber"
                                 ));
                             } else {
                                 $this->retrieve = $this->find($name, null, false);
