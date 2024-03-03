@@ -26,7 +26,6 @@ require_once '/var/www/.structure/library/account/api/objects/product/AccountPro
 require_once '/var/www/.structure/library/account/api/objects/product/AccountPurchases.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountReviews.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountGiveaway.php';
-require_once '/var/www/.structure/library/account/api/objects/product/AccountOffer.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountProduct.php';
 require_once '/var/www/.structure/library/account/api/objects/product/ProductCoupon.php';
 

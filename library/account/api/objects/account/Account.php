@@ -35,7 +35,6 @@ class Account
     private AccountCooperation $cooperation;
     private AccountAffiliate $affiliate;
     private AccountVerification $verification;
-    private AccountOffer $offer;
     private AccountProduct $product;
     private AccountGiveaway $giveaway;
     private AccountFunctionality $functionality;
@@ -146,7 +145,6 @@ class Account
         $this->affiliate = new AccountAffiliate($this);
         $this->cooperation = new AccountCooperation($this);
         $this->communication = new AccountCommunication($this);
-        $this->offer = new AccountOffer($this);
         $this->giveaway = new AccountGiveaway($this);
         $this->moderations = new AccountModerations($this);
         $this->functionality = new AccountFunctionality($this);
@@ -348,11 +346,6 @@ class Account
     public function getVerification(): AccountVerification
     {
         return $this->verification;
-    }
-
-    public function getProductOffer(): AccountOffer
-    {
-        return $this->offer;
     }
 
     public function getProductGiveaway(): AccountGiveaway
