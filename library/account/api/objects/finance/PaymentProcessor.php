@@ -160,18 +160,21 @@ class PaymentProcessor
                             foreach ($products as $product) {
                                 $failed = array();
 
-                                foreach ($product->transaction_search as $transactionSearchProperties) {
+                                foreach ($product->transaction_search as $arrayKey => $transactionSearchProperties) {
                                     if (in_array($transactionSearchProperties->lookup_id, $failed)) {
+                                        unset($product->transaction_search[$arrayKey]);
                                         continue;
                                     }
                                     if ($transactionSearchProperties->accepted_account_id != $transactionType) {
                                         $failed[] = $transactionSearchProperties->lookup_id;
+                                        unset($product->transaction_search[$arrayKey]);
                                         continue;
                                     }
                                     $actualTransactionValue = get_object_depth_key($transactionDetails, $transactionSearchProperties->transaction_key);
 
                                     if (!$actualTransactionValue[0]) {
                                         $failed[] = $transactionSearchProperties->lookup_id;
+                                        unset($product->transaction_search[$arrayKey]);
                                         continue;
                                     }
                                     if ($transactionSearchProperties->ignore_case !== null) {
@@ -186,31 +189,31 @@ class PaymentProcessor
                                         case "startsWith":
                                             if (!starts_with($actualTransactionValue, $expectedTransactionValue)) {
                                                 $failed[] = $transactionSearchProperties->lookup_id;
+                                                unset($product->transaction_search[$arrayKey]);
                                             }
                                             break;
                                         case "endsWith":
                                             if (!ends_with($actualTransactionValue, $expectedTransactionValue)) {
                                                 $failed[] = $transactionSearchProperties->lookup_id;
+                                                unset($product->transaction_search[$arrayKey]);
                                             }
                                             break;
                                         case "equals":
                                             if ($actualTransactionValue != $expectedTransactionValue) {
                                                 $failed[] = $transactionSearchProperties->lookup_id;
+                                                unset($product->transaction_search[$arrayKey]);
                                             }
                                             break;
                                         case "contains":
                                             if (!str_contains($actualTransactionValue, $expectedTransactionValue)) {
                                                 $failed[] = $transactionSearchProperties->lookup_id;
+                                                unset($product->transaction_search[$arrayKey]);
                                             }
                                             break;
                                         default:
                                             $failed[] = $transactionSearchProperties->lookup_id;
+                                            unset($product->transaction_search[$arrayKey]);
                                             break;
-                                    }
-                                }
-                                foreach ($product->transaction_search as $arrayKey => $transactionSearchProperties) {
-                                    if (in_array($transactionSearchProperties->lookup_id, $failed)) {
-                                        unset($product->transaction_search[$arrayKey]);
                                     }
                                 }
 
