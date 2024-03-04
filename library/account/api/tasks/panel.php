@@ -497,10 +497,10 @@ if (is_private_connection()) {
                                             $additionalProducts = get_form_post("additional_products");
 
                                             if (!empty($additionalProducts)) {
-                                                $additionalProducts = explode(",", $additionalProducts);
+                                                $additionalProductsArray = explode(",", $additionalProducts);
+                                                $additionalProducts = array();
 
-                                                foreach ($additionalProducts as $arrayKey => $additionalProduct) {
-                                                    unset($additionalProducts[$arrayKey]);
+                                                foreach ($additionalProductsArray as $arrayKey => $additionalProduct) {
                                                     $additionalProducts[$additionalProduct] = $duration;
                                                 }
                                             } else {

@@ -10,7 +10,6 @@ class PaymentProcessor
     );
     public const
         days_of_processing = "5 days", // This due to the banking system delay of 2-5 business days
-        incomplete_account_sources = array(AccountAccounts::POLYMART_URL),
         limit = 1000,
         PAYPAL = AccountAccounts::PAYPAL_EMAIL,
         STRIPE = AccountAccounts::STRIPE_EMAIL,
@@ -159,40 +158,20 @@ class PaymentProcessor
                     if (!empty($transactions)) {
                         foreach ($transactions as $transactionID => $transactionDetails) {
                             foreach ($products as $product) {
-                                $lookUpID = 0;
-                                $skip = true; // Ignore the first iteration
-                                $transactionSearch = $product->transaction_search;
-                                $transactionSearchEnd = sizeof($transactionSearch) - 1;
-                                $tier = null;
-                                $email = null;
-                                $additionalProducts = null;
-                                $duration = null;
-                                $credential = false;
+                                $failed = array();
 
-                                foreach ($transactionSearch as $transactionSearchRow => $transactionSearchProperties) {
-                                    if ($lookUpID !== $transactionSearchProperties->lookup_id) {
-                                        if (!$skip) {
-                                            $credential = true;
-                                            $tier = $transactionSearchProperties->tier_id;
-                                            $email = $transactionSearchProperties->email;
-                                            $additionalProducts = $transactionSearchProperties->additional_products;
-                                            $duration = $transactionSearchProperties->duration;
-                                            break;
-                                        }
-                                        $lookUpID = $transactionSearchProperties->lookup_id;
-                                        $skip = false;
-                                    }
-                                    if ($skip) {
+                                foreach ($product->transaction_search as $transactionSearchProperties) {
+                                    if (in_array($transactionSearchProperties->lookup_id, $failed)) {
                                         continue;
                                     }
                                     if ($transactionSearchProperties->accepted_account_id != $transactionType) {
-                                        $skip = true;
+                                        $failed[] = $transactionSearchProperties->lookup_id;
                                         continue;
                                     }
                                     $actualTransactionValue = get_object_depth_key($transactionDetails, $transactionSearchProperties->transaction_key);
 
                                     if (!$actualTransactionValue[0]) {
-                                        $skip = true;
+                                        $failed[] = $transactionSearchProperties->lookup_id;
                                         continue;
                                     }
                                     if ($transactionSearchProperties->ignore_case !== null) {
@@ -202,57 +181,53 @@ class PaymentProcessor
                                         $actualTransactionValue = $actualTransactionValue[1];
                                         $expectedTransactionValue = $transactionSearchProperties->transaction_value;
                                     }
+
                                     switch (trim($transactionSearchProperties->identification_method)) {
                                         case "startsWith":
                                             if (!starts_with($actualTransactionValue, $expectedTransactionValue)) {
-                                                $skip = true;
+                                                $failed[] = $transactionSearchProperties->lookup_id;
                                             }
                                             break;
                                         case "endsWith":
                                             if (!ends_with($actualTransactionValue, $expectedTransactionValue)) {
-                                                $skip = true;
+                                                $failed[] = $transactionSearchProperties->lookup_id;
                                             }
                                             break;
                                         case "equals":
                                             if ($actualTransactionValue != $expectedTransactionValue) {
-                                                $skip = true;
+                                                $failed[] = $transactionSearchProperties->lookup_id;
                                             }
                                             break;
                                         case "contains":
                                             if (!str_contains($actualTransactionValue, $expectedTransactionValue)) {
-                                                $skip = true;
+                                                $failed[] = $transactionSearchProperties->lookup_id;
                                             }
                                             break;
                                         default:
-                                            $skip = true;
+                                            $failed[] = $transactionSearchProperties->lookup_id;
                                             break;
                                     }
-
-                                    if (!$skip && $transactionSearchRow === $transactionSearchEnd) {
-                                        $credential = true;
-                                        $tier = $transactionSearchProperties->tier_id;
-                                        $email = $transactionSearchProperties->email;
-                                        $additionalProducts = $transactionSearchProperties->additional_products;
-                                        $duration = $transactionSearchProperties->duration;
-                                        break;
+                                }
+                                foreach ($product->transaction_search as $arrayKey => $transactionSearchProperties) {
+                                    if (in_array($transactionSearchProperties->lookup_id, $failed)) {
+                                        unset($product->transaction_search[$arrayKey]);
                                     }
                                 }
 
-                                if ($credential) {
+                                if (!empty($product->transaction_search)) {
+                                    $transactionSearchProperties = array_shift($product->transaction_search);
+
                                     switch ($transactionType) {
                                         case $this::PAYPAL:
                                             $credential = $transactionDetails->EMAIL ?? null;
                                             break;
-                                        case $this::STRIPE:
-                                            $credential = $transactionDetails->source->billing_details->email ?? null;
-                                            break;
                                         default:
-                                            $credential = null;
+                                            $credential = $transactionDetails->source->billing_details->email ?? null;
                                             break;
                                     }
                                     if ($credential !== null) {
-                                        if ($additionalProducts !== null) {
-                                            $additionalProductsArray = explode("|", $additionalProducts);
+                                        if ($transactionSearchProperties->additional_products !== null) {
+                                            $additionalProductsArray = explode("|", $transactionSearchProperties->additional_products);
                                             $additionalProducts = array();
 
                                             foreach ($additionalProductsArray as $part) {
@@ -269,16 +244,16 @@ class PaymentProcessor
                                                 $failedTransactions = $account->getTransactions()->getFailed(null, $productCount);
                                             }
                                             if (in_array($transactionID, $failedTransactions)) {
-                                                $account->getPurchases()->remove($product->id, $tier, $transactionID);
+                                                $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);
                                             } else {
                                                 $account->getPurchases()->add(
                                                     $product->id,
-                                                    $tier,
+                                                    $transactionSearchProperties->tier_id,
                                                     null,
                                                     $transactionID,
                                                     $date,
-                                                    $duration,
-                                                    $email,
+                                                    $transactionSearchProperties->duration,
+                                                    $transactionSearchProperties->email,
                                                     $additionalProducts,
                                                 );
                                             }
@@ -317,16 +292,16 @@ class PaymentProcessor
                                                         );
                                                     }
                                                     if (in_array($transactionID, $failedTransactions)) {
-                                                        $account->getPurchases()->remove($product->id, $tier, $transactionID);
+                                                        $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);
                                                     } else {
                                                         $account->getPurchases()->add(
                                                             $product->id,
-                                                            $tier,
+                                                            $transactionSearchProperties->tier_id,
                                                             null,
                                                             $transactionID,
                                                             $date,
-                                                            $duration,
-                                                            $email,
+                                                            $transactionSearchProperties->duration,
+                                                            $transactionSearchProperties->email,
                                                             $additionalProducts,
                                                         );
                                                     }
@@ -378,7 +353,8 @@ class PaymentProcessor
                                                 $additionalProducts = array();
 
                                                 foreach ($product->transaction_search as $transactionSearchProperties) {
-                                                    if ($transactionSearchProperties->additional_products !== null) {
+                                                    if ($transactionSearchProperties->individual !== null
+                                                        && $transactionSearchProperties->additional_products !== null) {
                                                         foreach (explode("|", $transactionSearchProperties->additional_products) as $part) {
                                                             if (is_numeric($part)) {
                                                                 $additionalProducts[$part] = null;

@@ -81,7 +81,8 @@ class AccountProduct
                                 "email",
                                 "accepted_account_id",
                                 "lookup_id",
-                                "tier_id"
+                                "tier_id",
+                                "individual"
                             ),
                             array(
                                 array("product_id", $productID),
