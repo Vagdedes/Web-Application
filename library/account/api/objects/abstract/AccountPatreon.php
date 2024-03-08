@@ -10,10 +10,11 @@ class AccountPatreon
         SPARTAN_1_0_BEDROCK = 16,
         SPARTAN_2_0_JAVA = 21,
         SPARTAN_2_0_BEDROCK = 22,
-        SUBSCRIBER = 4064030,
+        MOTIVATOR = 4064030,
         SPONSOR = 9784720,
         INVESTOR = 9784718,
-        VISIONARY = 21608146;
+        VISIONARY = 21608146,
+        SUBSCRIBER = 22435075;
 
     public function __construct(Account $account)
     {
@@ -49,14 +50,22 @@ class AccountPatreon
                                 "patreon.subscriber.subscriber"
                             ));
                         } else {
-                            $this->retrieve = $this->find($name, array(self::SUBSCRIBER));
+                            $this->retrieve = $this->find($name, array(self::MOTIVATOR));
 
                             if ($this->retrieve->isPositiveOutcome()) {
                                 $this->account->getPermissions()->addSystemPermission(array(
                                     "patreon.subscriber.subscriber"
                                 ));
                             } else {
-                                $this->retrieve = $this->find($name, null, false);
+                                $this->retrieve = $this->find($name, array(self::SUBSCRIBER));
+
+                                if ($this->retrieve->isPositiveOutcome()) {
+                                    $this->account->getPermissions()->addSystemPermission(array(
+                                        "patreon.subscriber.subscriber"
+                                    ));
+                                } else {
+                                    $this->retrieve = $this->find($name, null, false);
+                                }
                             }
                         }
                     }
