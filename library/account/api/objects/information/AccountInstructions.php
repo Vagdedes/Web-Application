@@ -8,7 +8,8 @@ class AccountInstructions
         $localInstructions,
         $publicInstructions,
         $browse,
-        $replacements;
+        $replacements,
+        $extra;
     private string
         $placeholderStart,
         $placeholderMiddle,
@@ -17,6 +18,7 @@ class AccountInstructions
     public function __construct(Account $account)
     {
         $this->account = $account;
+        $this->extra = array();
         $this->placeholderStart = InformationPlaceholder::STARTER;
         $this->placeholderMiddle = InformationPlaceholder::DIVISOR_REPLACEMENT;
         $this->placeholderEnd = InformationPlaceholder::ENDER;
@@ -88,6 +90,33 @@ class AccountInstructions
                 $this->browse[$arrayKey] = $arrayValue;
             }
         }
+    }
+
+    // Separator
+
+    public function addExtra(string $key, mixed $value): void
+    {
+        if (is_object($value)) {
+            $value = json_decode(json_encode($value), true);
+            $isArray = true;
+        } else {
+            $isArray = is_array($value);
+        }
+        if ($isArray) {
+
+        } else {
+            $this->extra[$key] = $value;
+        }
+    }
+
+    public function removeExtra(string $key): void
+    {
+        unset($this->extra[$key]);
+    }
+
+    public function getExtra(): string
+    {
+        return implode("\n", $this->extra);
     }
 
     // Separator

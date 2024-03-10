@@ -41,7 +41,7 @@ class AccountTransactions
 
                     if ($credential->isPositiveOutcome()) {
                         foreach ($credential->getObject() as $credential) {
-                            foreach (find_paypal_transactions_by_data_pair(array("EMAIL" => abstract_search_sql_encode($credential)), $limit, true) as $transactionID => $transaction) {
+                            foreach (find_paypal_transactions_by_data_pair(array("EMAIL" => abstract_search_sql_encode($credential)), $limit) as $transactionID => $transaction) {
                                 $loopArray[$transactionID] = $transaction;
                                 $this->process($transaction);
                             }
@@ -86,7 +86,7 @@ class AccountTransactions
         $array = array();
 
         foreach ($this->getTypes($types) as $transactionType) {
-            foreach (get_failed_paypal_transactions($this->getSuccessful($transactionType, $limit), $limit) as $transaction) {
+            foreach (get_failed_paypal_transactions($limit) as $transaction) {
                 $array[] = $transaction;
             }
         }

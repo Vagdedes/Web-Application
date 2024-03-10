@@ -3,11 +3,6 @@
 class PaymentProcessor
 {
     private ?int $applicationID;
-    private const
-        queue_key = array(
-        "queue",
-        PaymentProcessor::class
-    );
     public const
         days_of_processing = "5 days", // This due to the banking system delay of 2-5 business days
         limit = 1000,
@@ -65,42 +60,6 @@ class PaymentProcessor
         return null;
     }
 
-    public function getDetails(int|string $transactionID): MethodReply
-    {
-        $paypal = find_paypal_transactions_by_id($transactionID);
-
-        if (!empty($paypal)) {
-            return new MethodReply(
-                true,
-                AccountAccounts::PAYPAL_EMAIL,
-                array_shift($paypal)
-            );
-        } else {
-            $stripe = find_stripe_transactions_by_id($transactionID);
-
-            if (!empty($stripe)) {
-                return new MethodReply(
-                    true,
-                    AccountAccounts::STRIPE_EMAIL,
-                    array_shift($stripe)
-                );
-            }
-        }
-        return new MethodReply(false);
-    }
-
-    public function queue(int|string $transactionID): bool
-    {
-        $cache = get_key_value_pair($this::queue_key);
-
-        if (is_array($cache)) {
-            $cache[] = $transactionID;
-        } else {
-            $cache = array($transactionID);
-        }
-        return set_key_value_pair($this::queue_key, $cache);
-    }
-
     /**
      * @throws Exception
      */
@@ -131,27 +90,6 @@ class PaymentProcessor
                     $pastDate = get_past_date($this::days_of_processing);
                     $transactionLists[$this::PAYPAL] = get_all_paypal_transactions($this::limit, $pastDate);
                     $transactionLists[$this::STRIPE] = get_all_stripe_transactions($this::limit, true, $pastDate);
-                    $queue = get_key_value_pair($this::queue_key);
-
-                    if (is_array($queue)) {
-                        clear_memory(
-                            $this::queue_key,
-                            false,
-                            1,
-                            function ($value) {
-                                return is_array($value);
-                            },
-                            false
-                        ); // We don't want to share this deletion
-
-                        foreach ($queue as $transactionID) {
-                            $transactionDetails = $this->getDetails($transactionID);
-
-                            if ($transactionDetails->isPositiveOutcome()) {
-                                $transactionLists[$transactionDetails->getMessage()][$transactionID] = $transactionDetails->getObject();
-                            }
-                        }
-                    }
                 }
 
                 foreach ($transactionLists as $transactionType => $transactions) {
@@ -241,6 +179,8 @@ class PaymentProcessor
                                                     $additionalProducts[$part[0]] = $part[1];
                                                 }
                                             }
+                                        } else {
+                                            $additionalProducts = null;
                                         }
                                         if ($isIndividual) {
                                             if ($failedTransactions === null) {
@@ -290,7 +230,7 @@ class PaymentProcessor
                                                     if ($failedTransactions === null) {
                                                         $furtherPastDate = "180 days";
                                                         $failedTransactions = array_merge(
-                                                            get_failed_paypal_transactions(null, $this::limit, $furtherPastDate),
+                                                            get_failed_paypal_transactions($this::limit, $furtherPastDate),
                                                             get_failed_stripe_transactions(null, $this::limit, $furtherPastDate)
                                                         );
                                                     }

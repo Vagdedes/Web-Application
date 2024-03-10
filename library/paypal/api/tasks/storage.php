@@ -5,74 +5,19 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
     $processedData = false;
 
     if ($startDays >= 0 && $endDays > 0 && $endDays > $startDays) {
-        global $paypal_successful_transactions_table, $paypal_failed_transactions_table, $paypal_transactions_queue_table;
+        global $paypal_failed_transactions_table, $paypal_transactions_queue_table;
         $recentDate = date('Y-m-d', strtotime("-$startDays day")) . "T29:59:59Z";
         $pastDate = date('Y-m-d', strtotime("-$endDays day")) . "T00:00:00Z";
 
-        $existingSuccessfulTransactions = array();
-        $existingFailedTransactions = array();
+        $existingSuccessfulTransactions = get_all_paypal_transactions(10000, null, false);
+        $existingFailedTransactions = get_failed_paypal_transactions(0, get_past_date("181 days"));
 
-        // Separator
-        foreach (array(
-                     $paypal_successful_transactions_table,
-                     $paypal_failed_transactions_table
-                 ) as $table) {
-            $query = sql_query("SELECT id, transaction_id FROM $table;");
-
-            if (isset($query->num_rows) && $query->num_rows > 0) {
-                $array = array();
-
-                while ($row = $query->fetch_assoc()) {
-                    $transactionID = $row["transaction_id"];
-
-                    if (!in_array($transactionID, $array)) {
-                        $array[] = $transactionID;
-                    } else {
-                        sql_query("DELETE FROM $table WHERE id = '" . $row["id"] . "';");
-                    }
-                }
-
-                switch ($table) {
-                    case $paypal_successful_transactions_table:
-                        $existingSuccessfulTransactions = $array;
-                        break;
-                    case $paypal_failed_transactions_table:
-                        $existingFailedTransactions = $array;
-                        break;
-                    default:
-                        return false;
-                }
-            }
-        }
-
-        // Separator
-        $queuedTransactions = array();
-        $query = sql_query("SELECT id, transaction_id FROM $paypal_transactions_queue_table WHERE completed IS NULL;");
-
-        if (isset($query->num_rows) && $query->num_rows > 0) {
-            while ($row = $query->fetch_assoc()) {
-                $transactionID = $row["transaction_id"];
-
-                if (!in_array($transactionID, $existingSuccessfulTransactions)
-                    && !in_array($transactionID, $existingFailedTransactions)
-                    && !in_array($transactionID, $queuedTransactions)) {
-                    $queuedTransactions[$row["id"]] = $transactionID;
-                }
-            }
-        }
-
-        // Separator
-        for ($i = 1; $i <= 2; $i++) { // attention
-            $businessAccount = $i === 1;
-            $personalAccount = $i === 2;
-            $oldAccount = $i === 3;
-
-            if ($businessAccount) {
+        // Completed
+        for ($i = 0; $i < 2; $i++) {
+            if ($i === 0) {
                 access_business_paypal_account();
-            } else if ($personalAccount) { // Access personal account after business to search for transactions
+            } else if ($i === 1) {
                 access_personal_paypal_account();
-            } else if ($oldAccount) { // Access old account after personal to recover transactions
-                access_deactivated_personal_paypal_account();
             }
 
             // Success (Used to contain '&STATUS=Success' but it was removed so all transactions can be first treated as normal)
@@ -86,6 +31,7 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
                             && !in_array($transactionID, $existingFailedTransactions)
                             && process_successful_paypal_transaction($transactionID)) {
                             $processedData = true;
+                            $existingSuccessfulTransactions[] = $transactionID;
                         }
                     }
                 }
@@ -99,21 +45,57 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
 
                 if (is_array($transactions) && !empty($transactions)) {
                     foreach ($transactions as $key => $transactionID) {
-                        if (str_contains($key, "L_TRANSACTIONID")
-                            && !in_array($transactionID, $existingFailedTransactions)
-                            && process_failed_paypal_transaction($transactionID, false)) {
-                            $processedData = true;
+                        if (str_contains($key, "L_TRANSACTIONID")) {
+                            if (in_array($transactionID, $existingFailedTransactions)) {
+                                if (is_successful_paypal_transaction($transactionID)
+                                    && set_sql_query(
+                                        $paypal_failed_transactions_table,
+                                        array("deletion_date" => get_current_date()),
+                                        array(
+                                            array("transaction_id", $transactionID)
+                                        ),
+                                        null,
+                                        1
+                                    )) {
+                                    $processedData = true;
+                                    $existingSuccessfulTransactions[] = $transactionID;
+                                }
+                            } else if (process_failed_paypal_transaction($transactionID, false)) {
+                                $processedData = true;
+                            }
                         }
                     }
                 }
             }
 
             // Queue
-            if (!empty($queuedTransactions)) {
-                foreach ($queuedTransactions as $rowID => $transactionID) {
-                    if (process_successful_paypal_transaction($transactionID)) {
-                        sql_query("UPDATE $paypal_transactions_queue_table SET completed = '1' WHERE id = '$rowID';");
+            $query = get_sql_query(
+                $paypal_transactions_queue_table,
+                array(
+                    "transaction_id",
+                    "id"
+                ),
+                array(
+                    array("completed", null),
+                )
+            );
+
+            if (!empty($query)) {
+                foreach ($query as $row) {
+                    if (!in_array($row->transaction_id, $existingSuccessfulTransactions)
+                        && !in_array($row->transaction_id, $existingFailedTransactions)
+                        && process_successful_paypal_transaction($row->transaction_id)
+                        && set_sql_query(
+                            $paypal_transactions_queue_table,
+                            array("completed" => true),
+                            array(
+                                array("id", $row->id)
+                            ),
+                            null,
+                            1
+                        )) {
                         $processedData = true;
+                        $existingSuccessfulTransactions[] = $row->transaction_id;
                     }
                 }
             }
@@ -151,8 +133,12 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
                                         $partialRefund,
                                         $refundAmount,
                                         $transaction->CURRENCYCODE,
-                                        $transactionRefundInformation[0]) === true
-                                    && process_failed_paypal_transaction($transactionID, false)) {
+                                        $transactionRefundInformation[0]
+                                    ) === true
+                                    && process_failed_paypal_transaction(
+                                        $transactionID,
+                                        false
+                                    )) {
                                     $processedData = true;
                                 }
                             }
@@ -165,6 +151,25 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
         }
     }
     return $processedData;
+}
+
+function is_successful_paypal_transaction(int|string $transaction): bool
+{
+    $transaction = get_paypal_transaction_details($transaction);
+    if (is_array($transaction)
+        && isset($transaction["PAYMENTSTATUS"])
+        && isset($transaction["ACK"])
+        && $transaction["ACK"] === "Success") {
+        switch ($transaction["PAYMENTSTATUS"]) {
+            case "Completed":
+            case "Pending":
+            case "Processing":
+                return true;
+            default:
+                break;
+        }
+    }
+    return false;
 }
 
 function process_successful_paypal_transaction(int|string $transactionID): bool
@@ -192,10 +197,7 @@ function process_successful_paypal_transaction(int|string $transactionID): bool
                 }
                 break;
             default:
-                if (process_failed_paypal_transaction($transactionID, false)) {
-                    return true;
-                }
-                break;
+                return process_failed_paypal_transaction($transactionID, false);
         }
     }
     return false;

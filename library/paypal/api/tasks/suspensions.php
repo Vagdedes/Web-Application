@@ -90,3 +90,19 @@ function identify_paypal_suspended_transactions(object|array $transactions): arr
     }
     return identify_paypal_suspended_transactions(array($transactions));
 }
+
+function suspend_paypal_transaction(object $transaction, string $reason, bool $coverFees): bool
+{
+    global $paypal_suspended_transactions_table;
+    return sql_insert(
+        $paypal_suspended_transactions_table,
+        array(
+            "transaction_key" => "PAYERID",
+            "identification_method" => "equals",
+            "transaction_value" => $transaction->PAYERID,
+            "transaction_note" => $reason,
+            "cover_fees" => $coverFees,
+            "creation_date" => get_current_date()
+        )
+    );
+}

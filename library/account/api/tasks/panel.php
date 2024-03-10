@@ -319,6 +319,7 @@ if (is_private_connection()) {
             }
         }
 
+        $suspendPayPalTransactions = "suspendPayPalTransactions";
         $queuePayPalTransaction = "queuePayPalTransaction";
         $failedPayPalTransaction = "failedPayPalTransaction";
 
@@ -880,6 +881,26 @@ if (is_private_connection()) {
                             var_dump("No permission");
                         }
                         break;
+                    case $suspendPayPalTransactions:
+                        if ($hasWebsiteAccount) {
+                            if ($staffAccount->getPermissions()->hasPermission("transactions.suspend.paypal", true)) {
+                                $transactions = $account->getTransactions()->getSuccessful(PaymentProcessor::PAYPAL);
+
+                                if (empty($transactions)) {
+                                    var_dump("No transactions available");
+                                } else {
+                                    $reason = get_form_post("reason");
+                                    $coverFees = !empty(get_form_post("coverFees"));
+
+                                    foreach ($transactions as $transaction) {
+                                        var_dump(suspend_paypal_transaction($transaction->id, $reason, $coverFees));
+                                    }
+                                }
+                            }
+                        } else {
+                            var_dump("Not available form");
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -901,6 +922,12 @@ if (is_private_connection()) {
         createForm("post", true);
         addFormInput("text", "id", "Transaction ID");
         addFormSubmit($queuePayPalTransaction, "Queue PayPal Transaction");
+        endForm();
+
+        createForm("post", true);
+        addFormInput("text", "reason", "Reason");
+        addFormInput("number", "coverFees", "Cover Fees");
+        addFormSubmit($suspendPayPalTransactions, "Suspend PayPal Transaction");
         endForm();
 
         createForm("post", true);

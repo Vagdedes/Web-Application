@@ -1,19 +1,18 @@
 <?php
 
-function get_polymart_object(string $version, string $service, array $parameters, bool $longCache = true): ?object
+function get_polymart_object(string $version, string $service, array $parameters): ?object
 {
     $cacheKey = array(
         $service,
         $parameters,
-        $longCache,
         "polymart-object"
     );
     $cache = get_key_value_pair($cacheKey);
 
     if (is_object($cache)) {
-        return $cache;
+        //return $cache;
     } else if ($cache === false) {
-        return null;
+        //return null;
     }
     $polymart_credentials = get_keys_from_file("/var/www/.structure/private/polymart_credentials", 1);
 
