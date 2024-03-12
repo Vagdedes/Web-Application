@@ -114,9 +114,9 @@ class AccountInstructions
         unset($this->extra[$key]);
     }
 
-    public function getExtra(): string
+    public function getExtra($character = "\n"): string
     {
-        return implode("\n", $this->extra);
+        return implode($character, $this->extra);
     }
 
     // Separator
