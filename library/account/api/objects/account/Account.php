@@ -431,7 +431,7 @@ class Account
             }
             if (isset($this->email)
                 && !$this->getEmail()->isVerified()) {
-                $this->getEmail()->initiateVerification();
+                $this->getEmail()->initiateVerification(null, $this->session->isCustom());
             }
         }
     }

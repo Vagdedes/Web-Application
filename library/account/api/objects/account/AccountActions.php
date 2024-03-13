@@ -166,7 +166,8 @@ class AccountActions
         }
     }
 
-    public function changeName(string $name, string $type = self::NAME, int|string $cooldown = "1 day"): MethodReply
+    public function changeName(string     $name, bool $emailCode = false, string $type = self::NAME,
+                               int|string $cooldown = "1 day"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_NAME, true);
@@ -175,7 +176,7 @@ class AccountActions
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         if (!$this->account->getEmail()->isVerified()) {
-            if (!$this->account->getEmail()->initiateVerification()->isPositiveOutcome()) {
+            if (!$this->account->getEmail()->initiateVerification(null, $emailCode)->isPositiveOutcome()) {
                 return new MethodReply(false, "You must verify your email first.");
             }
             return new MethodReply(false, "You must verify your email first, an email has been sent to you.");

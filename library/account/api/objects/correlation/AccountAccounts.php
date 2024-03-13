@@ -29,6 +29,7 @@ class AccountAccounts
     }
 
     public function add(int|string $type, int|float|string $credential, int $deletePreviousIfSurpassing = 0,
+                        bool       $emailCode = false,
                         int|string $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
@@ -38,7 +39,7 @@ class AccountAccounts
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         if (!$this->account->getEmail()->isVerified()) {
-            if (!$this->account->getEmail()->initiateVerification()->isPositiveOutcome()) {
+            if (!$this->account->getEmail()->initiateVerification(null, $emailCode)->isPositiveOutcome()) {
                 return new MethodReply(false, "You must verify your email first.");
             }
             return new MethodReply(false, "You must verify your email first, an email has been sent to you.");
