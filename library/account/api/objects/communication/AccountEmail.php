@@ -179,7 +179,7 @@ class AccountEmail
         $date = get_current_date();
         $array = get_sql_query(
             $email_verifications_table,
-            array("token"),
+            array("token", "code"),
             array(
                 array("account_id", $accountID),
                 array("completion_date", null),
@@ -187,10 +187,10 @@ class AccountEmail
                 array("expiration_date", ">", $date)
             )
         );
-        $createdCode = $code ? random_string(32) : null;
 
         if (empty($array)) {
             $token = random_string(512);
+            $createdCode = $code ? random_string(32) : null;
 
             if (!sql_insert(
                 $email_verifications_table,
@@ -209,6 +209,7 @@ class AccountEmail
             });
         } else {
             $token = $array[0]->token;
+            $createdCode = $array[0]->code;
         }
         $this->send(
             "verifyEmail",
