@@ -21,6 +21,7 @@ $ai_assistance_table = "gameCloud.aiAssistance";
 // Separator
 
 $ai_assistance_hash = 518924133;
+$ai_instruction_ids = array(2);
 
 // Separator
 

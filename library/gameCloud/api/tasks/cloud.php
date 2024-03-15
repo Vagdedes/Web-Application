@@ -862,12 +862,14 @@ if (true
                         return;
                     }
                     $questionHash = string_to_integer($value, true);
+                    set_sql_cache("10 seconds");
                     $query = get_sql_query(
                         $ai_assistance_table,
                         array("cost", "question_hash", "answer"),
                         array(
                             array("account_id", $accountID),
                             array("creation_date", ">", get_past_date("1 month")),
+                            array("deletion_date", null)
                         ),
                         array(
                             "DESC",
@@ -898,27 +900,26 @@ if (true
                         $apiKey[0],
                         2000
                     );
-                    $instructions = $account->getInstructions()->replace(
-                        array("%%__instructions__%%"),
-                        null,
-                        array(
-                            "instructions" => array(
-                                $account->getInstructions(),
-                                "getPublic",
-                                array(
-                                    array(2),
-                                    $value
-                                )
-                            )
-                        )
-                    );
+                    $instructions = "YOU ARE REPLYING TO A MINECRAFT PLAYER THAT USED A MINECRAFT COMMAND TO GET AI ASSISTANCE."
+                        . " DO NOT USE TABS OR LINES."
+                        . "\n\n%%__instructions__%%";
                     $outcome = $chatAI->getResult(
                         $ai_assistance_hash,
                         array(
                             "messages" => array(
                                 array(
                                     "role" => "system",
-                                    "content" => $instructions
+                                    "content" => $account->getInstructions()->replace(
+                                        array($instructions),
+                                        null,
+                                        array(
+                                            "instructions" => array(
+                                                $account->getInstructions(),
+                                                "getPublic",
+                                                array($ai_instruction_ids, $value)
+                                            )
+                                        )
+                                    )[0]
                                 ),
                                 array(
                                     "role" => "user",
@@ -943,7 +944,7 @@ if (true
                                     "question" => $value,
                                     "question_hash" => $questionHash,
                                     "answer" => $content,
-                                    "cost"=>$chatAI->getCost($model, $reply),
+                                    "cost" => $chatAI->getCost($model, $reply),
                                     "creation_date" => $date,
                                 )
                             );

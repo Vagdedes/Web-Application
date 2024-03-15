@@ -175,124 +175,124 @@ class AccountInstructions
                     }
                 }
             }
+        }
 
-            if (!empty($dynamicPlaceholders)) {
-                foreach ($messages as $messageKey => $message) {
-                    if (!empty($message)) {
-                        $position = strpos($message, $this->placeholderStart);
+        if (!empty($dynamicPlaceholders)) {
+            foreach ($messages as $messageKey => $message) {
+                if (!empty($message)) {
+                    $position = strpos($message, $this->placeholderStart);
 
-                        while ($position !== false) {
-                            $word = substr($message, $position);
-                            $finalPosition = strpos($word, $this->placeholderEnd);
+                    while ($position !== false) {
+                        $word = substr($message, $position);
+                        $finalPosition = strpos($word, $this->placeholderEnd);
 
-                            if ($finalPosition !== false) {
-                                $word = substr($word, 0, $finalPosition + strlen($this->placeholderEnd));
-                                $validWord = substr($word, strlen($this->placeholderStart), -strlen($this->placeholderEnd));
-                                $explode = explode($this->placeholderMiddle, $validWord);
-                                $keyWord = array_shift($explode);
+                        if ($finalPosition !== false) {
+                            $word = substr($word, 0, $finalPosition + strlen($this->placeholderEnd));
+                            $validWord = substr($word, strlen($this->placeholderStart), -strlen($this->placeholderEnd));
+                            $explode = explode($this->placeholderMiddle, $validWord);
+                            $keyWord = array_shift($explode);
 
-                                if (array_key_exists($keyWord, $dynamicPlaceholders)) {
-                                    $keyWordMethod = $dynamicPlaceholders[$keyWord];
+                            if (array_key_exists($keyWord, $dynamicPlaceholders)) {
+                                $keyWordMethod = $dynamicPlaceholders[$keyWord];
 
-                                    if (is_array($keyWordMethod)) {
-                                        switch (sizeof($keyWordMethod)) {
-                                            case 2: // Static
-                                                try {
-                                                    $value = $this->prepareValue(
-                                                        call_user_func_array(
-                                                            $keyWordMethod,
-                                                            $explode
-                                                        ),
-                                                        $object,
-                                                        array(),
-                                                        $recursive
-                                                    );
+                                if (is_array($keyWordMethod)) {
+                                    switch (sizeof($keyWordMethod)) {
+                                        case 2: // Static
+                                            try {
+                                                $value = $this->prepareValue(
+                                                    call_user_func_array(
+                                                        $keyWordMethod,
+                                                        $explode
+                                                    ),
+                                                    $object,
+                                                    array(),
+                                                    $recursive
+                                                );
 
-                                                    if ($value === null) {
-                                                        $value = "";
-                                                    }
-                                                } catch (Throwable $e) {
+                                                if ($value === null) {
                                                     $value = "";
-
-                                                    if ($debug) {
-                                                        var_dump($e->getMessage(), $e->getLine());
-                                                    }
                                                 }
-                                                break;
-                                            case 3: // Object
-                                                $parameters = array_pop($keyWordMethod);
-
-                                                if (!empty($parameters)) {
-                                                    foreach ($parameters as $arrayKey => $parameter) {
-                                                        if (is_object($parameter)
-                                                            && empty(get_object_vars($parameter))
-                                                            && !empty($explode)) {
-                                                            $parameters[$arrayKey] = array_shift($explode);
-                                                        }
-                                                    }
-                                                }
-                                                try {
-                                                    $value = $this->prepareValue(
-                                                        call_user_func_array(
-                                                            $keyWordMethod,
-                                                            $parameters
-                                                        ),
-                                                        $object,
-                                                        array(),
-                                                        $recursive
-                                                    );
-
-                                                    if ($value === null) {
-                                                        $value = "";
-                                                    }
-                                                } catch (Throwable $e) {
-                                                    $value = "";
-
-                                                    if ($debug) {
-                                                        var_dump($e->getMessage(), $e->getLine());
-                                                    }
-                                                }
-                                                break;
-                                            default:
+                                            } catch (Throwable $e) {
                                                 $value = "";
-                                                break;
-                                        }
-                                    } else {
-                                        try { // Static with no arguments
-                                            $value = $this->prepareValue(
-                                                call_user_func_array(
-                                                    $keyWord,
-                                                    $explode
-                                                ),
-                                                $object,
-                                                array(),
-                                                $recursive
-                                            );
 
-                                            if ($value === null) {
-                                                $value = "";
+                                                if ($debug) {
+                                                    var_dump($e->getMessage(), $e->getLine());
+                                                }
                                             }
-                                        } catch (Throwable $e) {
+                                            break;
+                                        case 3: // Object
+                                            $parameters = array_pop($keyWordMethod);
+
+                                            if (!empty($parameters)) {
+                                                foreach ($parameters as $arrayKey => $parameter) {
+                                                    if (is_object($parameter)
+                                                        && empty(get_object_vars($parameter))
+                                                        && !empty($explode)) {
+                                                        $parameters[$arrayKey] = array_shift($explode);
+                                                    }
+                                                }
+                                            }
+                                            try {
+                                                $value = $this->prepareValue(
+                                                    call_user_func_array(
+                                                        $keyWordMethod,
+                                                        $parameters
+                                                    ),
+                                                    $object,
+                                                    array(),
+                                                    $recursive
+                                                );
+
+                                                if ($value === null) {
+                                                    $value = "";
+                                                }
+                                            } catch (Throwable $e) {
+                                                $value = "";
+
+                                                if ($debug) {
+                                                    var_dump($e->getMessage(), $e->getLine());
+                                                }
+                                            }
+                                            break;
+                                        default:
                                             $value = "";
-                                        }
+                                            break;
                                     }
                                 } else {
-                                    $value = "";
+                                    try { // Static with no arguments
+                                        $value = $this->prepareValue(
+                                            call_user_func_array(
+                                                $keyWord,
+                                                $explode
+                                            ),
+                                            $object,
+                                            array(),
+                                            $recursive
+                                        );
+
+                                        if ($value === null) {
+                                            $value = "";
+                                        }
+                                    } catch (Throwable $e) {
+                                        $value = "";
+                                    }
                                 }
-                                $message = str_replace($word, $value, $message);
                             } else {
-                                break;
+                                $value = "";
                             }
+                            $message = str_replace($word, $value, $message);
+                        } else {
+                            break;
                         }
-                        $messages[$messageKey] = $message;
                     }
+                    $messages[$messageKey] = $message;
                 }
             }
         }
         return $messages;
     }
 
-    private function prepareValue(mixed $value, object $object, array $dynamicPlaceholders, bool $recursive): ?string
+    private function prepareValue(mixed $value, ?object $object, array $dynamicPlaceholders, bool $recursive): ?string
     {
         if (is_array($value)) {
             $array = $value;
