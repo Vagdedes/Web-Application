@@ -53,7 +53,6 @@ if (true
         $ipAddressModified = properly_sql_encode(get_form_get("ip_address"), true);
 
         if (!is_ip_address($ipAddressModified)) {
-            echo "false";
             return;
         }
         $user_agent = properly_sql_encode(get_form_get("user_agent"), true);
@@ -833,6 +832,130 @@ if (true
                     echo implode($separator, $query);
                 }
             } catch (Throwable $ignored) {
+            }
+        } else if ($data == "aiAssistance") {
+            $account = $gameCloudUser->getInformation()->getAccount();
+
+            if ($account->exists()) {
+                if (!$account->getEmail()->isVerified()) {
+                    echo "You must verify your account email to use this feature.";
+                    return;
+                }
+                if (strlen($value) > 2000) {
+                    echo "The question is too long. Please try again with a shorter question.";
+                    return;
+                }
+                $accountID = $account->getDetail("id");
+                $cacheKey = array(
+                    $value,
+                    $data
+                );
+                $cache = get_key_value_pair($cacheKey);
+
+                if (is_string($cache)) {
+                    echo $cache;
+                } else {
+                    $apiKey = get_keys_from_file("/var/www/.structure/private/openai_api_key");
+
+                    if ($apiKey === null) {
+                        echo "This feature is not available currently";
+                        return;
+                    }
+                    $questionHash = string_to_integer($value, true);
+                    $query = get_sql_query(
+                        $ai_assistance_table,
+                        array("cost", "question_hash", "answer"),
+                        array(
+                            array("account_id", $accountID),
+                            array("creation_date", ">", get_past_date("1 month")),
+                        ),
+                        array(
+                            "DESC",
+                            "id"
+                        )
+                    );
+
+                    if (!empty($query)) {
+                        $cost = 0.0;
+
+                        foreach ($query as $row) {
+                            $cost += $row->cost;
+
+                            if ($row->question_hash == $questionHash) {
+                                echo $row->answer;
+                                set_key_value_pair($cacheKey, $row->answer, "1 hour");
+                                return;
+                            }
+                        }
+
+                        if ($cost >= 2.0) {
+                            echo "You have reached the maximum amount of questions for the month. Please try again later.";
+                            return;
+                        }
+                    }
+                    $chatAI = new ChatAI(
+                        AIModelFamily::CHAT_GPT_4,
+                        $apiKey[0],
+                        2000
+                    );
+                    $instructions = $account->getInstructions()->replace(
+                        array("%%__instructions__%%"),
+                        null,
+                        array(
+                            "instructions" => array(
+                                $account->getInstructions(),
+                                "getPublic",
+                                array(
+                                    array(2),
+                                    $value
+                                )
+                            )
+                        )
+                    );
+                    $outcome = $chatAI->getResult(
+                        $ai_assistance_hash,
+                        array(
+                            "messages" => array(
+                                array(
+                                    "role" => "system",
+                                    "content" => $instructions
+                                ),
+                                array(
+                                    "role" => "user",
+                                    "content" => $value
+                                )
+                            )
+                        )
+                    );
+
+                    if (array_shift($outcome)) { // Success
+                        $model = array_shift($outcome);
+                        $reply = array_shift($outcome);
+                        $content = $chatAI->getText($model, $reply);
+
+                        if (empty($content)) {
+                            echo "An error occurred while processing your request. Please try again later. (2)";
+                        } else {
+                            sql_insert(
+                                $ai_assistance_table,
+                                array(
+                                    "account_id" => $accountID,
+                                    "question" => $value,
+                                    "question_hash" => $questionHash,
+                                    "answer" => $content,
+                                    "cost"=>$chatAI->getCost($model, $reply),
+                                    "creation_date" => $date,
+                                )
+                            );
+                            echo $content;
+                            set_key_value_pair($cacheKey, $content, "1 hour");
+                        }
+                    } else {
+                        echo "An error occurred while processing your request. Please try again later. (1)";
+                    }
+                }
+            } else {
+                echo "You must have an account to use this feature. Register one via https://www.idealistic.ai/discord";
             }
         }
     } else if ($action == "add") {

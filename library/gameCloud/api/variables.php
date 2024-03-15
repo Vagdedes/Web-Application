@@ -16,6 +16,11 @@ $discord_webhooks_table = "gameCloud.discordWebhooks";
 $failed_discord_webhooks_table = "gameCloud.failedDiscordWebhooks";
 $accepted_platforms_table = "gameCloud.acceptedPlatforms";
 $staff_announcements_table = "gameCloud.staffAnnouncements";
+$ai_assistance_table = "gameCloud.aiAssistance";
+
+// Separator
+
+$ai_assistance_hash = 518924133;
 
 // Separator
 
