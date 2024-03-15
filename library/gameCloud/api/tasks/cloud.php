@@ -898,11 +898,8 @@ if (true
                     $chatAI = new ChatAI(
                         AIModelFamily::CHAT_GPT_4,
                         $apiKey[0],
-                        2000
+                        500
                     );
-                    $instructions = "YOU ARE REPLYING TO A MINECRAFT PLAYER THAT USED A MINECRAFT COMMAND TO GET AI ASSISTANCE."
-                        . " DO NOT USE TABS OR LINES."
-                        . "\n\n%%__instructions__%%";
                     $outcome = $chatAI->getResult(
                         $ai_assistance_hash,
                         array(
@@ -910,7 +907,7 @@ if (true
                                 array(
                                     "role" => "system",
                                     "content" => $account->getInstructions()->replace(
-                                        array($instructions),
+                                        array("%%__instructions__%%"),
                                         null,
                                         array(
                                             "instructions" => array(
@@ -937,6 +934,7 @@ if (true
                         if (empty($content)) {
                             echo "An error occurred while processing your request. Please try again later. (2)";
                         } else {
+                            $content = str_replace(array("*", "|", "`", "\t", "\r", "\n", $line), "", $content);
                             sql_insert(
                                 $ai_assistance_table,
                                 array(
