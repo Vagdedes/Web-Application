@@ -355,6 +355,28 @@ class AccountInstructions
                                 . $url
                                 . "\nEnd of '" . $browse->information_url . "'"
                                 . ($browse->suffix ?? "");
+
+                            if ($browse->sub_directories !== null) {
+                                $links = get_urls_from_string($url);
+
+                                if (!empty($links)) {
+                                    foreach ($links as $link) {
+                                        if ($link != $browse->information_url
+                                            && ($browse->sub_directories == 2
+                                                || starts_with($link, $browse->information_url))) {
+                                            $url = $this->getRawURLData($link);
+
+                                            if ($url !== null) {
+                                                $data .= ($browse->prefix ?? "")
+                                                    . "Start of '" . $link . "':\n"
+                                                    . $url
+                                                    . "\nEnd of '" . $link . "'"
+                                                    . ($browse->suffix ?? "");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -363,23 +385,29 @@ class AccountInstructions
         return $data;
     }
 
+    private function getRawURLData(string $url): ?string
+    {
+        if (get_domain_from_url($url) == "docs.google.com") {
+            return get_raw_google_doc($url);
+        } else {
+            $doc = get_raw_google_doc($url);
+
+            if ($doc === null) {
+                return timed_file_get_contents($url);
+            } else {
+                return $doc;
+            }
+        }
+    }
+
     private function getURLData(object $row, string $table): ?string
     {
         if ($row->information_expiration !== null
             && $row->information_expiration > get_current_date()) {
             return $row->information_value;
         } else {
-            $url = $row->information_url;
+            $doc = $this->getRawURLData($row->information_url);
 
-            if (get_domain_from_url($url) == "docs.google.com") {
-                $doc = get_raw_google_doc($url);
-            } else {
-                $doc = get_raw_google_doc($url);
-
-                if ($doc === null) {
-                    $doc = timed_file_get_contents($url);
-                }
-            }
             if (is_string($doc)) {
                 if ($row->replace !== null && !empty($this->replacements)) {
                     foreach ($this->replacements as $replace) {
