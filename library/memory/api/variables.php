@@ -1,6 +1,4 @@
 <?php
-$memory_object_cache = array();
-
 $memory_reserved_keys = array(
     0 => 0xff1, // Reserved for caching memory segment ids
     1 => 0xff2 // Reserved for caching memory segment id difference

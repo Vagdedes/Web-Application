@@ -96,14 +96,10 @@ class AccountInstructions
 
     public function addExtra(string $key, mixed $value): void
     {
-        if (is_object($value)) {
-            $value = json_decode(json_encode($value), true);
-            $isArray = true;
-        } else {
-            $isArray = is_array($value);
-        }
-        if ($isArray) {
-
+        if (is_object($value) || is_array($value)) {
+            $this->extra[$key] = "Start of '$key':\n"
+                . json_encode($value)
+                . "\nEnd of '$key'";
         } else {
             $this->extra[$key] = $value;
         }

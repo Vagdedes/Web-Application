@@ -1,18 +1,5 @@
 <?php
 
-function memory_get_object_cache(mixed $key): IndividualMemoryBlock
-{
-    global $memory_object_cache;
-
-    if (!array_key_exists($key, $memory_object_cache)) {
-        $memory = new IndividualMemoryBlock($key);
-        $memory_object_cache[$key] = $memory;
-        return $memory;
-    } else {
-        return $memory_object_cache[$key];
-    }
-}
-
 function has_memory_limit(mixed $key, int|string $countLimit, int|string|null $futureTime = null): bool
 {
     $key = manipulate_memory_key($key);
@@ -22,7 +9,7 @@ function has_memory_limit(mixed $key, int|string $countLimit, int|string|null $f
 
         if ($futureTime !== null) {
             global $memory_reserved_names;
-            $memoryBlock = memory_get_object_cache($memory_reserved_names[1] . $key);
+            $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[1] . $key);
             $object = $memoryBlock->get();
 
             if ($object !== null && isset($object->original_expiration) && isset($object->count)) {
@@ -53,7 +40,7 @@ function has_memory_cooldown(mixed $key, int|string|null $futureTime = null,
 
         if ($futureTime !== null) {
             global $memory_reserved_names;
-            $memoryBlock = memory_get_object_cache($memory_reserved_names[0] . $key);
+            $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[0] . $key);
 
             if (!$force && $memoryBlock->exists()) {
                 return true;
@@ -75,7 +62,7 @@ function get_key_value_pair(mixed $key, mixed $temporaryRedundancyValue = null)
 
     if ($key !== false) {
         global $memory_reserved_names;
-        $memoryBlock = memory_get_object_cache($memory_reserved_names[2] . $key);
+        $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[2] . $key);
         $object = $memoryBlock->get();
 
         if ($object !== null) {
@@ -97,7 +84,7 @@ function set_key_value_pair(mixed $key, mixed $value = null, int|string|null $fu
 
         if ($futureTime !== null) {
             global $memory_reserved_names;
-            $memoryBlock = memory_get_object_cache($memory_reserved_names[2] . $key);
+            $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[2] . $key);
             return $memoryBlock->set($value, $futureTime);
         }
     }
@@ -112,8 +99,6 @@ function clear_memory(array|null $keys,
                       ?callable  $valueVerifier = null,
                       mixed      $localSegments = null): void
 {
-    global $memory_object_cache;
-
     if ($localSegments === null) {
         share_clear_memory($keys, $abstractSearch);
     }
@@ -140,12 +125,12 @@ function clear_memory(array|null $keys,
                             if (is_array($key)) {
                                 foreach ($key as $subKey) {
                                     if (!str_contains($memoryKey, $subKey)) {
+                                        //var_dump($memoryKey);
                                         continue 2;
                                     }
                                 }
                                 if ($valueVerifier === null || $valueVerifier($memoryBlock->get())) {
                                     $memoryBlock->delete();
-                                    unset($memory_object_cache[$segment]);
 
                                     if ($hasLimit) {
                                         $iterations[$arrayKey]++;
@@ -158,7 +143,6 @@ function clear_memory(array|null $keys,
                             } else if (str_contains($memoryKey, $key)
                                 && ($valueVerifier === null || $valueVerifier($memoryBlock->get()))) {
                                 $memoryBlock->delete();
-                                unset($memory_object_cache[$segment]);
 
                                 if ($hasLimit) {
                                     $iterations[$arrayKey]++;
@@ -180,7 +164,6 @@ function clear_memory(array|null $keys,
                     $name .= $key;
                     $memoryBlock = new IndividualMemoryBlock($name);
                     $memoryBlock->delete();
-                    unset($memory_object_cache[$name]);
                 }
             }
         }
@@ -191,7 +174,6 @@ function clear_memory(array|null $keys,
             foreach ($segments as $segment) {
                 $memoryBlock = new IndividualMemoryBlock($segment);
                 $memoryBlock->delete();
-                unset($memory_object_cache[$segment]);
             }
         }
     }
