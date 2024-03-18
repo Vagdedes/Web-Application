@@ -385,7 +385,7 @@ class AccountInstructions
                         if ($url !== null) {
                             $data .= ($browse->prefix ?? "")
                                 . "Start of '" . $browse->information_url . "':\n"
-                                . $url
+                                . json_encode($url)
                                 . "\nEnd of '" . $browse->information_url . "'"
                                 . ($browse->suffix ?? "");
 
@@ -399,13 +399,12 @@ class AccountInstructions
                                             && $link != ($browse->information_url . "/")
                                             && ($browse->sub_directories == 2
                                                 || get_domain_from_url($link, true) == $domain)) {
-                                            var_dump($link);
                                             $url = $this->getRawURLData($link);
 
                                             if ($url !== null) {
                                                 $data .= ($browse->prefix ?? "")
                                                     . "Start of '" . $link . "':\n"
-                                                    . urlencode($url)
+                                                    . json_encode($url)
                                                     . "\nEnd of '" . $link . "'"
                                                     . ($browse->suffix ?? "");
                                             }
