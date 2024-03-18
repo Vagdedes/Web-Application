@@ -22,8 +22,7 @@ class AccountInstructions
         $this->placeholderStart = InformationPlaceholder::STARTER;
         $this->placeholderMiddle = InformationPlaceholder::DIVISOR_REPLACEMENT;
         $this->placeholderEnd = InformationPlaceholder::ENDER;
-        set_sql_cache(null, self::class);
-        $this->localInstructions = get_sql_query(
+        $this->localInstructions = $this->calculateContains(get_sql_query(
             InstructionsTable::LOCAL,
             null,
             array(
@@ -38,9 +37,8 @@ class AccountInstructions
                 null
             ),
             "priority DESC"
-        );
-        set_sql_cache(null, self::class);
-        $this->publicInstructions = get_sql_query(
+        ));
+        $this->publicInstructions = $this->calculateContains(get_sql_query(
             InstructionsTable::PUBLIC,
             null,
             array(
@@ -52,7 +50,20 @@ class AccountInstructions
                 null
             ),
             "priority DESC"
-        );
+        ));
+        $this->browse = $this->calculateContains(get_sql_query(
+            InstructionsTable::BROWSE,
+            null,
+            array(
+                array("deletion_date", null),
+                array("application_id", $this->account->getDetail("application_id")),
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
+            )
+        ));
+
         set_sql_cache(null, self::class);
         $this->replacements = get_sql_query(
             InstructionsTable::REPLACEMENTS,
@@ -66,30 +77,21 @@ class AccountInstructions
                 null
             )
         );
-        //set_sql_cache(null, self::class); // Bot does not load with it for some reason
-        $this->browse = get_sql_query(
-            InstructionsTable::BROWSE,
-            null,
-            array(
-                array("deletion_date", null),
-                array("application_id", $this->account->getDetail("application_id")),
-                null,
-                array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", get_current_date()),
-                null
-            )
-        );
+    }
 
-        if (!empty($this->browse)) {
-            foreach ($this->browse as $arrayKey => $arrayValue) {
-                if ($arrayValue->contains === null) {
-                    $arrayValue->contains = array();
+    private function calculateContains(array $array): array
+    {
+        if (!empty($array)) {
+            foreach ($array as $arrayKey => $row) {
+                if ($row->contains === null) {
+                    $row->contains = array();
                 } else {
-                    $arrayValue->contains = explode("|", $arrayValue->contains);
+                    $row->contains = explode("|", $row->contains);
                 }
-                $this->browse[$arrayKey] = $arrayValue;
+                $array[$arrayKey] = $row;
             }
         }
+        return $array;
     }
 
     // Separator
@@ -417,7 +419,22 @@ class AccountInstructions
             foreach ($array as $arrayKey => $row) {
                 if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
                     if ($row->information !== null) { // Could be just the disclaimer
-                        $row->information = $this->prepareRow($row, $row->information, $userInput);
+                        if ($userInput === null || empty($array->contains)) {
+                            $continue = true;
+                        } else {
+                            $continue = false;
+
+                            foreach ($array->contains as $contains) {
+                                if (str_contains($userInput, $contains)) {
+                                    $continue = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($continue) {
+                            $row->information = $this->prepareRow($row, $row->information, $userInput);
+                        }
                     }
                 } else {
                     unset($array[$arrayKey]);
@@ -441,7 +458,22 @@ class AccountInstructions
                     $doc = $this->getURLData($row, InstructionsTable::PUBLIC);
 
                     if ($doc !== null) {
-                        $array[$arrayKey] = $this->prepareRow($row, $doc, $userInput);
+                        if ($userInput === null || empty($array->contains)) {
+                            $continue = true;
+                        } else {
+                            $continue = false;
+
+                            foreach ($array->contains as $contains) {
+                                if (str_contains($userInput, $contains)) {
+                                    $continue = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($continue) {
+                            $array[$arrayKey] = $this->prepareRow($row, $doc, $userInput);
+                        }
                     } else {
                         unset($array[$arrayKey]);
                     }

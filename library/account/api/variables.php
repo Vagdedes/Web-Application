@@ -142,7 +142,6 @@ class InstructionsTable
     public const
         LOCAL = "instructions.local",
         PUBLIC = "instructions.public",
-        PLACEHOLDERS = "instructions.placeholders",
         BROWSE = "instructions.browse",
         REPLACEMENTS = "instructions.replacements";
 }
