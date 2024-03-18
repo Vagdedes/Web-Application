@@ -112,6 +112,11 @@ class AccountInstructions
         unset($this->extra[$key]);
     }
 
+    public function getSpecificExtra(string $key): string
+    {
+        return $this->extra[$key];
+    }
+
     public function getExtra($character = "\n"): string
     {
         return implode($character, $this->extra);
@@ -356,20 +361,23 @@ class AccountInstructions
                                 . "\nEnd of '" . $browse->information_url . "'"
                                 . ($browse->suffix ?? "");
 
-                            if ($browse->sub_directories !== null) {
+                            if (false && $browse->sub_directories !== null) {
+                                $domain = get_domain_from_url($browse->information_url, true);
                                 $links = get_urls_from_string($url);
 
                                 if (!empty($links)) {
                                     foreach ($links as $link) {
                                         if ($link != $browse->information_url
+                                            && $link != ($browse->information_url . "/")
                                             && ($browse->sub_directories == 2
-                                                || starts_with($link, $browse->information_url))) {
+                                                || get_domain_from_url($link, true) == $domain)) {
+                                            var_dump($link);
                                             $url = $this->getRawURLData($link);
 
                                             if ($url !== null) {
                                                 $data .= ($browse->prefix ?? "")
                                                     . "Start of '" . $link . "':\n"
-                                                    . $url
+                                                    . urlencode($url)
                                                     . "\nEnd of '" . $link . "'"
                                                     . ($browse->suffix ?? "");
                                             }
