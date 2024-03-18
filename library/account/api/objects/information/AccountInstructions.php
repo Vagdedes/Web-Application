@@ -100,15 +100,17 @@ class AccountInstructions
 
     public function addExtra(string $key, mixed $value, bool $delete = false): void
     {
-        if (is_object($value) || is_array($value)) {
-            $this->extra[$key] = "Start of '$key':\n"
-                . json_encode($value)
-                . "\nEnd of '$key'";
-        } else {
-            $this->extra[$key] = $value;
-        }
-        if ($delete) {
-            $this->deleteExtra[$key] = true;
+        if (!empty($value)) {
+            if (is_object($value) || is_array($value)) {
+                $this->extra[$key] = "Start of '$key':\n"
+                    . json_encode($value)
+                    . "\nEnd of '$key'";
+            } else {
+                $this->extra[$key] = $value;
+            }
+            if ($delete) {
+                $this->deleteExtra[$key] = true;
+            }
         }
     }
 
