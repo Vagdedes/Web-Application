@@ -102,9 +102,15 @@ class AccountInstructions
     {
         if (!empty($value)) {
             if (is_object($value) || is_array($value)) {
-                $this->extra[$key] = "Start of '$key':\n"
-                    . json_encode($value)
-                    . "\nEnd of '$key'";
+                $json = @json_encode($value);
+
+                if ($json !== false) {
+                    $this->extra[$key] = "Start of '$key':\n"
+                        . $json
+                        . "\nEnd of '$key'";
+                } else {
+                    return;
+                }
             } else {
                 $this->extra[$key] = $value;
             }
