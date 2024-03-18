@@ -9,7 +9,8 @@ class AccountInstructions
         $publicInstructions,
         $browse,
         $replacements,
-        $extra;
+        $extra,
+        $deleteExtra;
     private string
         $placeholderStart,
         $placeholderMiddle,
@@ -19,6 +20,7 @@ class AccountInstructions
     {
         $this->account = $account;
         $this->extra = array();
+        $this->deleteExtra = array();
         $this->placeholderStart = InformationPlaceholder::STARTER;
         $this->placeholderMiddle = InformationPlaceholder::DIVISOR_REPLACEMENT;
         $this->placeholderEnd = InformationPlaceholder::ENDER;
@@ -96,7 +98,7 @@ class AccountInstructions
 
     // Separator
 
-    public function addExtra(string $key, mixed $value): void
+    public function addExtra(string $key, mixed $value, bool $delete = false): void
     {
         if (is_object($value) || is_array($value)) {
             $this->extra[$key] = "Start of '$key':\n"
@@ -105,21 +107,39 @@ class AccountInstructions
         } else {
             $this->extra[$key] = $value;
         }
+        if ($delete) {
+            $this->deleteExtra[$key] = true;
+        }
     }
 
     public function removeExtra(string $key): void
     {
         unset($this->extra[$key]);
+        unset($this->deleteExtra[$key]);
+    }
+
+    public function removeAllExtra(): void
+    {
+        foreach (array_keys($this->deleteExtra) as $key) {
+            $this->removeExtra($key);
+        }
     }
 
     public function getSpecificExtra(string $key): string
     {
-        return $this->extra[$key];
+        $return = $this->extra[$key];
+
+        if (array_key_exists($key, $this->deleteExtra)) {
+            $this->removeExtra($key);
+        }
+        return $return;
     }
 
     public function getExtra($character = "\n"): string
     {
-        return implode($character, $this->extra);
+        $return = implode($character, $this->extra);
+        $this->removeAllExtra();
+        return $return;
     }
 
     // Separator
