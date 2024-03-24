@@ -29,7 +29,7 @@ class AccountObjectives
                     "Add your" . (!$paypal ? " PayPal and " : " ") . "Stripe email to have your purchases identified.",
                     null,
                     true,
-                    "7 days"
+                    $paypal ? "7 days" : null
                 );
             } else if (!$paypal) {
                 $array = $this->create(
@@ -49,8 +49,7 @@ class AccountObjectives
                     "Minecraft Platform",
                     "Add your SpigotMC/BuiltByBit/Polymart account URL to have your licenses identified.",
                     null,
-                    true,
-                    "7 days"
+                    true
                 );
             }
             if (!$this->account->getAccounts()->hasAdded(AccountAccounts::PATREON_FULL_NAME, null, 1)->isPositiveOutcome()) {
