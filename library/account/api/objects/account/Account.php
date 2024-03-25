@@ -1,5 +1,6 @@
 <?php
 
+// [Mon Mar 25 15:55:38.342360 2024] [php:error] [pid 1002] [client 10.0.0.3:23910] PHP Fatal error:  Uncaught Error: Typed property Account::$session must not be accessed before initialization in /var/www/.structure/library/account/api/objects/account/Account.php:390\nStack trace:\n#0 /var/www/.structure/library/account/api/objects/account/Account.php(181): Account->getSession()\n#1 /var/www/.structure/library/account/api/tasks/panel.php(81): Account->getNew()\n#2 /var/www/idealistic/account/panel/index.php(2): require('/var/www/.struc...')\n#3 {main}\n  thrown in /var/www/.structure/library/account/api/objects/account/Account.php on line 390
 class Account
 {
     public const
@@ -55,8 +56,7 @@ class Account
     public function __construct(?int    $applicationID = null,
                                 ?int    $id = null, ?string $email = null, ?string $username = null,
                                 ?string $identification = null,
-                                bool    $checkDeletion = true,
-                                bool    $cache = true)
+                                bool    $checkDeletion = true)
     {
         $hasID = $id !== null;
         $hasUsername = $username !== null;
@@ -68,12 +68,11 @@ class Account
             $this->object = new stdClass();
             $this->object->application_id = $applicationID;
         } else {
+            global $accounts_table;
+
             if ($hasIdentification) {
                 global $account_identification_table;
-
-                if ($cache) {
-                    set_sql_cache(null, self::class);
-                }
+                set_sql_cache(null, self::class);
                 $query = get_sql_query(
                     $account_identification_table,
                     array("account_id"),
@@ -85,54 +84,59 @@ class Account
                 );
 
                 if (empty($query)) {
-                    $this->object = null;
-                    return;
+                    $runQuery = false;
                 } else {
                     $id = $query[0]->account_id;
                     $hasID = true;
+                    $runQuery = true;
                 }
+            } else {
+                $runQuery = true;
             }
-            global $accounts_table;
-
-            if ($cache) {
+            if ($runQuery) {
                 set_sql_cache(null, self::class);
+                $query = get_sql_query(
+                    $accounts_table,
+                    null,
+                    array(
+                        $hasID ? array("id", $id) : "",
+                        $email !== null ? array("email_address", strtolower($email)) : "",
+                        $hasUsername ? array("name", $username) : "",
+                        $checkDeletion ? array("deletion_date", null) : "",
+                        $applicationID !== self::IGNORE_APPLICATION ? array("application_id", $applicationID) : ""
+                    ),
+                    null,
+                    1
+                );
+            } else {
+                $query = null;
             }
-            $query = get_sql_query(
-                $accounts_table,
-                null,
-                array(
-                    $hasID ? array("id", $id) : "",
-                    $email !== null ? array("email_address", strtolower($email)) : "",
-                    $hasUsername ? array("name", $username) : "",
-                    $checkDeletion ? array("deletion_date", null) : "",
-                    $applicationID !== self::IGNORE_APPLICATION ? array("application_id", $applicationID) : ""
-                ),
-                null,
-                1
-            );
 
             if (!empty($query)) {
-                $this->exists = true;
-                $this->object = $query[0];
-                $this->settings = new AccountSettings($this);
-                $this->history = new AccountHistory($this);
-                $this->transactions = new AccountTransactions($this);
-                $this->purchases = new AccountPurchases($this);
-                $this->cooldowns = new AccountCooldowns($this);
-                $this->accounts = new AccountAccounts($this);
-                $this->permissions = new AccountPermissions($this);
-                $this->objectives = new AccountObjectives($this);
                 $this->identification = new AccountIdentification($this);
-                $this->notifications = new AccountNotifications($this);
-                $this->phoneNumber = new AccountPhoneNumber($this);
-                $this->reviews = new AccountReviews($this);
-                $this->patreon = new AccountPatreon($this);
-                $this->correlation = new AccountCorrelation($this);
-                $this->verification = new AccountVerification($this);
+
+                if ($hasIdentification && $this->identification->get() != $identification) { // Expired
+                    $this->def($applicationID);
+                } else {
+                    $this->exists = true;
+                    $this->object = $query[0];
+                    $this->settings = new AccountSettings($this);
+                    $this->history = new AccountHistory($this);
+                    $this->transactions = new AccountTransactions($this);
+                    $this->purchases = new AccountPurchases($this);
+                    $this->cooldowns = new AccountCooldowns($this);
+                    $this->accounts = new AccountAccounts($this);
+                    $this->permissions = new AccountPermissions($this);
+                    $this->objectives = new AccountObjectives($this);
+                    $this->notifications = new AccountNotifications($this);
+                    $this->phoneNumber = new AccountPhoneNumber($this);
+                    $this->reviews = new AccountReviews($this);
+                    $this->patreon = new AccountPatreon($this);
+                    $this->correlation = new AccountCorrelation($this);
+                    $this->verification = new AccountVerification($this);
+                }
             } else {
-                $this->exists = false;
-                $this->object = new stdClass();
-                $this->object->application_id = $applicationID;
+                $this->def($applicationID);
             }
         }
         // Standalone
@@ -164,6 +168,13 @@ class Account
         $this->paymentProcessor = new PaymentProcessor($applicationID);
     }
 
+    private function def(?int $applicationID): void
+    {
+        $this->exists = false;
+        $this->object = new stdClass();
+        $this->object->application_id = $applicationID;
+    }
+
     public function getNew(?int $id = null, ?string $email = null, $username = null,
                                 $identification = null,
                            bool $checkDeletion = true,
@@ -178,9 +189,10 @@ class Account
             $checkDeletion,
             $cache
         );
+
         $account->getSession()->setCustomKey(
-            $this->getSession()->getType(),
-            $this->getSession()->getCustomKey()
+            $this->session->getType(),
+            $this->session->getCustomKey()
         );
         return $account;
     }
@@ -426,12 +438,12 @@ class Account
     {
         if ($this->exists()) {
             if (isset($this->transactions)) {
-                $this->getTransactions()->clearCache();
-                $this->getTransactions()->getSuccessful();
+                $this->transactions->clearCache();
+                $this->transactions->getSuccessful();
             }
             if (isset($this->email)
-                && !$this->getEmail()->isVerified()) {
-                $this->getEmail()->initiateVerification(null, $this->session->isCustom());
+                && !$this->email->isVerified()) {
+                $this->email->initiateVerification(null, $this->session->isCustom());
             }
         }
     }

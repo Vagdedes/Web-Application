@@ -10,7 +10,6 @@ class AccountIdentification
     public function __construct(Account $account)
     {
         $this->account = $account;
-        $this->run();
     }
 
     private function run($repeat = true): void
@@ -107,6 +106,7 @@ class AccountIdentification
 
     public function get(): string
     {
+        $this->run();
         return $this->identification;
     }
 
