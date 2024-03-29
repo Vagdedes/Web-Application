@@ -1,6 +1,5 @@
 <?php
 
-// [Mon Mar 25 15:55:38.342360 2024] [php:error] [pid 1002] [client 10.0.0.3:23910] PHP Fatal error:  Uncaught Error: Typed property Account::$session must not be accessed before initialization in /var/www/.structure/library/account/api/objects/account/Account.php:390\nStack trace:\n#0 /var/www/.structure/library/account/api/objects/account/Account.php(181): Account->getSession()\n#1 /var/www/.structure/library/account/api/tasks/panel.php(81): Account->getNew()\n#2 /var/www/idealistic/account/panel/index.php(2): require('/var/www/.struc...')\n#3 {main}\n  thrown in /var/www/.structure/library/account/api/objects/account/Account.php on line 390
 class Account
 {
     public const
@@ -9,7 +8,7 @@ class Account
         WEBSITE_DESIGN_PATH = "https://vagdedes.com/.css/",
         DOWNLOADS_PATH = "/var/www/vagdedes/.temporary/";
 
-    private $object;
+    private object $object;
     private bool $exists;
     private AccountSettings $settings;
     private AccountActions $actions;
@@ -64,9 +63,7 @@ class Account
 
         if (!$hasIdentification
             && ($hasID ? $id <= 0 : !$hasUsername && !is_email($email))) {
-            $this->exists = false;
-            $this->object = new stdClass();
-            $this->object->application_id = $applicationID;
+            $this->def($applicationID);
         } else {
             global $accounts_table;
 
