@@ -24,6 +24,18 @@ function delete_cookie(int|string $name): bool
     ]);
 }
 
+function delete_all_cookies(): bool
+{
+    if (!empty($_COOKIE)) {
+        foreach ($_COOKIE as $key => $value) {
+            setcookie($key, $value, 0, '/');
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
 function cookie_exists(int|string $name): bool
 {
     return isset($_COOKIE[$name]);
@@ -32,15 +44,4 @@ function cookie_exists(int|string $name): bool
 function get_cookie(int|string $name)
 {
     return $_COOKIE[$name] ?? null;
-}
-
-function set_cookie_to_value_if_not(int|string $name, mixed $value,
-                                    int|string $time, bool $force = false): bool
-{
-    if (!cookie_exists($name)) {
-        return add_cookie($name, $value, $time);
-    } else if ($force || $_COOKIE[$name] != $value) {
-        add_cookie($name, $value, $time);
-    }
-    return false;
 }

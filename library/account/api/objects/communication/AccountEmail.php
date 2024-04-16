@@ -274,7 +274,11 @@ class AccountEmail
         $info = strip_tags($info);
 
         if ($found) {
-            $platformsString = "";
+            if (!$hasEmail) {
+                $email = $account->getDetail("email_address");
+            }
+            $platformsString = "https://www.idealistic.ai/contents/?path=account/panel&platform=0&id="
+                . $email . "\r\n\r\n";
             $accounts = $account->getAccounts()->getAdded();
 
             if (!empty($accounts)) {
@@ -309,10 +313,6 @@ class AccountEmail
             }
         } else {
             $platformsString = null;
-        }
-
-        if (!$hasEmail) {
-            $email = $found ? $account->getDetail("email_address") : null;
         }
 
         while (true) {

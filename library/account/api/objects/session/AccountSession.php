@@ -9,8 +9,9 @@ class AccountSession
         session_account_refresh_expiration = "2 days",
         session_account_total_expiration = "15 days",
         session_max_creation_tries = 100;
+
     public const session_token_length = 128,
-        session_cookie_expiration = 86400 * 30,
+        session_cookie_expiration = 86400 * 3,
         session_cache_time = "1 minute";
 
     public function __construct(Account $account)
@@ -104,8 +105,13 @@ class AccountSession
     {
         if ($this->isCustom()) {
             return $this->customKey;
+        } else if ($force) {
+            $this->deleteKey();
+            $key = random_string(self::session_token_length);
+            add_cookie(self::session_key_name, $key, self::session_cookie_expiration); // Create new cookie with strict requirements
+            return $key;
         } else {
-            $key = $force ? null : get_cookie(self::session_key_name);
+            $key = get_cookie(self::session_key_name);
 
             if ($key === null) {
                 $key = random_string(self::session_token_length);
@@ -117,7 +123,7 @@ class AccountSession
 
     public function deleteKey(): bool
     {
-        return $this->isCustom() || delete_cookie(self::session_key_name);
+        return $this->isCustom() || delete_all_cookies();
     }
 
     private function clearTokenCache(int|string $token): void
@@ -209,7 +215,7 @@ class AccountSession
                         return new MethodReply(true, null, $account);
                     } else {
                         global $account_sessions_table;
-                        $this->createKey(true);
+                        $this->deleteKey();
                         set_sql_query(
                             $account_sessions_table,
                             array(
@@ -226,7 +232,7 @@ class AccountSession
                 }
             }
         } else { // Delete session cookie if key is at incorrect length
-            $this->createKey(true);
+            $this->deleteKey();
         }
         return new MethodReply(false, null, $this->account->getNew(0));
     }
@@ -247,7 +253,7 @@ class AccountSession
             $key = $this->createKey();
 
             if (!$hasCustomKey && strlen($key) !== self::session_token_length) { // Check if length of key is correct
-                $this->createKey(true);
+                $this->deleteKey();
                 continue;
             }
             $key = $hasCustomKey
@@ -310,12 +316,12 @@ class AccountSession
                     $this->clearTokenCache($key);
                     return new MethodReply(true, null, $account);
                 } else {
-                    $this->createKey(true);
+                    $this->deleteKey();
                     $this->clearTokenCache($key);
                     return new MethodReply(false, "Failed to create session in the database.");
                 }
             } else {
-                $this->createKey(true);
+                $this->deleteKey();
             }
         }
         return new MethodReply(false, "Failed to find available session.");
@@ -326,7 +332,7 @@ class AccountSession
         if ($accountID !== null) {
             $key = $this->createKey();
             $hasCustomKey = $this->isCustom();
-            $this->createKey(true);
+            $this->deleteKey();
 
             if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
                 global $account_sessions_table;

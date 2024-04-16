@@ -34,18 +34,6 @@ function load_account_page(bool $loadContents = true, ?callable $callable = null
                 $notification = $account->getNotifications()->get(AccountNotifications::FORM, 1, true);
             } else {
                 $notification = get_form_get("message");
-
-                if (empty($notification)) {
-                    $notification = "We use the necessary cookies to offer you access to our system.";
-
-                    if (!set_cookie_to_value_if_not(
-                        string_to_integer($notification),
-                        true,
-                        AccountSession::session_cookie_expiration
-                    )) {
-                        $notification = null;
-                    }
-                }
             }
             if (!empty($notification)) {
                 if (is_object($notification[0])) {
