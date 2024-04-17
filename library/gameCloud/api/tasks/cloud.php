@@ -1032,8 +1032,6 @@ if (true
                     switch ($type) {
                         case "notification":
                         case "log":
-                        case "statistic":
-                        case "exemption":
                         case "modification":
                         case "configuration":
                             $counter = 0;
