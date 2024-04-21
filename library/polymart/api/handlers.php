@@ -10,9 +10,9 @@ function get_polymart_object(string $version, string $service, array $parameters
     $cache = get_key_value_pair($cacheKey);
 
     if (is_object($cache)) {
-        //return $cache;
+        return $cache;
     } else if ($cache === false) {
-        //return null;
+        return null;
     }
     $polymart_credentials = get_keys_from_file("/var/www/.structure/private/polymart_credentials", 1);
 
@@ -35,4 +35,22 @@ function get_polymart_object(string $version, string $service, array $parameters
     }
     set_key_value_pair($cacheKey, $json, $polymart_object_refreshTime);
     return $json;
+}
+
+function get_polymart_buyer_details(int $productID, int $userID): ?object
+{
+    $object = get_polymart_object(
+        "v1",
+        "listBuyers",
+        array("resource_id" => $productID)
+    );
+
+    if (is_object($object) && isset($object->response->buyers)) {
+        foreach ($object->response->buyers as $buyer) {
+            if ($buyer->userID === $userID) {
+                return $buyer;
+            }
+        }
+    }
+    return null;
 }
