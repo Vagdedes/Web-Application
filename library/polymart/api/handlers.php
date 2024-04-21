@@ -37,6 +37,20 @@ function get_polymart_object(string $version, string $service, array $parameters
     return $json;
 }
 
+function get_polymart_buyers(int $productID): ?array
+{
+    $object = get_polymart_object(
+        "v1",
+        "listBuyers",
+        array("resource_id" => $productID)
+    );
+
+    if (is_object($object) && isset($object->response->buyers)) {
+        return $object->response->buyers;
+    } else {
+        return array();
+    }
+}
 function get_polymart_buyer_details(int $productID, int $userID): ?object
 {
     $object = get_polymart_object(

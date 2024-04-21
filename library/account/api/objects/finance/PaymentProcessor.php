@@ -325,6 +325,66 @@ class PaymentProcessor
                                     }
                                 }
                             }
+                        } else if (isset($product->identification[AccountAccounts::POLYMART_URL])) {
+                            $buyers = get_polymart_buyers(
+                                $product->identification[AccountAccounts::POLYMART_URL],
+                            );
+
+                            if (!empty($buyers)) {
+                                global $added_accounts_table;
+
+                                foreach ($buyers as $buyer) {
+                                    $query = get_sql_query(
+                                        $added_accounts_table,
+                                        array("account_id"),
+                                        array(
+                                            array("credential", $buyer->userID),
+                                            array("accepted_account_id", AccountAccounts::POLYMART_URL),
+                                            array("deletion_date", null),
+                                        ),
+                                        null,
+                                        1
+                                    );
+
+                                    if (!empty($query)) {
+                                        $account = $account->getNew($query[0]->account_id);
+
+                                        if ($account->exists()) {
+                                            $transactionDetails = $buyer->paymentProvider . "-" . $buyer->currency;
+
+                                            if ($buyer->valid && $buyer->status == "Completed") {
+                                                $additionalProducts = array();
+
+                                                foreach ($product->transaction_search as $transactionSearchProperties) {
+                                                    if ($transactionSearchProperties->individual !== null
+                                                        && $transactionSearchProperties->additional_products !== null) {
+                                                        foreach (explode("|", $transactionSearchProperties->additional_products) as $part) {
+                                                            if (is_numeric($part)) {
+                                                                $additionalProducts[$part] = null;
+                                                            } else {
+                                                                $part = explode(":", $part, 2);
+                                                                $additionalProducts[$part[0]] = $part[1];
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                $account->getPurchases()->add(
+                                                    $product->id,
+                                                    null,
+                                                    null,
+                                                    $transactionDetails,
+                                                    date("Y-m-d H:i:s", $buyer->purchaseTime),
+                                                    null,
+                                                    "productPurchase",
+                                                    $additionalProducts,
+                                                );
+                                            } else {
+                                                $account->getPurchases()->remove($product->id, null, $transactionDetails);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
