@@ -350,7 +350,7 @@ class PaymentProcessor
                                         $account = $account->getNew($query[0]->account_id);
 
                                         if ($account->exists()) {
-                                            $transactionDetails = $buyer->paymentProvider . "-" . $buyer->currency;
+                                            $transactionDetails = "polymart" . "-" . $buyer->paymentProvider . "-" . $buyer->currency;
 
                                             if ($buyer->valid && $buyer->status == "Completed") {
                                                 $additionalProducts = array();
