@@ -316,18 +316,6 @@ if (true
                     $array = array();
                     $account = $gameCloudUser->getInformation()->getAccount();
 
-                    // Spartan 2.0
-                    if (!$account->exists()
-                        || !$account->getPurchases()->owns(AccountPatreon::SPARTAN_2_0_JAVA)->isPositiveOutcome()
-                        && !$account->getPurchases()->owns(AccountPatreon::SPARTAN_2_0_BEDROCK)->isPositiveOutcome()) {
-                        foreach ($spartan_anticheat_1_0_checks as $check => $detections) {
-                            $array[$check] = array();
-
-                            foreach ($detections as $detection) {
-                                $array[$check][] = " " . $detection;
-                            }
-                        }
-                    }
                     foreach ($query as $row) {
                         $blocks = explode(" ", $row->detections);
 
@@ -956,6 +944,8 @@ if (true
             } else {
                 echo "You must have an account to use this feature. Register one via https://www.idealistic.ai/discord";
             }
+        } else if ($data == "detectionSlots") {
+
         }
     } else if ($action == "add") {
         if ($data == "serverSpecifications") {

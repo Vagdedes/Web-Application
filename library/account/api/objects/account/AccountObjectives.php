@@ -70,22 +70,12 @@ class AccountObjectives
                         . '"Consider subscribing to a paid tier to enjoy benefits!"'
                     );
                 } else {
-                    if (!$this->account->getPurchases()->owns(AccountPatreon::SPARTAN_1_0_JAVA)->isPositiveOutcome()) {
-                        $array = $this->create(
-                            $array,
-                            "Spartan 2.0: Java Edition",
-                            'Thanks for subscribing to our Patreon. '
-                            . '"Spartan 2.0: Java Edition" requires you to own "Spartan 1.0: Java Edition"'
-                        );
-                    }
-                    if (!$this->account->getPurchases()->owns(AccountPatreon::SPARTAN_1_0_BEDROCK)->isPositiveOutcome()) {
-                        $array = $this->create(
-                            $array,
-                            "Spartan 2.0: Bedrock Edition",
-                            'Thanks for subscribing to our Patreon. '
-                            . '"Spartan 2.0: Bedrock Edition" requires you to own "Spartan 1.0: Bedrock Edition"'
-                        );
-                    }
+                    $array = $this->create(
+                        $array,
+                        "Free Patreon Tier",
+                        "Thanks for subscribing to our free Patreon tier. "
+                        . "Feel free to view the paid tiers and their benefits on https://www.idealistic.ai/patreon"
+                    );
                 }
             }
             return $array;
