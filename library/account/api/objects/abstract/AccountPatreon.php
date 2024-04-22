@@ -14,6 +14,11 @@ class AccountPatreon
         SPARTAN_3_0_PATREON_TIER = array(22808702),
         SPARTAN_4_0_PATREON_TIER = array(22808726, self::SPARTAN_4_0_INVESTOR_PATREON_TIER, self::SPARTAN_4_0_VISIONARY_PATREON_TIER);
 
+    public const
+        SPARTAN_4_0_PERMISSION = "patreon.spartan.4.0",
+        SPARTAN_3_0_PERMISSION = "patreon.spartan.3.0",
+        SPARTAN_2_0_PERMISSION = "patreon.spartan.2.0";
+
     public function __construct(Account $account)
     {
         $this->account = $account;
@@ -32,7 +37,7 @@ class AccountPatreon
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
                         "patreon.subscriber",
-                        "patreon.spartan.4.0"
+                        self::SPARTAN_4_0_PERMISSION
                     ));
                 } else {
                     $this->retrieve = $this->find($name, self::SPARTAN_3_0_PATREON_TIER);
@@ -40,7 +45,7 @@ class AccountPatreon
                     if ($this->retrieve->isPositiveOutcome()) {
                         $this->account->getPermissions()->addSystemPermission(array(
                             "patreon.subscriber",
-                            "patreon.spartan.3.0"
+                            self::SPARTAN_3_0_PERMISSION
                         ));
                     } else {
                         $this->retrieve = $this->find($name, self::SPARTAN_2_0_PATREON_TIER);
@@ -48,7 +53,7 @@ class AccountPatreon
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
                                 "patreon.subscriber",
-                                "patreon.spartan.2.0"
+                                self::SPARTAN_2_0_PERMISSION
                             ));
                         } else {
                             $this->retrieve = $this->find($name, null, false);

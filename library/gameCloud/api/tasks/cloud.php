@@ -945,7 +945,41 @@ if (true
                 echo "You must have an account to use this feature. Register one via https://www.idealistic.ai/discord";
             }
         } else if ($data == "detectionSlots") {
+            set_sql_cache("1 minute");
+            $query = get_sql_query(
+                $detection_slots_table,
+                array("slots"),
+                array(
+                    array("deletion_date", null),
+                    null,
+                    array("platform_id", "IS", null, 0),
+                    array("platform_id", $platformID),
+                    null,
+                    null,
+                    array("license_id", "IS", null, 0),
+                    array("license_id", $licenseID),
+                    null,
+                    null,
+                    array("expiration_date", "IS", null, 0),
+                    array("expiration_date", ">", get_current_date()),
+                    null,
+                ),
+                null,
+                1
+            );
+            $slots = !empty($query) ? $query[0]->slots : 5;
+            $account = $gameCloudUser->getInformation()->getAccount();
 
+            if ($account->exists()) {
+                if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_4_0_PERMISSION)) {
+                    $slots = max($slots, 120);
+                } else if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_3_0_PERMISSION)) {
+                    $slots = max($slots, 50);
+                } else if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_2_0_PERMISSION)) {
+                    $slots = max($slots, 20);
+                }
+            }
+            echo $slots;
         }
     } else if ($action == "add") {
         if ($data == "serverSpecifications") {
