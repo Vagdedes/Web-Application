@@ -822,8 +822,6 @@ if (true
             } catch (Throwable $ignored) {
             }
         } else if ($data == "aiAssistance") {
-            $account = $gameCloudUser->getInformation()->getAccount();
-
             if ($account->exists()) {
                 if (!$account->getEmail()->isVerified()) {
                     echo "You must verify your account email to use this feature.";
@@ -970,8 +968,6 @@ if (true
             $slots = !empty($query) ? $query[0]->slots : 5;
 
             if ($slots > 0) {
-                $account = $gameCloudUser->getInformation()->getAccount();
-
                 if ($account->exists()) {
                     if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_4_0_PERMISSION)) {
                         $slots = max($slots, 120);
