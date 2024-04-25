@@ -13,17 +13,10 @@ class AccountPatreon
         SPARTAN_2_0_PATREON_TIER = array(22435075, self::SPARTAN_2_0_MOTIVATOR_PATREON_TIER, self::SPARTAN_2_0_SPONSOR_PATREON_TIER),
         SPARTAN_3_0_PATREON_TIER = array(22808702),
         SPARTAN_4_0_PATREON_TIER = array(22808726, self::SPARTAN_4_0_INVESTOR_PATREON_TIER, self::SPARTAN_4_0_VISIONARY_PATREON_TIER),
-        ALL_PATREON_TIERS = array(
-        self::SPARTAN_2_0_MOTIVATOR_PATREON_TIER,
-        self::SPARTAN_2_0_SPONSOR_PATREON_TIER,
-        self::SPARTAN_4_0_INVESTOR_PATREON_TIER,
-        self::SPARTAN_4_0_VISIONARY_PATREON_TIER,
-        self::SPARTAN_2_0_PATREON_TIER[0],
-        self::SPARTAN_3_0_PATREON_TIER[0],
-        self::SPARTAN_4_0_PATREON_TIER[0]
-    );
+        SPARTAN_5_0_PATREON_TIER = array(22835244);
 
     public const
+        SPARTAN_5_0_PERMISSION = "patreon.spartan.5.0",
         SPARTAN_4_0_PERMISSION = "patreon.spartan.4.0",
         SPARTAN_3_0_PERMISSION = "patreon.spartan.3.0",
         SPARTAN_2_0_PERMISSION = "patreon.spartan.2.0";
@@ -41,31 +34,40 @@ class AccountPatreon
 
             if ($name->isPositiveOutcome()) {
                 $name = $name->getObject()[0];
-                $this->retrieve = $this->find($name, self::SPARTAN_4_0_PATREON_TIER);
+                $this->retrieve = $this->find($name, self::SPARTAN_5_0_PATREON_TIER);
 
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
                         "patreon.subscriber",
-                        self::SPARTAN_4_0_PERMISSION
+                        self::SPARTAN_5_0_PERMISSION
                     ));
                 } else {
-                    $this->retrieve = $this->find($name, self::SPARTAN_3_0_PATREON_TIER);
+                    $this->retrieve = $this->find($name, self::SPARTAN_4_0_PATREON_TIER);
 
                     if ($this->retrieve->isPositiveOutcome()) {
                         $this->account->getPermissions()->addSystemPermission(array(
                             "patreon.subscriber",
-                            self::SPARTAN_3_0_PERMISSION
+                            self::SPARTAN_4_0_PERMISSION
                         ));
                     } else {
-                        $this->retrieve = $this->find($name, self::SPARTAN_2_0_PATREON_TIER);
+                        $this->retrieve = $this->find($name, self::SPARTAN_3_0_PATREON_TIER);
 
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
                                 "patreon.subscriber",
-                                self::SPARTAN_2_0_PERMISSION
+                                self::SPARTAN_3_0_PERMISSION
                             ));
                         } else {
-                            $this->retrieve = $this->find($name, null, false);
+                            $this->retrieve = $this->find($name, self::SPARTAN_2_0_PATREON_TIER);
+
+                            if ($this->retrieve->isPositiveOutcome()) {
+                                $this->account->getPermissions()->addSystemPermission(array(
+                                    "patreon.subscriber",
+                                    self::SPARTAN_2_0_PERMISSION
+                                ));
+                            } else {
+                                $this->retrieve = $this->find($name, null, false);
+                            }
                         }
                     }
                 }
