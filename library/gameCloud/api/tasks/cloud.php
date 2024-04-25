@@ -998,7 +998,7 @@ if (true
                         $found = false;
                         $query = get_sql_query(
                             $detection_slots_tracking_table,
-                            array("id", "slots_used"),
+                            array("id", "slots_used", "server_ip_address", "server_port"),
                             array(
                                 array("platform_id", $platformID),
                                 array("license_id", $licenseID),
