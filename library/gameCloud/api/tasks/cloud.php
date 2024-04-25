@@ -965,7 +965,8 @@ if (true
                 null,
                 1
             );
-            $slots = !empty($query) ? $query[0]->slots : 5;
+            $defaultSlots = 5;
+            $slots = !empty($query) ? $query[0]->slots : $defaultSlots;
 
             if ($slots > 0) {
                 if ($account->exists()) {
@@ -984,8 +985,74 @@ if (true
                         $slots = max($slots, 10);
                     }
                 }
+
+                // Separator
+
+                if (!empty($value)) {
+                    $split = explode($separator, $value, 3);
+
+                    if (sizeof($split) === 2
+                        && is_port($split[0])
+                        && is_numeric($split[1])
+                        && $split[1] >= 0) {
+                        $found = false;
+                        $query = get_sql_query(
+                            $detection_slots_tracking_table,
+                            array("id", "slots_used"),
+                            array(
+                                array("platform_id", $platformID),
+                                array("license_id", $licenseID),
+                                array("last_access_date", ">=", get_past_date("5 minutes")),
+                            )
+                        );
+
+                        if (!empty($query)) {
+                            foreach ($query as $row) {
+                                if ($row->server_ip_address == $ipAddressModified
+                                    && $row->server_port == $split[0]) {
+                                    set_sql_query(
+                                        $detection_slots_tracking_table,
+                                        array(
+                                            "slots_used" => $split[1],
+                                            "last_access_date" => $date
+                                        ),
+                                        array(
+                                            array("id", $row->id)
+                                        ),
+                                        null,
+                                        1
+                                    );
+                                    $found = true;
+                                } else {
+                                    $slots -= $row->slots_used;
+
+                                    if ($slots <= 0 && $found) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!$found) {
+                            sql_insert(
+                                $detection_slots_tracking_table,
+                                array(
+                                    "platform_id" => $platformID,
+                                    "license_id" => $licenseID,
+                                    "server_ip_address" => $ipAddressModified,
+                                    "server_port" => $split[0],
+                                    "slots_used" => $split[1],
+                                    "creation_date" => $date,
+                                    "last_access_date" => $date
+                                )
+                            );
+                        }
+                    }
+                }
+                echo max($slots, $defaultSlots);
+            } else {
+                echo "-1";
             }
-            echo $slots;
         }
     } else if ($action == "add") {
         if ($data == "serverSpecifications") {

@@ -17,6 +17,7 @@ $failed_discord_webhooks_table = "gameCloud.failedDiscordWebhooks";
 $accepted_platforms_table = "gameCloud.acceptedPlatforms";
 $staff_announcements_table = "gameCloud.staffAnnouncements";
 $detection_slots_table = "gameCloud.detectionSlots";
+$detection_slots_tracking_table = "gameCloud.detectionSlotsTracking";
 $ai_assistance_table = "gameCloud.aiAssistance";
 
 // Separator
