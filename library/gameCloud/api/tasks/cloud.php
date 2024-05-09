@@ -8,19 +8,6 @@ $action = get_form("action");
 if (true
     && in_array($action, array("get", "add"))
     && is_numeric($version) && $version > 0) { // Toggle database insertions
-    // Product
-    $productID = null;
-    $productObject = null;
-    $productLatestVersion = 0;
-
-    // User
-    $accessFailure = null;
-    $licenseID = null;
-    $fileID = null;
-    $platformID = null;
-    $token = null;
-
-    // Purpose
     $data = get_form("data");
 
     if (empty($data)) {
@@ -29,11 +16,17 @@ if (true
     require_once '/var/www/.structure/library/base/requirements/account_systems.php';
     require_once '/var/www/.structure/library/base/form.php';
 
+    $productObject = null;
+    $accessFailure = null;
+    $licenseID = null;
+    $fileID = null;
+    $platformID = null;
+    $token = null;
+
     $data = properly_sql_encode($data, true);
     $date = get_current_date();
     $line = "\r\n";
     $separator = ">@#&!%<;="; // Old: §@#±&%
-    $user_agent = get_user_agent();
     $purpose = new GameCloudConnection($data);
     $purpose = $purpose->getProperties();
     $account = new Account();
@@ -61,11 +54,12 @@ if (true
         }
         $isTokenSearch = !is_numeric($user_agent);
     } else {
-        $ipAddressModified = get_client_ip_address();
+        $user_agent = get_user_agent();
 
         if (empty($user_agent)) {
             return;
         }
+        $ipAddressModified = get_client_ip_address();
         $isTokenSearch = !is_numeric($user_agent);
     }
     $purposeAllowedProducts = $purpose->allowed_products;
@@ -110,7 +104,7 @@ if (true
 
     if (!$isTokenSearch) {
         if (is_numeric($user_agent) && $user_agent > 0) {
-            $validProductObject = $account->getProduct()->find($user_agent, false);
+            $validProductObject = $account->getProduct()->find($user_agent, false, false);
 
             if ($validProductObject->isPositiveOutcome()) {
                 $validProductObject = $validProductObject->getObject()[0];
@@ -118,8 +112,6 @@ if (true
 
                 if (($allProductsAreAllowed || in_array($downloadProductID, $purposeAllowedProducts))
                     && in_array($version, $validProductObject->supported_versions)) {
-                    $productLatestVersion = $validProductObject->latest_version;
-                    $productID = $downloadProductID;
                     $productObject = $validProductObject;
                 }
             }
@@ -147,9 +139,7 @@ if (true
                                 $acceptedAccount = $account->getAccounts()->hasAdded($row->accepted_account_id, $licenseID, 1);
 
                                 if ($acceptedAccount->isPositiveOutcome()) {
-                                    $productLatestVersion = $validProductObject->latest_version;
                                     $token = $user_agent;
-                                    $productID = $downloadProductID;
                                     $productObject = $validProductObject;
                                     $platform = $row->id;
                                     $gameCloudUser->setPlatform($platform);
@@ -164,7 +154,7 @@ if (true
         }
     }
 
-    if ($productID === null) {
+    if ($productObject === null) {
         return;
     }
 
@@ -172,7 +162,7 @@ if (true
         $hasAccessFailure = true;
         return;
     } else if ($requiresVerification) {
-        $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productID, $ipAddressModified);
+        $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id, $ipAddressModified);
 
         if ($verificationResult <= 0) {
             $accessFailure = $verificationResult;
@@ -190,17 +180,20 @@ if (true
         $verificationRequirement = $requiresVerification ? 1 : null;
         $cause = $action . "-" . $data;
         $remainingDaySeconds = strtotime("tomorrow") - time();
+        $search_hash = array_to_integer(array(
+            $licenseID,
+            $ipAddressModified,
+            $cause,
+            $version,
+            $productObject->id,
+            $platformID,
+            $hasAccessFailure ? $accessFailure : null
+        ));
         $query = get_sql_query(
             $connection_count_table,
             array("id", "count"),
             array(
-                array("license_id", $licenseID),
-                array("ip_address", $ipAddressModified),
-                array("cause", $cause),
-                array("version", $version),
-                array("product_id", $productID),
-                array("platform_id", $platformID),
-                array("access_failure", $hasAccessFailure ? $accessFailure : null)
+                array("search_hash", $search_hash),
             )
         );
 
@@ -237,13 +230,14 @@ if (true
             sql_insert(
                 $connection_count_table,
                 array(
+                    "search_hash" => $search_hash,
                     "verification_requirement" => $verificationRequirement,
                     "platform_id" => $platformID,
                     "license_id" => $licenseID,
                     "ip_address" => $ipAddressModified,
                     "token" => $token,
                     "version" => $version,
-                    "product_id" => $productID,
+                    "product_id" => $productObject->id,
                     "cause" => $cause,
                     "count" => 1,
                     "date" => $modifiedDate,
@@ -352,7 +346,7 @@ if (true
                 $cacheKey = array(
                     $platformID,
                     $licenseID,
-                    $productID,
+                    $productObject->id,
                     $type,
                     $server_name,
                     $data
@@ -372,7 +366,7 @@ if (true
                                     array("file_id", $fileID),
                                     array("version", $version),
                                     array("platform_id", $platformID),
-                                    array("product_id", $productID),
+                                    array("product_id", $productObject->id),
                                     array("type", $type),
                                     array("expiration_date", ">", $date)
                                 )
@@ -420,7 +414,7 @@ if (true
                                     array("file_id", $fileID),
                                     array("version", $version),
                                     array("platform_id", $platformID),
-                                    array("product_id", $productID),
+                                    array("product_id", $productObject->id),
                                     array("type", $type),
                                     array("expiration_date", ">", $date),
                                     array("server_name", $server_name)
@@ -472,16 +466,16 @@ if (true
             if (is_numeric($value) && $value > 0) {
                 $artificialVersion = $version + $value;
 
-                if ($artificialVersion < $productLatestVersion) {
+                if ($artificialVersion < $productObject) {
                     $result = true;
                 }
             } else {
-                $result = $version < $productLatestVersion;
+                $result = $version < $productObject;
             }
 
             if ($result) {
                 $gameCloudUser->getActions()->addStaffAnnouncement(
-                    $productID,
+                    $productObject->id,
                     GameCloudActions::OUTDATED_VERSION_PRIORITY,
                     $version,
                     $version,
@@ -520,7 +514,7 @@ if (true
                 $configuration_changes_table,
                 array("id", "file_name", "abstract_option", "value", "if_value"),
                 array(
-                    array("product_id", $productID),
+                    array("product_id", $productObject->id),
                     null,
                     array("version", "IS", null, 0),
                     array("version", $version),
@@ -545,7 +539,7 @@ if (true
                 }
             }
         } else if ($data == "punishedPlayers") {
-            if ($gameCloudUser->getInformation()->getConnectionCount($productID, $ipAddressModified, $version)
+            if ($gameCloudUser->getInformation()->getConnectionCount($productObject->id, $ipAddressModified, $version)
                 >= 1) { // Server Limits
                 $split = explode($separator, $value, 3);
 
@@ -656,7 +650,7 @@ if (true
                 }
             }
         } else if ($data == "ownsProduct") {
-            $value = is_numeric($value) ? $value : $productID;
+            $value = is_numeric($value) ? $value : $productObject->id;
             $searchedAndFound = false;
 
             if ($value > 0 && $gameCloudUser->getInformation()->ownsProduct($value)) {
@@ -670,7 +664,7 @@ if (true
                     $cacheKey = array(
                         $platformID,
                         $licenseID,
-                        $productID,
+                        $productObject->id,
                         $version,
                         $data
                     );
@@ -682,7 +676,7 @@ if (true
                             array(
                                 array("platform_id", $platformID),
                                 array("license_id", $licenseID),
-                                array("product_id", $productID),
+                                array("product_id", $productObject->id),
                                 array("expiration_date", ">=", $date),
                                 null,
                                 array("version", "=", $version, 0),
@@ -748,7 +742,7 @@ if (true
                         null,
                         null,
                         array("expiration_date", "IS", null, 0),
-                        array("expiration_date", ">", get_current_date()),
+                        array("expiration_date", ">", $date),
                         null,
                     ),
                     array(
@@ -786,7 +780,7 @@ if (true
                     null,
                     null,
                     array("expiration_date", "IS", null, 0),
-                    array("expiration_date", ">", get_current_date()),
+                    array("expiration_date", ">", $date),
                     null,
                 ),
                 null,
@@ -799,7 +793,7 @@ if (true
                 if ($account->exists()) {
                     if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_5_0_PERMISSION)) {
                         echo "-1";
-                        return;
+                        //return;
                     } else if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_4_0_PERMISSION)) {
                         $slots = max($slots, 120);
                     } else if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_3_0_PERMISSION)) {
@@ -911,7 +905,7 @@ if (true
                                 sql_insert(
                                     $cross_server_information_table,
                                     array("platform_id" => $platformID,
-                                        "product_id" => $productID,
+                                        "product_id" => $productObject->id,
                                         "license_id" => $licenseID,
                                         "file_id" => $fileID,
                                         "version" => $version,
@@ -997,11 +991,11 @@ if (true
                             global $failed_discord_webhooks_table;
                             sql_insert($failed_discord_webhooks_table,
                                 array(
-                                    "creation_date" => get_current_date(),
+                                    "creation_date" => $date,
                                     "version" => $version,
                                     "platform_id" => $platformID,
                                     "license_id" => $licenseID,
-                                    "product_id" => $productID,
+                                    "product_id" => $productObject->id,
                                     "webhook_url" => $url,
                                     "details" => json_encode($details),
                                     "error" => $response
@@ -1050,7 +1044,7 @@ if (true
                                             array("number", $licenseID),
                                             array("type", $customerSupportType),
                                             array("platform_id", $platformID),
-                                            array("product_id", $productID)
+                                            array("product_id", $productObject->id)
                                         )
                                     );
 
@@ -1096,7 +1090,7 @@ if (true
                                             array(
                                                 array("license_id", $licenseID),
                                                 array("platform_id", $platformID),
-                                                array("product_id", $productID),
+                                                array("product_id", $productObject->id),
                                                 array("contact_platform", $contactPlatform),
                                                 array("functionality", $columnInformation),
                                                 array("creation_date", ">", get_past_date("8 hours"))
@@ -1117,7 +1111,7 @@ if (true
                                         array(
                                             array("license_id", $licenseID),
                                             array("platform_id", $platformID),
-                                            array("product_id", $productID),
+                                            array("product_id", $productObject->id),
                                             array("contact_platform", $contactPlatform),
                                             array("creation_date", ">", $pastDate)
                                         )
@@ -1156,7 +1150,7 @@ if (true
                                             "creation_date" => $date,
                                             "ip_address" => $ipAddressModified,
                                             "platform_id" => $platformID,
-                                            "product_id" => $productID,
+                                            "product_id" => $productObject->id,
                                             "license_id" => $licenseID,
                                             "contact_platform" => $contactPlatform,
                                             "contact_information" => $contactInformation,
@@ -1208,12 +1202,12 @@ if (true
                 }
             }
         } else if ($data == "punishedPlayers") {
-            if ($gameCloudUser->getInformation()->getConnectionCount($productID, $ipAddressModified, $version)
+            if ($gameCloudUser->getInformation()->getConnectionCount($productObject->id, $ipAddressModified, $version)
                 >= 2) { // Server Limits, Server Specifications
                 $cacheKey = array(
                     $platformID,
                     $licenseID,
-                    $productID,
+                    $productObject->id,
                     $data
                 );
 
@@ -1265,7 +1259,7 @@ if (true
                                     "player_ip_address"
                                 ),
                                 array(
-                                    array("product_id", $productID),
+                                    array("product_id", $productObject->id),
                                     array("license_id", $licenseID),
                                     array("platform_id", $platformID)
                                 ),
@@ -1345,7 +1339,7 @@ if (true
                                     if ($noPlayerIpAddress) {
                                         $playerIpAddress = "NULL";
                                     }
-                                    $insertValues[] = "('$platformID', '$productID', '$licenseID', '$version', '$date', '$date', '$uuid', $playerIpAddress)";
+                                    $insertValues[] = "('$platformID', '$productObject->id', '$licenseID', '$version', '$date', '$date', '$uuid', $playerIpAddress)";
                                     $success = true;
                                 }
                             }

@@ -94,7 +94,7 @@ class AccountRole
         if (is_array($cache)) {
             return $cache;
         } else {
-            global $role_permissions_table, $sql_max_cache_time;
+            global $role_permissions_table;
             $array = array();
             $query = get_sql_query(
                 $role_permissions_table,
@@ -110,7 +110,7 @@ class AccountRole
                     $array[] = $row->permission;
                 }
             }
-            set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
+            set_key_value_pair($cacheKey, $array);
             return $array;
         }
     }

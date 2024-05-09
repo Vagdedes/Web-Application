@@ -11,13 +11,12 @@ class AccountProduct
 
     public function find(int|string $productID = null,
                          bool       $documentation = true,
-                         bool       $calculateBuyers = true,
+                         bool       $calculateBuyers = false,
                          int|string $accountID = null): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
         $hasAccountPointer = $accountID !== null;
         $hasProduct = !$hasAccountPointer && $productID !== null;
-        $accountExists = $this->account->exists();
 
         if ($hasProduct) {
             $functionality = $this->account->getFunctionality();
@@ -28,16 +27,19 @@ class AccountProduct
             }
         }
         $cacheKey = array(
-            $this,
+            self::class,
             $documentation,
-            $accountID,
             $calculateBuyers,
-            $productID,
+            $accountID,
+            $productID
         );
         $array = get_key_value_pair($cacheKey);
 
-        if (!is_array($array)) {
-            global $products_table, $sql_max_cache_time;
+        if (is_array($array)) {
+            $isEmpty = empty($array);
+        } else {
+            global $products_table;
+            $accountExists = $this->account->exists();
             $array = get_sql_query($products_table,
                 null,
                 array(
@@ -51,8 +53,9 @@ class AccountProduct
                     "priority"
                 )
             );
+            $isEmpty = empty($array);
 
-            if (!empty($array)) {
+            if (!$isEmpty) {
                 global $website_domain,
                        $product_buttons_table,
                        $product_compatibilities_table,
@@ -335,7 +338,7 @@ class AccountProduct
                         }
                         if (!$hasProduct) {
                             $cacheKeyCopy = $cacheKey;
-                            $cacheKeyCopy[] = $productID;
+                            $cacheKeyCopy[sizeof($cacheKey) - 1] = $productID;
                             set_key_value_pair($cacheKeyCopy, array($object), "1 minute"); // Update individual cache conveniently
                         }
                     } else {
@@ -343,9 +346,8 @@ class AccountProduct
                     }
                 }
             }
-            set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
+            set_key_value_pair($cacheKey, $array);
         }
-        $isEmpty = empty($array);
         return new MethodReply(!$isEmpty, $isEmpty ? "Product not found." : null, $array);
     }
 

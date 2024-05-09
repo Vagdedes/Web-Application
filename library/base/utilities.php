@@ -711,14 +711,38 @@ function boolean_to_integer(bool $boolean): int
 
 function string_to_integer(?string $string, bool $long = false): int
 {
-    if ($string === null) {
+    if (is_integer($string)) {
+        return $string;
+    } else {
+        if ($string === null) {
+            return 0;
+        } else {
+            $result = 1;
+
+            if (strlen($string) > 0) {
+                foreach (unpack("C*", $string) as $byte) {
+                    $result = $long
+                        ? overflow_long(($result * 31) + $byte)
+                        : overflow_integer(($result * 31) + $byte);
+                }
+            }
+            return $result;
+        }
+    }
+}
+
+function array_to_integer(?array $array, bool $long = false): int
+{
+    if (empty($array)) {
         return 0;
     }
     $result = 1;
 
-    if (!empty($string)) {
-        foreach (unpack("C*", $string) as $byte) {
-            $result = $long ? overflow_long(($result * 31) + $byte) : overflow_integer(($result * 31) + $byte);
+    foreach ($array as $value) {
+        if (is_integer($value)) {
+            $result = ($result * 31) + $value;
+        } else {
+            $result = ($result * 31) + string_to_integer(serialize($value), $long);
         }
     }
     return $result;

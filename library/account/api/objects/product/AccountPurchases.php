@@ -22,7 +22,7 @@ class AccountPurchases
         if (is_array($cache)) {
             return $cache;
         }
-        global $product_purchases_table, $sql_max_cache_time;
+        global $product_purchases_table;
         $array = array();
         $date = get_current_date();
         $query = get_sql_query(
@@ -131,7 +131,7 @@ class AccountPurchases
                 }
             }
         }
-        set_key_value_pair($cacheKey, $array, $sql_max_cache_time);
+        set_key_value_pair($cacheKey, $array);
         return $array;
     }
 

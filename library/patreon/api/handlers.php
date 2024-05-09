@@ -1,6 +1,7 @@
 <?php
 $patreon1_credentials_directory = "/var/www/.structure/private/patreon_1_credentials";
 $patreon2_credentials_directory = "/var/www/.structure/private/patreon_2_credentials";
+$sql_max_cache_time = "30 minutes";
 
 function clear_patreon_subscription_cache(): void
 {
