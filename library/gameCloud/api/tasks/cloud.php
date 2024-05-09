@@ -258,15 +258,7 @@ if (true
 
     // Processing
     if ($action == "get") {
-        if ($data == "serverLimitations") {
-            $returnResult = false;
-
-            if (is_port($value)) {
-                echo "1"; // Partly disabled functionality due to platform rules and spam it created
-            } else {
-                echo "0";
-            }
-        } else if ($data == "disabledDetections") {
+        if ($data == "disabledDetections") {
             $hasValue = is_numeric($value);
             $cacheKey = array(
                 $hasValue ? $value : null,
