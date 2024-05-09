@@ -91,7 +91,6 @@ class GameCloudActions
             if (!set_sql_query(
                 $configuration_changes_table,
                 array(
-                    "completed_ip_addresses" => null,
                     "value" => $value === null ? "" : $value,
                     "version" => $version
                 ),

@@ -14,4 +14,3 @@ require_once '/var/www/.structure/library/gameCloud/api/objects/user/GameCloudVe
 require_once '/var/www/.structure/library/gameCloud/api/objects/user/GameCloudEmail.php';
 
 require_once '/var/www/.structure/library/gameCloud/api/handlers/acceptedPlatforms.php';
-require_once '/var/www/.structure/library/gameCloud/api/handlers/gameCloudDiscordWebhooks.php';

@@ -47,7 +47,6 @@ if (true
     $adminUser = is_private_connection();
     $data = $purpose->name;
     $requiresVerification = $purpose->requires_verification !== null;
-    $disabledDetections = $data == "disabledDetections";
 
     if ($adminUser) {
         $ipAddressModified = properly_sql_encode(get_form_get("ip_address"), true);
@@ -171,10 +170,6 @@ if (true
 
     if ($accessFailure !== null) {
         $hasAccessFailure = true;
-
-        if ($disabledDetections) {
-            echo implode("|__" . $line, $spartan_anticheat_check_names) . "|__";
-        }
         return;
     } else if ($requiresVerification) {
         $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productID, $ipAddressModified);
@@ -182,10 +177,6 @@ if (true
         if ($verificationResult <= 0) {
             $accessFailure = $verificationResult;
             $hasAccessFailure = true;
-
-            if ($disabledDetections) {
-                echo implode("|__" . $line, $spartan_anticheat_check_names) . "|__";
-            }
             return;
         } else {
             $hasAccessFailure = false;
@@ -275,7 +266,7 @@ if (true
             } else {
                 echo "0";
             }
-        } else if ($disabledDetections) {
+        } else if ($data == "disabledDetections") {
             $hasValue = is_numeric($value);
             $cacheKey = array(
                 $hasValue ? $value : null,
@@ -428,10 +419,6 @@ if (true
                                 echo $reply;
                             }
                             break;
-                        case "log":
-                        case "statistic":
-                        case "exemption":
-                        case "modification":
                         case "configuration":
                             $query = get_sql_query(
                                 $cross_server_information_table,
@@ -536,64 +523,33 @@ if (true
                 echo $query[0]->license_id;
             }
         } else if ($data == "automaticConfigurationChanges") {
-            if (is_port($value)) {
-                $cacheKey = array(
-                    $platformID,
-                    $licenseID,
-                    $productID,
-                    $version,
-                    $ipAddressModified,
-                    $data
-                );
-                $cache = get_key_value_pair($cacheKey);
+            set_sql_cache("1 minute");
+            $query = get_sql_query(
+                $configuration_changes_table,
+                array("id", "file_name", "abstract_option", "value", "if_value"),
+                array(
+                    array("product_id", $productID),
+                    null,
+                    array("version", "IS", null, 0),
+                    array("version", $version),
+                    null,
+                    null,
+                    array("license_id", "IS", null, 0),
+                    array("platform_id", $platformID),
+                    array("license_id", $licenseID),
+                    null,
+                ),
+                array(
+                    "DESC",
+                    "id"
+                ),
+                100
+            );
 
-                if (!has_memory_cooldown($cacheKey, "10 seconds")) {
-                    $query = get_sql_query(
-                        $configuration_changes_table,
-                        array("id", "file_name", "abstract_option", "completed_ip_addresses", "value", "if_value"),
-                        array(
-                            array("product_id", $productID),
-                            null,
-                            array("version", "IS", null, 0),
-                            array("version", $version),
-                            null,
-                            null,
-                            array("license_id", "IS", null, 0),
-                            array("platform_id", $platformID),
-                            array("license_id", $licenseID),
-                            null,
-                        ),
-                        null,
-                        50
-                    );
-
-                    if (!empty($query)) {
-                        foreach ($query as $row) {
-                            $ipAddresses = $row->completed_ip_addresses;
-                            $isNull = $ipAddresses === null;
-                            $ip_and_port = "[" . $ipAddressModified . ":" . $value . "]";
-
-                            if ($isNull || !str_contains($ipAddresses, $ip_and_port)) {
-                                $ifValue = $row->if_value;
-                                echo $row->file_name . "|" . $row->abstract_option . ":" . $row->value . ($ifValue !== null ? ("|" . $ifValue) : "") . $line;
-
-                                if ($isNull) {
-                                    $ipAddresses = $ip_and_port;
-                                } else {
-                                    $ipAddresses .= $ip_and_port;
-                                }
-                                set_sql_query(
-                                    $configuration_changes_table,
-                                    array("completed_ip_addresses" => $ipAddresses),
-                                    array(
-                                        array("id", $row->id)
-                                    ),
-                                    null,
-                                    1
-                                );
-                            }
-                        }
-                    }
+            if (!empty($query)) {
+                foreach ($query as $row) {
+                    $ifValue = $row->if_value;
+                    echo $row->file_name . "|" . $row->abstract_option . ":" . $row->value . ($ifValue !== null ? ("|" . $ifValue) : "") . $line;
                 }
             }
         } else if ($data == "punishedPlayers") {
@@ -821,127 +777,6 @@ if (true
                 }
             } catch (Throwable $ignored) {
             }
-        } else if ($data == "aiAssistance") {
-            if ($account->exists()) {
-                if (!$account->getEmail()->isVerified()) {
-                    echo "You must verify your account email to use this feature.";
-                    return;
-                }
-                if (strlen($value) > 2000) {
-                    echo "The question is too long. Please try again with a shorter question.";
-                    return;
-                }
-                $accountID = $account->getDetail("id");
-                $cacheKey = array(
-                    $value,
-                    $data
-                );
-                $cache = get_key_value_pair($cacheKey);
-
-                if (is_string($cache)) {
-                    echo $cache;
-                } else {
-                    $apiKey = get_keys_from_file("/var/www/.structure/private/openai_api_key");
-
-                    if ($apiKey === null) {
-                        echo "This feature is not available currently";
-                        return;
-                    }
-                    $questionHash = string_to_integer($value, true);
-                    set_sql_cache("10 seconds");
-                    $query = get_sql_query(
-                        $ai_assistance_table,
-                        array("cost", "question_hash", "answer"),
-                        array(
-                            array("account_id", $accountID),
-                            array("creation_date", ">", get_past_date("1 month")),
-                            array("deletion_date", null)
-                        ),
-                        array(
-                            "DESC",
-                            "id"
-                        )
-                    );
-
-                    if (!empty($query)) {
-                        $cost = 0.0;
-
-                        foreach ($query as $row) {
-                            $cost += $row->cost;
-
-                            if ($row->question_hash == $questionHash) {
-                                echo $row->answer;
-                                set_key_value_pair($cacheKey, $row->answer, "1 hour");
-                                return;
-                            }
-                        }
-
-                        if ($cost >= 2.0) {
-                            echo "You have reached the maximum amount of questions for the month. Please try again later.";
-                            return;
-                        }
-                    }
-                    $chatAI = new ChatAI(
-                        AIModelFamily::CHAT_GPT_4,
-                        $apiKey[0],
-                        500
-                    );
-                    $outcome = $chatAI->getResult(
-                        $ai_assistance_hash,
-                        array(
-                            "messages" => array(
-                                array(
-                                    "role" => "system",
-                                    "content" => $account->getInstructions()->replace(
-                                        array("%%__instructions__%%"),
-                                        null,
-                                        array(
-                                            "instructions" => array(
-                                                $account->getInstructions(),
-                                                "getPublic",
-                                                array($ai_instruction_ids, $value)
-                                            )
-                                        )
-                                    )[0]
-                                ),
-                                array(
-                                    "role" => "user",
-                                    "content" => $value
-                                )
-                            )
-                        )
-                    );
-
-                    if (array_shift($outcome)) { // Success
-                        $model = array_shift($outcome);
-                        $reply = array_shift($outcome);
-                        $content = $chatAI->getText($model, $reply);
-
-                        if (empty($content)) {
-                            echo "An error occurred while processing your request. Please try again later. (2)";
-                        } else {
-                            $content = str_replace(array("*", "|", "`", "\t", "\r", "\n", $line), "", $content);
-                            sql_insert(
-                                $ai_assistance_table,
-                                array(
-                                    "account_id" => $accountID,
-                                    "question" => $value,
-                                    "question_hash" => $questionHash,
-                                    "answer" => $content,
-                                    "cost" => $chatAI->getCost($model, $reply),
-                                    "creation_date" => $date,
-                                )
-                            );
-                            echo $content;
-                            set_key_value_pair($cacheKey, $content, "1 hour");
-                        }
-                    } else {
-                        echo "An error occurred while processing your request. Please try again later. (1)";
-                    }
-                }
-            } else {
-                echo "You must have an account to use this feature. Register one via https://www.idealistic.ai/discord";
-            }
         } else if ($data == "detectionSlots") {
             set_sql_cache("1 minute");
             $query = get_sql_query(
@@ -1055,65 +890,7 @@ if (true
             }
         }
     } else if ($action == "add") {
-        if ($data == "serverSpecifications") {
-            $split = explode($separator, $value, 7);
-
-            if (sizeof($split) == 6) {
-                $serverVersion = $split[0];
-                $port = $split[1];
-                $cpu = $split[2];
-                $ram = $split[3];
-                $plugins = $split[4];
-                $motd = base64_decode($split[5]);
-
-                if (strlen($serverVersion) >= 3 && strlen($serverVersion) <= 7
-                    && is_port($port)
-                    && is_numeric($cpu)
-                    && is_numeric($ram)
-                    && is_numeric($plugins)
-                    && strlen($motd) <= 8192
-                    && $cpu > 0 && $ram > 0 && $plugins > 0) {
-                    if (is_numeric(str_replace(".", "", $serverVersion))) {
-                        $serverVersion = "'$serverVersion'";
-                    } else {
-                        $serverVersion = "NULL";
-                    }
-                    $query = get_sql_query(
-                        $server_specifications_table,
-                        array("id"),
-                        array(
-                            array("port", $port),
-                            array("ip_address", $ipAddressModified),
-                        )
-                    );
-
-                    if (empty($query)) {
-                        set_sql_cache("1 minute");
-                        $query = get_sql_query(
-                            $server_specifications_table,
-                            array("id"),
-                            array(
-                                array("ip_address", $ipAddressModified),
-                            )
-                        );
-
-                        if (sizeof($query) >= 256) {
-                            $query = null;
-                        } else {
-                            $query = "INSERT INTO $server_specifications_table (product_id, ip_address, version, port, cpu, ram, plugins, motd) VALUES ('$productID', '$ipAddressModified', $serverVersion, '$port', '$cpu', '$ram', '$plugins', '$motd');";
-                        }
-                    } else {
-                        $query = "UPDATE $server_specifications_table SET product_id = '$productID', cpu = '$cpu', ram = '$ram', plugins = '$plugins', version = $serverVersion, motd = '$motd' WHERE id = '" . $query[0]->id . "';";
-                    }
-
-                    if ($query !== null && sql_query($query)) {
-                        echo "true";
-                    } else {
-                        echo "false";
-                    }
-                }
-            }
-        } else if ($data == "crossServerInformation") {
+        if ($data == "crossServerInformation") {
             $limit = 600;
             $split = explode($separator, $value, $limit + 3 + 1); // limit + arguments + extra
 
@@ -1128,8 +905,6 @@ if (true
                     }
                     switch ($type) {
                         case "notification":
-                        case "log":
-                        case "modification":
                         case "configuration":
                             $counter = 0;
                             unset($split[0]);
@@ -1176,338 +951,81 @@ if (true
                 }
             }
         } else if ($data == "discordWebhooks") {
-            $maximum = 12;
-            $split = explode($separator, $value, $maximum + 1);
-            $webhookVersion = $split[0];
-            unset($split[0]); // Do not remove as the sizeof below accounts for this removed character
-
-            // Verification
-            $splitLength = array(
-                1 => 10,
-                2 => $maximum - 1,
-                3 => 8,
-                4 => 8
-            );
-            $allowedInformation = array(
-                /* Spartan */
-                1 => array(
-                    "Hacker" => "5 minutes",
-                    "Suspected" => "5 minutes",
-                    "Ban" => "1 second",
-                    "Kick" => "1 second",
-                    "Warning" => "1 second",
-                    "Report" => "1 second",
-                    "Staff Chat" => "1 second"
-                ),
-                2 => array(
-                    "Hacker" => "5 minutes",
-                    "Suspected" => "5 minutes",
-                    "Ban" => "1 second",
-                    "Kick" => "1 second",
-                    "Warning" => "1 second",
-                    "Report" => "1 second",
-                    "Staff Chat" => "1 second",
-                    "Punishment" => "1 second"
-                ),
-                3 => array(
-                    // AntiAltAccount
-                    "Prevention" => "1 second",
-                    "Exemption" => "1 second",
-                    // FileGUI
-                    "Deletion" => "1 second",
-                    "Modification" => "1 second",
-                    "Creation" => "1 second"
-                ),
-                4 => $ultimatestats_statistic_names
-            );
-            $nameLength = 16 + 4;
-            $uuidLength = 36;
-            $informationLength = 1024;
-
-            // Presets
+            $split = explode($separator, $value, 13);
             $url = null;
-            $gameName = "Minecraft";
-            $titleName = "Incoming Notification";
-            $showEcosystem = false;
 
-            switch ($webhookVersion) {
+            switch ($split[0]) { // Webhook version
                 case 1:
-                    if (sizeof($split) == $splitLength[$webhookVersion]) {
-                        $url = $split[1];
-                        $color = $split[2];
-
-                        $server = $split[3];
-                        $player = $split[4];
-                        $uuid = $split[5];
-                        $coordinateX = $split[6];
-                        $coordinateY = $split[7];
-                        $coordinateZ = $split[8];
-                        $type = $split[9];
-                        $information = str_replace($line, " | ", $split[10]);
-
-                        $author = !empty($gameName) ? $gameName . (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "") : "";
-                        $timeCooldown = $allowedInformation[$webhookVersion][$type] ?? null;
-
-                        if ($timeCooldown !== null
-                            && !empty($player) && strlen($player) <= $nameLength
-                            && strlen($uuid) == $uuidLength
-                            && is_numeric($coordinateX) && is_numeric($coordinateY) && is_numeric($coordinateZ)
-                            && !empty($information) && strlen($information) <= $informationLength) {
-                            if (canSend_GameCloud_DiscordWebhook($platformID, $licenseID, $productID,
-                                $player . "-" . $uuid . "-" . $type . "-" . $information,
-                                $timeCooldown)) {
-                                $details = array(
-                                    array("name" => "Player",
-                                        "value" => "``$player``",
-                                        "inline" => true),
-                                    array("name" => "UUID",
-                                        "value" => "``$uuid``",
-                                        "inline" => true),
-                                    array("name" => "X, Y, Z",
-                                        "value" => "``$coordinateX``**,** ``$coordinateY``**,** ``$coordinateZ``",
-                                        "inline" => true),
-                                    array("name" => $type,
-                                        "value" => "``$information``",
-                                        "inline" => false)
-                                );
-                                $response = send_discord_webhook(
-                                    $url, null,
-                                    $color,
-                                    $author, null, null,
-                                    $titleName, null, null,
-                                    null, null,
-                                    $details
-                                );
-
-                                if ($response === true) {
-                                    echo "true";
-                                } else {
-                                    submit_GameCloud_FailedDiscordWebhook(
-                                        $version,
-                                        $platformID,
-                                        $licenseID,
-                                        $productID,
-                                        $url,
-                                        $details,
-                                        $response
-                                    );
-                                    $url = null;
-                                    echo "false";
-                                }
-                            } else {
-                                echo "false";
-                            }
-                        } else {
-                            echo "false";
-                        }
-                    }
+                    echo "false"; // Spartan AntiCheat: Old
                     break;
                 case 2:
-                    if (sizeof($split) == $splitLength[$webhookVersion]) {
-                        $url = $split[1];
-                        $color = $split[2];
+                    $url = $split[1] ?? null;
+                    $color = $split[2] ?? null;
+                    $server = $split[3] ?? null;
+                    $player = $split[4] ?? null;
+                    $uuid = $split[5] ?? null;
+                    $coordinateX = $split[6] ?? null;
+                    $coordinateY = $split[7] ?? null;
+                    $coordinateZ = $split[8] ?? null;
+                    $type = $split[9] ?? null;
+                    $information = str_replace($line, " | ", $split[10] ?? null);
+                    $title = (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "");
 
-                        $server = $split[3];
-                        $player = $split[4];
-                        $uuid = $split[5];
-                        $coordinateX = $split[6];
-                        $coordinateY = $split[7];
-                        $coordinateZ = $split[8];
-                        $type = $split[9];
-                        $information = str_replace($line, " | ", $split[10]);
-                        $showEcosystem = $split[11] == "true";
+                    if (!empty($player)
+                        && is_numeric($coordinateX)
+                        && is_numeric($coordinateY)
+                        && is_numeric($coordinateZ)
+                        && !empty($information)) {
+                        $details = array(
+                            array("name" => "Player",
+                                "value" => "``$player``",
+                                "inline" => true),
+                            array("name" => "UUID",
+                                "value" => "``$uuid``",
+                                "inline" => true),
+                            array("name" => "X, Y, Z",
+                                "value" => "``$coordinateX``**,** ``$coordinateY``**,** ``$coordinateZ``",
+                                "inline" => true),
+                            array("name" => $type,
+                                "value" => "``$information``",
+                                "inline" => false)
+                        );
+                        $response = send_discord_webhook(
+                            $url, null,
+                            $color,
+                            $productObject->name, null, null,
+                            $title, null, null,
+                            null, null,
+                            $details
+                        );
 
-                        $author = !empty($gameName) ? $gameName . (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "") : "";
-                        $timeCooldown = $allowedInformation[$webhookVersion][$type] ?? null;
-
-                        if ($timeCooldown !== null
-                            && !empty($player) && strlen($player) <= $nameLength
-                            && strlen($uuid) <= $uuidLength
-                            && is_numeric($coordinateX) && is_numeric($coordinateY) && is_numeric($coordinateZ)
-                            && !empty($information) && strlen($information) <= $informationLength) {
-                            if (canSend_GameCloud_DiscordWebhook($platformID, $licenseID, $productID,
-                                $player . "-" . $uuid . "-" . $type . "-" . $information,
-                                $timeCooldown)) {
-                                $details = array(
-                                    array("name" => "Player",
-                                        "value" => "``$player``",
-                                        "inline" => true),
-                                    array("name" => "UUID",
-                                        "value" => "``$uuid``",
-                                        "inline" => true),
-                                    array("name" => "X, Y, Z",
-                                        "value" => "``$coordinateX``**,** ``$coordinateY``**,** ``$coordinateZ``",
-                                        "inline" => true),
-                                    array("name" => $type,
-                                        "value" => "``$information``",
-                                        "inline" => false)
-                                );
-                                $response = send_discord_webhook(
-                                    $url, null,
-                                    $color,
-                                    $author, null, null,
-                                    $titleName, null, null,
-                                    null, null,
-                                    $details
-                                );
-
-                                if ($response === true) {
-                                    echo "true";
-                                } else {
-                                    submit_GameCloud_FailedDiscordWebhook(
-                                        $version,
-                                        $platformID,
-                                        $licenseID,
-                                        $productID,
-                                        $url,
-                                        $details,
-                                        $response
-                                    );
-                                    $url = null;
-                                    echo "false";
-                                }
-                            } else {
-                                echo "false";
-                            }
+                        if ($response === true) {
+                            echo "true";
                         } else {
+                            global $failed_discord_webhooks_table;
+                            sql_insert($failed_discord_webhooks_table,
+                                array(
+                                    "creation_date" => get_current_date(),
+                                    "version" => $version,
+                                    "platform_id" => $platformID,
+                                    "license_id" => $licenseID,
+                                    "product_id" => $productID,
+                                    "webhook_url" => $url,
+                                    "details" => json_encode($details),
+                                    "error" => $response
+                                )
+                            );
                             echo "false";
                         }
+                    } else {
+                        echo "false";
                     }
                     break;
                 case 3:
-                    if (sizeof($split) == $splitLength[$webhookVersion]) {
-                        $url = $split[1];
-                        $color = $split[2];
-
-                        $server = $split[3];
-                        $player = $split[4];
-                        $uuid = $split[5];
-                        $action = $split[6];
-                        $information = str_replace($line, " | ", $split[7]);
-                        $showEcosystem = $split[8] == "true";
-
-                        $author = !empty($gameName) ? $gameName . (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "") : "";
-                        $timeCooldown = $allowedInformation[$webhookVersion][$action] ?? null;
-
-                        if ($timeCooldown !== null
-                            && !empty($player) && strlen($player) <= $nameLength
-                            && strlen($uuid) <= $uuidLength
-                            && !empty($information) && strlen($information) <= $informationLength) {
-                            if (canSend_GameCloud_DiscordWebhook($platformID, $licenseID, $productID,
-                                $player . "-" . $uuid . "-" . $action . "-" . $information,
-                                $timeCooldown)) {
-                                $details = array(
-                                    array("name" => "Player",
-                                        "value" => "``$player``",
-                                        "inline" => true),
-                                    array("name" => "UUID",
-                                        "value" => "``$uuid``",
-                                        "inline" => true),
-                                    array("name" => "Action",
-                                        "value" => "``$action``",
-                                        "inline" => true),
-                                    array("name" => "Information",
-                                        "value" => "``$information``",
-                                        "inline" => false)
-                                );
-                                $response = send_discord_webhook(
-                                    $url, null,
-                                    $color,
-                                    $author, null, null,
-                                    $titleName, null, null,
-                                    null, null,
-                                    $details
-                                );
-
-                                if ($response === true) {
-                                    echo "true";
-                                } else {
-                                    submit_GameCloud_FailedDiscordWebhook(
-                                        $version,
-                                        $platformID,
-                                        $licenseID,
-                                        $productID,
-                                        $url,
-                                        $details,
-                                        $response
-                                    );
-                                    $url = null;
-                                    echo "false";
-                                }
-                            } else {
-                                echo "false";
-                            }
-                        } else {
-                            echo "false";
-                        }
-                    }
+                    echo "false"; // Anti Alt Account & File GUI
                     break;
                 case 4:
-                    if (sizeof($split) == $splitLength[$webhookVersion]) {
-                        $url = $split[1];
-                        $color = $split[2];
-
-                        $server = $split[3];
-                        $player = $split[4];
-                        $uuid = $split[5];
-                        $statistic = $split[6];
-                        $information = str_replace($line, " | ", $split[7]);
-                        $showEcosystem = $split[8] == "true";
-
-                        $author = !empty($gameName) ? $gameName . (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "") : "";
-
-                        if (in_array($statistic, $allowedInformation)
-                            && !empty($player) && strlen($player) <= $nameLength
-                            && strlen($uuid) <= $uuidLength
-                            && !empty($information) && strlen($information) <= $informationLength) {
-                            if (canSend_GameCloud_DiscordWebhook($platformID, $licenseID, $productID,
-                                $player . "-" . $uuid . "-" . $statistic . "-" . $information,
-                                "1 second")) {
-                                $details = array(
-                                    array("name" => "Player",
-                                        "value" => "``$player``",
-                                        "inline" => true),
-                                    array("name" => "UUID",
-                                        "value" => "``$uuid``",
-                                        "inline" => true),
-                                    array("name" => "Statistic",
-                                        "value" => "``$statistic``",
-                                        "inline" => true),
-                                    array("name" => "Information",
-                                        "value" => "``$information``",
-                                        "inline" => false)
-                                );
-                                $response = send_discord_webhook(
-                                    $url, null,
-                                    $color,
-                                    $author, null, null,
-                                    $titleName, null, null,
-                                    null, null,
-                                    $details
-                                );
-
-                                if ($response === true) {
-                                    echo "true";
-                                } else {
-                                    submit_GameCloud_FailedDiscordWebhook(
-                                        $version,
-                                        $platformID,
-                                        $licenseID,
-                                        $productID,
-                                        $url,
-                                        $details,
-                                        $response
-                                    );
-                                    $url = null;
-                                    echo "false";
-                                }
-                            } else {
-                                echo "false";
-                            }
-                        } else {
-                            echo "false";
-                        }
-                    }
+                    echo "false"; // Ultimate Stats
                     break;
                 default:
                     break;
