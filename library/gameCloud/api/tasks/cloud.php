@@ -793,7 +793,7 @@ if (true
                 if ($account->exists()) {
                     if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_5_0_PERMISSION)) {
                         echo "-1";
-                        //return;
+                        return;
                     } else if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_4_0_PERMISSION)) {
                         $slots = max($slots, 120);
                     } else if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_3_0_PERMISSION)) {
