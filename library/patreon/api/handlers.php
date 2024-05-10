@@ -1,7 +1,7 @@
 <?php
 $patreon1_credentials_directory = "/var/www/.structure/private/patreon_1_credentials";
 $patreon2_credentials_directory = "/var/www/.structure/private/patreon_2_credentials";
-$sql_max_cache_time = "30 minutes";
+$patreon_cache_time = "5 minutes";
 
 function clear_patreon_subscription_cache(): void
 {
@@ -47,7 +47,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
     $key = get_keys_from_file($patreon1_credentials_directory, 1);
 
     if ($key !== null) {
-        global $patreon_campaign_id, $sql_max_cache_time;
+        global $patreon_campaign_id, $patreon_cache_time;
         $key = $key[0];
         $results = array();
         $link = "https://www.patreon.com/api/oauth2/api/campaigns/" . $patreon_campaign_id . "/pledges";
@@ -82,7 +82,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     set_key_value_pair($cacheKey, false, "15 seconds");
                     return array();
                 } else {
-                    set_key_value_pair($cacheKey, $reply, $sql_max_cache_time);
+                    set_key_value_pair($cacheKey, $reply, $patreon_cache_time);
                 }
             } else if ($reply === false) {
                 return array();
@@ -110,7 +110,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
             }
             $link = $reply->links->next ?? null;
         }
-        set_key_value_pair($totalCacheKey, $results, $sql_max_cache_time);
+        set_key_value_pair($totalCacheKey, $results, $patreon_cache_time);
         return $results;
     } else {
         return array();
@@ -136,7 +136,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
     $key = get_keys_from_file($patreon2_credentials_directory, 1);
 
     if ($key !== null) {
-        global $patreon_campaign_id, $sql_max_cache_time;
+        global $patreon_campaign_id, $patreon_cache_time;
         $key = $key[0];
         $results = array();
         $arguments = "currently_entitled_tiers,address";
@@ -175,7 +175,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     set_key_value_pair($cacheKey, false, "15 seconds");
                     return array();
                 } else {
-                    set_key_value_pair($cacheKey, $reply, $sql_max_cache_time);
+                    set_key_value_pair($cacheKey, $reply, $patreon_cache_time);
                 }
             } else if ($reply === false) {
                 return array();
@@ -201,7 +201,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
             }
             $link = $reply->links->next ?? null;
         }
-        set_key_value_pair($totalCacheKey, $results, $sql_max_cache_time);
+        set_key_value_pair($totalCacheKey, $results, $patreon_cache_time);
         return $results;
     } else {
         return array();
