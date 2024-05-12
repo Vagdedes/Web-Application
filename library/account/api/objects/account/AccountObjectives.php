@@ -20,22 +20,12 @@ class AccountObjectives
             );
         } else {
             $array = array();
-            $paypal = $this->account->getAccounts()->hasAdded(AccountAccounts::PAYPAL_EMAIL, null, 1)->isPositiveOutcome();
 
-            if (!$this->account->getAccounts()->hasAdded(AccountAccounts::STRIPE_EMAIL, null, 1)->isPositiveOutcome()) {
+            if (!$this->account->getAccounts()->hasAdded(AccountAccounts::PAYPAL_EMAIL, null, 1)->isPositiveOutcome()) {
                 $array = $this->create(
                     $array,
                     "Purchases & Transactions",
-                    "Add your" . (!$paypal ? " PayPal and " : " ") . "Stripe email to have your purchases identified.",
-                    null,
-                    true,
-                    $paypal ? "7 days" : null
-                );
-            } else if (!$paypal) {
-                $array = $this->create(
-                    $array,
-                    "Purchases & Transactions",
-                    "Add your PayPal email to have your purchases identified.",
+                    "It's best to connect your 'PayPal Email' if you used PayPal to access your purchases.",
                     null,
                     true,
                     "7 days"
@@ -47,7 +37,7 @@ class AccountObjectives
                 $array = $this->create( // Do not mention SpigotMC, it's automatically found
                     $array,
                     "Minecraft Platform",
-                    "Add your SpigotMC/BuiltByBit/Polymart account URL to have your licenses identified.",
+                    "Connect your SpigotMC, BuiltByBit or Polymart account URL to access your owned plugins.",
                     null,
                     true
                 );
@@ -56,20 +46,13 @@ class AccountObjectives
                 $array = $this->create(
                     $array,
                     "Patreon Full Name",
-                    "Add your Patreon-Full-Name to have your purchases identified.",
+                    "Add your 'Patreon Full Name' if you are a subscriber to access your benefits.",
                     null,
                     true,
                     "7 days"
                 );
             } else if ($this->account->getPatreon()->retrieve()->isPositiveOutcome()) {
                 if (empty($this->account->getPatreon()->retrieve()->getMessage())) {
-                    $array = $this->create(
-                        $array,
-                        "Patron Found",
-                        'Thanks for becoming a free Patreon. '
-                        . '"Consider subscribing to a paid tier to enjoy benefits!"'
-                    );
-                } else {
                     $array = $this->create(
                         $array,
                         "Free Patreon Tier",
