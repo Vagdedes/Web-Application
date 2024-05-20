@@ -202,7 +202,7 @@ class IndividualMemoryBlock
         $object = new stdClass();
         $object->key = $this->originalKey;
         $object->value = $value;
-        $object->expiration = is_numeric($expiration) ? $expiration : strtotime(get_future_date("12 hours"));
+        $object->expiration = is_numeric($expiration) ? $expiration : strtotime(get_future_date("1 hour"));
         $object->creation = time();
         $objectToText = @gzdeflate(serialize($object), 9);
 
