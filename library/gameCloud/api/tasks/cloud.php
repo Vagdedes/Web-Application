@@ -976,14 +976,16 @@ if (true
                                 "value" => "``$information``",
                                 "inline" => false)
                         );
-                        $response = send_discord_webhook(
-                            $url, null,
-                            $color,
-                            $productObject->name, null, null,
-                            $title, null, null,
-                            null, null,
-                            $details
-                        );
+                        $response = has_memory_cooldown("game-cloud=discord-webhook", "2 seconds")
+                            ? true
+                            : send_discord_webhook(
+                                $url, null,
+                                $color,
+                                $productObject->name, null, null,
+                                $title, null, null,
+                                null, null,
+                                $details
+                            );
 
                         if ($response === true) {
                             echo "true";
