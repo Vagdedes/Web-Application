@@ -28,25 +28,15 @@ class Account
     private AccountPhoneNumber $phoneNumber;
     private AccountReviews $reviews;
     private AccountPatreon $patreon;
-    private AccountCommunication $communication;
-    private AccountTeam $team;
-    private AccountFiles $files;
-    private AccountCorrelation $correlation;
-    private AccountCooperation $cooperation;
     private AccountAffiliate $affiliate;
-    private AccountVerification $verification;
     private AccountProduct $product;
     private AccountGiveaway $giveaway;
     private AccountFunctionality $functionality;
     private AccountWallet $wallet;
     private AccountStatistics $statistics;
-    private AccountReference $reference;
-    private AccountFeedback $feedback;
     private AccountRegistry $registry;
     private AccountSession $session;
     private TwoFactorAuthentication $twoFactorAuthentication;
-    private WebsiteKnowledge $knowledge;
-    private LanguageTranslation $translation;
     private PaymentProcessor $paymentProcessor;
     private AccountInstructions $instructions;
 
@@ -129,8 +119,6 @@ class Account
                     $this->phoneNumber = new AccountPhoneNumber($this);
                     $this->reviews = new AccountReviews($this);
                     $this->patreon = new AccountPatreon($this);
-                    $this->correlation = new AccountCorrelation($this);
-                    $this->verification = new AccountVerification($this);
                 }
             } else {
                 $this->def($applicationID);
@@ -141,17 +129,11 @@ class Account
         $this->actions = new AccountActions($this);
         $this->password = new AccountPassword($this);
         $this->downloads = new AccountProductDownloads($this);
-        $this->team = new AccountTeam($this);
-        $this->files = new AccountFiles($this);
         $this->affiliate = new AccountAffiliate($this);
-        $this->cooperation = new AccountCooperation($this);
-        $this->communication = new AccountCommunication($this);
         $this->giveaway = new AccountGiveaway($this);
         $this->moderations = new AccountModerations($this);
         $this->functionality = new AccountFunctionality($this);
         $this->wallet = new AccountWallet($this);
-        $this->reference = new AccountReference($this);
-        $this->feedback = new AccountFeedback($this);
         $this->instructions = new AccountInstructions($this);
         $this->statistics = new AccountStatistics($this);
 
@@ -160,8 +142,6 @@ class Account
         $this->registry = new AccountRegistry($this);
         $this->session = new AccountSession($this);
         $this->twoFactorAuthentication = new TwoFactorAuthentication($this);
-        $this->knowledge = new WebsiteKnowledge($applicationID);
-        $this->translation = new LanguageTranslation($applicationID);
         $this->paymentProcessor = new PaymentProcessor($applicationID);
     }
 
@@ -322,39 +302,9 @@ class Account
         return $this->patreon;
     }
 
-    public function getCommunication(): AccountCommunication
-    {
-        return $this->communication;
-    }
-
-    public function getTeam(): AccountTeam
-    {
-        return $this->team;
-    }
-
-    public function getFiles(): AccountFiles
-    {
-        return $this->files;
-    }
-
-    public function getCorrelation(): AccountCorrelation
-    {
-        return $this->correlation;
-    }
-
-    public function getCooperation(): AccountCooperation
-    {
-        return $this->cooperation;
-    }
-
     public function getAffiliate(): AccountAffiliate
     {
         return $this->affiliate;
-    }
-
-    public function getVerification(): AccountVerification
-    {
-        return $this->verification;
     }
 
     public function getProductGiveaway(): AccountGiveaway
@@ -377,16 +327,6 @@ class Account
         return $this->statistics;
     }
 
-    public function getReference(): AccountReference
-    {
-        return $this->reference;
-    }
-
-    public function getFeedback(): AccountFeedback
-    {
-        return $this->feedback;
-    }
-
     // Separator
 
     public function getProduct(): AccountProduct
@@ -407,16 +347,6 @@ class Account
     public function getRegistry(): AccountRegistry
     {
         return $this->registry;
-    }
-
-    public function getLanguageTranslation(): LanguageTranslation
-    {
-        return $this->translation;
-    }
-
-    public function getWebsiteKnowledge(): WebsiteKnowledge
-    {
-        return $this->knowledge;
     }
 
     public function getPaymentProcessor(): PaymentProcessor

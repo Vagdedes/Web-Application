@@ -351,13 +351,4 @@ class AccountProduct
         return new MethodReply(!$isEmpty, $isEmpty ? "Product not found." : null, $array);
     }
 
-    public function create()
-    {
-        //todo
-    }
-
-    public function delete()
-    {
-        //todo
-    }
 }

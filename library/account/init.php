@@ -38,20 +38,14 @@ require_once '/var/www/.structure/library/account/api/objects/management/Account
 
 // Credential
 require_once '/var/www/.structure/library/account/api/objects/security/AccountPassword.php';
-require_once '/var/www/.structure/library/account/api/objects/security/AccountVerification.php';
 
 // Communication
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountEmail.php';
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountNotifications.php';
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountPhoneNumber.php';
-require_once '/var/www/.structure/library/account/api/objects/communication/AccountTeam.php';
-require_once '/var/www/.structure/library/account/api/objects/communication/AccountCommunication.php';
-require_once '/var/www/.structure/library/account/api/objects/communication/AccountCooperation.php';
-require_once '/var/www/.structure/library/account/api/objects/communication/AccountFeedback.php';
 
 // Correlation
 require_once '/var/www/.structure/library/account/api/objects/correlation/AcceptedAccount.php';
-require_once '/var/www/.structure/library/account/api/objects/correlation/AccountCorrelation.php';
 require_once '/var/www/.structure/library/account/api/objects/correlation/AccountAccounts.php';
 
 // Finance
@@ -60,11 +54,8 @@ require_once '/var/www/.structure/library/account/api/objects/finance/AccountAff
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountTransactions.php';
 
 // Information
-require_once '/var/www/.structure/library/account/api/objects/information/WebsiteKnowledge.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountInstructions.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountStatistics.php';
-require_once '/var/www/.structure/library/account/api/objects/information/AccountReference.php';
-require_once '/var/www/.structure/library/account/api/objects/information/AccountFiles.php';
 
 // Session
 require_once '/var/www/.structure/library/account/api/objects/session/AccountSession.php';
@@ -72,9 +63,6 @@ require_once '/var/www/.structure/library/account/api/objects/session/TwoFactorA
 
 // Finance
 require_once '/var/www/.structure/library/account/api/objects/finance/PaymentProcessor.php';
-
-// Communication
-require_once '/var/www/.structure/library/account/api/objects/communication/LanguageTranslation.php';
 
 // Schedulers
 require_once '/var/www/.structure/library/account/api/schedulers/refreshTransactions.php';
