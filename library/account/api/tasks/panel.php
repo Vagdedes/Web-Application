@@ -298,8 +298,6 @@ if (is_private_connection()) {
         $addDisabledDetection = "addDisabledDetection";
         $removeDisabledDetection = "removeDisabledDetection";
 
-        $addCustomerSupportCommand = "addCustomerSupportCommand";
-
         $executeSqlQuery = "executeSqlQuery";
 
         $anticheatCorrectionsQuery = get_sql_query(
@@ -322,8 +320,6 @@ if (is_private_connection()) {
         $suspendPayPalTransactions = "suspendPayPalTransactions";
         $queuePayPalTransaction = "queuePayPalTransaction";
         $failedPayPalTransaction = "failedPayPalTransaction";
-
-        $resolveCustomerSupport = "resolveCustomerSupport";
 
         $clearMemory = "clearMemory";
 
@@ -739,43 +735,6 @@ if (is_private_connection()) {
                             var_dump("Not available form");
                         }
                         break;
-                    case $addCustomerSupportCommand:
-                        if ($hasGameCloudUser
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.add.customer.support.command", true, $hasWebsiteAccount ? $account : null)) {
-                            $product = get_form_post("product");
-                            $productID = null;
-
-                            if (!empty($product)) {
-                                foreach ($valid_products as $validProductObject) {
-                                    if ($product == $validProductObject->name) {
-                                        $productID = $validProductObject->id;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if ($productID !== null) {
-                                $user = get_form_post("user");
-                                $functionality = get_form_post("functionality");
-                                $hasUser = !empty($user);
-                                $hasFunctionality = !empty($functionality);
-
-                                if ($hasUser || $hasFunctionality) {
-                                    $version = get_form_post("version");
-                                    var_dump($gameCloudUser->getActions()->addCustomerSupportCommand(
-                                        $productID,
-                                        is_numeric($version) ? $version : null,
-                                        $hasUser ? $user : null,
-                                        $hasFunctionality ? $functionality : null
-                                    ));
-                                }
-                            }
-                        } else if ($hasGameCloudUser) {
-                            var_dump("No permission");
-                        } else {
-                            var_dump("Not available form");
-                        }
-                        break;
                     case $executeAnticheatCorrection:
                         if ($hasGameCloudUser
                             && $hasAnticheatCorrections
@@ -839,18 +798,6 @@ if (is_private_connection()) {
 
                             if (!empty($transactionID)) {
                                 var_dump(process_failed_paypal_transaction($transactionID));
-                            }
-                        } else {
-                            var_dump("No permission");
-                        }
-                        break;
-                    case $resolveCustomerSupport:
-                        if ($hasGameCloudUser
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.resolve.customer.support", true)) {
-                            $functionality = get_form_post("functionality");
-
-                            if (!empty($functionality)) {
-                                var_dump($gameCloudUser->getActions()->resolveCustomerSupport($functionality));
                             }
                         } else {
                             var_dump("No permission");
@@ -1051,19 +998,6 @@ if (is_private_connection()) {
             addFormSubmit($removeDisabledDetection, "Remove Disabled Detection");
             endForm();
 
-            createForm("post", true);
-            addFormInput("text", "product", $valid_product_names);
-            addFormInput("text", "version", "Version");
-            addFormInput("text", "user", "User");
-            addFormInput("text", "functionality", "Functionality");
-            addFormSubmit($addCustomerSupportCommand, "Add Customer Support Command");
-            endForm();
-
-            createForm("post", true);
-            addFormInput("text", "functionality", "Functionality");
-            addFormSubmit($resolveCustomerSupport, "Resolve Customer Support");
-            endForm();
-
             if ($hasAnticheatCorrections) {
                 createForm("post", true);
                 addFormInput("text", "correction", $anticheatCorrections);
@@ -1099,39 +1033,6 @@ if (is_private_connection()) {
                     }
                 }
             }
-        }
-        $customerSupport = new CustomerSupport($disabledDetectionsArray);
-        $customerSupport = $customerSupport->listTickets();
-
-        if (!empty($customerSupport)) {
-            echo "<div><p><b>Customer Support</b><p><ul>";
-
-            foreach ($customerSupport as $customerSupportID => $customerSupportValues) {
-                echo "<li>";
-                echo $customerSupportID . "<br>";
-                $customerSupportLicense = $customerSupportValues->license_id;
-                $customerSupportPlatform = $customerSupportValues->platform_id;
-
-                foreach ($customerSupportValues as $customerSupportKey => $customerSupportValue) {
-                    if (is_array($customerSupportValue)) {
-                        if (sizeof($customerSupportValue) <= 10
-                            || $customerSupportLicense == $licenseID && $customerSupportPlatform == $platformID) {
-                            echo $customerSupportKey . ":<ul>";
-
-                            foreach ($customerSupportValue as $customerSupportChild) {
-                                echo "<li>" . $customerSupportChild . "</li>";
-                            }
-                            echo "</ul>";
-                        } else {
-                            echo $customerSupportKey . ": <ul><li><a href='https://" . get_domain() . "/contents/?path=account/panel&platform=$customerSupportPlatform&id=$customerSupportLicense'>Visit User</a></li></ul>";
-                        }
-                    } else if ($customerSupportValue !== null) {
-                        echo $customerSupportKey . ": <ul><li>" . $customerSupportValue . "</li></ul>";
-                    }
-                }
-                echo "</li><p>";
-            }
-            echo "</ul></div>";
         }
 
         // Separator

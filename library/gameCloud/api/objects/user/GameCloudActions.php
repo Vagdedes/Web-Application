@@ -115,16 +115,12 @@ class GameCloudActions
             ))) {
             return false;
         }
-        if ($licenseID !== null && $platform !== null) {
-            $this->resolveCustomerSupport(explode(".", $option, 2)[0]);
-
-            if ($email) {
-                $this->user->getEmail()->send("cloudFeatureCorrection",
-                    array(
-                        "feature" => "Automatic Configuration Changes",
-                    )
-                );
-            }
+        if ($licenseID !== null && $platform !== null && $email) {
+            $this->user->getEmail()->send("cloudFeatureCorrection",
+                array(
+                    "feature" => "Automatic Configuration Changes",
+                )
+            );
         }
         return true;
     }
@@ -248,16 +244,12 @@ class GameCloudActions
             ))) {
             return false;
         }
-        if ($licenseID !== null && $platform !== null) {
-            $this->resolveCustomerSupport($check);
-
-            if ($email) {
-                $this->user->getEmail()->send("cloudFeatureCorrection",
-                    array(
-                        "feature" => "Disabled Detections",
-                    )
-                );
-            }
+        if ($licenseID !== null && $platform !== null && $email) {
+            $this->user->getEmail()->send("cloudFeatureCorrection",
+                array(
+                    "feature" => "Disabled Detections",
+                )
+            );
         }
         return true;
     }
@@ -341,59 +333,4 @@ class GameCloudActions
         return true;
     }
 
-    public function addCustomerSupportCommand(int|string $productID, int|float|string $version,
-                                              int|string $user, int|string $functionality): bool
-    {
-        global $customer_support_commands_table;
-
-        if (sql_insert(
-            $customer_support_commands_table,
-            array(
-                "platform_id" => $this->user->getPlatform(),
-                "license_id" => $this->user->getLicense(),
-                "product_id" => $productID,
-                "version" => $version,
-                "user" => $user,
-                "functionality" => $functionality,
-                "creation_date" => get_current_date(),
-                "expiration_date" => get_future_date("1 day")
-            ))) {
-            return true;
-        }
-        return false;
-    }
-
-    public function resolveCustomerSupport(string $functionality): bool
-    {
-        global $customer_support_table;
-
-        if (set_sql_query(
-            $customer_support_table,
-            array(
-                "resolution_date" => get_current_date()
-            ),
-            array(
-                array("platform_id", $this->user->getPlatform()),
-                array("license_id", $this->user->getLicense()),
-                array("functionality", $functionality),
-                array("resolution_date", null)
-            ),
-            null,
-            1
-        )) {
-            $customerSupport = new CustomerSupport();
-            $customerSupport->clearCache();
-            $this->addStaffAnnouncement(
-                null,
-                self::RESOLVED_CUSTOMER_SUPPORT_PRIORITY,
-                null,
-                null,
-                60 * 60 * 24,
-                "1 day",
-                "The '$functionality' customer-support ticket has been dealt with by our support team."
-            );
-            return true;
-        }
-        return false;
-    }
 }

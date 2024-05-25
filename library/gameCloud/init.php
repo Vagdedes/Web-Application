@@ -2,7 +2,6 @@
 require_once '/var/www/.structure/library/gameCloud/api/connect.php';
 require_once '/var/www/.structure/library/gameCloud/api/variables.php';
 
-require_once '/var/www/.structure/library/gameCloud/api/objects/general/CustomerSupport.php';
 require_once '/var/www/.structure/library/gameCloud/api/objects/general/GameCloudConnection.php';
 require_once '/var/www/.structure/library/gameCloud/api/objects/general/StaffData.php';
 require_once '/var/www/.structure/library/gameCloud/api/objects/general/MinecraftPlatformConverter.php';
