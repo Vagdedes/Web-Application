@@ -86,6 +86,8 @@ if (true
 
                     if ($platformID === null) {
                         $accessFailure = 948302520;
+                    } else if (!$isTokenSearch) {
+                        $account = $gameCloudUser->getInformation()->getAccount();
                     }
                 }
             } else if ($requiresVerification) {
@@ -116,7 +118,6 @@ if (true
                 }
             }
         }
-        $account = $gameCloudUser->getInformation()->getAccount();
     } else { // Token Finder
         $download = $account->getDownloads()->find($user_agent);
 
@@ -539,92 +540,79 @@ if (true
                 }
             }
         } else if ($data == "punishedPlayers") {
-            if ($gameCloudUser->getInformation()->getConnectionCount($productObject->id, $ipAddressModified, $version)
-                >= 1) { // Server Limits
-                $split = explode($separator, $value, 3);
+            $split = explode($separator, $value, 3);
 
-                if (sizeof($split) == 2) {
-                    $uuid = $split[0];
+            if (sizeof($split) == 2) {
+                $uuid = $split[0];
 
-                    if (is_uuid($uuid)) {
-                        $playerIpAddress = $split[1];
-                        $noPlayerIpAddress = $playerIpAddress == "NULL";
-                        $playerIpAddress = $noPlayerIpAddress ? null : $playerIpAddress;
+                if (is_uuid($uuid)) {
+                    $playerIpAddress = $split[1];
+                    $noPlayerIpAddress = $playerIpAddress == "NULL";
+                    $playerIpAddress = $noPlayerIpAddress ? null : $playerIpAddress;
 
-                        $cacheKey = array(
-                            $uuid,
-                            $playerIpAddress,
-                            $data
-                        );
-                        $cache = get_key_value_pair($cacheKey);
+                    $cacheKey = array(
+                        $uuid,
+                        $playerIpAddress,
+                        $data
+                    );
+                    $cache = get_key_value_pair($cacheKey);
 
-                        if (is_string($cache)) {
-                            echo $cache;
-                        } else if ($noPlayerIpAddress || is_ip_address($playerIpAddress)) {
-                            $result = "false";
+                    if (is_string($cache)) {
+                        echo $cache;
+                    } else if ($noPlayerIpAddress || is_ip_address($playerIpAddress)) {
+                        $result = "false";
 
-                            if ($noPlayerIpAddress) {
-                                $query = get_sql_query(
-                                    $punished_players_table,
-                                    array("id", "player_ip_address"),
-                                    array(
-                                        array("creation_date", ">", get_past_date("1 year")),
-                                        array("uuid", $uuid),
-                                    ),
-                                    array(
-                                        "DESC",
-                                        "id"
-                                    )
-                                );
-                            } else {
-                                $query = get_sql_query(
-                                    $punished_players_table,
-                                    array("id", "player_ip_address"),
-                                    array(
-                                        array("creation_date", ">", get_past_date("1 year")),
-                                        null,
-                                        array("uuid", "=", $uuid, 0),
-                                        array("player_ip_address", $playerIpAddress),
-                                        null,
-                                    ),
-                                    array(
-                                        "DESC",
-                                        "id"
-                                    )
-                                );
-                            }
+                        if ($noPlayerIpAddress) {
+                            $query = get_sql_query(
+                                $punished_players_table,
+                                array("id", "player_ip_address"),
+                                array(
+                                    array("creation_date", ">", get_past_date("1 year")),
+                                    array("uuid", $uuid),
+                                ),
+                                array(
+                                    "DESC",
+                                    "id"
+                                )
+                            );
+                        } else {
+                            $query = get_sql_query(
+                                $punished_players_table,
+                                array("id", "player_ip_address"),
+                                array(
+                                    array("creation_date", ">", get_past_date("1 year")),
+                                    null,
+                                    array("uuid", "=", $uuid, 0),
+                                    array("player_ip_address", $playerIpAddress),
+                                    null,
+                                ),
+                                array(
+                                    "DESC",
+                                    "id"
+                                )
+                            );
+                        }
 
-                            if (!empty($query)) {
-                                $points = 0;
+                        if (!empty($query)) {
+                            $points = 0;
 
-                                foreach ($query as $row) {
-                                    if (!$noPlayerIpAddress) {
-                                        $rowPlayerIpAddress = $row->player_ip_address;
+                            foreach ($query as $row) {
+                                if (!$noPlayerIpAddress) {
+                                    $rowPlayerIpAddress = $row->player_ip_address;
 
-                                        if ($playerIpAddress != $rowPlayerIpAddress) {
-                                            set_sql_query(
-                                                $punished_players_table,
-                                                array(
-                                                    "last_access_date" => $date,
-                                                    "player_ip_address" => $playerIpAddress
-                                                ),
-                                                array(
-                                                    array("id", $row->id)
-                                                ),
-                                                null,
-                                                1,
-                                            );
-                                        } else {
-                                            set_sql_query(
-                                                $punished_players_table,
-                                                array("last_access_date" => $date),
-                                                array(
-                                                    array("id", $row->id)
-                                                ),
-                                                null,
-                                                1
-                                            );
-                                        }
+                                    if ($playerIpAddress != $rowPlayerIpAddress) {
+                                        set_sql_query(
+                                            $punished_players_table,
+                                            array(
+                                                "last_access_date" => $date,
+                                                "player_ip_address" => $playerIpAddress
+                                            ),
+                                            array(
+                                                array("id", $row->id)
+                                            ),
+                                            null,
+                                            1,
+                                        );
                                     } else {
                                         set_sql_query(
                                             $punished_players_table,
@@ -636,16 +624,26 @@ if (true
                                             1
                                         );
                                     }
-                                    $points += 1;
+                                } else {
+                                    set_sql_query(
+                                        $punished_players_table,
+                                        array("last_access_date" => $date),
+                                        array(
+                                            array("id", $row->id)
+                                        ),
+                                        null,
+                                        1
+                                    );
+                                }
+                                $points += 1;
 
-                                    if ($points == 2) {
-                                        $result = "true";
-                                    }
+                                if ($points == 2) {
+                                    $result = "true";
                                 }
                             }
-                            set_key_value_pair($cacheKey, $result, "10 seconds");
-                            echo $result;
                         }
+                        set_key_value_pair($cacheKey, $result, "10 seconds");
+                        echo $result;
                     }
                 }
             }
@@ -968,156 +966,153 @@ if (true
                     break;
             }
         } else if ($data == "punishedPlayers") {
-            if ($gameCloudUser->getInformation()->getConnectionCount($productObject->id, $ipAddressModified, $version)
-                >= 2) { // Server Limits, Server Specifications
-                $cacheKey = array(
-                    $platformID,
-                    $licenseID,
-                    $productObject->id,
-                    $data
-                );
+            $cacheKey = array(
+                $platformID,
+                $licenseID,
+                $productObject->id,
+                $data
+            );
 
-                if (has_memory_cooldown($cacheKey, "10 seconds")) {
-                    echo "false";
-                } else {
-                    $limit = 1000; // 1000 is the max for the SQL insert method
-                    $individuals = explode($separator, $value, $limit + 1);
-                    $individualsCount = sizeof($individuals);
+            if (has_memory_cooldown($cacheKey, "10 seconds")) {
+                echo "false";
+            } else {
+                $limit = 1000; // 1000 is the max for the SQL insert method
+                $individuals = explode($separator, $value, $limit + 1);
+                $individualsCount = sizeof($individuals);
 
-                    if ($individualsCount > 0) {
-                        $punishedPlayers = array();
+                if ($individualsCount > 0) {
+                    $punishedPlayers = array();
 
-                        for ($position = 0; $position < (min($limit, $individualsCount) - 1); $position++) {
-                            $split = explode($separator, base64_decode($individuals[$position]), 3);
+                    for ($position = 0; $position < (min($limit, $individualsCount) - 1); $position++) {
+                        $split = explode($separator, base64_decode($individuals[$position]), 3);
 
-                            if (sizeof($split) == 2) {
-                                $uuid = $split[0];
+                        if (sizeof($split) == 2) {
+                            $uuid = $split[0];
 
-                                if (is_uuid($uuid)) {
-                                    $playerIpAddress = $split[1];
-                                    $noPlayerIpAddress = $playerIpAddress == "NULL";
+                            if (is_uuid($uuid)) {
+                                $playerIpAddress = $split[1];
+                                $noPlayerIpAddress = $playerIpAddress == "NULL";
 
-                                    if ($noPlayerIpAddress || is_ip_address($playerIpAddress)) {
-                                        $punishedPlayer = new stdClass();
-                                        $punishedPlayer->uuid = $uuid;
-                                        $punishedPlayer->ipAddress = $noPlayerIpAddress ? null : $playerIpAddress;
-                                        $punishedPlayers[] = $punishedPlayer;
-                                    } else {
-                                        break;
-                                    }
+                                if ($noPlayerIpAddress || is_ip_address($playerIpAddress)) {
+                                    $punishedPlayer = new stdClass();
+                                    $punishedPlayer->uuid = $uuid;
+                                    $punishedPlayer->ipAddress = $noPlayerIpAddress ? null : $playerIpAddress;
+                                    $punishedPlayers[] = $punishedPlayer;
                                 } else {
                                     break;
                                 }
                             } else {
                                 break;
                             }
+                        } else {
+                            break;
+                        }
+                    }
+
+                    if (!empty($punishedPlayers)) {
+                        $success = false;
+                        $insertValues = array();
+                        $query = get_sql_query(
+                            $punished_players_table,
+                            array(
+                                "id",
+                                "creation_date",
+                                "uuid",
+                                "player_ip_address"
+                            ),
+                            array(
+                                array("product_id", $productObject->id),
+                                array("license_id", $licenseID),
+                                array("platform_id", $platformID)
+                            ),
+                            array(
+                                "DESC",
+                                "id"
+                            )
+                        );
+                        $hasRows = !empty($query);
+                        $dateToTime = strtotime($date);
+
+                        foreach ($punishedPlayers as $counter => $punishedPlayer) {
+                            $uuid = $punishedPlayer->uuid;
+                            $playerIpAddress = $punishedPlayer->ipAddress;
+                            $noPlayerIpAddress = $playerIpAddress != null;
+                            $continue = true;
+
+                            if ($hasRows) {
+                                foreach ($query as $row) {
+                                    $minutes = ($dateToTime - strtotime($row->creation_date)) / 60.0;
+
+                                    if ($minutes >= 0.1) { // 5 seconds cooldown
+                                        $sameIpAddress = !$noPlayerIpAddress && $row->player_ip_address == $playerIpAddress;
+
+                                        if ($sameIpAddress || $row->uuid == $uuid) {
+                                            $continue = false;
+                                            $noPlayerIpAddress |= $sameIpAddress;
+                                            $playerIpAddressModification = !$noPlayerIpAddress && !$sameIpAddress;
+
+                                            if ($minutes >= 525600) { // Equal or more than a year
+                                                $array = array(
+                                                    "version" => $version,
+                                                    "creation_date" => $date,
+                                                    "last_access_date" => $date,
+                                                );
+
+                                                if ($playerIpAddressModification) {
+                                                    $array["player_ip_address"] = $playerIpAddress;
+                                                }
+                                                if (set_sql_query(
+                                                    $punished_players_table,
+                                                    $array,
+                                                    array(
+                                                        array("id", $row->id)
+                                                    ),
+                                                    null,
+                                                    1
+                                                )) {
+                                                    $success = true;
+                                                }
+                                            } else {
+                                                $array = array(
+                                                    "last_access_date" => $date,
+                                                );
+
+                                                if ($playerIpAddressModification) {
+                                                    $array["player_ip_address"] = $playerIpAddress;
+                                                }
+                                                set_sql_query(
+                                                    $punished_players_table,
+                                                    $array,
+                                                    array(
+                                                        array("id", $row->id)
+                                                    ),
+                                                    null,
+                                                    1
+                                                );
+                                            }
+                                        }
+                                    } else {
+                                        $continue = false;
+                                    }
+                                }
+                            }
+
+                            if ($continue) {
+                                if ($noPlayerIpAddress) {
+                                    $playerIpAddress = "NULL";
+                                }
+                                $insertValues[] = "('$platformID', '$productObject->id', '$licenseID', '$version', '$date', '$date', '$uuid', $playerIpAddress)";
+                                $success = true;
+                            }
                         }
 
-                        if (!empty($punishedPlayers)) {
-                            $success = false;
-                            $insertValues = array();
-                            $query = get_sql_query(
-                                $punished_players_table,
-                                array(
-                                    "id",
-                                    "creation_date",
-                                    "uuid",
-                                    "player_ip_address"
-                                ),
-                                array(
-                                    array("product_id", $productObject->id),
-                                    array("license_id", $licenseID),
-                                    array("platform_id", $platformID)
-                                ),
-                                array(
-                                    "DESC",
-                                    "id"
-                                )
-                            );
-                            $hasRows = !empty($query);
-                            $dateToTime = strtotime($date);
-
-                            foreach ($punishedPlayers as $counter => $punishedPlayer) {
-                                $uuid = $punishedPlayer->uuid;
-                                $playerIpAddress = $punishedPlayer->ipAddress;
-                                $noPlayerIpAddress = $playerIpAddress != null;
-                                $continue = true;
-
-                                if ($hasRows) {
-                                    foreach ($query as $row) {
-                                        $minutes = ($dateToTime - strtotime($row->creation_date)) / 60.0;
-
-                                        if ($minutes >= 0.1) { // 5 seconds cooldown
-                                            $sameIpAddress = !$noPlayerIpAddress && $row->player_ip_address == $playerIpAddress;
-
-                                            if ($sameIpAddress || $row->uuid == $uuid) {
-                                                $continue = false;
-                                                $noPlayerIpAddress |= $sameIpAddress;
-                                                $playerIpAddressModification = !$noPlayerIpAddress && !$sameIpAddress;
-
-                                                if ($minutes >= 525600) { // Equal or more than a year
-                                                    $array = array(
-                                                        "version" => $version,
-                                                        "creation_date" => $date,
-                                                        "last_access_date" => $date,
-                                                    );
-
-                                                    if ($playerIpAddressModification) {
-                                                        $array["player_ip_address"] = $playerIpAddress;
-                                                    }
-                                                    if (set_sql_query(
-                                                        $punished_players_table,
-                                                        $array,
-                                                        array(
-                                                            array("id", $row->id)
-                                                        ),
-                                                        null,
-                                                        1
-                                                    )) {
-                                                        $success = true;
-                                                    }
-                                                } else {
-                                                    $array = array(
-                                                        "last_access_date" => $date,
-                                                    );
-
-                                                    if ($playerIpAddressModification) {
-                                                        $array["player_ip_address"] = $playerIpAddress;
-                                                    }
-                                                    set_sql_query(
-                                                        $punished_players_table,
-                                                        $array,
-                                                        array(
-                                                            array("id", $row->id)
-                                                        ),
-                                                        null,
-                                                        1
-                                                    );
-                                                }
-                                            }
-                                        } else {
-                                            $continue = false;
-                                        }
-                                    }
-                                }
-
-                                if ($continue) {
-                                    if ($noPlayerIpAddress) {
-                                        $playerIpAddress = "NULL";
-                                    }
-                                    $insertValues[] = "('$platformID', '$productObject->id', '$licenseID', '$version', '$date', '$date', '$uuid', $playerIpAddress)";
-                                    $success = true;
-                                }
+                        if ($success) {
+                            if (!empty($insertValues)) {
+                                sql_query("INSERT INTO $punished_players_table (platform_id, product_id, license_id, version, creation_date, last_access_date, uuid, player_ip_address) VALUES " . implode(", ", $insertValues) . ";");
                             }
-
-                            if ($success) {
-                                if (!empty($insertValues)) {
-                                    sql_query("INSERT INTO $punished_players_table (platform_id, product_id, license_id, version, creation_date, last_access_date, uuid, player_ip_address) VALUES " . implode(", ", $insertValues) . ";");
-                                }
-                                echo "true";
-                            } else {
-                                echo "false";
-                            }
+                            echo "true";
+                        } else {
+                            echo "false";
                         }
                     }
                 }
