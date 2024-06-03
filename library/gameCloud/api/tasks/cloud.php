@@ -758,6 +758,7 @@ if (true
                         && is_port($split[0])
                         && is_numeric($split[1])
                         && $split[1] >= 0) {
+                        $defaultSlots++; // Purposely to make it clear this process took place when examining detection slot count locally
                         $found = false;
                         $query = get_sql_query(
                             $detection_slots_tracking_table,
