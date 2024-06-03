@@ -116,6 +116,7 @@ if (true
                 }
             }
         }
+        $account = $gameCloudUser->getInformation()->getAccount();
     } else { // Token Finder
         $download = $account->getDownloads()->find($user_agent);
 
@@ -291,7 +292,6 @@ if (true
 
                 if (!empty($query)) {
                     $array = array();
-                    $account = $gameCloudUser->getInformation()->getAccount();
 
                     foreach ($query as $row) {
                         $blocks = explode(" ", $row->detections);
