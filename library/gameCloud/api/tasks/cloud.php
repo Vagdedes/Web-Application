@@ -921,11 +921,17 @@ if (true
                         $response = has_memory_cooldown("game-cloud=discord-webhook", "2 seconds")
                             ? true
                             : send_discord_webhook(
-                                $url, null,
+                                $url,
+                                null,
                                 $color,
-                                $productObject->name, null, null,
-                                $title, null, null,
-                                null, null,
+                                strip_tags($productObject->name),
+                                null,
+                                get_minecraft_head_image($uuid, 64),
+                                $title,
+                                null,
+                                null,
+                                null,
+                                "https://vagdedes.com/.images/spartan/logo.png",
                                 $details
                             );
 

@@ -1,13 +1,18 @@
 <?php
 
-function send_discord_webhook(string          $webhookURL,
-                              ?string         $avatarURL,
-                              int|string|null $color,
-                              ?string         $authorName, ?string $authorURL,
-                              ?string         $authorIconURL, string $titleName,
-                              ?string         $titleURL,
-                              ?string         $description, ?string $footerName,
-                              ?string         $footerURL, array $fields, int|string|float|bool $content = null): bool|string
+function send_discord_webhook(string                $webhookURL,
+                              ?string               $avatarURL,
+                              int|string|null       $color,
+                              ?string               $authorName,
+                              ?string               $authorURL,
+                              ?string               $authorIconURL,
+                              string                $titleName,
+                              ?string               $titleURL,
+                              ?string               $description,
+                              ?string               $footerName,
+                              ?string               $footerIconURL,
+                              array                 $fields,
+                              int|string|float|bool $content = null): bool|string
 {
     if (!is_url($webhookURL)) {
         return "Local: Failed webhook-url criteria";
@@ -38,9 +43,9 @@ function send_discord_webhook(string          $webhookURL,
     if ($hasAvatarURL && !is_url($avatarURL)) {
         return "Local: Failed avatar-url criteria";
     }
-    $hasFooterURL = $footerURL !== null;
+    $hasFooterURL = $footerIconURL !== null;
 
-    if ($hasFooterURL && !is_url($footerURL)) {
+    if ($hasFooterURL && !is_url($footerIconURL)) {
         return "Local: Failed footer-url criteria";
     }
     $hasTitleURL = $titleURL !== null;
@@ -73,31 +78,15 @@ function send_discord_webhook(string          $webhookURL,
                 "url" => ($hasTitleURL ? $titleURL : ""),
                 "timestamp" => date("c", strtotime("now")),
                 "color" => ($hasColor ? hexdec($color) : "000000"),
-
-                // Footer
                 "footer" => array(
                     "text" => ($hasFooterName ? $footerName : ""),
-                    "icon_url" => ($hasFooterURL ? $footerURL : "")
+                    "icon_url" => ($hasFooterURL ? $footerIconURL : "")
                 ),
-
-                // Image to send
-                //"image" => [
-                //    "url" => ""
-                //],
-
-                // Thumbnail
-                //"thumbnail" => [
-                //    "url" => ""
-                //],
-
-                // Author
                 "author" => array(
                     "name" => ($hasAuthorName ? $authorName : ""),
                     "url" => ($hasAuthorName && $hasAuthorURL ? $authorURL : ""),
                     "icon_url" => ($hasAuthorName && $hasAuthorIconURL ? $authorIconURL : ""),
                 ),
-
-                // Additional Fields array
                 "fields" => $fields
             )
         )

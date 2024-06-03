@@ -4,6 +4,7 @@ require_once '/var/www/.structure/library/base/cookies.php';
 require_once '/var/www/.structure/library/base/communication.php';
 require_once '/var/www/.structure/library/base/encrypt.php';
 require_once '/var/www/.structure/library/base/placeholder.php';
+require_once '/var/www/.structure/library/base/minecraft.php';
 
 require_once '/var/www/.structure/library/memory/init.php';
 require_once '/var/www/.structure/library/email/init.php';
