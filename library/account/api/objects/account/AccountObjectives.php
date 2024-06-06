@@ -55,9 +55,11 @@ class AccountObjectives
                 if (empty($this->account->getPatreon()->retrieve()->getMessage())) {
                     $array = $this->create(
                         $array,
-                        "Free Patreon Tier",
-                        "Thanks for subscribing to our free Patreon tier. "
-                        . "Feel free to view the paid tiers and their benefits on https://www.idealistic.ai/patreon"
+                        "80% OFF LIMITED OFFER",
+                        "Hey " . $this->account->getDetail("name") . "! "
+                        . "Never worry about Detection Slots for Spartan again. "
+                        . "From 28 EUR, now only 5.55 EUR for a limited time just for you. "
+                        . "[Click to claim your offer](https://bit.ly/3yOK39X)"
                     );
                 }
             }
