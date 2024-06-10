@@ -11,7 +11,7 @@ class AccountReviews
 
     public function add()
     {
-        //todo
+        // todo
     }
 
     public function remove()
