@@ -55,11 +55,9 @@ class AccountObjectives
                 if (empty($this->account->getPatreon()->retrieve()->getMessage())) {
                     $array = $this->create(
                         $array,
-                        "80% OFF LIMITED OFFER",
-                        "Hey " . $this->account->getDetail("name") . "! "
-                        . "Never worry about Detection Slots for Spartan again. "
-                        . "From 28 EUR, now only 5.55 EUR for a limited time just for you. "
-                        . "[Click to claim your offer](https://bit.ly/3yOK39X)"
+                        "Thanks for subscribing to our free Patreon!",
+                        "We also offer one-time purchases. "
+                        . "Check <#673148438057189376> for more info!"
                     );
                 }
             }

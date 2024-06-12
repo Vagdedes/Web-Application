@@ -19,7 +19,8 @@ class AIModel
         CHAT_GPT_3_5_INSTRUCTIONS = 2, //4k
         CHAT_GPT_4_COMPLEX = 3, //32k
         CHAT_GPT_4 = 4, //8k
-        CHAT_GPT_4_EXPANDED = 5; //128k
+        CHAT_GPT_4_EXPANDED = 5, //128k
+        CHAT_GPT_4_OMNI = 8; //128k
 }
 
 class AICurrency

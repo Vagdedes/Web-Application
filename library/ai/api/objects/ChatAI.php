@@ -110,6 +110,7 @@ class ChatAI
             case AIModel::CHAT_GPT_4_COMPLEX:
             case AIModel::CHAT_GPT_4:
             case AIModel::CHAT_GPT_4_EXPANDED:
+            case AIModel::CHAT_GPT_4_OMNI:
                 $link = "https://api.openai.com/v1/chat/completions";
                 $parameters["model"] = $model->code;
 
@@ -225,6 +226,7 @@ class ChatAI
             case AIModel::CHAT_GPT_4_COMPLEX:
             case AIModel::CHAT_GPT_4:
             case AIModel::CHAT_GPT_4_EXPANDED:
+            case AIModel::CHAT_GPT_4_OMNI:
                 return $object?->choices[0]?->message->content;
             default:
                 return null;
@@ -239,6 +241,7 @@ class ChatAI
             case AIModel::CHAT_GPT_4_COMPLEX:
             case AIModel::CHAT_GPT_4:
             case AIModel::CHAT_GPT_4_EXPANDED:
+            case AIModel::CHAT_GPT_4_OMNI:
                 return ($object->usage->prompt_tokens * $model->sent_token_cost)
                     + ($object->usage->completion_tokens * $model->received_token_cost);
             default:
