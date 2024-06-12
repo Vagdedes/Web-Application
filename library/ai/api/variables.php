@@ -12,7 +12,7 @@ class AIModelFamily
         CHAT_GPT_4 = 2;
 }
 
-class AIModel
+class AIModelType
 {
     public const
         CHAT_GPT_3_5_DIALOGUE = 1, //16k
