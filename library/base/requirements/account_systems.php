@@ -18,4 +18,3 @@ require_once '/var/www/.structure/library/account/init.php';
 require_once '/var/www/.structure/library/gameCloud/init.php';
 require_once '/var/www/.structure/library/google/init.php';
 require_once '/var/www/.structure/library/ai/init.php';
-require_once '/var/www/.structure/library/attachments/init.php';

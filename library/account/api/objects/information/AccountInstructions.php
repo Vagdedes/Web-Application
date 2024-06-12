@@ -15,6 +15,7 @@ class AccountInstructions
         $placeholderStart,
         $placeholderMiddle,
         $placeholderEnd;
+    private ?ManagerAI $managerAI;
 
     public function __construct(Account $account)
     {
@@ -79,6 +80,11 @@ class AccountInstructions
                 null
             )
         );
+    }
+
+    public function setAI(?ManagerAI $chatAI): void
+    {
+        $this->managerAI = $chatAI;
     }
 
     private function calculateContains(array $array): array
@@ -452,6 +458,9 @@ class AccountInstructions
                             $doc
                         );
                     }
+                }
+                if ($row->auto_contains !== null) {
+
                 }
                 set_sql_query(
                     $table,

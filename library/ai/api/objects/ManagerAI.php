@@ -3,7 +3,7 @@
 // $temperature: How precise or creative the reply will be. 0.0 is the most precise, 1.0 is the most creative.
 // $frequency_penalty: Increase or decrease the likelihood of token repetition. -2.0 to 2.0, with -2.0 being most likely to repeat tokens, 0.0 being equally likely, and 2.0 being least likely.
 
-class ChatAI
+class ManagerAI
 {
     public array $models;
     private string $apiKey;
@@ -30,7 +30,7 @@ class ChatAI
             $this->models = array();
 
             foreach ($query as $row) {
-                $model = new ChatModel($row->id);
+                $model = new AIModel($row->id);
 
                 if ($model->exists) {
                     $this->models[(int)$model->context] = $model;

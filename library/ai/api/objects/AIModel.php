@@ -1,6 +1,6 @@
 <?php
 
-class ChatModel
+class AIModel
 {
     public int $modelID, $context;
     public string $code, $name, $description;
@@ -68,4 +68,5 @@ class ChatModel
             $this->exists = false;
         }
     }
+
 }
