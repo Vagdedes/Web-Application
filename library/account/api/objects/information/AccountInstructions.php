@@ -3,6 +3,8 @@
 class AccountInstructions
 {
 
+    private const AI_HASH = 596802337;
+
     private Account $account;
     private array
         $localInstructions,
@@ -450,6 +452,8 @@ class AccountInstructions
             $doc = $this->getRawURLData($row->information_url);
 
             if (is_string($doc)) {
+                $containsKeywords = null;
+
                 if ($row->replace !== null && !empty($this->replacements)) {
                     foreach ($this->replacements as $replace) {
                         $doc = str_replace(
@@ -459,14 +463,37 @@ class AccountInstructions
                         );
                     }
                 }
-                if ($row->auto_contains !== null) {
+                if ($row->auto_contains !== null
+                    && $this->managerAI !== null
+                    && $this->managerAI->exists) {
+                    $result = $this->managerAI->getResult(
+                        self::AI_HASH,
+                        array(
+                            "messages" => array(
+                                array(
+                                    "role" => "system",
+                                    "content" => "From the user's text write only the most important keywords separated"
+                                        . " by the | character without spaces in between and a maximum total length of"
+                                        . " 4000 characters. For example: keyword1|keyword2|keyword3"
+                                ),
+                                array(
+                                    "role" => "user",
+                                    "content" => $doc
+                                )
+                            )
+                        )
+                    );
 
+                    if ($result[0]) {
+                        $containsKeywords = $this->managerAI->getText($result[1], $result[2]);
+                    }
                 }
                 set_sql_query(
                     $table,
                     array(
                         "information_value" => $doc,
-                        "information_expiration" => get_future_date($row->information_duration)
+                        "information_expiration" => get_future_date($row->information_duration),
+                        "contains" => $containsKeywords !== null && strlen($containsKeywords) === 0 ? null : $containsKeywords
                     ),
                     array(
                         array("id", $row->id)
