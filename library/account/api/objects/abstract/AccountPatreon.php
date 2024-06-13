@@ -12,7 +12,7 @@ class AccountPatreon
         SPARTAN_2_0_PATREON_TIER = array(22435075, self::MOTIVATOR_PATREON_TIER, self::SPONSOR_PATREON_TIER),
         SPARTAN_3_0_PATREON_TIER = array(22808702),
         SPARTAN_4_0_PATREON_TIER = array(22808726),
-        SPARTAN_5_0_PATREON_TIER = array(22835244, self::VISIONARY_PATREON_TIER);
+        SPARTAN_5_0_PATREON_TIER = array(self::VISIONARY_PATREON_TIER);
 
     public const
         SPARTAN_5_0_PERMISSION = "patreon.spartan.5.0",

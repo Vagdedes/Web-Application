@@ -923,7 +923,7 @@ if (true
                                 $url,
                                 null,
                                 $color,
-                                strip_tags($productObject->name),
+                                "Spartan AntiCheat",
                                 null,
                                 get_minecraft_head_image($uuid, 64),
                                 $title,
