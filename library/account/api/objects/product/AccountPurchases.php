@@ -39,10 +39,9 @@ class AccountPurchases
             $clearMemory = false;
 
             foreach ($query as $row) {
-                $product = $this->account->getProduct()->find($row->product_id);
-
                 if ($row->expiration_date !== null && $row->expiration_date < $date) {
                     $clearMemory = true;
+                    $product = $this->account->getProduct()->find($row->product_id);
 
                     if ($product->isPositiveOutcome()) {
                         $this->account->getEmail()->send("productExpiration",
@@ -51,13 +50,19 @@ class AccountPurchases
                             )
                         );
                     }
-                } else if ($product->isPositiveOutcome()) {
-                    $product = $product->getObject()[0];
+                } else {
                     $array[$row->product_id] = $row;
-                    $tier = $product->tiers->all[$row->tier_id] ?? null;
 
-                    if ($tier !== null && $tier->give_permission !== null) {
-                        $this->account->getPermissions()->addSystemPermission($tier->give_permission);
+                    if ($row->tier_id !== null) {
+                        $product = $this->account->getProduct()->find($row->product_id);
+
+                        if ($product->isPositiveOutcome()) {
+                            $tier = $product->getObject()[0]->tiers->all[$row->tier_id] ?? null;
+
+                            if ($tier !== null && $tier->give_permission !== null) {
+                                $this->account->getPermissions()->addSystemPermission($tier->give_permission);
+                            }
+                        }
                     }
                 }
             }
@@ -222,6 +227,25 @@ class AccountPurchases
                 if ($row->product_id == $productID
                     && (!$hasTier || $row->tier_id == $tierID)) {
                     return new MethodReply(true, null, $row);
+                }
+            }
+        }
+        return new MethodReply(false);
+    }
+
+    public function ownsMultiple(array $products, bool $databaseOnly = false): MethodReply
+    {
+        $array = $this->getCurrent($databaseOnly);
+
+        if (!empty($array)) {
+            foreach ($products as $productID => $tierID) {
+                $hasTier = $tierID !== null;
+
+                foreach ($array as $row) {
+                    if ($row->product_id == $productID
+                        && (!$hasTier || $row->tier_id == $tierID)) {
+                        return new MethodReply(true);
+                    }
                 }
             }
         }

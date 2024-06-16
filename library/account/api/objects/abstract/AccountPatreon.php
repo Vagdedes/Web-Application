@@ -6,19 +6,32 @@ class AccountPatreon
     private ?MethodReply $retrieve;
 
     public const
+        SPARTAN_SYN = 7,
+        DETECTION_SLOTS_UNLIMITED_PRODUCT = 26,
+        PRODUCTS = array(self::DETECTION_SLOTS_UNLIMITED_PRODUCT => null);
+
+    private const
         MOTIVATOR_PATREON_TIER = 4064030,
         SPONSOR_PATREON_TIER = 9784720,
-        VISIONARY_PATREON_TIER = 21608146,
-        SPARTAN_2_0_PATREON_TIER = array(22435075, self::MOTIVATOR_PATREON_TIER, self::SPONSOR_PATREON_TIER),
-        SPARTAN_3_0_PATREON_TIER = array(22808702),
-        SPARTAN_4_0_PATREON_TIER = array(22808726),
-        SPARTAN_5_0_PATREON_TIER = array(self::VISIONARY_PATREON_TIER);
+        VISIONARY_PATREON_TIER = 21608146;
 
     public const
-        SPARTAN_5_0_PERMISSION = "patreon.spartan.5.0",
-        SPARTAN_4_0_PERMISSION = "patreon.spartan.4.0",
-        SPARTAN_3_0_PERMISSION = "patreon.spartan.3.0",
-        SPARTAN_2_0_PERMISSION = "patreon.spartan.2.0";
+        DETECTION_SLOTS_20_TIER = array(22435075, self::MOTIVATOR_PATREON_TIER, self::SPONSOR_PATREON_TIER),
+        DETECTION_SLOTS_50_TIER = array(22808702),
+        DETECTION_SLOTS_120_TIER = array(22808726),
+        DETECTION_SLOTS_UNLIMITED_TIER = array(self::VISIONARY_PATREON_TIER);
+
+    public const
+        DETECTION_SLOTS_20_PERMISSION = "patreon.spartan.detection.slots.20",
+        DETECTION_SLOTS_50 = "patreon.spartan.detection.slots.50",
+        DETECTION_SLOTS_120_PERMISSION = "patreon.spartan.detection.slots.120",
+        DETECTION_SLOTS_UNLIMITED_PERMISSION = "patreon.spartan.detection.slots.unlimited",
+        PERMISSIONS = array(
+        self::DETECTION_SLOTS_UNLIMITED_PERMISSION,
+        self::DETECTION_SLOTS_120_PERMISSION,
+        self::DETECTION_SLOTS_50,
+        self::DETECTION_SLOTS_20_PERMISSION
+    );
 
     public function __construct(Account $account)
     {
@@ -33,36 +46,36 @@ class AccountPatreon
 
             if ($name->isPositiveOutcome()) {
                 $name = $name->getObject()[0];
-                $this->retrieve = $this->find($name, self::SPARTAN_5_0_PATREON_TIER);
+                $this->retrieve = $this->find($name, self::DETECTION_SLOTS_UNLIMITED_TIER);
 
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
                         "patreon.subscriber",
-                        self::SPARTAN_5_0_PERMISSION
+                        self::DETECTION_SLOTS_UNLIMITED_PERMISSION
                     ));
                 } else {
-                    $this->retrieve = $this->find($name, self::SPARTAN_4_0_PATREON_TIER);
+                    $this->retrieve = $this->find($name, self::DETECTION_SLOTS_120_TIER);
 
                     if ($this->retrieve->isPositiveOutcome()) {
                         $this->account->getPermissions()->addSystemPermission(array(
                             "patreon.subscriber",
-                            self::SPARTAN_4_0_PERMISSION
+                            self::DETECTION_SLOTS_120_PERMISSION
                         ));
                     } else {
-                        $this->retrieve = $this->find($name, self::SPARTAN_3_0_PATREON_TIER);
+                        $this->retrieve = $this->find($name, self::DETECTION_SLOTS_50_TIER);
 
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
                                 "patreon.subscriber",
-                                self::SPARTAN_3_0_PERMISSION
+                                self::DETECTION_SLOTS_50
                             ));
                         } else {
-                            $this->retrieve = $this->find($name, self::SPARTAN_2_0_PATREON_TIER);
+                            $this->retrieve = $this->find($name, self::DETECTION_SLOTS_20_TIER);
 
                             if ($this->retrieve->isPositiveOutcome()) {
                                 $this->account->getPermissions()->addSystemPermission(array(
                                     "patreon.subscriber",
-                                    self::SPARTAN_2_0_PERMISSION
+                                    self::DETECTION_SLOTS_20_PERMISSION
                                 ));
                             } else {
                                 $this->retrieve = $this->find($name, null, false);

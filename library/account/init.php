@@ -1,5 +1,10 @@
 <?php
 
+// External
+require_once '/var/www/.structure/library/base/minecraft.php';
+require_once '/var/www/.structure/library/base/objects/MethodReply.php';
+require_once '/var/www/.structure/library/base/objects/ParameterVerification.php';
+
 // Base
 require_once '/var/www/.structure/library/account/api/connect.php';
 require_once '/var/www/.structure/library/account/api/variables.php';
@@ -9,9 +14,6 @@ require_once '/var/www/.structure/library/account/api/objects/account/Account.ph
 require_once '/var/www/.structure/library/account/api/objects/account/AccountRegistry.php';
 
 // Abstract
-require_once '/var/www/.structure/library/account/api/objects/abstract/MinecraftPlatform.php';
-require_once '/var/www/.structure/library/account/api/objects/abstract/MethodReply.php';
-require_once '/var/www/.structure/library/account/api/objects/abstract/ParameterVerification.php';
 require_once '/var/www/.structure/library/account/api/objects/abstract/AccountPatreon.php';
 
 // Account

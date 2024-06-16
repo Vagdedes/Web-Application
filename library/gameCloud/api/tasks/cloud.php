@@ -731,18 +731,17 @@ if (true
 
             if ($slots > 0) {
                 if ($account->exists()) {
-                    if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_5_0_PERMISSION)) {
+                    if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PERMISSION)
+                        || $account->getPurchases()->owns(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PRODUCT)) {
                         echo "-1";
                         return;
-                    } else if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_4_0_PERMISSION)) {
+                    } else if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_120_PERMISSION)) {
                         $slots = max($slots, 120);
-                    } else if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_3_0_PERMISSION)) {
+                    } else if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_50)) {
                         $slots = max($slots, 50);
-                    } else if ($account->getPermissions()->hasPermission(AccountPatreon::SPARTAN_2_0_PERMISSION)) {
+                    } else if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_20_PERMISSION)) {
                         $slots = max($slots, 20);
-                    } else if ($account->getPurchases()->owns(7)
-                        || $account->getPurchases()->owns(21)
-                        || $account->getPurchases()->owns(22)) {
+                    } else if ($account->getPurchases()->owns(AccountPatreon::SPARTAN_SYN)) {
                         $slots = max($slots, 10);
                     }
                 }
