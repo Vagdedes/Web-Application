@@ -60,6 +60,7 @@ $product_cards_table = "product.cards";
 $product_identification_table = "product.identification";
 $product_updates_table = "product.updates";
 $product_transaction_search_table = "product.transactionSearch";
+$product_transaction_search_executions_table = "product.transactionSearchExecutions";
 $product_reviews_table = "product.reviews";
 $product_tiers_table = "product.tiers";
 

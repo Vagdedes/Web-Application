@@ -85,7 +85,9 @@ class AccountProduct
                                 "accepted_account_id",
                                 "lookup_id",
                                 "tier_id",
-                                "individual"
+                                "individual",
+                                "min_executions",
+                                "max_executions"
                             ),
                             array(
                                 array("product_id", $productID),
