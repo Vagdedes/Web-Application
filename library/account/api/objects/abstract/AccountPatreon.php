@@ -23,13 +23,13 @@ class AccountPatreon
 
     public const
         DETECTION_SLOTS_20_PERMISSION = "patreon.spartan.detection.slots.20",
-        DETECTION_SLOTS_50 = "patreon.spartan.detection.slots.50",
+        DETECTION_SLOTS_50_PERMISSION = "patreon.spartan.detection.slots.50",
         DETECTION_SLOTS_120_PERMISSION = "patreon.spartan.detection.slots.120",
         DETECTION_SLOTS_UNLIMITED_PERMISSION = "patreon.spartan.detection.slots.unlimited",
         PERMISSIONS = array(
         self::DETECTION_SLOTS_UNLIMITED_PERMISSION,
         self::DETECTION_SLOTS_120_PERMISSION,
-        self::DETECTION_SLOTS_50,
+        self::DETECTION_SLOTS_50_PERMISSION,
         self::DETECTION_SLOTS_20_PERMISSION
     );
 
@@ -67,7 +67,7 @@ class AccountPatreon
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
                                 "patreon.subscriber",
-                                self::DETECTION_SLOTS_50
+                                self::DETECTION_SLOTS_50_PERMISSION
                             ));
                         } else {
                             $this->retrieve = $this->find($name, self::DETECTION_SLOTS_20_TIER);

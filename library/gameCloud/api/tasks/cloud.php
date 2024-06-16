@@ -737,7 +737,7 @@ if (true
                         return;
                     } else if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_120_PERMISSION)) {
                         $slots = max($slots, 120);
-                    } else if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_50)) {
+                    } else if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_50_PERMISSION)) {
                         $slots = max($slots, 50);
                     } else if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_20_PERMISSION)) {
                         $slots = max($slots, 20);
