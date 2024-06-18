@@ -153,25 +153,20 @@ class PaymentProcessor
                                             unset($product->transaction_search[$arrayKey]);
                                             break;
                                     }
-                                    if ($isIndividual) {
-                                        if ($transactionSearchProperties->min_executions !== null
+                                    if ($isIndividual
+                                        && ($transactionSearchProperties->min_executions !== null
                                             && $this->getExecutions(
                                                 $account->getDetail("id"),
                                                 $transactionSearchProperties->lookup_id
-                                            ) < $transactionSearchProperties->min_executions) {
-                                            $failed[] = $transactionSearchProperties->lookup_id;
-                                            unset($product->transaction_search[$arrayKey]);
-                                            break;
-                                        }
-                                        if ($transactionSearchProperties->max_executions !== null
+                                            ) < $transactionSearchProperties->min_executions
+                                            || $transactionSearchProperties->max_executions !== null
                                             && $this->getExecutions(
                                                 $account->getDetail("id"),
                                                 $transactionSearchProperties->lookup_id
-                                            ) >= $transactionSearchProperties->max_executions) {
-                                            $failed[] = $transactionSearchProperties->lookup_id;
-                                            unset($product->transaction_search[$arrayKey]);
-                                            break;
-                                        }
+                                            ) >= $transactionSearchProperties->max_executions)) {
+                                        $failed[] = $transactionSearchProperties->lookup_id;
+                                        unset($product->transaction_search[$arrayKey]);
+                                        break;
                                     }
                                 }
 
@@ -208,7 +203,13 @@ class PaymentProcessor
                                             }
                                             if (in_array($transactionID, $failedTransactions)) {
                                                 $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);
-                                            } else {
+                                            } else if ($this->addExecution(
+                                                $account->getDetail("id"),
+                                                $transactionSearchProperties->lookup_id,
+                                                $transactionID,
+                                                $product->id,
+                                                $transactionSearchProperties->tier_id
+                                            )) {
                                                 $account->getPurchases()->add(
                                                     $product->id,
                                                     $transactionSearchProperties->tier_id,
@@ -256,15 +257,19 @@ class PaymentProcessor
                                                     }
                                                     if (in_array($transactionID, $failedTransactions)) {
                                                         $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);
-                                                    } else {
+                                                    } else if ($this->addExecution(
+                                                        $account->getDetail("id"),
+                                                        $transactionSearchProperties->lookup_id,
+                                                        $transactionID,
+                                                        $product->id,
+                                                        $transactionSearchProperties->tier_id
+                                                    )) {
                                                         if ($transactionSearchProperties->min_executions !== null
                                                             && $this->getExecutions(
                                                                 $account->getDetail("id"),
                                                                 $transactionSearchProperties->lookup_id
-                                                            ) < $transactionSearchProperties->min_executions) {
-                                                            continue;
-                                                        }
-                                                        if ($transactionSearchProperties->max_executions !== null
+                                                            ) < $transactionSearchProperties->min_executions
+                                                            || $transactionSearchProperties->max_executions !== null
                                                             && $this->getExecutions(
                                                                 $account->getDetail("id"),
                                                                 $transactionSearchProperties->lookup_id
@@ -454,12 +459,44 @@ class PaymentProcessor
         global $product_transaction_search_executions_table;
         return sizeof(get_sql_query(
             $product_transaction_search_executions_table,
-            array("id"),
+            array("account_id"),
             array(
                 array("account_id", $accountID),
                 array("lookup_id", $lookupID)
             )
         ));
+    }
+
+    private function addExecution(int        $accountID, int $lookupID,
+                                  int|string $transactionID,
+                                  int        $productID, int $tierID): bool
+    {
+        global $product_transaction_search_executions_table;
+
+        if (empty(get_sql_query(
+            $product_transaction_search_executions_table,
+            array("transaction_id"),
+            array(
+                array("transaction_id", $transactionID)
+            ),
+            null,
+            1
+        ))) {
+            sql_insert(
+                $product_transaction_search_executions_table,
+                array(
+                    "account_id" => $accountID,
+                    "lookup_id" => $lookupID,
+                    "transaction_id" => $transactionID,
+                    "product_id" => $productID,
+                    "tier_id" => $tierID,
+                    "creation_date" => get_current_date()
+                )
+            );
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private function sendGeneralPurchaseEmail(string $email, int|string $transactionID, string $date): void
