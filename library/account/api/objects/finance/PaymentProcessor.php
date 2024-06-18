@@ -257,13 +257,7 @@ class PaymentProcessor
                                                     }
                                                     if (in_array($transactionID, $failedTransactions)) {
                                                         $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);
-                                                    } else if ($this->addExecution(
-                                                        $account->getDetail("id"),
-                                                        $transactionSearchProperties->lookup_id,
-                                                        $transactionID,
-                                                        $product->id,
-                                                        $transactionSearchProperties->tier_id
-                                                    )) {
+                                                    } else {
                                                         if ($transactionSearchProperties->min_executions !== null
                                                             && $this->getExecutions(
                                                                 $account->getDetail("id"),
@@ -276,16 +270,24 @@ class PaymentProcessor
                                                             ) >= $transactionSearchProperties->max_executions) {
                                                             continue;
                                                         }
-                                                        $account->getPurchases()->add(
-                                                            $product->id,
-                                                            $transactionSearchProperties->tier_id,
-                                                            null,
+                                                        if ($this->addExecution(
+                                                            $account->getDetail("id"),
+                                                            $transactionSearchProperties->lookup_id,
                                                             $transactionID,
-                                                            $date,
-                                                            $transactionSearchProperties->duration,
-                                                            $transactionSearchProperties->email,
-                                                            $additionalProducts,
-                                                        );
+                                                            $product->id,
+                                                            $transactionSearchProperties->tier_id
+                                                        )) {
+                                                            $account->getPurchases()->add(
+                                                                $product->id,
+                                                                $transactionSearchProperties->tier_id,
+                                                                null,
+                                                                $transactionID,
+                                                                $date,
+                                                                $transactionSearchProperties->duration,
+                                                                $transactionSearchProperties->email,
+                                                                $additionalProducts,
+                                                            );
+                                                        }
                                                     }
                                                 } else {
                                                     $this->sendGeneralPurchaseEmail($credential, $transactionID, $date);
