@@ -373,7 +373,7 @@ class AccountInstructions
     {
         if ($row->browse !== null && !empty($this->browse)) {
             foreach ($this->browse as $browse) {
-                if (str_contains($data, $browse->information_url)) {
+                if ($browse->force_include !== null || str_contains($data, $browse->information_url)) {
                     if ($userInput === null || empty($browse->contains)) {
                         $continue = true;
                     } else {
