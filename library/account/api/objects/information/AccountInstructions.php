@@ -378,6 +378,7 @@ class AccountInstructions
                         $continue = true;
                     } else {
                         $continue = false;
+                        $userInput = strtolower($userInput);
 
                         foreach ($browse->contains as $contains) {
                             if (str_contains($userInput, $contains)) {
@@ -474,7 +475,8 @@ class AccountInstructions
                                     "role" => "system",
                                     "content" => "From the user's text write only the most important keywords separated"
                                         . " by the | character without spaces in between and a maximum total length of"
-                                        . " 4000 characters. For example: keyword1|keyword2|keyword3"
+                                        . " 4000 characters. Do not combine multiple words together, instead separate"
+                                        . " them by using the | character. For example: keyword1|keyword2|keyword3"
                                 ),
                                 array(
                                     "role" => "user",
@@ -493,7 +495,7 @@ class AccountInstructions
                     array(
                         "information_value" => $doc,
                         "information_expiration" => get_future_date($row->information_duration),
-                        "contains" => $containsKeywords !== null && strlen($containsKeywords) === 0 ? null : $containsKeywords
+                        "contains" => $containsKeywords !== null && strlen($containsKeywords) === 0 ? null : strtolower($containsKeywords)
                     ),
                     array(
                         array("id", $row->id)
