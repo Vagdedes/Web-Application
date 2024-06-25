@@ -219,6 +219,7 @@ if (true
                 1
             );
         } else {
+            $remainingDaySeconds = strtotime("tomorrow") - time();
             $modifiedDate = date("Y-m-d") . " 00:00:00";
 
             if ($remainingDaySeconds <= 1000 && !has_memory_cooldown($connection_count_table, "15 minutes")) {
@@ -898,6 +899,7 @@ if (true
                     $title = (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "");
 
                     if (!empty($player)
+                        && is_uuid($uuid)
                         && is_numeric($coordinateX)
                         && is_numeric($coordinateY)
                         && is_numeric($coordinateZ)
@@ -916,8 +918,10 @@ if (true
                                 "value" => "``$information``",
                                 "inline" => false)
                         );
-                        $response = has_memory_cooldown("game-cloud=discord-webhook", "2 seconds")
-                            ? true
+                        $response = has_memory_cooldown(
+                            "game-cloud=discord-webhook=" . $platformID . "-" . $licenseID,
+                            "2 seconds"
+                        ) ? true
                             : send_discord_webhook(
                                 $url,
                                 null,
@@ -937,6 +941,15 @@ if (true
                             echo "true";
                         } else {
                             global $failed_discord_webhooks_table;
+
+                            if (!has_memory_cooldown($failed_discord_webhooks_table, "15 minutes")) {
+                                delete_sql_query(
+                                    $failed_discord_webhooks_table,
+                                    array(
+                                        array("date", "<", get_past_date("31 days"))
+                                    )
+                                );
+                            }
                             sql_insert($failed_discord_webhooks_table,
                                 array(
                                     "creation_date" => $date,
