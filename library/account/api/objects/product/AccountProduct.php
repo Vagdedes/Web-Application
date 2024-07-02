@@ -309,7 +309,11 @@ class AccountProduct
                                 }
 
                                 if (!in_array($value->version, $object->supported_versions)) {
-                                    $object->supported_versions[] = $value->version;
+                                    $versionObject = new stdClass();
+                                    $versionObject->version = $value->version;
+                                    $versionObject->prefix = $value->prefix;
+                                    $versionObject->suffix = $value->suffix;
+                                    $object->supported_versions[$value->version] = $versionObject;
                                 }
                                 if ($object->download_note === null) {
                                     $object->download_note = $value->note;

@@ -68,3 +68,4 @@ require_once '/var/www/.structure/library/account/api/objects/finance/PaymentPro
 
 // Schedulers
 require_once '/var/www/.structure/library/account/api/schedulers/refreshTransactions.php';
+require_once '/var/www/.structure/library/account/api/schedulers/refreshProductUpdates.php';
