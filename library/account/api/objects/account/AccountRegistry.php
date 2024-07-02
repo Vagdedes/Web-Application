@@ -65,7 +65,7 @@ class AccountRegistry
         global $accounts_table;
 
         if ($this->account->getSession()->isCustom() // Protected by captcha when not custom
-            && !empty(get_sql_query(
+            && sizeof(get_sql_query(
                 $accounts_table,
                 array("id"),
                 array(
@@ -76,8 +76,8 @@ class AccountRegistry
                     array("creation_date", ">", get_past_date("1 day")),
                 ),
                 null,
-                1
-            ))) {
+                2
+            )) === 2) {
             return new MethodReply(false, "You cannot create more accounts for now, please try again later.");
         }
         if (!sql_insert($accounts_table,
