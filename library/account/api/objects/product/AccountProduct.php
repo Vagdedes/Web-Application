@@ -264,6 +264,8 @@ class AccountProduct
                                 "file_type",
                                 "required_permission",
                                 "version",
+                                "prefix",
+                                "suffix",
                                 "note",
                                 "name",
                                 "description"

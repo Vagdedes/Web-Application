@@ -44,7 +44,7 @@ class AccountGiveaway
         return false;
     }
 
-    private function create(int|string|null $productID, int|string $amount, int|string $duration): bool
+    private function create(int|string|null $productID, int|string $amount, int|string $duration, ?array $exclude = null): bool
     {
         global $product_giveaways_table;
         $array = get_sql_query($product_giveaways_table,
@@ -83,7 +83,8 @@ class AccountGiveaway
                     // Search for next product to give away
                     foreach ($validProducts as $arrayKey => $product) {
                         if ($product->is_free
-                            || $product->giveaway === null) {
+                            || $product->giveaway === null
+                            || $exclude !== null && in_array($product->id, $exclude)) {
                             unset($validProducts[$arrayKey]);
                         } else {
                             $loopID = $product->id;
@@ -132,7 +133,8 @@ class AccountGiveaway
     }
 
     public function getCurrent(int|string|null $specifiedProductID,
-                               int|string      $amount, int|string $duration): MethodReply
+                               int|string      $amount, int|string $duration,
+                               ?array          $exclude = null): MethodReply
     {
         global $product_giveaways_table;
         set_sql_cache(null, self::class);
@@ -180,7 +182,7 @@ class AccountGiveaway
 
                     if ($this->account->getFunctionality()->getResult(AccountFunctionality::RUN_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
                         // Create new one before searching for winners to avoid concurrency issues
-                        if (!$this->create($specifiedProductID, $amount, $duration)) {
+                        if (!$this->create($specifiedProductID, $amount, $duration, $exclude)) {
                             return new MethodReply(false, "Giveaway could not be created. (1)", $object);
                         }
                         global $accounts_table;
