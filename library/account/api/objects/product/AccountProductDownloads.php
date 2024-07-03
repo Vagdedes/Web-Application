@@ -152,11 +152,12 @@ class AccountProductDownloads
                 return new MethodReply(false, "Failed to interact with the database.");
             }
         }
-        if (!$this->account->getHistory()->add(
-            "download_file" . ($requestedByToken !== null ? "_by_token" : ""),
-            $requestedByToken,
-            $token
-        )) {
+        if ($this->account->exists()
+            && !$this->account->getHistory()->add(
+                "download_file" . ($requestedByToken !== null ? "_by_token" : ""),
+                $requestedByToken,
+                $token
+            )) {
             unlink($fileCopy);
             return new MethodReply(false, "Failed to update user history.");
         }
