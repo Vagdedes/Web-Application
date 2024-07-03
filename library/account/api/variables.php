@@ -116,17 +116,6 @@ $verification_types_table = "verification.types";
 $email_verifications_table = "verification.emailVerifications";
 $change_password_table = "verification.changePassword";
 
-// Balance
-$balance_accepted_currencies_table = "balance.acceptedCurrencies";
-$balance_denied_currencies_table = "balance.deniedCurrencies";
-$balance_allowed_currencies_table = "balance.allowedCurrencies";
-$balance_wallets_table = "balance.wallets";
-$balance_requests_table = "balance.requests";
-$balance_transfers_table = "balance.transfers";
-$balance_instant_transfers_table = "balance.instantTransfers";
-$balance_transaction_types_table = "balance.transactionTypes";
-$balance_transactions_table = "balance.transactions";
-
 // Statistic
 $statistic_types_table = "statistic.types";
 $statistic_integers_table = "statistic.integerStatistics";

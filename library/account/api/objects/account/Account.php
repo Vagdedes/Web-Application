@@ -32,7 +32,6 @@ class Account
     private AccountProduct $product;
     private AccountGiveaway $giveaway;
     private AccountFunctionality $functionality;
-    private AccountWallet $wallet;
     private AccountStatistics $statistics;
     private AccountRegistry $registry;
     private AccountSession $session;
@@ -133,7 +132,6 @@ class Account
         $this->giveaway = new AccountGiveaway($this);
         $this->moderations = new AccountModerations($this);
         $this->functionality = new AccountFunctionality($this);
-        $this->wallet = new AccountWallet($this);
         $this->instructions = new AccountInstructions($this);
         $this->statistics = new AccountStatistics($this);
 
@@ -315,11 +313,6 @@ class Account
     public function getFunctionality(): AccountFunctionality
     {
         return $this->functionality;
-    }
-
-    public function getWallet(): AccountWallet
-    {
-        return $this->wallet;
     }
 
     public function getStatistics(): AccountStatistics
