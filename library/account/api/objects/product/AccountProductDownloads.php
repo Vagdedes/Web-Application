@@ -76,8 +76,10 @@ class AccountProductDownloads
         return $this->makeFileDownload($productID, null, $maxDownloads, $sendFile, $customExpiration, $cooldown);
     }
 
-    public function makeFileDownload(int|string      $productID, int|string $requestedByToken = null,
-                                     int|string|null $maxDownloads = null, bool $sendFile = true,
+    public function makeFileDownload(int|string      $productID,
+                                     int|string      $requestedByToken = null,
+                                     int|string|null $maxDownloads = null,
+                                     bool            $sendFile = true,
                                      int|string|null $customExpiration = null,
                                      int|string|null $cooldown = self::DEFAULT_COOLDOWN): MethodReply
     {

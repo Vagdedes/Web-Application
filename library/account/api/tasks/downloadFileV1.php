@@ -3,9 +3,16 @@ require '/var/www/.structure/library/account/api/tasks/loader.php';
 load_account_page(false, function (Account $account) {
     $id = get_form_get("id");
 
-    if (is_numeric($id)) {
+    if (is_numeric($id) && is_private_connection()) {
         if ($account->exists()) {
-            $result = $account->getDownloads()->getOrCreateValidToken($id, 1, true);
+            $result = $account->getDownloads()->getOrCreateValidToken(
+                $id,
+                1,
+                true,
+                true,
+                null,
+                null
+            );
 
             if (!$result->isPositiveOutcome()) {
                 echo json_encode($result->getMessage());
@@ -36,7 +43,10 @@ load_account_page(false, function (Account $account) {
                         $reply = $tokenAccount->getDownloads()->makeFileDownload(
                             $download->product_id,
                             $download->token,
-                            1
+                            1,
+                            true,
+                            null,
+                            null
                         );
 
                         if (!$reply->isPositiveOutcome()) {
@@ -51,5 +61,4 @@ load_account_page(false, function (Account $account) {
             echo json_encode("You specify a Token to download its correlated file.");
         }
     }
-}
-);
+});
