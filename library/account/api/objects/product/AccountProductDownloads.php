@@ -238,10 +238,12 @@ class AccountProductDownloads
         if (!$product->isPositiveOutcome()) {
             return new MethodReply(false, $product->getMessage());
         }
-        $purchase = $this->account->getPurchases()->owns($productID);
+        if ($this->account->exists()) {
+            $purchase = $this->account->getPurchases()->owns($productID);
 
-        if (!$purchase->isPositiveOutcome()) {
-            return new MethodReply(false, "You do not own this product.");
+            if (!$purchase->isPositiveOutcome()) {
+                return new MethodReply(false, "You do not own this product.");
+            }
         }
         $fileProperties = $this->findDownloadableFile($product->getObject()[0]->downloads);
 
@@ -329,10 +331,12 @@ class AccountProductDownloads
             if (!$product->isPositiveOutcome()) {
                 return new MethodReply(false, $product->getMessage());
             }
-            $purchase = $this->account->getPurchases()->owns($query->product_id);
+            if ($this->account->exists()) {
+                $purchase = $this->account->getPurchases()->owns($query->product_id);
 
-            if (!$purchase->isPositiveOutcome()) {
-                return new MethodReply(false, "You do not own this product.");
+                if (!$purchase->isPositiveOutcome()) {
+                    return new MethodReply(false, "You do not own this product.");
+                }
             }
             if ($sendFile) {
                 $fileProperties = $this->findDownloadableFile($product->getObject()[0]->downloads);
