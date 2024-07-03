@@ -39,7 +39,6 @@ class AccountProductDownloads
 
     public function getOrCreateValidToken(int|string      $productID,
                                           int|string|null $maxDownloads = null,
-                                          bool            $userTokensOnly = false,
                                           bool            $sendFile = true,
                                           int|string|null $customExpiration = null,
                                           int|string|null $cooldown = self::DEFAULT_COOLDOWN): MethodReply
@@ -52,8 +51,10 @@ class AccountProductDownloads
                 array("account_id", $this->account->getDetail("id")),
                 array("product_id", $productID),
                 array("deletion_date", null),
-                $userTokensOnly ? array("requested_by_token", null) : "",
-                $maxDownloads !== null ? array("max_downloads", "IS NOT", null) : "",
+                null,
+                array("max_downloads", "IS", null, 0),
+                array("download_count", "<", "max_downloads"),
+                null,
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
@@ -66,12 +67,7 @@ class AccountProductDownloads
             1
         );
         if (!empty($query)) {
-            $query = $query[0];
-
-            if ($query->max_downloads === null
-                || $query->download_count < $query->max_downloads) {
-                return new MethodReply(true, "Successfully found token.", $query->token);
-            }
+            return new MethodReply(true, "Successfully found token.", $query[0]->token);
         }
         return $this->makeFileDownload($productID, null, $maxDownloads, $sendFile, $customExpiration, $cooldown);
     }
@@ -288,23 +284,6 @@ class AccountProductDownloads
     public function has(bool $active = false): bool
     {
         return $this->getCount($active, 1) > 0;
-    }
-
-    public function verify(int|string $token, bool $active = false): bool
-    {
-        global $product_downloads_table;
-        set_sql_cache(null, self::class);
-        return !empty(get_sql_query(
-            $product_downloads_table,
-            array("id"),
-            array(
-                array("account_id", $this->account->getDetail("id")),
-                $active ? array("expiration_date", ">", get_current_date()) : "",
-                array("token", $token)
-            ),
-            null,
-            1
-        ));
     }
 
     public function find(int|string $token): MethodReply

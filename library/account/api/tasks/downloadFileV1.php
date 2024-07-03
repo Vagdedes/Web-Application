@@ -7,11 +7,7 @@ load_account_page(false, function (Account $account) {
         if ($account->exists()) {
             $result = $account->getDownloads()->getOrCreateValidToken(
                 $id,
-                1,
-                true,
-                true,
-                null,
-                null
+                1
             );
 
             if (!$result->isPositiveOutcome()) {
