@@ -1,6 +1,6 @@
 <?php
 
-function schedule_function_in_memory(mixed $function, ?array $arguments = null, int $seconds = 1, ?bool $processEnd = null): void
+function schedule_function_in_memory(mixed $function, ?array $arguments = null, int $seconds = 1, bool $isProcess = false): void
 {
     global $memory_schedulers_table;
     $identifier = string_to_integer($function, true);
@@ -14,7 +14,6 @@ function schedule_function_in_memory(mixed $function, ?array $arguments = null, 
         null,
         1
     );
-    $isProcess = is_bool($processEnd);
 
     if (empty($query)) {
         if (sql_insert(
@@ -28,7 +27,7 @@ function schedule_function_in_memory(mixed $function, ?array $arguments = null, 
             load_previous_sql_database();
             call_user_func_array($function, $arguments === null ? array() : $arguments);
 
-            if ($isProcess && $processEnd) {
+            if ($isProcess) {
                 end_memory_process($identifier, false);
             }
         }
@@ -46,7 +45,7 @@ function schedule_function_in_memory(mixed $function, ?array $arguments = null, 
         load_previous_sql_database();
         call_user_func_array($function, $arguments === null ? array() : $arguments);
 
-        if ($isProcess && $processEnd) {
+        if ($isProcess) {
             end_memory_process($identifier, false);
         }
     } else {

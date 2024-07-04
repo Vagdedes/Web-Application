@@ -70,10 +70,34 @@ if (true
 
     // Account Finder
     if (!empty($identification)) {
-        $split = explode("|", $identification, 2);
+        $split = explode("|", $identification, 4);
         $size = sizeof($split);
 
-        if ($size == 2) {
+        if ($size == 3) {
+            $licenseID = $split[1];
+            $fileID = $split[2];
+
+            if (is_numeric($licenseID) && $licenseID > 0
+                && is_numeric($fileID) && $fileID != 0) {
+                $gameCloudUser->setLicense($licenseID);
+                $platformID = new MinecraftPlatformConverter($split[0]);
+                $platformID = $platformID->getConversion();
+
+                if ($platformID === null) {
+                    $accessFailure = 948302520;
+                } else {
+                    $gameCloudUser->setPlatform($platformID);
+
+                    if (!$isTokenSearch) {
+                        $account = $gameCloudUser->getInformation()->getAccount();
+                    }
+                }
+            } else if ($requiresVerification) {
+                $accessFailure = 899453502;
+                $licenseID = null;
+                $fileID = null;
+            }
+        } else if ($size == 2) {
             $licenseID = $split[0];
             $fileID = $split[1];
 
@@ -86,7 +110,7 @@ if (true
 
                     if ($platformID === null) {
                         $accessFailure = 948302520;
-                    } else if (!$isTokenSearch) {
+                    } else {
                         $account = $gameCloudUser->getInformation()->getAccount();
                     }
                 }
@@ -143,9 +167,7 @@ if (true
                                 if ($acceptedAccount->isPositiveOutcome()) {
                                     $token = $user_agent;
                                     $productObject = $validProductObject;
-                                    $platform = $row->id;
-                                    $gameCloudUser->setPlatform($platform);
-                                    $platformID = $platform;
+                                    $platformID = $gameCloudUser->setPlatform($row->id);
                                     break;
                                 }
                             }
@@ -493,16 +515,15 @@ if (true
         } else if ($data == "userIdentification") {
             set_sql_cache("1 minute");
             $query = get_sql_query(
-                $verifications_table,
+                $connection_count_table,
                 array("license_id"),
                 array(
                     array("access_failure", null),
-                    array("dismiss", null),
                     array("ip_address", $ipAddressModified)
                 ),
                 array(
                     "DESC",
-                    "last_access_date"
+                    "id"
                 ),
                 1
             );
@@ -817,7 +838,13 @@ if (true
             }
         }
     } else if ($action == "add") {
-        if ($data == "crossServerInformation") {
+        if ($data == "userVerification") {
+            if ($gameCloudUser->isValid()) {
+
+            } else {
+                echo "false";
+            }
+        } else if ($data == "crossServerInformation") {
             $limit = 600;
             $split = explode($separator, $value, $limit + 3 + 1); // limit + arguments + extra
 

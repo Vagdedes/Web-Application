@@ -41,27 +41,6 @@ class GameCloudInformation
         return null;
     }
 
-    public function getConnectionCount(int|string $productID, string $ipAddress, int|float|string $version): int
-    {
-        if ($this->user->isValid()) {
-            global $connection_count_table; // Do not use cache, table is already memory-based
-            set_sql_cache("1 minute");
-            return sizeof(get_sql_query(
-                $connection_count_table,
-                array("id"),
-                array(
-                    array("platform_id", $this->user->getPlatform()),
-                    array("license_id", $this->user->getLicense()),
-                    array("product_id", $productID),
-                    array("ip_address", $ipAddress),
-                    array("version", $version)
-                )
-            ));
-        } else {
-            return 0;
-        }
-    }
-
     public function getAccount(bool $checkDeletion = true): Account
     {
         if ($this->account === null) {

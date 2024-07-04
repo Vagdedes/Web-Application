@@ -13,7 +13,3 @@ $accepted_platforms_table = "gameCloud.acceptedPlatforms";
 $staff_announcements_table = "gameCloud.staffAnnouncements";
 $detection_slots_table = "gameCloud.detectionSlots";
 $detection_slots_tracking_table = "gameCloud.detectionSlotsTracking";
-
-// Separator
-
-$customer_support_discord_webhook = "https://discord.com/api/webhooks/1165260211540467802/aNXb5HOp0vwsEGc-M7-TtQNxc2v1o9gzyTBlxy7Y8b68wdqw6QALXguNZS8AVuahXkzl";

@@ -2,10 +2,7 @@
 
 class MinecraftPlatformConverter
 {
-    public const
-        SPIGOTMC_PLATFORM = 1,
-        BUILTBYBIT_PLATFORM = 2,
-        POLYMART_PLATFORM = 3;
+
     private ?int $conversion;
 
     function __construct(string $platform)
@@ -32,7 +29,7 @@ class MinecraftPlatformConverter
         }
     }
 
-    public function getConversion()
+    public function getConversion(): ?int
     {
         return $this->conversion;
     }

@@ -20,7 +20,7 @@ class StaffData
                 }
             }
         } else {
-            foreach (explode(" ", str_replace(",", "", str_replace("(", "", str_replace(")", "", $provider))), GameCloudVerification::monthly_staff_limit) as $word) {
+            foreach (explode(" ", str_replace(",", "", str_replace("(", "", str_replace(")", "", $provider))), 100) as $word) {
                 if (!empty($word)) {
                     $split = explode("|", $word, 4);
 

@@ -8,7 +8,7 @@ class GameCloudUser
     private GameCloudVerification $verification;
     private GameCloudEmail $email;
 
-    public function __construct($platform, $license)
+    public function __construct(?int $platform, ?int $license)
     {
         $this->platform = $platform;
         $this->license = $license;
@@ -36,14 +36,16 @@ class GameCloudUser
             && $this->license > 0;
     }
 
-    public function setPlatform(int|string $platform): void
+    public function setPlatform(int|string $platform): int|string
     {
         $this->platform = $platform;
+        return $platform;
     }
 
-    public function setLicense(int|string $license): void
+    public function setLicense(int|string $license): int|string
     {
         $this->license = $license;
+        return $license;
     }
 
     public function getActions(): GameCloudActions
