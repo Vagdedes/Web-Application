@@ -840,7 +840,15 @@ if (true
     } else if ($action == "add") {
         if ($data == "userVerification") {
             if ($gameCloudUser->isValid()) {
+                $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id, $ipAddressModified);
 
+                if ($verificationResult <= 0) {
+                    echo "false";
+                } else if ($platformID !== null) {
+                    echo $platformID;
+                } else {
+                    echo "true";
+                }
             } else {
                 echo "false";
             }
