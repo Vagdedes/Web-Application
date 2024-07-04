@@ -12,35 +12,6 @@ class GameCloudInformation
         $this->account = null;
     }
 
-    public function guessPlatform(string $ipAddress): ?int
-    {
-        $license = $this->user->getLicense();
-
-        if ($license !== null
-            && $license > 0) {
-            global $verifications_table;
-            $query = get_sql_query(
-                $verifications_table,
-                array("platform_id"),
-                array(
-                    array("license_id", $license),
-                    array("ip_address", $ipAddress),
-                    array("platform_id", "IS NOT", null),
-                    array("dismiss", null),
-                ),
-                null,
-                1
-            );
-
-            if (!empty($query)) {
-                $platformID = $query[0]->platform_id;
-                $this->user->setPlatform($platformID);
-                return $platformID;
-            }
-        }
-        return null;
-    }
-
     public function getAccount(bool $checkDeletion = true): Account
     {
         if ($this->account === null) {

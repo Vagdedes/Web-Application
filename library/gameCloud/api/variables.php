@@ -1,6 +1,4 @@
 <?php
-$staff_players_table = "gameCloud.staffPlayers";
-$verifications_table = "gameCloud.licenseVerifications";
 $license_management_table = "gameCloud.managedLicenses";
 $punished_players_table = "gameCloud.punishedPlayers";
 $configuration_changes_table = "gameCloud.automaticConfigurationChanges";

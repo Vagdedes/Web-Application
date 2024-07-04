@@ -97,28 +97,6 @@ if (true
                 $licenseID = null;
                 $fileID = null;
             }
-        } else if ($size == 2) {
-            $licenseID = $split[0];
-            $fileID = $split[1];
-
-            if (is_numeric($licenseID) && $licenseID > 0
-                && is_numeric($fileID) && $fileID != 0) {
-                $gameCloudUser->setLicense($licenseID);
-
-                if (!$isTokenSearch) {
-                    $platformID = $gameCloudUser->getInformation()->guessPlatform($ipAddressModified);
-
-                    if ($platformID === null) {
-                        $accessFailure = 948302520;
-                    } else {
-                        $account = $gameCloudUser->getInformation()->getAccount();
-                    }
-                }
-            } else if ($requiresVerification) {
-                $accessFailure = 899453502;
-                $licenseID = null;
-                $fileID = null;
-            }
         } else if ($requiresVerification) {
             $accessFailure = 346980835;
         }
