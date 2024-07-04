@@ -268,7 +268,8 @@ class AccountProduct
                                 "suffix",
                                 "note",
                                 "name",
-                                "description"
+                                "description",
+                                "modifies_also_products"
                             ),
                             array(
                                 array("product_id", $productID),
@@ -299,6 +300,9 @@ class AccountProduct
                             foreach ($object->downloads as $value) {
                                 if ($value->required_permission !== null) {
                                     $value->required_permission = explode("|", $value->required_permission);
+                                }
+                                if ($value->modifies_also_products !== null) {
+                                    $value->modifies_also_products = explode("|", $value->modifies_also_products);
                                 }
                                 $hash = string_to_integer($value->file_name);
                                 $hash = overflow_integer(($hash * 31) + string_to_integer($value->file_type));
