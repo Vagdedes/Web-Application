@@ -121,7 +121,7 @@ if (true
             }
         }
     } else { // Token Finder
-        $download = $account->getDownloads()->find($user_agent);
+        $download = $account->getDownloads()->find($user_agent, false);
 
         if ($download->isPositiveOutcome()) {
             $download = $download->getObject();
