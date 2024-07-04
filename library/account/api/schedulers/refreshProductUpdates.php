@@ -15,6 +15,7 @@ if (function_exists("schedule_function_in_memory")) {
     schedule_function_in_memory(
         "refresh_product_updates",
         null,
-        60
+        60,
+        true
     );
 }

@@ -889,14 +889,6 @@ if (true
                                     break;
                                 }
                             }
-                            if (!has_memory_cooldown($cross_server_information_table, "15 minutes")) {
-                                delete_sql_query(
-                                    $cross_server_information_table,
-                                    array(
-                                        array("expiration_date", "<", $date),
-                                    )
-                                );
-                            }
                             echo "true";
                             break;
                         default:
