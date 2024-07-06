@@ -19,7 +19,6 @@ function get_polymart_object(string $version, string $service, array $parameters
     if ($polymart_credentials === null) {
         return null;
     }
-    global $polymart_object_refreshTime;
     $parameters["api_key"] = $polymart_credentials[0];
     $json = get_json_object(
         "https://api.polymart.org/" . $version . "/" . $service . "/",
@@ -30,10 +29,10 @@ function get_polymart_object(string $version, string $service, array $parameters
     if ($json === false
         || !isset($json->response->success)
         || !$json->response->success) {
-        set_key_value_pair($cacheKey, false, $polymart_object_refreshTime);
+        set_key_value_pair($cacheKey, false, "1 minute");
         return null;
     }
-    set_key_value_pair($cacheKey, $json, $polymart_object_refreshTime);
+    set_key_value_pair($cacheKey, $json, "1 minute");
     return $json;
 }
 
