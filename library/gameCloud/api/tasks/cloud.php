@@ -496,6 +496,7 @@ if (true
                 $connection_count_table,
                 array("license_id"),
                 array(
+                    array("license_id", "IS NOT", null),
                     array("access_failure", null),
                     array("ip_address", $ipAddressModified)
                 ),
