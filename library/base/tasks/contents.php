@@ -56,6 +56,9 @@ if (!empty($path)) {
             if (!$session->isPositiveOutcome()) {
                 $includedFiles = get_included_files();
 
+                foreach ($scripts as $file) {
+                    require_once $file;
+                }
                 foreach ($includedFiles as $arrayKey => $file) {
                     if (starts_with($file, $scripts)) {
                         $contents = @file_get_contents($file);
