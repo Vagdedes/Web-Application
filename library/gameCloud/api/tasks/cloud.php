@@ -731,8 +731,7 @@ if (true
 
             if ($slots > 0) {
                 if ($account->exists()) {
-                    if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PERMISSION)
-                        || $account->getPurchases()->owns(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PRODUCT)) {
+                    if ($account->getPurchases()->owns(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PRODUCT)) {
                         echo "-1";
                         return;
                     } else if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_120_PERMISSION)) {

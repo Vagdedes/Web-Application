@@ -8,7 +8,7 @@ class AccountPatreon
     public const
         SPARTAN_SYN = 7,
         DETECTION_SLOTS_UNLIMITED_PRODUCT = 26,
-        PRODUCTS = array(self::DETECTION_SLOTS_UNLIMITED_PRODUCT => null);
+        PRODUCTS = self::DETECTION_SLOTS_UNLIMITED_PRODUCT;
 
     private const
         MOTIVATOR_PATREON_TIER = 4064030,
@@ -18,20 +18,13 @@ class AccountPatreon
     public const
         DETECTION_SLOTS_20_TIER = array(22435075, self::MOTIVATOR_PATREON_TIER, self::SPONSOR_PATREON_TIER),
         DETECTION_SLOTS_50_TIER = array(22808702),
-        DETECTION_SLOTS_120_TIER = array(22808726),
-        DETECTION_SLOTS_UNLIMITED_TIER = array(self::VISIONARY_PATREON_TIER);
+        DETECTION_SLOTS_120_TIER = array(22808726);
 
     public const
         DETECTION_SLOTS_20_PERMISSION = "patreon.spartan.detection.slots.20",
         DETECTION_SLOTS_50_PERMISSION = "patreon.spartan.detection.slots.50",
         DETECTION_SLOTS_120_PERMISSION = "patreon.spartan.detection.slots.120",
-        DETECTION_SLOTS_UNLIMITED_PERMISSION = "patreon.spartan.detection.slots.unlimited",
-        PERMISSIONS = array(
-        self::DETECTION_SLOTS_UNLIMITED_PERMISSION,
-        self::DETECTION_SLOTS_120_PERMISSION,
-        self::DETECTION_SLOTS_50_PERMISSION,
-        self::DETECTION_SLOTS_20_PERMISSION
-    );
+        PERMISSIONS = "patreon.subscriber";
 
     public function __construct(Account $account)
     {
@@ -46,46 +39,37 @@ class AccountPatreon
 
             if ($name->isPositiveOutcome()) {
                 $name = $name->getObject()[0];
-                $this->retrieve = $this->find($name, self::DETECTION_SLOTS_UNLIMITED_TIER);
+                $this->retrieve = $this->find($name, self::DETECTION_SLOTS_120_TIER);
 
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
                         "patreon.subscriber",
-                        self::DETECTION_SLOTS_UNLIMITED_PERMISSION
+                        self::DETECTION_SLOTS_120_PERMISSION
                     ));
                 } else {
-                    $this->retrieve = $this->find($name, self::DETECTION_SLOTS_120_TIER);
+                    $this->retrieve = $this->find($name, self::DETECTION_SLOTS_50_TIER);
 
                     if ($this->retrieve->isPositiveOutcome()) {
                         $this->account->getPermissions()->addSystemPermission(array(
                             "patreon.subscriber",
-                            self::DETECTION_SLOTS_120_PERMISSION
+                            self::DETECTION_SLOTS_50_PERMISSION
                         ));
                     } else {
-                        $this->retrieve = $this->find($name, self::DETECTION_SLOTS_50_TIER);
+                        $this->retrieve = $this->find($name, self::DETECTION_SLOTS_20_TIER);
 
                         if ($this->retrieve->isPositiveOutcome()) {
                             $this->account->getPermissions()->addSystemPermission(array(
                                 "patreon.subscriber",
-                                self::DETECTION_SLOTS_50_PERMISSION
+                                self::DETECTION_SLOTS_20_PERMISSION
                             ));
                         } else {
-                            $this->retrieve = $this->find($name, self::DETECTION_SLOTS_20_TIER);
-
-                            if ($this->retrieve->isPositiveOutcome()) {
-                                $this->account->getPermissions()->addSystemPermission(array(
-                                    "patreon.subscriber",
-                                    self::DETECTION_SLOTS_20_PERMISSION
-                                ));
-                            } else {
-                                $this->retrieve = $this->find($name, null, false);
-                            }
+                            $this->retrieve = $this->find($name, null, false);
                         }
                     }
                 }
-            } else {
-                $this->retrieve = new MethodReply(false);
             }
+        } else {
+            $this->retrieve = new MethodReply(false);
         }
         if (empty($specificTiers)) {
             return $this->retrieve;
