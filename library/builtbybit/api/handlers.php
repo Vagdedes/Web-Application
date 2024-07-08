@@ -8,8 +8,8 @@ function get_builtbybit_wrapper(): mixed
     }
     $token = new APIToken(TokenType::PRIVATE, $keys[0]);
     $wrapper = new APIWrapper();
-    $error = $wrapper->initialise($token, true)->getError();
-    return $error ? $error["message"] : $wrapper;
+    $response = $wrapper->initialise($token, true);
+    return $response->isSuccess() ? $wrapper : $response->getError()["message"];
 }
 
 function get_builtbybit_resource_ownerships(int|string $resource): array
@@ -21,7 +21,7 @@ function get_builtbybit_resource_ownerships(int|string $resource): array
     $cache = get_key_value_pair($cacheKey);
 
     if (is_array($cache)) {
-        return $cache;
+        //return $cache;
     }
     $wrapper = get_builtbybit_wrapper();
 
