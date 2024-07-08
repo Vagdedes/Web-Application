@@ -21,7 +21,7 @@ function get_builtbybit_resource_ownerships(int|string $resource): array
     $cache = get_key_value_pair($cacheKey);
 
     if (is_array($cache)) {
-        //return $cache;
+        return $cache;
     }
     $wrapper = get_builtbybit_wrapper();
 
@@ -58,10 +58,4 @@ function get_builtbybit_resource_ownerships(int|string $resource): array
     }
     set_key_value_pair($cacheKey, $array, "1 minute");
     return $array;
-}
-
-function get_builtbybit_individual_resource_ownership(int|string $resource, int|string $user): ?object
-{
-    $ownerships = get_builtbybit_resource_ownerships($resource);
-    return array_key_exists($user, $ownerships) ? $ownerships[$user] : null;
 }
