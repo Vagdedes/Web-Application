@@ -54,11 +54,11 @@ if (!empty($path)) {
             $session = $account->getSession()->find();
 
             if (!$session->isPositiveOutcome()) {
+                if (ends_with($scripts, ".php")) {
+                    require_once $scripts;
+                }
                 $includedFiles = get_included_files();
 
-                foreach ($scripts as $file) {
-                    require_once $file;
-                }
                 foreach ($includedFiles as $arrayKey => $file) {
                     if (starts_with($file, $scripts)) {
                         $contents = @file_get_contents($file);
