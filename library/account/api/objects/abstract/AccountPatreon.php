@@ -67,6 +67,8 @@ class AccountPatreon
                         }
                     }
                 }
+            } else {
+                $this->retrieve = new MethodReply(false);
             }
         } else {
             $this->retrieve = new MethodReply(false);
