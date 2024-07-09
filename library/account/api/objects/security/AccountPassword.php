@@ -76,14 +76,10 @@ class AccountPassword
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         global $change_password_table;
-        $locallyLoggedIn = $code
-            ? new MethodReply(false)
-            : $this->account->getActions()->isLocallyLoggedIn();
-        $isLocallyLoggedIn = $locallyLoggedIn->isPositiveOutcome();
         $loggedOut = !$this->account->exists();
         $array = get_sql_query(
             $change_password_table,
-            $isLocallyLoggedIn || $loggedOut ? array("id", "account_id") : array("id"),
+            $loggedOut ? array("id", "account_id") : array("id"),
             array(
                 array($code ? "code" : "token", $tokenOrCode),
                 array("completion_date", null),
@@ -97,11 +93,6 @@ class AccountPassword
             return new MethodReply(false, "This change password process is invalid or has expired.");
         }
         $array = $array[0];
-
-        if ($isLocallyLoggedIn
-            && $locallyLoggedIn->getObject()->getDetail("id") !== $array->account_id) {
-            return new MethodReply(false, "This change password process is invalid.");
-        }
         $hasCooldown = $cooldown !== null;
 
         if ($loggedOut) { // In case the process is initiated when logged out
@@ -125,7 +116,7 @@ class AccountPassword
             $change_password_table,
             array("new_password"),
             array(
-                array("account_id", $array->account_id),
+                array("account_id", $account->getDetail("id")),
                 array("new_password", "IS NOT", null), // Not needed but added due to the past system not supporting this
                 array("completion_date", "IS NOT", null),
                 array("creation_date", ">", get_past_date("1 year"))

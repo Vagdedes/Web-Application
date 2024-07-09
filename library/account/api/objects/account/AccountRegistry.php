@@ -95,7 +95,7 @@ class AccountRegistry
             ))) {
             return new MethodReply(false, "Failed to create new account.");
         }
-        $account = $this->account->getNew(null, $email, null, null, true, false);
+        $account = $this->account->getNew(null, $email, null, null, true);
 
         if (!$account->exists()) {
             return new MethodReply(false, "Failed to find newly created account.");

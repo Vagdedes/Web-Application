@@ -242,7 +242,7 @@ class AccountSession
         $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
         if ($punishment->isPositiveOutcome()) {
-            $this->delete($account->getDetail("id"));
+            $this->delete();
             return new MethodReply(false, $punishment->getMessage());
         }
         global $account_sessions_table;
@@ -327,9 +327,9 @@ class AccountSession
         return new MethodReply(false, "Failed to find available session.");
     }
 
-    public function delete(int|string|null $accountID): MethodReply
+    public function delete(): MethodReply
     {
-        if ($accountID !== null) {
+        if ($this->account->exists()) {
             $key = $this->createKey();
             $hasCustomKey = $this->isCustom();
             $this->deleteKey();
@@ -358,8 +358,8 @@ class AccountSession
                 );
 
                 $this->clearTokenCache($key);
-                $account = $this->account->getNew($accountID);
-                $account->clearMemory(self::class);
+                $this->account->clearMemory(self::class);
+                $this->account->getHistory()->add("log_out");
 
                 if (!empty($array)) { // Check if session exists
                     set_sql_query(
@@ -373,7 +373,7 @@ class AccountSession
                         null,
                         1
                     ); // Delete session from database
-                    return new MethodReply(true, "You have been logged out.", $account);
+                    return new MethodReply(true, "You have been logged out.");
                 }
             }
         }

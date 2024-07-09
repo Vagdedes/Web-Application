@@ -106,18 +106,7 @@ class Account
                 } else {
                     $this->exists = true;
                     $this->object = $query[0];
-                    $this->settings = new AccountSettings($this);
-                    $this->history = new AccountHistory($this);
-                    $this->transactions = new AccountTransactions($this);
-                    $this->purchases = new AccountPurchases($this);
-                    $this->cooldowns = new AccountCooldowns($this);
-                    $this->accounts = new AccountAccounts($this);
-                    $this->permissions = new AccountPermissions($this);
-                    $this->objectives = new AccountObjectives($this);
-                    $this->notifications = new AccountNotifications($this);
-                    $this->phoneNumber = new AccountPhoneNumber($this);
-                    $this->reviews = new AccountReviews($this);
-                    $this->patreon = new AccountPatreon($this);
+                    $this->initialize();
                 }
             } else {
                 $this->def($applicationID);
@@ -150,10 +139,25 @@ class Account
         $this->object->application_id = $applicationID;
     }
 
+    public function initialize(): void
+    {
+        $this->settings = new AccountSettings($this);
+        $this->history = new AccountHistory($this);
+        $this->transactions = new AccountTransactions($this);
+        $this->purchases = new AccountPurchases($this);
+        $this->cooldowns = new AccountCooldowns($this);
+        $this->accounts = new AccountAccounts($this);
+        $this->permissions = new AccountPermissions($this);
+        $this->objectives = new AccountObjectives($this);
+        $this->notifications = new AccountNotifications($this);
+        $this->phoneNumber = new AccountPhoneNumber($this);
+        $this->reviews = new AccountReviews($this);
+        $this->patreon = new AccountPatreon($this);
+    }
+
     public function getNew(?int $id = null, ?string $email = null, $username = null,
                                 $identification = null,
-                           bool $checkDeletion = true,
-                           bool $cache = true): self
+                           bool $checkDeletion = true): self
     {
         $account = new self(
             $this->getDetail("application_id"),
@@ -162,7 +166,6 @@ class Account
             $username,
             $identification,
             $checkDeletion,
-            $cache
         );
 
         $account->getSession()->setCustomKey(
