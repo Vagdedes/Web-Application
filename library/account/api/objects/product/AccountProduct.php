@@ -285,14 +285,12 @@ class AccountProduct
                         $object->download_note = null;
 
                         if (empty($object->downloads)) {
-                            $object->download_url = null;
                             $object->download_placeholder = null;
                             $object->latest_version = null;
                             $object->minimum_supported_version = null;
                             $object->supported_versions = array();
                         } else {
                             $object->download_placeholder = $website_domain . "/api/v1/product/downloadFile/";
-                            $object->download_url = $object->download_placeholder . "?id=" . $productID;
                             $downloads = array();
                             $object->supported_versions = array();
 
