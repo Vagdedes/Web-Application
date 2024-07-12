@@ -272,23 +272,6 @@ if (is_private_connection()) {
 
         $executeSqlQuery = "executeSqlQuery";
 
-        $anticheatCorrectionsQuery = get_sql_query(
-            "panel.handledConfigurationChanges"
-        );
-        $anticheatCorrections = array();
-        $hasAnticheatCorrections = !empty($anticheatCorrectionsQuery);
-        $executeAnticheatCorrection = "executeAnticheatCorrection";
-
-        if ($hasAnticheatCorrections) {
-            foreach ($anticheatCorrectionsQuery as $anticheatCorrectionsRow) {
-                $changeName = $anticheatCorrectionsRow->change_name;
-
-                if ($changeName !== null) {
-                    $anticheatCorrections[] = $changeName;
-                }
-            }
-        }
-
         $suspendPayPalTransactions = "suspendPayPalTransactions";
         $queuePayPalTransaction = "queuePayPalTransaction";
         $failedPayPalTransaction = "failedPayPalTransaction";
@@ -707,54 +690,6 @@ if (is_private_connection()) {
                             var_dump("Not available form");
                         }
                         break;
-                    case $executeAnticheatCorrection:
-                        if ($hasGameCloudUser
-                            && $hasAnticheatCorrections
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.execute.anticheat.correction", true, $hasAccount ? $account : null)) {
-                            $correction = get_form_post("correction");
-                            $correctionID = -1;
-
-                            foreach ($anticheatCorrectionsQuery as $anticheatCorrectionsRow) {
-                                $changeName = $anticheatCorrectionsRow->change_name;
-                                $use = false;
-
-                                if ($changeName !== null) {
-                                    if ($changeName == $correction) {
-                                        $correctionID = $anticheatCorrectionsRow->change_id;
-                                        $use = true;
-                                    }
-                                } else if ($correctionID != 1 && $correctionID == $anticheatCorrectionsRow->change_id) {
-                                    $use = true;
-                                }
-
-                                if ($use) {
-                                    $purpose = new GameCloudConnection("automaticConfigurationChanges");
-                                    $purpose = $purpose->getProperties();
-
-                                    if ($purpose !== null) {
-                                        $email = !empty(get_form_post("email"));
-
-                                        foreach ($purpose->allowed_products as $allowedProductID) {
-                                            var_dump($gameCloudUser->getActions()->addAutomaticConfigurationChange(
-                                                null,
-                                                $anticheatCorrectionsRow->configuration_file,
-                                                $anticheatCorrectionsRow->configuration_option,
-                                                $anticheatCorrectionsRow->configuration_value,
-                                                $allowedProductID,
-                                                $email
-                                            ));
-                                        }
-                                    }
-                                }
-                            }
-                        } else if ($hasAnticheatCorrections) {
-                            var_dump("No options available");
-                        } else if ($hasGameCloudUser) {
-                            var_dump("No permission");
-                        } else {
-                            var_dump("Not available form");
-                        }
-                        break;
                     case $queuePayPalTransaction:
                         if ($staffAccount->getPermissions()->hasPermission("transactions.queue.paypal", true)) {
                             $transactionID = get_form_post("id");
@@ -969,14 +904,6 @@ if (is_private_connection()) {
             addFormSubmit($addDisabledDetection, "Add Disabled Detection");
             addFormSubmit($removeDisabledDetection, "Remove Disabled Detection");
             endForm();
-
-            if ($hasAnticheatCorrections) {
-                createForm("post", true);
-                addFormInput("text", "correction", $anticheatCorrections);
-                addFormInput("number", "email", "Email");
-                addFormSubmit($executeAnticheatCorrection, "Execute AntiCheat Correction");
-                endForm();
-            }
         }
 
         // Separator
