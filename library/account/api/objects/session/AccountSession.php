@@ -192,7 +192,11 @@ class AccountSession
                             ); // Delete session from database
                             $this->clearTokenCache($key);
                             $account->clearMemory(self::class);
-                            return new MethodReply(false, null, $this->account->getNew(0));
+                            return new MethodReply(
+                                false,
+                                null,
+                                $this->account->exists() ? $this->account->getNew(0) : $this->account
+                            );
                         } else {
                             set_sql_query(
                                 $account_sessions_table,
@@ -234,12 +238,16 @@ class AccountSession
         } else { // Delete session cookie if key is at incorrect length
             $this->deleteKey();
         }
-        return new MethodReply(false, null, $this->account->getNew(0));
+        return new MethodReply(
+            false,
+            null,
+            $this->account->exists() ? $this->account->getNew(0) : $this->account
+        );
     }
 
-    public function create(Account $account): MethodReply
+    public function create(): MethodReply
     {
-        $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
+        $punishment = $this->account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
         if ($punishment->isPositiveOutcome()) {
             $this->delete();
@@ -271,13 +279,13 @@ class AccountSession
                 );
 
             if (empty($array)) { // Check if session does not exist
-                if (!$account->getPermissions()->isAdministrator()
-                    || !$account->getSettings()->isEnabled("two_factor_authentication")) {
+                if (!$this->account->getPermissions()->isAdministrator()
+                    || !$this->account->getSettings()->isEnabled("two_factor_authentication")) {
                     $array = get_sql_query(
                         $account_sessions_table,
                         array("id"),
                         array(
-                            array("account_id", $account->getDetail("id")),
+                            array("account_id", $this->account->getDetail("id")),
                             array("deletion_date", null),
                             array("end_date", ">", $date),
                             array("expiration_date", ">", $date)
@@ -298,7 +306,7 @@ class AccountSession
                                 1
                             ); // Delete existing valid session
                         }
-                        $account->clearMemory(self::class);
+                        $this->account->clearMemory(self::class);
                     }
                 }
                 if (sql_insert(
@@ -307,14 +315,14 @@ class AccountSession
                         "type" => $this->type,
                         "token" => $key,
                         "ip_address" => get_client_ip_address(),
-                        "account_id" => $account->getDetail("id"),
+                        "account_id" => $this->account->getDetail("id"),
                         "creation_date" => $date,
                         "expiration_date" => get_future_date(self::session_account_refresh_expiration),
                         "end_date" => get_future_date(self::session_account_total_expiration)
                     )
                 )) { // Insert information into the database
                     $this->clearTokenCache($key);
-                    return new MethodReply(true, null, $account);
+                    return new MethodReply(true);
                 } else {
                     $this->deleteKey();
                     $this->clearTokenCache($key);

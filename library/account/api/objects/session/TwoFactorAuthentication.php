@@ -121,9 +121,8 @@ class TwoFactorAuthentication
 
             if (!empty($query)) {
                 $object = $query[0];
-                $account = $this->account->getNew($object->account_id);
 
-                if (!$account->exists()) {
+                if (!$this->account->transform($object->account_id)->exists()) {
                     return new MethodReply(false, "Failed to find account.");
                 }
                 if (!set_sql_query(
@@ -137,15 +136,15 @@ class TwoFactorAuthentication
                 )) {
                     return new MethodReply(false, "Failed to interact with the database.");
                 }
-                if (!$account->getHistory()->add("instant_log_in")) {
+                if (!$this->account->getHistory()->add("instant_log_in")) {
                     return new MethodReply(false, "Failed to update user history.");
                 }
-                $session = $this->account->getSession()->create($account);
+                $session = $this->account->getSession()->create();
 
                 if (!$session->isPositiveOutcome()) {
                     return new MethodReply(false, $session->getMessage());
                 }
-                return new MethodReply(true, "Successfully verified account.", $account);
+                return new MethodReply(true, "Successfully verified account.");
             }
         }
         return new MethodReply(

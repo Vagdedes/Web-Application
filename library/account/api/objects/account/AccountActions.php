@@ -70,7 +70,7 @@ class AccountActions
         if (!$this->account->getHistory()->add("log_in")) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $session = $this->account->getSession()->create($this->account);
+        $session = $this->account->getSession()->create();
 
         if (!$session->isPositiveOutcome()) {
             return new MethodReply(false, $session->getMessage());

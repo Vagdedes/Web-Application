@@ -275,16 +275,10 @@ class AccountPurchases
             return new MethodReply(false, "This product is free and cannot be purchased.");
         }
         if ($tierID === null) {
-            $tier = array_shift($product->tiers->paid);
-            $tierID = $tier->id;
-            $price = $tier->price;
-            $currency = $tier->currency;
+            $purchase = $this->owns($productID, null, true);
 
-            if (!isset($price)) {
-                return new MethodReply(false, "This product does not have a price (1).");
-            }
-            if (!isset($currency)) {
-                return new MethodReply(false, "This product does not have a currency (1).");
+            if ($purchase->isPositiveOutcome()) {
+                return new MethodReply(false, "This product's tier is already owned (1).");
             }
         } else {
             foreach ($product->tiers->all as $tier) {
@@ -300,11 +294,11 @@ class AccountPurchases
             if (!isset($currency)) {
                 return new MethodReply(false, "This product does not have a currency (2).");
             }
-        }
-        $purchase = $this->owns($productID, $tierID, true);
+            $purchase = $this->owns($productID, $tierID, true);
 
-        if ($purchase->isPositiveOutcome()) {
-            return new MethodReply(false, "This product's tier is already owned.");
+            if ($purchase->isPositiveOutcome()) {
+                return new MethodReply(false, "This product's tier is already owned (2).");
+            }
         }
         global $product_purchases_table;
 

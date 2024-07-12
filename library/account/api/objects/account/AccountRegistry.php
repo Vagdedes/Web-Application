@@ -16,8 +16,7 @@ class AccountRegistry
                            ?string $discordWebhook = self::DEFAULT_WEBHOOK): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
-        $functionality = $this->account->getNew(0);
-        $functionality = $functionality->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);
+        $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
@@ -40,26 +39,23 @@ class AccountRegistry
             return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
         $email = strtolower($email);
-        $account = $this->account->getNew(null, $email);
 
-        if ($account->exists()) {
+        if ($this->account->transform(null, $email)->exists()) {
             $message = "Account with this email already exists.";
 
-            if ($account->getEmail()->isVerified()) {
+            if ($this->account->getEmail()->isVerified()) {
                 return new MethodReply(false, $message);
             } else {
-                $timePassed = time() - strtotime($account->getDetail("creation_date"));
+                $timePassed = time() - strtotime($this->account->getDetail("creation_date"));
 
                 if ($timePassed < (60 * 60 * 24)) {
                     return new MethodReply(false, $message);
                 } else {
-                    $account->getActions()->deleteAccount(false);
+                    $this->account->getActions()->deleteAccount(false);
                 }
             }
         }
-        $account = $this->account->getNew(null, null, $name);
-
-        if ($account->exists()) {
+        if ($this->account->transform(null, null, $name)->exists()) {
             return new MethodReply(false, "Account with this name already exists.");
         }
         global $accounts_table;
@@ -69,7 +65,7 @@ class AccountRegistry
                 $accounts_table,
                 array("id"),
                 array(
-                    array("application_id", $this->applicationID),
+                    array("application_id", $applicationID),
                     array("type", $this->account->getSession()->getType()),
                     array("custom_id", $this->account->getSession()->getCustomKey()),
                     array("deletion_date", null),
@@ -95,17 +91,15 @@ class AccountRegistry
             ))) {
             return new MethodReply(false, "Failed to create new account.");
         }
-        $account = $this->account->getNew(null, $email, null, null, true);
-
-        if (!$account->exists()) {
+        if (!$this->account->transform(null, $email, null, null, false)->exists()) {
             return new MethodReply(false, "Failed to find newly created account.");
         }
-        $account->clearMemory();
+        $this->account->clearMemory();
 
-        if (!$account->getHistory()->add("register", null, $email)) {
+        if (!$this->account->getHistory()->add("register", null, $email)) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $emailVerification = $account->getEmail()->initiateVerification($email, $this->account->getSession()->isCustom());
+        $emailVerification = $this->account->getEmail()->initiateVerification($email, $this->account->getSession()->isCustom());
 
         if (!$emailVerification->isPositiveOutcome()) {
             $message = $emailVerification->getMessage();
@@ -114,13 +108,11 @@ class AccountRegistry
                 return new MethodReply(false, $message);
             }
         }
-        $session = $this->account->getSession()->create($account);
+        $session = $this->account->getSession()->create();
 
         if (!$session->isPositiveOutcome()) {
             return new MethodReply(false, $session->getMessage());
         }
-        $this->outcome = new MethodReply(true, "Welcome!", $account);
-
         if ($discordWebhook !== null) {
             send_discord_webhook_by_plan(
                 "new-account",
@@ -128,7 +120,7 @@ class AccountRegistry
                 array("websiteUsername" => $name)
             );
         }
-        return $this->outcome;
+        return new MethodReply(true, null, $this->account);
     }
 
     public function getAccountAmount(): int

@@ -42,9 +42,47 @@ class Account
     public const IGNORE_APPLICATION = -1;
 
     public function __construct(?int    $applicationID = null,
-                                ?int    $id = null, ?string $email = null, ?string $username = null,
+                                ?int    $id = null,
+                                ?string $email = null,
+                                ?string $username = null,
                                 ?string $identification = null,
                                 bool    $checkDeletion = true)
+    {
+        $this->transformLocal(
+            $applicationID,
+            $id,
+            $email,
+            $username,
+            $identification,
+            $checkDeletion
+        );
+
+        // Standalone
+        $this->email = new AccountEmail($this);
+        $this->actions = new AccountActions($this);
+        $this->password = new AccountPassword($this);
+        $this->downloads = new AccountProductDownloads($this);
+        $this->affiliate = new AccountAffiliate($this);
+        $this->giveaway = new AccountGiveaway($this);
+        $this->moderations = new AccountModerations($this);
+        $this->functionality = new AccountFunctionality($this);
+        $this->instructions = new AccountInstructions($this);
+        $this->statistics = new AccountStatistics($this);
+
+        // Independent
+        $this->product = new AccountProduct($this);
+        $this->registry = new AccountRegistry($this);
+        $this->session = new AccountSession($this);
+        $this->twoFactorAuthentication = new TwoFactorAuthentication($this);
+        $this->paymentProcessor = new PaymentProcessor($applicationID);
+    }
+
+    private function transformLocal(?int    $applicationID = null,
+                              ?int    $id = null,
+                              ?string $email = null,
+                              ?string $username = null,
+                              ?string $identification = null,
+                              bool    $checkDeletion = true): void
     {
         $hasID = $id !== null;
         $hasUsername = $username !== null;
@@ -106,30 +144,40 @@ class Account
                 } else {
                     $this->exists = true;
                     $this->object = $query[0];
-                    $this->initialize();
+                    $this->settings = new AccountSettings($this);
+                    $this->history = new AccountHistory($this);
+                    $this->transactions = new AccountTransactions($this);
+                    $this->purchases = new AccountPurchases($this);
+                    $this->cooldowns = new AccountCooldowns($this);
+                    $this->accounts = new AccountAccounts($this);
+                    $this->permissions = new AccountPermissions($this);
+                    $this->objectives = new AccountObjectives($this);
+                    $this->notifications = new AccountNotifications($this);
+                    $this->phoneNumber = new AccountPhoneNumber($this);
+                    $this->reviews = new AccountReviews($this);
+                    $this->patreon = new AccountPatreon($this);
                 }
             } else {
                 $this->def($applicationID);
             }
         }
-        // Standalone
-        $this->email = new AccountEmail($this);
-        $this->actions = new AccountActions($this);
-        $this->password = new AccountPassword($this);
-        $this->downloads = new AccountProductDownloads($this);
-        $this->affiliate = new AccountAffiliate($this);
-        $this->giveaway = new AccountGiveaway($this);
-        $this->moderations = new AccountModerations($this);
-        $this->functionality = new AccountFunctionality($this);
-        $this->instructions = new AccountInstructions($this);
-        $this->statistics = new AccountStatistics($this);
+    }
 
-        // Independent
-        $this->product = new AccountProduct($this);
-        $this->registry = new AccountRegistry($this);
-        $this->session = new AccountSession($this);
-        $this->twoFactorAuthentication = new TwoFactorAuthentication($this);
-        $this->paymentProcessor = new PaymentProcessor($applicationID);
+    public function transform(?int    $id = null,
+                              ?string $email = null,
+                              ?string $username = null,
+                              ?string $identification = null,
+                              bool    $checkDeletion = true): self
+    {
+        $this->transformLocal(
+            $this->getDetail("application_id"),
+            $id,
+            $email,
+            $username,
+            $identification,
+            $checkDeletion
+        );
+        return $this;
     }
 
     private function def(?int $applicationID): void
@@ -137,22 +185,6 @@ class Account
         $this->exists = false;
         $this->object = new stdClass();
         $this->object->application_id = $applicationID;
-    }
-
-    public function initialize(): void
-    {
-        $this->settings = new AccountSettings($this);
-        $this->history = new AccountHistory($this);
-        $this->transactions = new AccountTransactions($this);
-        $this->purchases = new AccountPurchases($this);
-        $this->cooldowns = new AccountCooldowns($this);
-        $this->accounts = new AccountAccounts($this);
-        $this->permissions = new AccountPermissions($this);
-        $this->objectives = new AccountObjectives($this);
-        $this->notifications = new AccountNotifications($this);
-        $this->phoneNumber = new AccountPhoneNumber($this);
-        $this->reviews = new AccountReviews($this);
-        $this->patreon = new AccountPatreon($this);
     }
 
     public function getNew(?int $id = null, ?string $email = null, $username = null,
