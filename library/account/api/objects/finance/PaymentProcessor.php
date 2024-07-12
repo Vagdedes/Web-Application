@@ -65,239 +65,361 @@ class PaymentProcessor
      */
     public function run(Account $account = null): void
     {
-        global $refresh_transactions_function;
+        $isIndividual = $account !== null;
 
-        try {
-            $isIndividual = $account !== null;
+        if (!$isIndividual) {
+            $account = new Account();
+        }
+        $products = $account->getProduct()->find(null, false);
 
-            if (!$isIndividual) {
-                $account = new Account();
-            }
-            $products = $account->getProduct()->find(null, false);
+        if ($products->isPositiveOutcome()) {
+            $products = $products->getObject();
+            $productCount = sizeof($products);
+            $date = get_current_date();
+            $transactionLists = array();
+            $failedTransactions = null;
 
-            if ($products->isPositiveOutcome()) {
-                $products = $products->getObject();
-                $productCount = sizeof($products);
-                $date = get_current_date();
-                $transactionLists = array();
-                $failedTransactions = null;
-
-                if ($isIndividual) {
-                    foreach ($this::ALL_TYPES as $transactionType) {
-                        $transactionLists[$transactionType] = $account->getTransactions()->getSuccessful($transactionType, $productCount);
-                    }
-                } else {
-                    $pastDate = get_past_date($this::days_of_processing);
-                    $transactionLists[$this::PAYPAL] = get_all_paypal_transactions($this::limit, $pastDate);
-                    $transactionLists[$this::STRIPE] = get_all_stripe_transactions($this::limit, true, $pastDate);
+            if ($isIndividual) {
+                foreach ($this::ALL_TYPES as $transactionType) {
+                    $transactionLists[$transactionType] = $account->getTransactions()->getSuccessful($transactionType, $productCount);
                 }
+            } else {
+                $pastDate = get_past_date($this::days_of_processing);
+                $transactionLists[$this::PAYPAL] = get_all_paypal_transactions($this::limit, $pastDate);
+                $transactionLists[$this::STRIPE] = get_all_stripe_transactions($this::limit, true, $pastDate);
+            }
 
-                foreach ($transactionLists as $transactionType => $transactions) {
-                    if (!empty($transactions)) {
-                        foreach ($transactions as $transactionID => $transactionDetails) {
-                            foreach ($products as $product) {
-                                $failed = array();
+            foreach ($transactionLists as $transactionType => $transactions) {
+                if (!empty($transactions)) {
+                    foreach ($transactions as $transactionID => $transactionDetails) {
+                        foreach ($products as $product) {
+                            $failed = array();
 
-                                foreach ($product->transaction_search as $arrayKey => $transactionSearchProperties) {
-                                    if (in_array($transactionSearchProperties->lookup_id, $failed)) {
-                                        unset($product->transaction_search[$arrayKey]);
-                                        continue;
-                                    }
-                                    if ($transactionSearchProperties->accepted_account_id != $transactionType) {
-                                        $failed[] = $transactionSearchProperties->lookup_id;
-                                        unset($product->transaction_search[$arrayKey]);
-                                        continue;
-                                    }
-                                    $actualTransactionValue = get_object_depth_key($transactionDetails, $transactionSearchProperties->transaction_key);
+                            foreach ($product->transaction_search as $arrayKey => $transactionSearchProperties) {
+                                if (in_array($transactionSearchProperties->lookup_id, $failed)) {
+                                    unset($product->transaction_search[$arrayKey]);
+                                    continue;
+                                }
+                                if ($transactionSearchProperties->accepted_account_id != $transactionType) {
+                                    $failed[] = $transactionSearchProperties->lookup_id;
+                                    unset($product->transaction_search[$arrayKey]);
+                                    continue;
+                                }
+                                $actualTransactionValue = get_object_depth_key($transactionDetails, $transactionSearchProperties->transaction_key);
 
-                                    if (!$actualTransactionValue[0]) {
-                                        $failed[] = $transactionSearchProperties->lookup_id;
-                                        unset($product->transaction_search[$arrayKey]);
-                                        continue;
-                                    }
-                                    if ($transactionSearchProperties->ignore_case !== null) {
-                                        $actualTransactionValue = strtolower($actualTransactionValue[1]);
-                                        $expectedTransactionValue = strtolower($transactionSearchProperties->transaction_value);
-                                    } else {
-                                        $actualTransactionValue = $actualTransactionValue[1];
-                                        $expectedTransactionValue = $transactionSearchProperties->transaction_value;
-                                    }
+                                if (!$actualTransactionValue[0]) {
+                                    $failed[] = $transactionSearchProperties->lookup_id;
+                                    unset($product->transaction_search[$arrayKey]);
+                                    continue;
+                                }
+                                if ($transactionSearchProperties->ignore_case !== null) {
+                                    $actualTransactionValue = strtolower($actualTransactionValue[1]);
+                                    $expectedTransactionValue = strtolower($transactionSearchProperties->transaction_value);
+                                } else {
+                                    $actualTransactionValue = $actualTransactionValue[1];
+                                    $expectedTransactionValue = $transactionSearchProperties->transaction_value;
+                                }
 
-                                    switch (trim($transactionSearchProperties->identification_method)) {
-                                        case "startsWith":
-                                            if (!starts_with($actualTransactionValue, $expectedTransactionValue)) {
-                                                $failed[] = $transactionSearchProperties->lookup_id;
-                                                unset($product->transaction_search[$arrayKey]);
-                                            }
-                                            break;
-                                        case "endsWith":
-                                            if (!ends_with($actualTransactionValue, $expectedTransactionValue)) {
-                                                $failed[] = $transactionSearchProperties->lookup_id;
-                                                unset($product->transaction_search[$arrayKey]);
-                                            }
-                                            break;
-                                        case "equals":
-                                            if ($actualTransactionValue != $expectedTransactionValue) {
-                                                $failed[] = $transactionSearchProperties->lookup_id;
-                                                unset($product->transaction_search[$arrayKey]);
-                                            }
-                                            break;
-                                        case "contains":
-                                            if (!str_contains($actualTransactionValue, $expectedTransactionValue)) {
-                                                $failed[] = $transactionSearchProperties->lookup_id;
-                                                unset($product->transaction_search[$arrayKey]);
-                                            }
-                                            break;
-                                        default:
+                                switch (trim($transactionSearchProperties->identification_method)) {
+                                    case "startsWith":
+                                        if (!starts_with($actualTransactionValue, $expectedTransactionValue)) {
                                             $failed[] = $transactionSearchProperties->lookup_id;
                                             unset($product->transaction_search[$arrayKey]);
-                                            break;
-                                    }
-                                    if ($isIndividual
-                                        && ($transactionSearchProperties->min_executions !== null
-                                            && $this->getExecutions(
-                                                $account->getDetail("id"),
-                                                $transactionSearchProperties->lookup_id
-                                            ) < $transactionSearchProperties->min_executions
-                                            || $transactionSearchProperties->max_executions !== null
-                                            && $this->getExecutions(
-                                                $account->getDetail("id"),
-                                                $transactionSearchProperties->lookup_id
-                                            ) >= $transactionSearchProperties->max_executions)) {
+                                        }
+                                        break;
+                                    case "endsWith":
+                                        if (!ends_with($actualTransactionValue, $expectedTransactionValue)) {
+                                            $failed[] = $transactionSearchProperties->lookup_id;
+                                            unset($product->transaction_search[$arrayKey]);
+                                        }
+                                        break;
+                                    case "equals":
+                                        if ($actualTransactionValue != $expectedTransactionValue) {
+                                            $failed[] = $transactionSearchProperties->lookup_id;
+                                            unset($product->transaction_search[$arrayKey]);
+                                        }
+                                        break;
+                                    case "contains":
+                                        if (!str_contains($actualTransactionValue, $expectedTransactionValue)) {
+                                            $failed[] = $transactionSearchProperties->lookup_id;
+                                            unset($product->transaction_search[$arrayKey]);
+                                        }
+                                        break;
+                                    default:
                                         $failed[] = $transactionSearchProperties->lookup_id;
                                         unset($product->transaction_search[$arrayKey]);
                                         break;
-                                    }
                                 }
+                                if ($isIndividual
+                                    && ($transactionSearchProperties->min_executions !== null
+                                        && $this->getExecutions(
+                                            $account->getDetail("id"),
+                                            $transactionSearchProperties->lookup_id
+                                        ) < $transactionSearchProperties->min_executions
+                                        || $transactionSearchProperties->max_executions !== null
+                                        && $this->getExecutions(
+                                            $account->getDetail("id"),
+                                            $transactionSearchProperties->lookup_id
+                                        ) >= $transactionSearchProperties->max_executions)) {
+                                    $failed[] = $transactionSearchProperties->lookup_id;
+                                    unset($product->transaction_search[$arrayKey]);
+                                    break;
+                                }
+                            }
 
-                                if (!empty($product->transaction_search)) {
-                                    $transactionSearchProperties = array_shift($product->transaction_search);
+                            if (!empty($product->transaction_search)) {
+                                $transactionSearchProperties = array_shift($product->transaction_search);
 
-                                    switch ($transactionType) {
-                                        case $this::PAYPAL:
-                                            $credential = $transactionDetails->EMAIL ?? null;
-                                            break;
-                                        default:
-                                            $credential = $transactionDetails->source->billing_details->email ?? null;
-                                            break;
-                                    }
-                                    if ($credential !== null) {
-                                        if ($transactionSearchProperties->additional_products !== null) {
-                                            $additionalProductsArray = explode("|", $transactionSearchProperties->additional_products);
-                                            $additionalProducts = array();
+                                switch ($transactionType) {
+                                    case $this::PAYPAL:
+                                        $credential = $transactionDetails->EMAIL ?? null;
+                                        break;
+                                    default:
+                                        $credential = $transactionDetails->source->billing_details->email ?? null;
+                                        break;
+                                }
+                                if ($credential !== null) {
+                                    if ($transactionSearchProperties->additional_products !== null) {
+                                        $additionalProductsArray = explode("|", $transactionSearchProperties->additional_products);
+                                        $additionalProducts = array();
 
-                                            foreach ($additionalProductsArray as $part) {
-                                                if (is_numeric($part)) {
-                                                    $additionalProducts[$part] = null;
-                                                } else {
-                                                    $part = explode(":", $part, 2);
-                                                    $additionalProducts[$part[0]] = $part[1];
-                                                }
+                                        foreach ($additionalProductsArray as $part) {
+                                            if (is_numeric($part)) {
+                                                $additionalProducts[$part] = null;
+                                            } else {
+                                                $part = explode(":", $part, 2);
+                                                $additionalProducts[$part[0]] = $part[1];
                                             }
-                                        } else {
-                                            $additionalProducts = null;
                                         }
-                                        if ($isIndividual) {
-                                            if ($failedTransactions === null) {
-                                                $failedTransactions = $account->getTransactions()->getFailed(null, $productCount);
-                                            }
-                                            if (in_array($transactionID, $failedTransactions)) {
-                                                $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);
-                                            } else if ($this->addExecution(
-                                                $account->getDetail("id"),
-                                                $transactionSearchProperties->lookup_id,
-                                                $transactionID,
+                                    } else {
+                                        $additionalProducts = null;
+                                    }
+                                    if ($isIndividual) {
+                                        if ($failedTransactions === null) {
+                                            $failedTransactions = $account->getTransactions()->getFailed(null, $productCount);
+                                        }
+                                        if (in_array($transactionID, $failedTransactions)) {
+                                            $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);
+                                        } else if ($this->addExecution(
+                                            $account->getDetail("id"),
+                                            $transactionSearchProperties->lookup_id,
+                                            $transactionID,
+                                            $product->id,
+                                            $transactionSearchProperties->tier_id
+                                        )) {
+                                            $account->getPurchases()->add(
                                                 $product->id,
-                                                $transactionSearchProperties->tier_id
-                                            )) {
-                                                $account->getPurchases()->add(
-                                                    $product->id,
-                                                    $transactionSearchProperties->tier_id,
-                                                    null,
-                                                    $transactionID,
-                                                    $date,
-                                                    $transactionSearchProperties->duration,
-                                                    $transactionSearchProperties->email,
-                                                    $additionalProducts,
-                                                );
-                                            }
-                                        } else {
-                                            global $added_accounts_table;
-                                            $query = get_sql_query(
-                                                $added_accounts_table,
-                                                array("account_id"),
-                                                array(
-                                                    array("accepted_account_id", $transactionType),
-                                                    array("deletion_date", null),
-                                                    array("credential", $credential)
-                                                ),
+                                                $transactionSearchProperties->tier_id,
                                                 null,
-                                                1
+                                                $transactionID,
+                                                $date,
+                                                $transactionSearchProperties->duration,
+                                                $transactionSearchProperties->email,
+                                                $additionalProducts,
                                             );
+                                        }
+                                    } else {
+                                        global $added_accounts_table;
+                                        $query = get_sql_query(
+                                            $added_accounts_table,
+                                            array("account_id"),
+                                            array(
+                                                array("accepted_account_id", $transactionType),
+                                                array("deletion_date", null),
+                                                array("credential", $credential)
+                                            ),
+                                            null,
+                                            1
+                                        );
 
-                                            if (!empty($query)) {
-                                                $account = $account->getNew($query[0]->account_id);
+                                        if (!empty($query)) {
+                                            $account = $account->getNew($query[0]->account_id);
 
-                                                if (!$account->exists()) {
-                                                    $account = $account->getNew(null, $credential);
+                                            if (!$account->exists()) {
+                                                $account = $account->getNew(null, $credential);
 
-                                                    if (!$account->exists()
-                                                        || $account->getEmail()->isVerified()) {
-                                                        $account = null;
-                                                    }
+                                                if (!$account->exists()
+                                                    || $account->getEmail()->isVerified()) {
+                                                    $account = null;
                                                 }
+                                            }
 
-                                                if ($account !== null) {
-                                                    if ($failedTransactions === null) {
-                                                        $furtherPastDate = "180 days";
-                                                        $failedTransactions = array_merge(
-                                                            get_failed_paypal_transactions($this::limit, $furtherPastDate),
-                                                            get_failed_stripe_transactions(null, $this::limit, $furtherPastDate)
+                                            if ($account !== null) {
+                                                if ($failedTransactions === null) {
+                                                    $furtherPastDate = "180 days";
+                                                    $failedTransactions = array_merge(
+                                                        get_failed_paypal_transactions($this::limit, $furtherPastDate),
+                                                        get_failed_stripe_transactions(null, $this::limit, $furtherPastDate)
+                                                    );
+                                                }
+                                                if (in_array($transactionID, $failedTransactions)) {
+                                                    $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);
+                                                } else {
+                                                    if ($transactionSearchProperties->min_executions !== null
+                                                        && $this->getExecutions(
+                                                            $account->getDetail("id"),
+                                                            $transactionSearchProperties->lookup_id
+                                                        ) < $transactionSearchProperties->min_executions
+                                                        || $transactionSearchProperties->max_executions !== null
+                                                        && $this->getExecutions(
+                                                            $account->getDetail("id"),
+                                                            $transactionSearchProperties->lookup_id
+                                                        ) >= $transactionSearchProperties->max_executions) {
+                                                        continue;
+                                                    }
+                                                    if ($this->addExecution(
+                                                        $account->getDetail("id"),
+                                                        $transactionSearchProperties->lookup_id,
+                                                        $transactionID,
+                                                        $product->id,
+                                                        $transactionSearchProperties->tier_id
+                                                    )) {
+                                                        $account->getPurchases()->add(
+                                                            $product->id,
+                                                            $transactionSearchProperties->tier_id,
+                                                            null,
+                                                            $transactionID,
+                                                            $date,
+                                                            $transactionSearchProperties->duration,
+                                                            $transactionSearchProperties->email,
+                                                            $additionalProducts,
                                                         );
                                                     }
-                                                    if (in_array($transactionID, $failedTransactions)) {
-                                                        $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);
-                                                    } else {
-                                                        if ($transactionSearchProperties->min_executions !== null
-                                                            && $this->getExecutions(
-                                                                $account->getDetail("id"),
-                                                                $transactionSearchProperties->lookup_id
-                                                            ) < $transactionSearchProperties->min_executions
-                                                            || $transactionSearchProperties->max_executions !== null
-                                                            && $this->getExecutions(
-                                                                $account->getDetail("id"),
-                                                                $transactionSearchProperties->lookup_id
-                                                            ) >= $transactionSearchProperties->max_executions) {
-                                                            continue;
-                                                        }
-                                                        if ($this->addExecution(
-                                                            $account->getDetail("id"),
-                                                            $transactionSearchProperties->lookup_id,
-                                                            $transactionID,
-                                                            $product->id,
-                                                            $transactionSearchProperties->tier_id
-                                                        )) {
-                                                            $account->getPurchases()->add(
-                                                                $product->id,
-                                                                $transactionSearchProperties->tier_id,
-                                                                null,
-                                                                $transactionID,
-                                                                $date,
-                                                                $transactionSearchProperties->duration,
-                                                                $transactionSearchProperties->email,
-                                                                $additionalProducts,
-                                                            );
-                                                        }
-                                                    }
-                                                } else {
-                                                    $this->sendGeneralPurchaseEmail($credential, $transactionID, $date);
                                                 }
                                             } else {
                                                 $this->sendGeneralPurchaseEmail($credential, $transactionID, $date);
                                             }
+                                        } else {
+                                            $this->sendGeneralPurchaseEmail($credential, $transactionID, $date);
                                         }
                                     }
-                                    break;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Separator
+
+            if (!$isIndividual) {
+                foreach ($products as $product) {
+                    if (isset($product->identification[AccountAccounts::BUILTBYBIT_URL])) {
+                        $ownerships = get_builtbybit_resource_ownerships(
+                            $product->identification[AccountAccounts::BUILTBYBIT_URL],
+                        );
+
+                        if (!empty($ownerships)) {
+                            global $added_accounts_table;
+
+                            foreach ($ownerships as $ownership) {
+                                $query = get_sql_query(
+                                    $added_accounts_table,
+                                    array("account_id"),
+                                    array(
+                                        array("credential", $ownership->user),
+                                        array("accepted_account_id", AccountAccounts::BUILTBYBIT_URL),
+                                        array("deletion_date", null),
+                                    ),
+                                    null,
+                                    1
+                                );
+
+                                if (!empty($query)) {
+                                    $account = $account->getNew($query[0]->account_id);
+
+                                    if ($account->exists()) {
+                                        if ($ownership->active) {
+                                            $additionalProducts = array();
+
+                                            foreach ($product->transaction_search as $transactionSearchProperties) {
+                                                if ($transactionSearchProperties->individual !== null
+                                                    && $transactionSearchProperties->additional_products !== null) {
+                                                    foreach (explode("|", $transactionSearchProperties->additional_products) as $part) {
+                                                        if (is_numeric($part)) {
+                                                            $additionalProducts[$part] = null;
+                                                        } else {
+                                                            $part = explode(":", $part, 2);
+                                                            $additionalProducts[$part[0]] = $part[1];
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            $account->getPurchases()->add(
+                                                $product->id,
+                                                null,
+                                                null,
+                                                $ownership->transaction_id,
+                                                $ownership->creation_date,
+                                                $ownership->expiration_date,
+                                                "productPurchase",
+                                                $additionalProducts,
+                                            );
+                                        } else {
+                                            $account->getPurchases()->remove($product->id, null, $ownership->transaction_id);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else if (isset($product->identification[AccountAccounts::POLYMART_URL])) {
+                        $buyers = get_polymart_buyers(
+                            $product->identification[AccountAccounts::POLYMART_URL],
+                        );
+
+                        if (!empty($buyers)) {
+                            global $added_accounts_table;
+
+                            foreach ($buyers as $buyer) {
+                                $query = get_sql_query(
+                                    $added_accounts_table,
+                                    array("account_id"),
+                                    array(
+                                        array("credential", $buyer->userID),
+                                        array("accepted_account_id", AccountAccounts::POLYMART_URL),
+                                        array("deletion_date", null),
+                                    ),
+                                    null,
+                                    1
+                                );
+
+                                if (!empty($query)) {
+                                    $account = $account->getNew($query[0]->account_id);
+
+                                    if ($account->exists()) {
+                                        $transactionDetails = "polymart" . "-" . $buyer->paymentProvider . "-" . $buyer->currency;
+
+                                        if ($buyer->valid && $buyer->status == "Completed") {
+                                            $additionalProducts = array();
+
+                                            foreach ($product->transaction_search as $transactionSearchProperties) {
+                                                if ($transactionSearchProperties->individual !== null
+                                                    && $transactionSearchProperties->additional_products !== null) {
+                                                    foreach (explode("|", $transactionSearchProperties->additional_products) as $part) {
+                                                        if (is_numeric($part)) {
+                                                            $additionalProducts[$part] = null;
+                                                        } else {
+                                                            $part = explode(":", $part, 2);
+                                                            $additionalProducts[$part[0]] = $part[1];
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            $account->getPurchases()->add(
+                                                $product->id,
+                                                null,
+                                                null,
+                                                $transactionDetails,
+                                                date("Y-m-d H:i:s", $buyer->purchaseTime),
+                                                null,
+                                                "productPurchase",
+                                                $additionalProducts,
+                                            );
+                                        } else {
+                                            $account->getPurchases()->remove($product->id, null, $transactionDetails);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -306,153 +428,19 @@ class PaymentProcessor
 
                 // Separator
 
-                if (!$isIndividual) {
-                    foreach ($products as $product) {
-                        if (isset($product->identification[AccountAccounts::BUILTBYBIT_URL])) {
-                            $ownerships = get_builtbybit_resource_ownerships(
-                                $product->identification[AccountAccounts::BUILTBYBIT_URL],
-                            );
+                $all = $account->getSession();
+                $all = $all->getAlive(array("account_id"), $this::limit);
 
-                            if (!empty($ownerships)) {
-                                global $added_accounts_table;
+                if (!empty($all)) {
+                    foreach ($all as $row) {
+                        $account = $account->getNew($row->account_id);
 
-                                foreach ($ownerships as $ownership) {
-                                    $query = get_sql_query(
-                                        $added_accounts_table,
-                                        array("account_id"),
-                                        array(
-                                            array("credential", $ownership->user),
-                                            array("accepted_account_id", AccountAccounts::BUILTBYBIT_URL),
-                                            array("deletion_date", null),
-                                        ),
-                                        null,
-                                        1
-                                    );
-
-                                    if (!empty($query)) {
-                                        $account = $account->getNew($query[0]->account_id);
-
-                                        if ($account->exists()) {
-                                            if ($ownership->active) {
-                                                $additionalProducts = array();
-
-                                                foreach ($product->transaction_search as $transactionSearchProperties) {
-                                                    if ($transactionSearchProperties->individual !== null
-                                                        && $transactionSearchProperties->additional_products !== null) {
-                                                        foreach (explode("|", $transactionSearchProperties->additional_products) as $part) {
-                                                            if (is_numeric($part)) {
-                                                                $additionalProducts[$part] = null;
-                                                            } else {
-                                                                $part = explode(":", $part, 2);
-                                                                $additionalProducts[$part[0]] = $part[1];
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                $account->getPurchases()->add(
-                                                    $product->id,
-                                                    null,
-                                                    null,
-                                                    $ownership->transaction_id,
-                                                    $ownership->creation_date,
-                                                    $ownership->expiration_date,
-                                                    "productPurchase",
-                                                    $additionalProducts,
-                                                );
-                                            } else {
-                                                $account->getPurchases()->remove($product->id, null, $ownership->transaction_id);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } else if (isset($product->identification[AccountAccounts::POLYMART_URL])) {
-                            $buyers = get_polymart_buyers(
-                                $product->identification[AccountAccounts::POLYMART_URL],
-                            );
-
-                            if (!empty($buyers)) {
-                                global $added_accounts_table;
-
-                                foreach ($buyers as $buyer) {
-                                    $query = get_sql_query(
-                                        $added_accounts_table,
-                                        array("account_id"),
-                                        array(
-                                            array("credential", $buyer->userID),
-                                            array("accepted_account_id", AccountAccounts::POLYMART_URL),
-                                            array("deletion_date", null),
-                                        ),
-                                        null,
-                                        1
-                                    );
-
-                                    if (!empty($query)) {
-                                        $account = $account->getNew($query[0]->account_id);
-
-                                        if ($account->exists()) {
-                                            $transactionDetails = "polymart" . "-" . $buyer->paymentProvider . "-" . $buyer->currency;
-
-                                            if ($buyer->valid && $buyer->status == "Completed") {
-                                                $additionalProducts = array();
-
-                                                foreach ($product->transaction_search as $transactionSearchProperties) {
-                                                    if ($transactionSearchProperties->individual !== null
-                                                        && $transactionSearchProperties->additional_products !== null) {
-                                                        foreach (explode("|", $transactionSearchProperties->additional_products) as $part) {
-                                                            if (is_numeric($part)) {
-                                                                $additionalProducts[$part] = null;
-                                                            } else {
-                                                                $part = explode(":", $part, 2);
-                                                                $additionalProducts[$part[0]] = $part[1];
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                $account->getPurchases()->add(
-                                                    $product->id,
-                                                    null,
-                                                    null,
-                                                    $transactionDetails,
-                                                    date("Y-m-d H:i:s", $buyer->purchaseTime),
-                                                    null,
-                                                    "productPurchase",
-                                                    $additionalProducts,
-                                                );
-                                            } else {
-                                                $account->getPurchases()->remove($product->id, null, $transactionDetails);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                        if ($account->exists()) {
+                            $this->run($account);
                         }
                     }
-
-                    // Separator
-
-                    $all = $account->getSession();
-                    $all = $all->getAlive(array("account_id"), $this::limit);
-
-                    if (!empty($all)) {
-                        foreach ($all as $row) {
-                            $account = $account->getNew($row->account_id);
-
-                            if ($account->exists()) {
-                                $this->run($account);
-                            }
-                        }
-                    }
-
-                    // Separator
-                    end_memory_process($refresh_transactions_function);
                 }
-            } else if (!$isIndividual) {
-                end_memory_process($refresh_transactions_function);
             }
-        } catch (Exception $exception) {
-            end_memory_process($refresh_transactions_function);
-            throw $exception;
         }
     }
 

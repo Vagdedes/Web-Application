@@ -93,7 +93,7 @@ function set_key_value_pair(mixed $key, mixed $value = null, int|string|null $fu
 
 // Separator
 
-function clear_memory(array|null $keys,
+function clear_memory(?array $keys = null,
                       bool       $abstractSearch = false,
                       int|string $stopAfterSuccessfulIterations = 0,
                       ?callable  $valueVerifier = null,

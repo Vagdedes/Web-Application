@@ -64,7 +64,3 @@ require_once '/var/www/.structure/library/account/api/objects/session/TwoFactorA
 
 // Finance
 require_once '/var/www/.structure/library/account/api/objects/finance/PaymentProcessor.php';
-
-// Schedulers
-require_once '/var/www/.structure/library/account/api/schedulers/refreshTransactions.php';
-require_once '/var/www/.structure/library/account/api/schedulers/refreshProductUpdates.php';
