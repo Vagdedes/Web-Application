@@ -80,7 +80,7 @@ if (is_private_connection()) {
             !$isEmail && !$isNumeric ? $licenseID : null,
             false
         );
-    $hasWebsiteAccount = $account->exists();
+    $hasAccount = $account->exists();
 
     //
 
@@ -112,7 +112,7 @@ if (is_private_connection()) {
     $userObject->game_cloud = new stdClass();
     $userObject->memory = new stdClass();
 
-    if ($hasWebsiteAccount) {
+    if ($hasAccount) {
         $account->refresh();
         $accountObj = $account->getObject();
         unset($accountObj->password);
@@ -247,38 +247,10 @@ if (is_private_connection()) {
                     }
                 </style>";
 
-        if (false) {
-            $data = base64_encode(json_encode($userObject, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-
-            echo "<script>
-                    function openWindowWithPost(data) {
-                        var form = document.createElement('form');
-                        form.target = '_blank';
-                        form.method = 'POST';
-                        form.action = window.location.href; // URL
-                        form.style.display = 'none';
-                    
-                        var input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'data';
-                        input.value = data;
-                        form.appendChild(input);
-                            
-                        document.body.appendChild(form);
-                        form.submit();
-                        document.body.removeChild(form);
-                    }
-                    
-                    window.onload = function() {
-                         openWindowWithPost('$data');
-                    }
-                </script>";
-        } else {
-            echo get_text_list_from_iterable($userObject, 0, true);
-        }
-        $deleteWebsiteAccount = "deleteWebsiteAccount";
-        $punishWebsiteAccount = "punishWebsiteAccount";
-        $unpunishWebsiteAccount = "unpunishWebsiteAccount";
+        echo get_text_list_from_iterable($userObject, 0, true);
+        $deleteAccount = "deleteAccount";
+        $punishAccount = "punishAccount";
+        $unpunishAccount = "unpunishAccount";
         $blockAccountFunctionality = "blockAccountFunctionality";
         $restoreAccountFunctionality = "restoreAccountFunctionality";
 
@@ -328,23 +300,23 @@ if (is_private_connection()) {
         if (!empty($_POST)) {
             foreach ($_POST as $postArgumentKey => $postArgument) {
                 switch ($postArgumentKey) {
-                    case $deleteWebsiteAccount:
+                    case $deleteAccount:
                         $accountIDform = get_form_post("account_id");
 
-                        if ($hasWebsiteAccount
+                        if ($hasAccount
                             && $account->getDetail("id") == $accountIDform
                             && $staffAccount->getDetail("id") !== $accountIDform) {
                             var_dump($account->getActions()->deleteAccount(
                                 !empty(get_form_post("permanent"))
                             ));
-                        } else if ($hasWebsiteAccount) {
+                        } else if ($hasAccount) {
                             var_dump("No permission");
                         } else {
                             var_dump("Not available form");
                         }
                         break;
-                    case $punishWebsiteAccount:
-                        if ($hasWebsiteAccount) {
+                    case $punishAccount:
+                        if ($hasAccount) {
                             $action = get_form_post("action");
                             $reason = get_form_post("reason");
                             $duration = get_form_post("duration");
@@ -362,7 +334,7 @@ if (is_private_connection()) {
                         }
                         break;
                     case $blockAccountFunctionality:
-                        if ($hasWebsiteAccount) {
+                        if ($hasAccount) {
                             $functionality = get_form_post("functionality");
                             $reason = get_form_post("reason");
                             $duration = get_form_post("duration");
@@ -379,8 +351,8 @@ if (is_private_connection()) {
                             var_dump("Not available form");
                         }
                         break;
-                    case $unpunishWebsiteAccount:
-                        if ($hasWebsiteAccount) {
+                    case $unpunishAccount:
+                        if ($hasAccount) {
                             $action = get_form_post("action");
                             $reason = get_form_post("reason");
 
@@ -396,7 +368,7 @@ if (is_private_connection()) {
                         }
                         break;
                     case $restoreAccountFunctionality:
-                        if ($hasWebsiteAccount) {
+                        if ($hasAccount) {
                             $functionality = get_form_post("functionality");
                             $reason = get_form_post("reason");
 
@@ -413,7 +385,7 @@ if (is_private_connection()) {
                         break;
                     case $addToManagement:
                         if ($hasGameCloudUser
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.add.management", true, $hasWebsiteAccount ? $account : null)) {
+                            && $staffAccount->getPermissions()->hasPermission("gamecloud.add.management", true, $hasAccount ? $account : null)) {
                             $product = get_form_post("product");
                             $productID = null;
 
@@ -441,7 +413,7 @@ if (is_private_connection()) {
                         break;
                     case $removeFromManagement:
                         if ($hasGameCloudUser
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.remove.management", true, $hasWebsiteAccount ? $account : null)) {
+                            && $staffAccount->getPermissions()->hasPermission("gamecloud.remove.management", true, $hasAccount ? $account : null)) {
                             $product = get_form_post("product");
                             $productID = null;
 
@@ -464,7 +436,7 @@ if (is_private_connection()) {
                         }
                         break;
                     case $addProduct:
-                        if ($hasWebsiteAccount
+                        if ($hasAccount
                             && $staffAccount->getPermissions()->hasPermission("account.add.product", true, $account)) {
                             $product = get_form_post("product");
 
@@ -520,14 +492,14 @@ if (is_private_connection()) {
                                     }
                                 }
                             }
-                        } else if ($hasWebsiteAccount) {
+                        } else if ($hasAccount) {
                             var_dump("No permission");
                         } else {
                             var_dump("Not available form");
                         }
                         break;
                     case $removeProduct:
-                        if ($hasWebsiteAccount
+                        if ($hasAccount
                             && $staffAccount->getPermissions()->hasPermission("account.remove.product", true, $account)) {
                             $product = get_form_post("product");
 
@@ -541,14 +513,14 @@ if (is_private_connection()) {
                                     }
                                 }
                             }
-                        } else if ($hasWebsiteAccount) {
+                        } else if ($hasAccount) {
                             var_dump("No permission");
                         } else {
                             var_dump("Not available form");
                         }
                         break;
                     case $exchangeProduct:
-                        if ($hasWebsiteAccount
+                        if ($hasAccount
                             && $staffAccount->getPermissions()->hasPermission("account.exchange.product", true, $account)) {
                             $product = get_form_post("product");
 
@@ -579,14 +551,14 @@ if (is_private_connection()) {
                                     }
                                 }
                             }
-                        } else if ($hasWebsiteAccount) {
+                        } else if ($hasAccount) {
                             var_dump("No permission");
                         } else {
                             var_dump("Not available form");
                         }
                         break;
                     case $addAlternateAccount:
-                        if ($hasWebsiteAccount
+                        if ($hasAccount
                             && $staffAccount->getPermissions()->hasPermission("account.add.alternate.account", true, $account)) {
                             $name = get_form_post("name");
 
@@ -600,7 +572,7 @@ if (is_private_connection()) {
                                     ));
                                 }
                             }
-                        } else if ($hasWebsiteAccount) {
+                        } else if ($hasAccount) {
                             var_dump("No permission");
                         } else {
                             var_dump("Not available form");
@@ -608,7 +580,7 @@ if (is_private_connection()) {
                         break;
                     case $addConfigurationChange:
                         if ($hasGameCloudUser
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.add.configuration.change", true, $hasWebsiteAccount ? $account : null)) {
+                            && $staffAccount->getPermissions()->hasPermission("gamecloud.add.configuration.change", true, $hasAccount ? $account : null)) {
                             $product = get_form_post("product");
                             $productID = null;
 
@@ -648,7 +620,7 @@ if (is_private_connection()) {
                         break;
                     case $removeConfigurationChange:
                         if ($hasGameCloudUser
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.remove.configuration.change", true, $hasWebsiteAccount ? $account : null)) {
+                            && $staffAccount->getPermissions()->hasPermission("gamecloud.remove.configuration.change", true, $hasAccount ? $account : null)) {
                             $product = get_form_post("product");
                             $productID = null;
 
@@ -685,7 +657,7 @@ if (is_private_connection()) {
                         break;
                     case $addDisabledDetection:
                         if ($hasGameCloudUser
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.add.disabled.detection", true, $hasWebsiteAccount ? $account : null)) {
+                            && $staffAccount->getPermissions()->hasPermission("gamecloud.add.disabled.detection", true, $hasAccount ? $account : null)) {
                             $check = get_form_post("check");
                             $detection = get_form_post("detection");
 
@@ -714,7 +686,7 @@ if (is_private_connection()) {
                         break;
                     case $removeDisabledDetection:
                         if ($hasGameCloudUser
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.remove.disabled.detection", true, $hasWebsiteAccount ? $account : null)) {
+                            && $staffAccount->getPermissions()->hasPermission("gamecloud.remove.disabled.detection", true, $hasAccount ? $account : null)) {
                             $everyone = get_form_post("everyone");
                             $pluginVersion = get_form_post("plugin_version");
                             $serverVersion = get_form_post("server_version");
@@ -738,7 +710,7 @@ if (is_private_connection()) {
                     case $executeAnticheatCorrection:
                         if ($hasGameCloudUser
                             && $hasAnticheatCorrections
-                            && $staffAccount->getPermissions()->hasPermission("gamecloud.execute.anticheat.correction", true, $hasWebsiteAccount ? $account : null)) {
+                            && $staffAccount->getPermissions()->hasPermission("gamecloud.execute.anticheat.correction", true, $hasAccount ? $account : null)) {
                             $correction = get_form_post("correction");
                             $correctionID = -1;
 
@@ -829,7 +801,7 @@ if (is_private_connection()) {
                         }
                         break;
                     case $suspendPayPalTransactions:
-                        if ($hasWebsiteAccount) {
+                        if ($hasAccount) {
                             if ($staffAccount->getPermissions()->hasPermission("transactions.suspend.paypal", true)) {
                                 $transactions = $account->getTransactions()->getSuccessful(PaymentProcessor::PAYPAL);
 
@@ -895,7 +867,7 @@ if (is_private_connection()) {
         addFormSubmit($clearMemory, "Clear Memory");
         endForm();
 
-        if ($hasWebsiteAccount) {
+        if ($hasAccount) {
             createForm("post", true);
             addFormInput("text", "product", $valid_product_names);
             addFormInput("text", "tier", $valid_product_tiers);
@@ -917,20 +889,20 @@ if (is_private_connection()) {
             createForm("post", true);
             addFormInput("number", "account_id", "Type the account ID to verify");
             addFormInput("number", "permanent", "Permanent");
-            addFormSubmit($deleteWebsiteAccount, "Delete Website Account");
+            addFormSubmit($deleteAccount, "Delete Account");
             endForm();
 
             createForm("post", true);
             addFormInput("text", "action", $account->getModerations()->getAvailable());
             addFormInput("text", "reason", "Reason");
             addFormInput("text", "duration", "Time Duration");
-            addFormSubmit($punishWebsiteAccount, "Punish Account");
+            addFormSubmit($punishAccount, "Punish Account");
             endForm();
 
             createForm("post", true);
             addFormInput("text", "action", $account->getModerations()->getAvailable());
             addFormInput("text", "reason", "Reason");
-            addFormSubmit($unpunishWebsiteAccount, "Unpunish Account");
+            addFormSubmit($unpunishAccount, "Unpunish Account");
             endForm();
 
             createForm("post", true);
