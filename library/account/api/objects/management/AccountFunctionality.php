@@ -49,11 +49,12 @@ class AccountFunctionality
             null,
             $limit
         );
+        $new = array();
 
         foreach ($array as $object) {
-            $array[$object->id] = $object->name;
+            $new[$object->id] = $object->name;
         }
-        return $array;
+        return $new;
     }
 
     public function getResult(int|string $name, bool $checkCooldown = false, ?array $select = null): MethodReply
