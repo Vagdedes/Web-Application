@@ -170,10 +170,10 @@ class AccountFunctionality
         ), true, $account)) {
             return new MethodReply(false, "You do not have permission to moderate users.");
         }
-        $functionality = $this->getResult(AccountFunctionality::BLOCK_FUNCTIONALITY);
+        $functionalityOutcome = $this->getResult(AccountFunctionality::BLOCK_FUNCTIONALITY);
 
-        if (!$functionality->isPositiveOutcome()) {
-            return new MethodReply(false, $functionality->getMessage());
+        if (!$functionalityOutcome->isPositiveOutcome()) {
+            return new MethodReply(false, $functionalityOutcome->getMessage());
         }
         global $blocked_functionalities_table;
 
@@ -221,10 +221,10 @@ class AccountFunctionality
         ), true, $account)) {
             return new MethodReply(false, "You do not have permission to moderate users.");
         }
-        $functionality = $this->getResult(AccountFunctionality::CANCEL_BLOCKED_FUNCTIONALITY);
+        $functionalityResult = $this->getResult(AccountFunctionality::CANCEL_BLOCKED_FUNCTIONALITY);
 
-        if (!$functionality->isPositiveOutcome()) {
-            return new MethodReply(false, $functionality->getMessage());
+        if (!$functionalityResult->isPositiveOutcome()) {
+            return new MethodReply(false, $functionalityResult->getMessage());
         }
         global $blocked_functionalities_table;
 
@@ -343,7 +343,7 @@ class AccountFunctionality
 
         if (!empty($array)) {
             foreach ($array as $key => $value) {
-                $object = $this->getResult(array("name"));
+                $object = $this->getResult($value->functionality_id);
 
                 if ($object->isPositiveOutcome()) {
                     $value->website_functionality = $object->getObject()->name;
@@ -379,7 +379,7 @@ class AccountFunctionality
 
         if (!empty($array)) {
             foreach ($array as $key => $value) {
-                $object = $this->getResult(array("name"));
+                $object = $this->getResult($value->functionality_id);
 
                 if ($object->isPositiveOutcome()) {
                     $value->website_functionality = $object->getObject()->name;
