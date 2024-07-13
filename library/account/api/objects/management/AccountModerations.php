@@ -11,7 +11,7 @@ class AccountModerations
         $this->account = $account;
     }
 
-    public function getAvailable(): array
+    public function getAvailable(int $limit = 0): array
     {
         global $moderations_table;
         $applicationID = $this->account->getDetail("application_id");
@@ -33,12 +33,14 @@ class AccountModerations
         set_sql_cache();
         $array = get_sql_query(
             $moderations_table,
-            array("name"),
-            $where
+            array("id", "name"),
+            $where,
+            null,
+            $limit
         );
 
-        foreach ($array as $key => $object) {
-            $array[$key] = $object->name;
+        foreach ($array as $object) {
+            $array[$object->id] = $object->name;
         }
         return $array;
     }

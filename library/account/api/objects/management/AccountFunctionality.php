@@ -9,7 +9,7 @@ class AccountFunctionality
         CHANGE_EMAIL = "change_email", CHANGE_PASSWORD = "change_password", DOWNLOAD_PRODUCT = "download_product",
         MODERATE_USER = "moderate_user", MODIFY_OPTION = "modify_option", VIEW_PRODUCT = "view_product",
         RUN_PRODUCT_GIVEAWAY = "run_product_giveaway", VIEW_PRODUCT_GIVEAWAY = "view_product_giveaway",
-        USE_COUPON = "use_coupon", VIEW_HISTORY = "view_history", VIEW_OFFER = "view_offer",
+        USE_COUPON = "use_coupon", VIEW_HISTORY = "view_history",
         DELETE_ACCOUNT = "delete_account", BLOCK_FUNCTIONALITY = "block_functionality",
         CHANGE_NAME = "change_name", CANCEL_BLOCKED_FUNCTIONALITY = "cancel_blocked_functionality",
         CANCEL_USER_MODERATION = "cancel_user_moderation", COMPLETE_EMAIL_VERIFICATION = "complete_email_verification",
@@ -22,7 +22,7 @@ class AccountFunctionality
         $this->account = $account;
     }
 
-    public function getAvailable(): array
+    public function getAvailable(int $limit = 0): array
     {
         global $functionalities_table;
         $applicationID = $this->account->getDetail("application_id");
@@ -44,12 +44,14 @@ class AccountFunctionality
         set_sql_cache();
         $array = get_sql_query(
             $functionalities_table,
-            array("name"),
-            $where
+            array("id", "name"),
+            $where,
+            null,
+            $limit
         );
 
-        foreach ($array as $key => $object) {
-            $array[$key] = $object->name;
+        foreach ($array as $object) {
+            $array[$object->id] = $object->name;
         }
         return $array;
     }
