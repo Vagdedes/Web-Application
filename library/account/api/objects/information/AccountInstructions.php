@@ -164,6 +164,13 @@ class AccountInstructions
 
     // Separator
 
+    private function prepare(mixed $object): string
+    {
+        return is_array($object)
+            ? implode("\n", $object)
+            : (is_object($object) ? @json_encode($object) : ($object === null ? "" : $object));
+    }
+
     public function replace(array   $messages,
                             ?object $object,
                             ?array  $callables): array
@@ -173,10 +180,7 @@ class AccountInstructions
                 foreach ($messages as $messageKey => $message) {
                     $messages[$messageKey] = str_replace(
                         $this->placeholderStart . $objectKey . $this->placeholderEnd,
-                        is_array($objectValue)
-                            ? implode("\n", $objectValue)
-                            : (is_object($objectValue) ? json_encode($objectValue) :
-                            ($objectValue === null ? "" : $objectValue)),
+                        $this->prepare($objectValue),
                         $message
                     );
                 }
@@ -185,14 +189,18 @@ class AccountInstructions
 
         if (!empty($callables)) {
             foreach ($callables as $callableKey => $callable) {
-                $callable = $callable();
+                try {
+                    $callable = $callable();
 
-                foreach ($messages as $messageKey => $message) {
-                    $messages[$messageKey] = str_replace(
-                        $this->placeholderStart . $callableKey . $this->placeholderEnd,
-                        is_array($callable) ? implode("\n", $callable) : $callable,
-                        $message
-                    );
+                    foreach ($messages as $messageKey => $message) {
+                        $messages[$messageKey] = str_replace(
+                            $this->placeholderStart . $callableKey . $this->placeholderEnd,
+                            $this->prepare($callable),
+                            $message
+                        );
+                    }
+                } catch (Throwable $e) {
+                    var_dump($e->getTraceAsString());
                 }
             }
         }
@@ -350,7 +358,7 @@ class AccountInstructions
                                         if ($url !== null) {
                                             $doc .= ($row->prefix ?? "")
                                                 . "Start of '" . $link . "':\n"
-                                                . json_encode($url)
+                                                . @json_encode($url)
                                                 . "\nEnd of '" . $link . "'"
                                                 . ($row->suffix ?? "");
                                         }
