@@ -14,7 +14,6 @@ class AccountInstructions
         $deleteExtra;
     private string
         $placeholderStart,
-        $placeholderMiddle,
         $placeholderEnd;
     private ?ManagerAI $managerAI;
 
@@ -24,7 +23,6 @@ class AccountInstructions
         $this->extra = array();
         $this->deleteExtra = array();
         $this->placeholderStart = InformationPlaceholder::STARTER;
-        $this->placeholderMiddle = InformationPlaceholder::DIVISOR_REPLACEMENT;
         $this->placeholderEnd = InformationPlaceholder::ENDER;
         $this->localInstructions = $this->calculateContains(get_sql_query(
             InstructionsTable::LOCAL,
@@ -150,11 +148,6 @@ class AccountInstructions
     public function setPlaceholderStart(string $placeholderStart): void
     {
         $this->placeholderStart = $placeholderStart;
-    }
-
-    public function setPlaceholderMiddle(string $placeholderMiddle): void
-    {
-        $this->placeholderMiddle = $placeholderMiddle;
     }
 
     public function setPlaceholderEnd(string $placeholderEnd): void
