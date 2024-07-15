@@ -142,9 +142,9 @@ class AccountInstructions
 
     private function prepare(mixed $object): string
     {
-        return is_array($object)
-            ? implode("\n", $object)
-            : (is_object($object) ? @json_encode($object) : ($object === null ? "" : $object));
+        return is_object($object) || is_array($object)
+            ? @json_encode($object)
+            : ($object === null ? "" : $object);
     }
 
     public function replace(array   $messages,
@@ -190,11 +190,12 @@ class AccountInstructions
 
     private function getURLData(object $row): ?string
     {
-        if ($row->information_expiration !== null
+        if ($row->information_value !== null
+            && $row->information_expiration !== null
             && $row->information_expiration > get_current_date()) {
             return $row->information_value;
         } else {
-            $html = timed_file_get_contents($row->information_url);
+            $html = timed_file_get_contents($row->information_url, 30);
 
             if ($html !== false) {
                 $doc = get_raw_google_doc($html);
@@ -244,9 +245,11 @@ class AccountInstructions
                     set_sql_query(
                         InstructionsTable::PUBLIC,
                         array(
-                            "information_value" => $row->information_url . "|" . $doc,
+                            "information_value" => $doc,
                             "information_expiration" => get_future_date($row->information_duration),
-                            "contains" => $containsKeywords !== null && strlen($containsKeywords) === 0 ? null : strtolower($containsKeywords)
+                            "contains" => $containsKeywords === null || strlen($containsKeywords) === 0
+                                ? null
+                                : $row->information_url . "|" . strtolower($containsKeywords)
                         ),
                         array(
                             array("id", $row->id)

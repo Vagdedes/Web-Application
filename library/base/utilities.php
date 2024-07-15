@@ -47,7 +47,7 @@ function get_final_directory(): string
 
 // Google Docs
 
-function get_raw_google_doc(string $url, bool $returnHTML = false, int $timeoutSeconds = 30): ?string
+function get_raw_google_doc(string $url, bool $returnHTML = false, int $timeoutSeconds = 0): ?string
 {
     $html = starts_with($url, "http://") || starts_with($url, "https://")
         ? timed_file_get_contents($url, $timeoutSeconds)
