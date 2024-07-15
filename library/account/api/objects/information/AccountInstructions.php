@@ -175,7 +175,8 @@ class AccountInstructions
                         $this->placeholderStart . $objectKey . $this->placeholderEnd,
                         is_array($objectValue)
                             ? implode("\n", $objectValue)
-                            : (is_object($objectValue) ? json_encode($objectValue) : $objectValue),
+                            : (is_object($objectValue) ? json_encode($objectValue) :
+                            ($objectValue === null ? "" : $objectValue)),
                         $message
                     );
                 }
@@ -319,51 +320,45 @@ class AccountInstructions
 
             foreach ($array as $arrayKey => $row) {
                 if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
-                    $doc = $this->getURLData($row);
+                    if ($userInput === null || empty($array->contains)) {
+                        $doc = $this->getURLData($row);
+                    } else {
+                        $doc = null;
 
-                    if ($doc !== null) {
-                        if ($userInput === null || empty($array->contains)) {
-                            $continue = true;
-                        } else {
-                            $continue = false;
-
-                            foreach ($array->contains as $contains) {
-                                if (str_contains($userInput, $contains)) {
-                                    $continue = true;
-                                    break;
-                                }
+                        foreach ($array->contains as $contains) {
+                            if (str_contains($userInput, $contains)) {
+                                $doc = $this->getURLData($row);
+                                break;
                             }
                         }
+                    }
 
-                        if ($continue) {
-                            if (false && $row->sub_directories !== null) {
-                                $links = get_urls_from_string($url);
+                    if ($doc !== null) {
+                        if (false && $row->sub_directories !== null) {
+                            $links = get_urls_from_string($url);
 
-                                if (!empty($links)) {
-                                    $domain = get_domain_from_url($row->information_url, true);
+                            if (!empty($links)) {
+                                $domain = get_domain_from_url($row->information_url, true);
 
-                                    foreach ($links as $link) {
-                                        if ($link != $row->information_url
-                                            && $link != ($row->information_url . "/")
-                                            && ($row->sub_directories == 2
-                                                || get_domain_from_url($link, true) == $domain)) {
-                                            $url = $this->getRawURLData($link);
+                                foreach ($links as $link) {
+                                    if ($link != $row->information_url
+                                        && $link != ($row->information_url . "/")
+                                        && ($row->sub_directories == 2
+                                            || get_domain_from_url($link, true) == $domain)) {
+                                        $url = $this->getRawURLData($link);
 
-                                            if ($url !== null) {
-                                                $doc .= ($row->prefix ?? "")
-                                                    . "Start of '" . $link . "':\n"
-                                                    . json_encode($url)
-                                                    . "\nEnd of '" . $link . "'"
-                                                    . ($row->suffix ?? "");
-                                            }
+                                        if ($url !== null) {
+                                            $doc .= ($row->prefix ?? "")
+                                                . "Start of '" . $link . "':\n"
+                                                . json_encode($url)
+                                                . "\nEnd of '" . $link . "'"
+                                                . ($row->suffix ?? "");
                                         }
                                     }
                                 }
                             }
-                            $array[$arrayKey] = $doc;
-                        } else {
-                            unset($array[$arrayKey]);
                         }
+                        $array[$arrayKey] = $doc;
                     } else {
                         unset($array[$arrayKey]);
                     }
