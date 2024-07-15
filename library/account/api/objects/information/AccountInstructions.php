@@ -12,9 +12,6 @@ class AccountInstructions
         $replacements,
         $extra,
         $deleteExtra;
-    private string
-        $placeholderStart,
-        $placeholderEnd;
     private ?ManagerAI $managerAI;
 
     public function __construct(Account $account)
@@ -22,8 +19,6 @@ class AccountInstructions
         $this->account = $account;
         $this->extra = array();
         $this->deleteExtra = array();
-        $this->placeholderStart = InformationPlaceholder::STARTER;
-        $this->placeholderEnd = InformationPlaceholder::ENDER;
         $this->localInstructions = $this->calculateContains(get_sql_query(
             InstructionsTable::LOCAL,
             null,
@@ -145,18 +140,6 @@ class AccountInstructions
 
     // Separator
 
-    public function setPlaceholderStart(string $placeholderStart): void
-    {
-        $this->placeholderStart = $placeholderStart;
-    }
-
-    public function setPlaceholderEnd(string $placeholderEnd): void
-    {
-        $this->placeholderEnd = $placeholderEnd;
-    }
-
-    // Separator
-
     private function prepare(mixed $object): string
     {
         return is_array($object)
@@ -172,7 +155,7 @@ class AccountInstructions
             foreach ($object as $objectKey => $objectValue) {
                 foreach ($messages as $messageKey => $message) {
                     $messages[$messageKey] = str_replace(
-                        $this->placeholderStart . $objectKey . $this->placeholderEnd,
+                        InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
                         $this->prepare($objectValue),
                         $message
                     );
@@ -187,7 +170,7 @@ class AccountInstructions
 
                     foreach ($messages as $messageKey => $message) {
                         $messages[$messageKey] = str_replace(
-                            $this->placeholderStart . $callableKey . $this->placeholderEnd,
+                            InformationPlaceholder::STARTER . $callableKey . InformationPlaceholder::ENDER,
                             $this->prepare($callable),
                             $message
                         );
@@ -211,64 +194,68 @@ class AccountInstructions
             && $row->information_expiration > get_current_date()) {
             return $row->information_value;
         } else {
-            $doc = get_raw_google_doc($row->information_url);
+            $html = timed_file_get_contents($row->information_url);
 
-            if ($doc === null) {
-                $doc = timed_file_get_contents($row->information_url);
-            }
+            if ($html !== false) {
+                $doc = get_raw_google_doc($html);
 
-            if (is_string($doc)) {
-                $containsKeywords = null;
-
-                if ($row->replace !== null && !empty($this->replacements)) {
-                    foreach ($this->replacements as $replace) {
-                        $doc = str_replace(
-                            $replace->find,
-                            $replace->replacement,
-                            $doc
-                        );
-                    }
+                if ($doc === null) {
+                    $doc = $html;
                 }
-                if ($row->auto_contains !== null
-                    && $this->managerAI !== null
-                    && $this->managerAI->exists) {
-                    $result = $this->managerAI->getResult(
-                        self::AI_HASH,
-                        array(
-                            "messages" => array(
-                                array(
-                                    "role" => "system",
-                                    "content" => "From the user's text write only the most important keywords separated"
-                                        . " by the | character without spaces in between and a maximum total length of"
-                                        . " 4000 characters. Do not combine multiple words together, instead separate"
-                                        . " them by using the | character. For example: keyword1|keyword2|keyword3"
-                                ),
-                                array(
-                                    "role" => "user",
-                                    "content" => $doc
+
+                if (is_string($doc)) {
+                    $containsKeywords = null;
+
+                    if ($row->replace !== null && !empty($this->replacements)) {
+                        foreach ($this->replacements as $replace) {
+                            $doc = str_replace(
+                                $replace->find,
+                                $replace->replacement,
+                                $doc
+                            );
+                        }
+                    }
+                    if ($row->auto_contains !== null
+                        && $this->managerAI !== null
+                        && $this->managerAI->exists) {
+                        $result = $this->managerAI->getResult(
+                            self::AI_HASH,
+                            array(
+                                "messages" => array(
+                                    array(
+                                        "role" => "system",
+                                        "content" => "From the user's text write only the most important keywords separated"
+                                            . " by the | character without spaces in between and a maximum total length of"
+                                            . " 4000 characters. Do not combine multiple words together, instead separate"
+                                            . " them by using the | character. For example: keyword1|keyword2|keyword3"
+                                    ),
+                                    array(
+                                        "role" => "user",
+                                        "content" => $doc
+                                    )
                                 )
                             )
-                        )
-                    );
+                        );
 
-                    if ($result[0]) {
-                        $containsKeywords = $this->managerAI->getText($result[1], $result[2]);
+                        if ($result[0]) {
+                            $containsKeywords = $this->managerAI->getText($result[1], $result[2]);
+                        }
                     }
+                    set_sql_query(
+                        InstructionsTable::PUBLIC,
+                        array(
+                            "information_value" => $row->information_url . "|" . $doc,
+                            "information_expiration" => get_future_date($row->information_duration),
+                            "contains" => $containsKeywords !== null && strlen($containsKeywords) === 0 ? null : strtolower($containsKeywords)
+                        ),
+                        array(
+                            array("id", $row->id)
+                        ),
+                        null,
+                        1
+                    );
+                    return $doc;
                 }
-                set_sql_query(
-                    InstructionsTable::PUBLIC,
-                    array(
-                        "information_value" => $row->information_url . "|" . $doc,
-                        "information_expiration" => get_future_date($row->information_duration),
-                        "contains" => $containsKeywords !== null && strlen($containsKeywords) === 0 ? null : strtolower($containsKeywords)
-                    ),
-                    array(
-                        array("id", $row->id)
-                    ),
-                    null,
-                    1
-                );
-                return $doc;
             }
         }
         return null;
