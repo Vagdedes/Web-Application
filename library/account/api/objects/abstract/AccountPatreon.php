@@ -7,8 +7,7 @@ class AccountPatreon
 
     public const
         SPARTAN_SYN = 7,
-        DETECTION_SLOTS_UNLIMITED_PRODUCT = 26,
-        PRODUCTS = self::DETECTION_SLOTS_UNLIMITED_PRODUCT;
+        DETECTION_SLOTS_UNLIMITED_PRODUCT = 26;
 
     private const
         MOTIVATOR_PATREON_TIER = 4064030,

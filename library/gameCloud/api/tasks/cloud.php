@@ -164,14 +164,18 @@ if (true
         $hasAccessFailure = true;
         return;
     } else if ($requiresVerification) {
-        $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id, $ipAddressModified);
+        if ($gameCloudUser->isValid()) {
+            $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id, $ipAddressModified);
 
-        if ($verificationResult <= 0) {
-            $accessFailure = $verificationResult;
-            $hasAccessFailure = true;
-            return;
+            if ($verificationResult <= 0) {
+                $accessFailure = $verificationResult;
+                $hasAccessFailure = true;
+                return;
+            } else {
+                $hasAccessFailure = false;
+            }
         } else {
-            $hasAccessFailure = false;
+            $accessFailure = 689340526;
         }
     } else {
         $hasAccessFailure = false;
