@@ -18,13 +18,12 @@ class AccountPatreon
     public const
         DETECTION_SLOTS_20_TIER = array(22435075, self::MOTIVATOR_PATREON_TIER, self::SPONSOR_PATREON_TIER),
         DETECTION_SLOTS_50_TIER = array(22808702),
-        DETECTION_SLOTS_120_TIER = array(22808726);
+        DETECTION_SLOTS_120_TIER = array(22808726, self::VISIONARY_PATREON_TIER);
 
     public const
         DETECTION_SLOTS_20_PERMISSION = "patreon.spartan.detection.slots.20",
         DETECTION_SLOTS_50_PERMISSION = "patreon.spartan.detection.slots.50",
-        DETECTION_SLOTS_120_PERMISSION = "patreon.spartan.detection.slots.120",
-        PERMISSIONS = "patreon.subscriber";
+        DETECTION_SLOTS_120_PERMISSION = "patreon.spartan.detection.slots.120";
 
     public function __construct(Account $account)
     {

@@ -421,7 +421,7 @@ if (true
                 if (is_uuid($uuid)) {
                     $playerIpAddress = $split[1];
                     $noPlayerIpAddress = $playerIpAddress == "NULL";
-                    $playerIpAddress = $noPlayerIpAddress ? null : $playerIpAddress;
+                    $playerIpAddress = $noPlayerIpAddress ? null : string_to_integer($playerIpAddress, true);
 
                     $cacheKey = array(
                         $uuid,
@@ -833,7 +833,7 @@ if (true
                                 if ($noPlayerIpAddress || is_ip_address($playerIpAddress)) {
                                     $punishedPlayer = new stdClass();
                                     $punishedPlayer->uuid = $uuid;
-                                    $punishedPlayer->ipAddress = $noPlayerIpAddress ? null : $playerIpAddress;
+                                    $punishedPlayer->ipAddress = $noPlayerIpAddress ? null : string_to_integer($playerIpAddress, true);
                                     $punishedPlayers[] = $punishedPlayer;
                                 } else {
                                     break;
