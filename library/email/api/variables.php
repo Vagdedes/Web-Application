@@ -12,7 +12,7 @@ $email_default_email_name = "contact@" . get_domain(false);
 
 $email_exempt_token_length = 1024;
 
-$email_credentials_directory = "/var/www/.structure/private/email_credentials";
+$email_credentials_directory = "email_credentials";
 
 class EmailBase
 {

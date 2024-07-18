@@ -1,6 +1,6 @@
 <?php
-$patreon1_credentials_directory = "/var/www/.structure/private/patreon_1_credentials";
-$patreon2_credentials_directory = "/var/www/.structure/private/patreon_2_credentials";
+$patreon1_credentials_directory = "patreon_1_credentials";
+$patreon2_credentials_directory = "patreon_2_credentials";
 $patreon_cache_time = "5 minutes";
 
 function clear_patreon_subscription_cache(): void

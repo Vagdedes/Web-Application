@@ -11,7 +11,8 @@ $min_59bit_Integer = -288230376151711744;
 $unsigned_59bit_full_Integer = 576460752303423488;
 
 $backup_domain = "www.idealistic.ai";
-$google_recaptcha_secret_key_directory = "/var/www/.structure/private/google_recaptcha";
+
+$keys_from_file_directory = "/var/www/.structure/private/";
 
 // Constants
 
@@ -481,9 +482,8 @@ function is_google_captcha_valid(): bool
     $key = "g-recaptcha-response";
 
     if (isset($_POST[$key])) {
-        global $google_recaptcha_secret_key_directory;
         $info = $_POST[$key];
-        $secret = get_keys_from_file($google_recaptcha_secret_key_directory, 1);
+        $secret = get_keys_from_file("google_recaptcha", 1);
 
         if ($secret === null) {
             return false;
@@ -565,9 +565,10 @@ function unstuck_words_from_capital_letters(string $word): string
     return $rebuild;
 }
 
-function get_keys_from_file(string $file, int $amount = 1): ?array
+function get_keys_from_file(string $file, int $amount = 1, bool $custom = false): ?array
 {
-    $contents = @file_get_contents($file);
+    global $keys_from_file_directory;
+    $contents = @file_get_contents(($custom ? "" : $keys_from_file_directory) . $file);
 
     if ($contents !== false) {
         $keys = explode("\n", $contents);

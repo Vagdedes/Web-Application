@@ -1,5 +1,5 @@
 <?php
-$stripe_credentials_directory = "/var/www/.structure/private/stripe_credentials";
+$stripe_credentials_directory = "stripe_credentials";
 
 $stripe_transaction_search_keys = array("description");
 

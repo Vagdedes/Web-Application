@@ -1,5 +1,5 @@
 <?php
-$paypal_credentials_directory = "/var/www/.structure/private/paypal_credentials";
+$paypal_credentials_directory = "paypal_credentials";
 
 $paypal_transactions_search_keys = array("L_NAME0", "CUSTOM", "SUBJECT");
 
