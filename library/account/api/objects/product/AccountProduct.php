@@ -353,4 +353,23 @@ class AccountProduct
         return new MethodReply(!$isEmpty, $isEmpty ? "Product not found." : null, $array);
     }
 
+    public function clearObjectDetails(object $productObject): object
+    {
+        foreach ($productObject as $key => $value) {
+            if (empty($value)) {
+                unset($productObject->{$key});
+            }
+        }
+        unset($productObject->divisions);
+        unset($productObject->buttons);
+        unset($productObject->cards);
+        unset($productObject->transaction_search);
+        unset($productObject->download_placeholder);
+        unset($productObject->supported_versions);
+        unset($productObject->downloads);
+        unset($productObject->identification);
+        unset($productObject->tiers->all);
+        return $productObject;
+    }
+
 }
