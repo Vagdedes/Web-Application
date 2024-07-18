@@ -195,7 +195,7 @@ class AccountInstructions
             && $row->information_expiration > get_current_date()) {
             return $row->information_value;
         } else {
-            $html = timed_file_get_contents($row->information_url, 30);
+            $html = timed_file_get_contents($row->information_url, 5);
 
             if ($html !== false) {
                 $doc = get_raw_google_doc($html);
@@ -207,7 +207,7 @@ class AccountInstructions
                 if (is_string($doc)) {
                     $containsKeywords = null;
 
-                    if ($row->replace !== null && !empty($this->replacements)) {
+                    if (!empty($this->replacements)) {
                         foreach ($this->replacements as $replace) {
                             $doc = str_replace(
                                 $replace->find,
@@ -247,7 +247,7 @@ class AccountInstructions
                         array(
                             "information_value" => $doc,
                             "information_expiration" => get_future_date($row->information_duration),
-                            "contains" => $containsKeywords === null || strlen($containsKeywords) === 0
+                            "contains" => empty($containsKeywords)
                                 ? null
                                 : $row->information_url . "|" . strtolower($containsKeywords)
                         ),
@@ -350,6 +350,8 @@ class AccountInstructions
                             }
                         }
                         $array[$arrayKey] = $doc;
+                    } else if ($row->information_value !== null) {
+                        $array[$arrayKey] = $row->information_value;
                     } else {
                         unset($array[$arrayKey]);
                     }
