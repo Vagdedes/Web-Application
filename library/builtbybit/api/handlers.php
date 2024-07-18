@@ -1,7 +1,8 @@
 <?php
 function get_builtbybit_wrapper(): mixed
 {
-    $keys = get_keys_from_file("/var/www/.structure/private/builtbybit_credentials", 2);
+    global $builtbybit_credentials_directory;
+    $keys = get_keys_from_file($builtbybit_credentials_directory, 2);
 
     if ($keys === null) {
         return null;

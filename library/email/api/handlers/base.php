@@ -1,14 +1,4 @@
 <?php
-$email_credentials_directory = "/var/www/.structure/private/email_credentials";
-
-class EmailBase
-{
-    public const
-        email_credential_lines = 8,
-        VAGDEDES_CONTACT = 2,
-        IDEALISTIC_CONTACT = 4,
-        IDEALISTIC_NO_REPLY = 6;
-}
 
 function personal_self_email(string $from, int|string|float $subject, int|string|float $content): bool|string
 {

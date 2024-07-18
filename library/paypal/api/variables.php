@@ -1,4 +1,6 @@
 <?php
+$paypal_credentials_directory = "/var/www/.structure/private/paypal_credentials";
+
 $paypal_transactions_search_keys = array("L_NAME0", "CUSTOM", "SUBJECT");
 
 $paypal_successful_transactions_table = "paypal.successfulTransactions";

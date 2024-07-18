@@ -14,7 +14,8 @@ function get_polymart_object(string $version, string $service, array $parameters
     } else if ($cache === false) {
         return null;
     }
-    $polymart_credentials = get_keys_from_file("/var/www/.structure/private/polymart_credentials", 1);
+    global $polymart_credentials_directory;
+    $polymart_credentials = get_keys_from_file($polymart_credentials_directory, 1);
 
     if ($polymart_credentials === null) {
         return null;

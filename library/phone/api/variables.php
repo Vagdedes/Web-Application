@@ -1,4 +1,6 @@
 <?php
+$twilio_credentials_directory = "/var/www/.structure/private/twilio_credentials";
+
 $phone_executions_table = "phone.executions";
 $phone_failed_executions_table = "phone.failedExecutions";
 $phone_plans_table = "phone.plans";
