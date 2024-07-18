@@ -100,7 +100,9 @@ class AccountInstructions
                     return;
                 }
             } else {
-                $this->extra[$key] = $value;
+                $this->extra[$key] = "Start of '$key':\n"
+                    . $value
+                    . "\nEnd of '$key'";
             }
             if ($delete) {
                 $this->deleteExtra[$key] = true;
@@ -114,33 +116,16 @@ class AccountInstructions
         unset($this->deleteExtra[$key]);
     }
 
-    public function removeAllExtra(): void
+    public function autoRemoveExtra(): void
     {
         foreach (array_keys($this->deleteExtra) as $key) {
             $this->removeExtra($key);
         }
     }
 
-    public function getSpecificExtra(string $key): string
-    {
-        $return = $this->extra[$key];
-
-        if (array_key_exists($key, $this->deleteExtra)) {
-            $this->removeExtra($key);
-        }
-        return $return;
-    }
-
-    public function getExtra($character = "\n"): string
-    {
-        $return = implode($character, $this->extra);
-        $this->removeAllExtra();
-        return $return;
-    }
-
     // Separator
 
-    private function prepare(mixed $object): string
+    private function prepare(mixed $object): string|bool
     {
         return is_object($object) || is_array($object)
             ? @json_encode($object)
@@ -149,16 +134,29 @@ class AccountInstructions
 
     public function replace(array   $messages,
                             ?object $object,
-                            ?array  $callables): array
+                            ?array  $callables,
+                            bool    $extra): array
     {
         if ($object !== null) {
             foreach ($object as $objectKey => $objectValue) {
-                foreach ($messages as $messageKey => $message) {
-                    $messages[$messageKey] = str_replace(
-                        InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
-                        $this->prepare($objectValue),
-                        $message
-                    );
+                $objectValue = $this->prepare($objectValue);
+
+                if ($objectValue !== false) {
+                    foreach ($messages as $messageKey => $message) {
+                        $messages[$messageKey] = str_replace(
+                            InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
+                            $objectValue,
+                            $message
+                        );
+                    }
+                } else {
+                    foreach ($messages as $messageKey => $message) {
+                        $messages[$messageKey] = str_replace(
+                            InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
+                            "",
+                            $message
+                        );
+                    }
                 }
             }
         }
@@ -166,23 +164,40 @@ class AccountInstructions
         if (!empty($callables)) {
             foreach ($callables as $callableKey => $callable) {
                 try {
-                    $callable = $callable();
+                    try {
+                        $callable = $this->prepare($callable());
+                    } catch (Throwable $e) {
+                        $callable = false;
+                        var_dump($e->getTraceAsString());
+                    }
 
-                    foreach ($messages as $messageKey => $message) {
-                        $messages[$messageKey] = str_replace(
-                            InformationPlaceholder::STARTER . $callableKey . InformationPlaceholder::ENDER,
-                            $this->prepare($callable),
-                            $message
-                        );
+                    if ($callable !== false) {
+                        foreach ($messages as $messageKey => $message) {
+                            $messages[$messageKey] = str_replace(
+                                InformationPlaceholder::STARTER . $callableKey . InformationPlaceholder::ENDER,
+                                $callable,
+                                $message
+                            );
+                        }
+                    } else {
+                        foreach ($messages as $messageKey => $message) {
+                            $messages[$messageKey] = str_replace(
+                                InformationPlaceholder::STARTER . $callableKey . InformationPlaceholder::ENDER,
+                                "",
+                                $message
+                            );
+                        }
                     }
                 } catch (Throwable $e) {
                     var_dump($e->getTraceAsString());
                 }
             }
         }
-        if (!empty($this->extra)) {
-            foreach ($this->extra as $extra) {
-                $messages[] = $extra;
+        if ($extra && !empty($this->extra)) {
+            foreach ($messages as $messageKey => $message) {
+                foreach ($this->extra as $extra) {
+                    $messages[$messageKey] .= $extra;
+                }
             }
         }
         return $messages;
@@ -204,7 +219,7 @@ class AccountInstructions
                     $doc = $html;
                 }
 
-                if (is_string($doc)) {
+                if (is_string($doc) && !empty($doc)) {
                     $containsKeywords = null;
 
                     if (!empty($this->replacements)) {
