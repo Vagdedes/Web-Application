@@ -91,11 +91,12 @@ class InformationPlaceholder
         $this->add("second", date("s"));
     }
 
-    private function build(?string $input): ?string
+    private function build(mixed $input): mixed
     {
-        if ($input === null || empty($this->replacements)) {
-            return $input;
-        } else {
+        if ($input !== null
+            && !is_array($input)
+            && !is_object($input)
+            && !empty($this->replacements)) {
             foreach ($this->replacements as $current => $replacement) {
                 $input = str_replace(
                     $this->starter . str_replace($this->divisor, $this->divisorReplacement, $current) . $this->ender,
@@ -103,7 +104,7 @@ class InformationPlaceholder
                     $input
                 );
             }
-            return $input;
         }
+        return $input;
     }
 }

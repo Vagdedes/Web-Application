@@ -15,14 +15,10 @@ class AccountPatreon
         VISIONARY_PATREON_TIER = 21608146;
 
     public const
-        DETECTION_SLOTS_20_TIER = array(22435075, self::MOTIVATOR_PATREON_TIER, self::SPONSOR_PATREON_TIER),
-        DETECTION_SLOTS_50_TIER = array(22808702),
-        DETECTION_SLOTS_120_TIER = array(22808726, self::VISIONARY_PATREON_TIER);
+        DETECTION_SLOTS_20_TIER = array(22435075, self::MOTIVATOR_PATREON_TIER, self::SPONSOR_PATREON_TIER);
 
     public const
-        DETECTION_SLOTS_20_PERMISSION = "patreon.spartan.detection.slots.20",
-        DETECTION_SLOTS_50_PERMISSION = "patreon.spartan.detection.slots.50",
-        DETECTION_SLOTS_120_PERMISSION = "patreon.spartan.detection.slots.120";
+        DETECTION_SLOTS_20_PERMISSION = "patreon.spartan.detection.slots.20";
 
     public function __construct(Account $account)
     {
@@ -37,33 +33,15 @@ class AccountPatreon
 
             if ($name->isPositiveOutcome()) {
                 $name = $name->getObject()[0];
-                $this->retrieve = $this->find($name, self::DETECTION_SLOTS_120_TIER);
+                $this->retrieve = $this->find($name, self::DETECTION_SLOTS_20_TIER);
 
                 if ($this->retrieve->isPositiveOutcome()) {
                     $this->account->getPermissions()->addSystemPermission(array(
                         "patreon.subscriber",
-                        self::DETECTION_SLOTS_120_PERMISSION
+                        self::DETECTION_SLOTS_20_PERMISSION
                     ));
                 } else {
-                    $this->retrieve = $this->find($name, self::DETECTION_SLOTS_50_TIER);
-
-                    if ($this->retrieve->isPositiveOutcome()) {
-                        $this->account->getPermissions()->addSystemPermission(array(
-                            "patreon.subscriber",
-                            self::DETECTION_SLOTS_50_PERMISSION
-                        ));
-                    } else {
-                        $this->retrieve = $this->find($name, self::DETECTION_SLOTS_20_TIER);
-
-                        if ($this->retrieve->isPositiveOutcome()) {
-                            $this->account->getPermissions()->addSystemPermission(array(
-                                "patreon.subscriber",
-                                self::DETECTION_SLOTS_20_PERMISSION
-                            ));
-                        } else {
-                            $this->retrieve = $this->find($name, null, false);
-                        }
-                    }
+                    $this->retrieve = $this->find($name, null, false);
                 }
             } else {
                 $this->retrieve = new MethodReply(false);

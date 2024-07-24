@@ -356,7 +356,7 @@ class AccountProduct
     public function clearObjectDetails(object $productObject): object
     {
         foreach ($productObject as $key => $value) {
-            if (empty($value)) {
+            if ($value === null) {
                 unset($productObject->{$key});
             }
         }
