@@ -1,11 +1,8 @@
 <?php
-
-// Separator
-require_once '/var/www/.structure/library/base/communication.php';
+require_once '/var/www/.structure/library/base/requirements/account_systems.php';
 
 if (is_private_connection()) {
     require_once '/var/www/.structure/library/base/form.php';
-    require_once '/var/www/.structure/library/base/requirements/account_systems.php';
 
     function addFormInput(string $type, int|string $key, int|string|array|float $preview): void
     {

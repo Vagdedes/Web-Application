@@ -1,10 +1,9 @@
 <?php
 require_once '/var/www/.structure/library/base/form.php';
+require_once '/var/www/.structure/library/base/requirements/account_systems.php';
 $path = get_form_get("path");
 
 if (!empty($path)) {
-    require_once '/var/www/.structure/library/base/communication.php';
-    require_once '/var/www/.structure/library/base/requirements/account_systems.php';
     $account = new Account();
     $session = $account->getSession()->find();
 
@@ -41,50 +40,44 @@ if (!empty($path)) {
     } else {
         include '/var/www/idealistic/account/profile/index.php';
     }
-} else {
-    $scripts = get_form_get("scripts");
+} else if (is_private_connection(true)) {
+    header('Content-type: Application/JSON');
+    $account = new Account(null);
+    $session = $account->getSession()->find();
 
-    if (!empty($scripts)) {
-        require_once '/var/www/.structure/library/base/communication.php';
+    if (!$session->isPositiveOutcome()) {
+        $scripts = get_form_get("scripts");
 
-        if (is_private_connection(true)) {
-            header('Content-type: Application/JSON');
-            require_once '/var/www/.structure/library/base/requirements/account_systems.php';
-            $account = new Account(null);
-            $session = $account->getSession()->find();
+        if (!empty($scripts)) {
+            $scripts = json_decode($scripts, true);
 
-            if (!$session->isPositiveOutcome()) {
-                if (ends_with($scripts, ".php")) {
-                    require_once $scripts;
+            if (is_array($scripts)) {
+                foreach ($scripts as $script) {
+                    require_once($script);
                 }
-                $includedFiles = get_included_files();
-
-                foreach ($includedFiles as $arrayKey => $file) {
-                    if (starts_with($file, $scripts)) {
-                        $contents = @file_get_contents($file);
-
-                        if (!empty($contents)) {
-                            $contents = substr($contents, 5); // Remove: <?php
-                            $contents = explode("\n", $contents);
-
-                            foreach ($contents as $key => $line) {
-                                if (empty($line)
-                                    || starts_with($line, "require")
-                                    || starts_with($line, "include")
-                                    || starts_with($line, "//")) {
-                                    unset($contents[$key]);
-                                }
-                            }
-                            $includedFiles[$arrayKey] = trim(implode("\n", $contents));
-                        } else {
-                            unset($includedFiles[$arrayKey]);
-                        }
-                    } else {
-                        unset($includedFiles[$arrayKey]);
-                    }
-                }
-                echo json_encode($includedFiles);
             }
         }
+        $includedFiles = get_included_files();
+
+        foreach ($includedFiles as $arrayKey => $file) {
+            unset($includedFiles[$arrayKey]);
+            $contents = @file_get_contents($file);
+
+            if (!empty($contents) && $file !== __FILE__) {
+                $contents = substr($contents, 5); // Remove: <?php
+                $contents = explode("\n", $contents);
+
+                foreach ($contents as $key => $line) {
+                    if (empty($line)
+                        || starts_with($line, "require")
+                        || starts_with($line, "include")
+                        || starts_with($line, "//")) {
+                        unset($contents[$key]);
+                    }
+                }
+                $includedFiles[$file] = trim(implode("\n", $contents));
+            }
+        }
+        echo json_encode($includedFiles);
     }
 }

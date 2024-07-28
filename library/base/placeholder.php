@@ -54,7 +54,9 @@ class InformationPlaceholder
             $array = json_decode(json_encode($array), true);
         }
         foreach ($array as $key => $value) {
-            $this->set($key, $value);
+            if (is_string($key)) {
+                $this->set($key, $value);
+            }
         }
     }
 
