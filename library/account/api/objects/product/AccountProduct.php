@@ -355,21 +355,23 @@ class AccountProduct
 
     public function clearObjectDetails(object $productObject): object
     {
-        foreach ($productObject as $key => $value) {
+        $newObject = clone $productObject;
+
+        foreach ($newObject as $key => $value) {
             if ($value === null) {
-                unset($productObject->{$key});
+                unset($newObject->{$key});
             }
         }
-        unset($productObject->divisions);
-        unset($productObject->buttons);
-        unset($productObject->cards);
-        unset($productObject->transaction_search);
-        unset($productObject->download_placeholder);
-        unset($productObject->supported_versions);
-        unset($productObject->downloads);
-        unset($productObject->identification);
-        unset($productObject->tiers->all);
-        return $productObject;
+        unset($newObject->divisions);
+        unset($newObject->buttons);
+        unset($newObject->cards);
+        unset($newObject->transaction_search);
+        unset($newObject->download_placeholder);
+        unset($newObject->supported_versions);
+        unset($newObject->downloads);
+        unset($newObject->identification);
+        unset($newObject->tiers->all);
+        return $newObject;
     }
 
 }
