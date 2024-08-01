@@ -610,12 +610,15 @@ if (true
                     if ($account->getPurchases()->owns(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PRODUCT)) {
                         echo "-1";
                         return;
-                    } else if ($account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_20_PERMISSION)) {
-                        $slots = max($slots, 20);
-                    } else if ($account->getPurchases()->owns(AccountPatreon::SPARTAN_SYN)) {
-                        $slots = max($slots, 10);
+                    } else if ($slots < 20
+                        && $account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_20_PERMISSION)) {
+                        $slots = 20;
+                    } else if ($slots < 10
+                        && $account->getPurchases()->owns(AccountPatreon::SPARTAN_SYN)) {
+                        $slots = 10;
                     }
                 }
+                $hasAdditionalSlots = $slots > $defaultSlots;
 
                 // Separator
 
@@ -626,7 +629,9 @@ if (true
                         && is_port($split[0])
                         && is_numeric($split[1])
                         && $split[1] >= 0) {
-                        $defaultSlots++; // Purposely to make it clear this process took place when examining detection slot count locally
+                        if ($hasAdditionalSlots) {
+                            $defaultSlots++; // Purposely to make it clear this process took place when examining detection slot count locally
+                        }
                         $found = false;
                         $query = get_sql_query(
                             $detection_slots_tracking_table,
