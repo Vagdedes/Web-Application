@@ -111,7 +111,8 @@ function is_private_connection($checkClientIP = false): bool
             $cacheKey = array(__METHOD__, get_raw_client_ip_address());
 
             if (!empty($query)) {
-                if (!has_memory_cooldown($cacheKey, null, false)) {
+                if (!function_exists("has_memory_cooldown")
+                    || !has_memory_cooldown($cacheKey, null, false)) {
                     delete_sql_query(
                         $memory_private_connections_table,
                         array(
@@ -161,7 +162,9 @@ function is_private_connection($checkClientIP = false): bool
                     }
                 }
             } else {
-                has_memory_cooldown($cacheKey, "1 minute", true, true);
+                if (function_exists("has_memory_cooldown")) {
+                    has_memory_cooldown($cacheKey, "1 minute", true, true);
+                }
                 load_previous_sql_database();
             }
         }
