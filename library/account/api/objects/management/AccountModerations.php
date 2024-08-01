@@ -219,7 +219,7 @@ class AccountModerations
             }
         }
         global $executed_moderations_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $array = get_sql_query(
             $executed_moderations_table,
             null,
@@ -255,7 +255,7 @@ class AccountModerations
             }
         }
         global $executed_moderations_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         return !empty(get_sql_query(
             $executed_moderations_table,
             array("id"),
@@ -276,7 +276,7 @@ class AccountModerations
     public function listReceivedActions(bool $active = true): array
     {
         global $executed_moderations_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $array = get_sql_query(
             $executed_moderations_table,
             null,
@@ -312,7 +312,7 @@ class AccountModerations
     public function listExecutedActions(bool $active = true): array
     {
         global $executed_moderations_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $array = get_sql_query(
             $executed_moderations_table,
             null,

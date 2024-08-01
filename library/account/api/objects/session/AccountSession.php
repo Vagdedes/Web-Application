@@ -48,7 +48,6 @@ class AccountSession
     {
         global $account_sessions_table;
         $date = get_current_date();
-        set_sql_cache(self::session_cache_time, self::class);
         return get_sql_query(
             $account_sessions_table,
             $select,
@@ -147,7 +146,7 @@ class AccountSession
             $key = $hasCustomKey
                 ? $this->customKey
                 : string_to_integer($key, true);
-            set_sql_cache(null, self::class);
+            set_sql_cache(self::class);
             $array = get_sql_query(
                 $account_sessions_table,
                 array("id", "account_id", "ip_address"),

@@ -49,7 +49,7 @@ class AccountInstructions
             "priority DESC"
         ));
 
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $this->replacements = get_sql_query(
             InstructionsTable::REPLACEMENTS,
             null,

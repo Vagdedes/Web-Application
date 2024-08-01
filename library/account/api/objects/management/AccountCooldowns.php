@@ -70,8 +70,6 @@ class AccountCooldowns
         if ($hash) {
             $action = string_to_integer($action);
         }
-        set_sql_cache("1 second");
-
         if (!empty(get_sql_query(
             $account_instant_cooldowns_table,
             array("id"),
@@ -85,7 +83,6 @@ class AccountCooldowns
         ))) {
             return new MethodReply(true);
         }
-        set_sql_cache("1 second");
         $query = get_sql_query(
             $account_buffer_cooldowns_table,
             array("id", "threshold"),

@@ -379,7 +379,7 @@ class AccountProductDownloads
     public function getList(bool $active = false, int $limit = 0): array
     {
         global $product_downloads_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         return get_sql_query(
             $product_downloads_table,
             null,
@@ -396,7 +396,7 @@ class AccountProductDownloads
     function getCount(bool $active = false, int $limit = 0): int
     {
         global $product_downloads_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         return sizeof(
             get_sql_query(
                 $product_downloads_table,

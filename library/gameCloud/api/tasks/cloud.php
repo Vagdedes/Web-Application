@@ -367,7 +367,6 @@ if (true
                 echo "false";
             }
         } else if ($data == "userIdentification") {
-            set_sql_cache("1 minute");
             $query = get_sql_query(
                 $connection_count_table,
                 array("license_id"),
@@ -387,7 +386,7 @@ if (true
                 echo $query[0]->license_id;
             }
         } else if ($data == "automaticConfigurationChanges") {
-            set_sql_cache("1 minute");
+            set_sql_cache();
             $query = get_sql_query(
                 $configuration_changes_table,
                 array("id", "file_name", "abstract_option", "value", "if_value"),
@@ -535,7 +534,7 @@ if (true
             }
         } else if ($data == "staffAnnouncements") {
             try {
-                set_sql_cache("1 minute");
+                set_sql_cache();
                 $query = get_sql_query(
                     $staff_announcements_table,
                     array("id", "announcement", "cooldown"),
@@ -581,7 +580,7 @@ if (true
             } catch (Throwable $ignored) {
             }
         } else if ($data == "detectionSlots") {
-            set_sql_cache("1 minute");
+            set_sql_cache();
             $query = get_sql_query(
                 $detection_slots_table,
                 array("slots"),

@@ -266,7 +266,7 @@ class AccountFunctionality
             }
         }
         global $blocked_functionalities_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $array = get_sql_query(
             $blocked_functionalities_table,
             null,
@@ -302,7 +302,7 @@ class AccountFunctionality
             }
         }
         global $blocked_functionalities_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         return !empty(get_sql_query(
             $blocked_functionalities_table,
             array("id"),
@@ -323,7 +323,7 @@ class AccountFunctionality
     public function listReceivedActions(bool $active = true): array
     {
         global $blocked_functionalities_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $array = get_sql_query(
             $blocked_functionalities_table,
             null,
@@ -359,7 +359,7 @@ class AccountFunctionality
     public function listExecutedActions(bool $active = true): array
     {
         global $blocked_functionalities_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $array = get_sql_query(
             $blocked_functionalities_table,
             null,

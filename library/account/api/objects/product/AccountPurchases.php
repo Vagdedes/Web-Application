@@ -143,7 +143,7 @@ class AccountPurchases
     public function getExpired(): array
     {
         global $product_purchases_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $query = get_sql_query(
             $product_purchases_table,
             null,
@@ -187,7 +187,7 @@ class AccountPurchases
     public function getDeleted(): array
     {
         global $product_purchases_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         return get_sql_query(
             $product_purchases_table,
             null,

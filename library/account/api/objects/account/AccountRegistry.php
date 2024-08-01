@@ -126,7 +126,6 @@ class AccountRegistry
     public function getAccountAmount(): int
     {
         global $accounts_table;
-        set_sql_cache(AccountSession::session_cache_time, self::class);
         return sizeof(
             get_sql_query(
                 $accounts_table,

@@ -12,7 +12,7 @@ class AccountSettings
     public function get(string $option, mixed $default): MethodReply
     {
         global $account_settings_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $query = get_sql_query(
             $account_settings_table,
             array("option_value"),

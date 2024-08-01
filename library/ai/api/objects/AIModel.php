@@ -10,6 +10,7 @@ class AIModel
 
     public function __construct(int|string $modelID)
     {
+        set_sql_cache();
         $query = get_sql_query(
             AIDatabaseTable::AI_MODELS,
             null,
@@ -22,7 +23,7 @@ class AIModel
 
         if (!empty($query)) {
             $query = $query[0];
-            set_sql_cache("1 second"); // Case in case it uses the same parameter
+            set_sql_cache(); // Case in case it uses the same parameter
             $queryChild = get_sql_query(
                 AIDatabaseTable::AI_PARAMETERS,
                 null,
@@ -37,7 +38,7 @@ class AIModel
             if (!empty($queryChild)) {
                 $this->parameter = $queryChild[0];
 
-                set_sql_cache("1 second"); // Case in case it uses the same currency
+                set_sql_cache(); // Case in case it uses the same currency
                 $queryChild = get_sql_query(
                     AIDatabaseTable::AI_CURRENCIES,
                     null,

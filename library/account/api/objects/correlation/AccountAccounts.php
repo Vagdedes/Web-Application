@@ -239,7 +239,7 @@ class AccountAccounts
             return array();
         }
         global $added_accounts_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $array = get_sql_query(
             $added_accounts_table,
             null,
@@ -280,7 +280,7 @@ class AccountAccounts
             return new MethodReply(false);
         }
         global $added_accounts_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $array = get_sql_query(
             $added_accounts_table,
             array("credential"),

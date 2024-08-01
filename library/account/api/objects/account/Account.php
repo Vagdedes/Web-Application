@@ -96,7 +96,7 @@ class Account
 
             if ($hasIdentification) {
                 global $account_identification_table;
-                set_sql_cache(null, self::class);
+                set_sql_cache(self::class);
                 $query = get_sql_query(
                     $account_identification_table,
                     array("account_id"),
@@ -118,7 +118,7 @@ class Account
                 $runQuery = true;
             }
             if ($runQuery) {
-                set_sql_cache(null, self::class);
+                set_sql_cache(self::class);
                 $query = get_sql_query(
                     $accounts_table,
                     null,

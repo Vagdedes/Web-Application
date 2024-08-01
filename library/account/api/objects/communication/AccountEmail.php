@@ -226,7 +226,7 @@ class AccountEmail
     public function isVerified(): bool
     {
         global $email_verifications_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         return !empty(get_sql_query(
             $email_verifications_table,
             array("id"),

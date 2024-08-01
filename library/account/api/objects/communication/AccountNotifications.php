@@ -72,7 +72,7 @@ class AccountNotifications
             return array();
         }
         global $account_notifications_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $date = get_current_date();
         $query = get_sql_query(
             $account_notifications_table,

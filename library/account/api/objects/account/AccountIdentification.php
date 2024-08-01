@@ -16,7 +16,7 @@ class AccountIdentification
     {
         global $account_identification_table;
         $accountID = $this->account->getDetail("id");
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         $query = get_sql_query(
             $account_identification_table,
             array("id", "code", "expiration_date"),

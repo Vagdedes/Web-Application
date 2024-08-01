@@ -22,7 +22,6 @@ class GameCloudInformation
 
                 if (!empty($query)) {
                     global $added_accounts_table;
-                    set_sql_cache("1 minute");
                     $query = get_sql_query(
                         $added_accounts_table,
                         array("account_id"),

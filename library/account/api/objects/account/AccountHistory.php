@@ -51,7 +51,7 @@ class AccountHistory
             return new MethodReply(false, $functionality->getMessage());
         }
         global $account_history_table;
-        set_sql_cache(null, self::class);
+        set_sql_cache(self::class);
         return new MethodReply(
             true,
             null,

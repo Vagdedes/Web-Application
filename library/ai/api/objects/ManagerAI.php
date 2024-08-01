@@ -64,7 +64,6 @@ class ManagerAI
 
     public function getHistory(int|string $hash, ?bool $failure = null, ?int $limit = 0): array
     {
-        set_sql_cache("1 second");
         return get_sql_query(
             AIDatabaseTable::AI_TEXT_HISTORY,
             null,
