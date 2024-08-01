@@ -78,9 +78,11 @@ function clear_memory_segments(array $segments, int $deleteBlocksRegardless = 0)
             $object = $memoryBlock->getObject();
             $isNull = $object === null;
 
-            if ($isNull || isset($object->invalid)) {
-                if (!$isNull
-                    && $memoryBlock->delete(false, false)
+            if ($isNull) {
+                continue;
+            }
+            if (isset($object->invalid)) {
+                if ($memoryBlock->delete(false, false)
                     && $deleteBlocks) {
                     $deleteBlocksRegardless--;
 
@@ -220,8 +222,12 @@ class IndividualMemoryBlock
             if (!$block) {
                 if ($retry) {
                     clear_memory_segments(get_memory_segment_ids(), 1);
-                    $this->clearSegmentsIdCache();
-                    return $this->set($value, $expiration, false);
+
+                    if ($this->set($value, $expiration, false)) {
+                        return true;
+                    } else {
+                        $this->clearSegmentsIdCache();
+                    }
                 } else {
                     return false;
                 }
