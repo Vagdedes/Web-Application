@@ -93,11 +93,11 @@ function set_key_value_pair(mixed $key, mixed $value = null, int|string|null $fu
 
 // Separator
 
-function clear_memory(?array $keys = null,
+function clear_memory(?array     $keys = null,
                       bool       $abstractSearch = false,
                       int|string $stopAfterSuccessfulIterations = 0,
                       ?callable  $valueVerifier = null,
-                      mixed      $localSegments = null): void
+                      ?array     $localSegments = null): void
 {
     if ($localSegments === null) {
         share_clear_memory($keys, $abstractSearch);

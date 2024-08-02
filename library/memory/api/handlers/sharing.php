@@ -1,6 +1,6 @@
 <?php
 
-function share_clear_memory(array|null $keys, bool $abstractSearch): void
+function share_clear_memory(?array $keys, bool $abstractSearch): void
 {
     global $memory_clearance_table;
     $serialize = serialize($keys);

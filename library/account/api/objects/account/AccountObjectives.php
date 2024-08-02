@@ -57,7 +57,7 @@ class AccountObjectives
                         $array,
                         "Thanks for subscribing to our free Patreon!",
                         "We also offer one-time purchases. "
-                        . "Check <#673148438057189376> for more info!"
+                        . "Check <#728076672217120808> for more info!"
                     );
                 }
             }
