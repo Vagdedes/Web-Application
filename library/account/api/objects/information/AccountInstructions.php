@@ -25,10 +25,6 @@ class AccountInstructions
             array(
                 array("deletion_date", null),
                 null,
-                array("application_id", "IS", null, 0),
-                array("application_id", $this->account->getDetail("application_id")),
-                null,
-                null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
                 null
@@ -40,7 +36,6 @@ class AccountInstructions
             null,
             array(
                 array("deletion_date", null),
-                array("application_id", $this->account->getDetail("application_id")),
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
@@ -55,7 +50,6 @@ class AccountInstructions
             null,
             array(
                 array("deletion_date", null),
-                array("application_id", $this->account->getDetail("application_id")),
                 null,
                 array("expiration_date", "IS", null, 0),
                 array("expiration_date", ">", get_current_date()),
