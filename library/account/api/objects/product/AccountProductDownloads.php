@@ -100,7 +100,7 @@ class AccountProductDownloads
     private function sendFile(bool            $exists,
                               int|string      $token,
                               object          $fileProperties,
-                              int|string      $productID,
+                              object          $productObject,
                               int|string      $requestedByToken = null,
                               int|string|null $maxDownloads = null,
                               int|string|null $customExpiration = null): MethodReply
@@ -140,7 +140,7 @@ class AccountProductDownloads
                 $product_downloads_table,
                 array(
                     "account_id" => $this->account->getDetail("id"),
-                    "product_id" => $productID,
+                    "product_id" => $productObject->id,
                     "token" => $token,
                     "requested_by_token" => $requestedByToken,
                     "download_count" => $maxDownloads !== null ? 1 : null,
@@ -152,14 +152,24 @@ class AccountProductDownloads
                 return new MethodReply(false, "Failed to interact with the database.");
             }
         }
-        if ($this->account->exists()
-            && !$this->account->getHistory()->add(
+        if ($this->account->exists()) {
+            if (!$this->account->getHistory()->add(
                 "download_file" . ($requestedByToken !== null ? "_by_token" : ""),
                 $requestedByToken,
                 $token
             )) {
-            unlink($fileCopy);
-            return new MethodReply(false, "Failed to update user history.");
+                unlink($fileCopy);
+                return new MethodReply(false, "Failed to update user history.");
+            }
+            if ($requestedByToken === null) {
+                $this->account->getPhoneNumber()->send(
+                    "notification",
+                    array(
+                        "notification" => "The product '" . $productObject->name . "' was downloaded using your account."
+                            . " If this was not you, please change the responsible password immediately."
+                    )
+                );
+            }
         }
         $this->account->clearMemory(self::class, function ($value) {
             return is_array($value);
@@ -239,6 +249,8 @@ class AccountProductDownloads
         if (!$product->isPositiveOutcome()) {
             return new MethodReply(false, $product->getMessage());
         }
+        $product = $product->getObject()[0];
+
         if ($this->account->exists()) {
             $purchase = $this->account->getPurchases()->owns($productID);
 
@@ -246,7 +258,7 @@ class AccountProductDownloads
                 return new MethodReply(false, "You do not own this product.");
             }
         }
-        $fileProperties = $this->findDownloadableFile($product->getObject()[0]->downloads);
+        $fileProperties = $this->findDownloadableFile($product->downloads);
 
         if (!$fileProperties->isPositiveOutcome()) {
             return new MethodReply(false, $fileProperties->getMessage());
@@ -282,7 +294,7 @@ class AccountProductDownloads
                 false,
                 $newToken,
                 $fileProperties,
-                $productID,
+                $product,
                 $requestedByToken,
                 $maxDownloads,
                 $customExpiration
@@ -326,12 +338,13 @@ class AccountProductDownloads
 
         if (!empty($query)) {
             $query = $query[0];
-
             $product = $this->account->getProduct()->find($query->product_id);
 
             if (!$product->isPositiveOutcome()) {
                 return new MethodReply(false, $product->getMessage());
             }
+            $product = $product->getObject()[0];
+
             if ($this->account->exists()) {
                 $purchase = $this->account->getPurchases()->owns($query->product_id);
 
@@ -340,7 +353,7 @@ class AccountProductDownloads
                 }
             }
             if ($sendFile) {
-                $fileProperties = $this->findDownloadableFile($product->getObject()[0]->downloads);
+                $fileProperties = $this->findDownloadableFile($product->downloads);
 
                 if (!$fileProperties->isPositiveOutcome()) {
                     return new MethodReply(false, $fileProperties->getMessage());
@@ -360,7 +373,7 @@ class AccountProductDownloads
                     true,
                     $query->token,
                     $fileProperties,
-                    $query->product_id,
+                    $product,
                     null,
                     $query->max_downloads,
                     null
