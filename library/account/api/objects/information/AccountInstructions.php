@@ -80,24 +80,36 @@ class AccountInstructions
 
     // Separator
 
-    public function addExtra(string $key, mixed $value, bool $delete = false): void
+    public function buildExtra(string $key, mixed $value): ?string
     {
         if (!empty($value)) {
             if (is_object($value) || is_array($value)) {
                 $json = @json_encode($value);
 
                 if ($json !== false) {
-                    $this->extra[$key] = "Start of '$key':\n"
+                    return "Start of '$key':\n"
                         . $json
                         . "\nEnd of '$key'";
                 } else {
-                    return;
+                    return null;
                 }
             } else {
-                $this->extra[$key] = "Start of '$key':\n"
+                return "Start of '$key':\n"
                     . $value
                     . "\nEnd of '$key'";
             }
+        } else {
+            return null;
+        }
+    }
+
+    public function addExtra(string $key, mixed $value, bool $delete = false): void
+    {
+        $extra = $this->buildExtra($key, $value);
+
+        if ($extra !== null) {
+            $this->extra[$key] = $extra;
+
             if ($delete) {
                 $this->deleteExtra[$key] = true;
             }
