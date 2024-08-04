@@ -100,7 +100,7 @@ function clear_memory(?array     $keys = null,
                       ?array     $localSegments = null): void
 {
     if ($localSegments === null) {
-        share_clear_memory($keys, $abstractSearch);
+        share_clear_memory($keys, $stopAfterSuccessfulIterations, $abstractSearch);
     }
     if (!empty($keys)) {
         $hasLimit = is_numeric($stopAfterSuccessfulIterations) && $stopAfterSuccessfulIterations > 0;
