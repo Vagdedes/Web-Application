@@ -4,9 +4,7 @@ class GameCloudActions
 {
     private GameCloudUser $user;
 
-    public const
-        OUTDATED_VERSION_PRIORITY = 2,
-        RESOLVED_CUSTOMER_SUPPORT_PRIORITY = 1;
+    public const OUTDATED_VERSION_PRIORITY = 2;
 
     public function __construct(GameCloudUser $user)
     {
@@ -82,6 +80,7 @@ class GameCloudActions
                 array("version", $version),
                 array("abstract_option", $option),
                 array("file_name", $file),
+                array("deletion_date", null)
             ),
             null,
             1
@@ -144,15 +143,19 @@ class GameCloudActions
                 array("product_id", $productID),
                 array("version", $version),
                 array("abstract_option", $option),
-                array("file_name", $file)
+                array("file_name", $file),
+                array("deletion_date", null)
             ),
             null,
             1
         );
 
         if (!empty($query)
-            && !delete_sql_query(
+            && !set_sql_query(
                 $configuration_changes_table,
+                array(
+                    "deletion_date" => get_current_date()
+                ),
                 array(
                     array("id", $query[0]->id)
                 ),
@@ -179,7 +182,8 @@ class GameCloudActions
                 array("license_id", $licenseID),
                 array("platform_id", $platform),
                 array("plugin_version", $pluginVersion),
-                array("server_version", $serverVersion)
+                array("server_version", $serverVersion),
+                array("deletion_date", null)
             ),
             null,
             1
@@ -223,8 +227,11 @@ class GameCloudActions
                 )) {
                     return false;
                 }
-            } else if (!delete_sql_query(
+            } else if (!set_sql_query(
                 $disabled_detections_table,
+                array(
+                    "deletion_date" => get_current_date()
+                ),
                 array(
                     array("id", $query->id)
                 ),
@@ -240,7 +247,8 @@ class GameCloudActions
                 "license_id" => $licenseID,
                 "plugin_version" => $pluginVersion,
                 "server_version" => $serverVersion,
-                "detections" => ($check . "|" . $detection)
+                "detections" => ($check . "|" . $detection),
+                "creation_date"=>get_current_date()
             ))) {
             return false;
         }
@@ -268,7 +276,8 @@ class GameCloudActions
                 array("license_id", $licenseID),
                 array("platform_id", $platform),
                 array("plugin_version", $pluginVersion),
-                array("server_version", $serverVersion)
+                array("server_version", $serverVersion),
+                array("deletion_date", null)
             ),
             null,
             1
@@ -319,8 +328,11 @@ class GameCloudActions
                 )) {
                     return false;
                 }
-            } else if (!delete_sql_query(
+            } else if (!set_sql_query(
                 $disabled_detections_table,
+                array(
+                    "deletion_date" => get_current_date()
+                ),
                 array(
                     array("id", $query->id)
                 ),

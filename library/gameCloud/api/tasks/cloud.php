@@ -277,6 +277,7 @@ if (true
                     $disabled_detections_table,
                     array("detections"),
                     array(
+                        array("deletion_date", null),
                         $hasValue ? array("server_version", ">=", $value) : array("server_version", null),
                         null,
                         array("plugin_version", "IS", null, 0),
@@ -391,6 +392,7 @@ if (true
                 $configuration_changes_table,
                 array("id", "file_name", "abstract_option", "value", "if_value"),
                 array(
+                    array("deletion_date", null),
                     array("product_id", $productObject->id),
                     null,
                     array("version", "IS", null, 0),
