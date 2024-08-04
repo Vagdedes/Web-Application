@@ -5,7 +5,7 @@ function check_clear_memory(): void
     load_sql_database(SqlDatabaseCredentials::MEMORY);
     $memory_trackers_query = get_sql_query(
         $memory_clearance_table,
-        array("tracker", "array", "abstract_search"),
+        array("tracker", "array", "abstract_search", "successful_iterations"),
         array(
             array("creation", ">", time() - $memory_clearance_past),
         ),
@@ -45,10 +45,11 @@ function check_clear_memory(): void
                     if ($segments === null) {
                         $segments = get_memory_segment_ids();
                     }
-                    clear_memory($array,
+                    clear_memory(
+                        $array,
                         $row->abstract_search !== null,
-                        0,
-                        null,
+                        $row->abstract_search,
+                        $row->successful_iterations,
                         $segments
                     );
                 }

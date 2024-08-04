@@ -1,6 +1,6 @@
 <?php
 
-function share_clear_memory(?array $keys, bool $abstractSearch): void
+function share_clear_memory(?array $keys, int $successfulIterations, bool $abstractSearch): void
 {
     global $memory_clearance_table;
     $serialize = serialize($keys);
@@ -22,6 +22,7 @@ function share_clear_memory(?array $keys, bool $abstractSearch): void
                 "tracker" => $tracker,
                 "creation" => time(),
                 "array" => $serialize,
+                "successful_iterations" => $successfulIterations,
                 "abstract_search" => $abstractSearch
             )
         )) {
@@ -36,6 +37,7 @@ function share_clear_memory(?array $keys, bool $abstractSearch): void
         array(
             "creation" => time(),
             "array" => $serialize,
+            "successful_iterations" => $successfulIterations,
             "abstract_search" => $abstractSearch
         ),
         array(
