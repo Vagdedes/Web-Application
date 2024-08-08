@@ -116,6 +116,11 @@ class AccountInstructions
         }
     }
 
+    public function hasExtra(string $key): bool
+    {
+        return array_key_exists($key, $this->extra);
+    }
+
     public function removeExtra(string $key): void
     {
         unset($this->extra[$key]);
