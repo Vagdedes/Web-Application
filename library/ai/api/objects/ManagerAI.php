@@ -97,7 +97,6 @@ class ManagerAI
                     break;
                 }
             }
-
             if ($model === null) {
                 return array(false, null, null);
             }

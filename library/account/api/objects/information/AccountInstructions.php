@@ -246,7 +246,7 @@ class AccountInstructions
                                 "messages" => array(
                                     array(
                                         "role" => "system",
-                                        "content" => "From the user's text write only the most important keywords separated"
+                                        "content" => "From the user's text write only the " . $row->auto_contains . " most important keywords separated"
                                             . " by the | character without spaces in between and a maximum total length of"
                                             . " 4000 characters. Do not combine multiple words together, instead separate"
                                             . " them by using the | character. For example: keyword1|keyword2|keyword3"
