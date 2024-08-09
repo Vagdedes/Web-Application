@@ -356,12 +356,7 @@ class AccountProduct
     public function clearObjectDetails(object $productObject): object
     {
         $newObject = clone $productObject;
-
-        foreach ($newObject as $key => $value) {
-            if ($value === null) {
-                unset($newObject->{$key});
-            }
-        }
+        clear_object_null_keys($newObject);
         unset($newObject->divisions);
         unset($newObject->buttons);
         unset($newObject->cards);

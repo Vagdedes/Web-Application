@@ -84,6 +84,11 @@ class AccountInstructions
     {
         if (!empty($value)) {
             if (is_object($value) || is_array($value)) {
+                if (is_object($value)) {
+                    $value = clear_object_null_keys($value);
+                } else {
+                    $value = clear_array_null_keys($value);
+                }
                 $json = @json_encode($value);
 
                 if ($json !== false) {
