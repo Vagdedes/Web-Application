@@ -299,7 +299,6 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                                         }
                                     }
                                 }
-
                             }
                         }
                     }
