@@ -1,6 +1,7 @@
 <?php
-require_once '/var/www/.structure/library/base/form.php';
-require_once '/var/www/.structure/library/base/requirements/account_systems.php';
+require '/var/www/.structure/library/base/form.php';
+require '/var/www/.structure/library/base/requirements/account_systems.php';
+require '/var/www/.structure/library/finance/init.php';
 $path = get_form_get("path");
 
 if (!empty($path)) {
