@@ -13,9 +13,7 @@ class GameCloudVerification
         /*0*/
         "license", // license bans
         /*1*/
-        "file", // file bans
-        /*2*/
-        "customer-support", // customer-support feature bans
+        "file" // file bans
     );
 
     private GameCloudUser $user;
