@@ -2,6 +2,7 @@
 
 function get_financial_input(int|string $year, int|string $month, $standardTax = 1.24): array
 {
+    global $backup_domain;
     $monthString = ($month < 10 ? "0" . $month : $month);
     $previousMonth = $monthString - 1;
     $potentialPreviousYear = $year;
@@ -21,6 +22,7 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
     $results = array();
 
     // Separator
+    set_sql_cache();
     $blacklist = get_sql_query(
         "personal.expensesBlacklist",
         array("transaction_key", "transaction_value"),
