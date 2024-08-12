@@ -315,7 +315,7 @@ class AccountProduct
                             }
                             $downloads = array_values($downloads);
                             $object->downloads = $downloads;
-                            $object->latest_version = $downloads[0]->version;
+                            $object->latest_version = $downloads[0];
                             $object->minimum_supported_version = $downloads[sizeof($downloads) - 1]->version;
                         }
                         $object->identification = get_sql_query(
