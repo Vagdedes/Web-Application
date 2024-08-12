@@ -165,7 +165,7 @@ class AccountProductDownloads
                 $this->account->getPhoneNumber()->send(
                     "notification",
                     array(
-                        "notification" => "The product '" . $productObject->name . "' was downloaded using your account."
+                        "notification" => "The product '" . strip_tags($productObject->name) . "' was downloaded using your account."
                             . " If this was not you, please change the responsible password immediately."
                     )
                 );

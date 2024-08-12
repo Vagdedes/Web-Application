@@ -9,6 +9,7 @@ require_once '/var/www/.structure/library/base/objects/MethodReply.php';
 require_once '/var/www/.structure/library/base/objects/ParameterVerification.php';
 
 require_once '/var/www/.structure/library/email/init.php';
+require_once '/var/www/.structure/library/phone/init.php';
 require_once '/var/www/.structure/library/patreon/init.php';
 require_once '/var/www/.structure/library/discord/webhooks/init.php';
 require_once '/var/www/.structure/library/paypal/init.php';

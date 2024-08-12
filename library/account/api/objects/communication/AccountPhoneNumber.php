@@ -19,7 +19,7 @@ class AccountPhoneNumber
             if ($applicationID === null) {
                 $applicationID = 0;
             }
-            $phoneNumber = prepare_phone_number($phoneNumber[0]);
+            $phoneNumber = prepare_phone_number($phoneNumber[0]->credential);
             return $this->account->getSettings()->isEnabled(
                     "receive_" . $type . "_phone_messages",
                     $type === "account"
