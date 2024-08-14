@@ -22,6 +22,6 @@ if (is_numeric($cache)) {
             }
         }
     }
-    set_key_value_pair($cacheKey, $count, $websiteRefreshRate);
+    set_key_value_pair($cacheKey, $count, "1 hour");
     echo $count;
 }
