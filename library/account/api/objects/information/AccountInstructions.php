@@ -76,8 +76,7 @@ class AccountInstructions
                 } else {
                     $row->contains = explode("|", $row->contains);
                 }
-                unset($array[$arrayKey]);
-                $array[$row->id] = $row;
+                $array[$arrayKey] = $row;
             }
         }
         return $array;
@@ -224,7 +223,7 @@ class AccountInstructions
         return $messages;
     }
 
-    private function getURLData(object $row, bool $refresh): ?string
+    private function getURLData(mixed $arrayKey, object $row, bool $refresh): ?string
     {
         if ($row->information_value !== null
             && $row->information_expiration !== null
@@ -299,8 +298,8 @@ class AccountInstructions
                         $row->information_value = $doc;
                         $row->information_expiration = $expiration;
                         $row->contains = $containsKeywords === null ? array() : $containsKeywords;
-                        $this->publicInstructions[$row->id] = $row;
-                        unset($this->containsCache[$row->id]);
+                        $this->publicInstructions[$arrayKey] = $row;
+                        unset($this->containsCache[$arrayKey]);
                     }
                     return $doc;
                 }
@@ -367,13 +366,13 @@ class AccountInstructions
                 if (!$isArray
                     || (sizeof($allow) === 0 ? $row->default_use !== null : in_array($row->id, $allow))) {
                     if (!$hasUserInput || empty($row->contains)) {
-                        $doc = $this->getURLData($row, $refresh);
+                        $doc = $this->getURLData($arrayKey, $row, $refresh);
                     } else {
                         $doc = null;
 
                         foreach ($userInput as $input) {
-                            if ($this->equals($row, $input)) {
-                                $doc = $this->getURLData($row, $refresh);
+                            if ($this->equals($arrayKey, $row, $input)) {
+                                $doc = $this->getURLData($arrayKey, $row, $refresh);
                                 break;
                             }
                         }
@@ -423,22 +422,22 @@ class AccountInstructions
         return $array;
     }
 
-    private function equals(object $row, string $word): bool
+    private function equals(mixed $arrayKey, object $row, string $word): bool
     {
         $word = strtolower($word);
-        $hasKey = array_key_exists($row->id, $this->containsCache);
+        $hasKey = array_key_exists($arrayKey, $this->containsCache);
 
         if ($hasKey
-            && in_array($word, $this->containsCache[$row->id])) {
+            && in_array($word, $this->containsCache[$arrayKey])) {
             return true;
         }
 
         foreach ($row->contains as $contains) {
             if ($word == $contains) {
                 if ($hasKey) {
-                    $this->containsCache[$row->id][] = $word;
+                    $this->containsCache[$arrayKey][] = $word;
                 } else {
-                    $this->containsCache[$row->id] = array($word);
+                    $this->containsCache[$arrayKey] = array($word);
                 }
                 return true;
             }
