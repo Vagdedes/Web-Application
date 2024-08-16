@@ -11,7 +11,8 @@ class AccountInstructions
         $publicInstructions,
         $replacements,
         $extra,
-        $deleteExtra;
+        $deleteExtra,
+        $containsCache;
     private ?ManagerAI $managerAI;
 
     public function __construct(Account $account)
@@ -19,6 +20,7 @@ class AccountInstructions
         $this->account = $account;
         $this->extra = array();
         $this->deleteExtra = array();
+        $this->containsCache = array();
         $this->localInstructions = $this->calculateContains(get_sql_query(
             InstructionsTable::LOCAL,
             null,
@@ -56,6 +58,8 @@ class AccountInstructions
                 null
             )
         );
+
+        $this->getPublic();
     }
 
     public function setAI(?ManagerAI $chatAI): void
@@ -72,7 +76,8 @@ class AccountInstructions
                 } else {
                     $row->contains = explode("|", $row->contains);
                 }
-                $array[$arrayKey] = $row;
+                unset($array[$arrayKey]);
+                $array[$row->id] = $row;
             }
         }
         return $array;
@@ -219,13 +224,13 @@ class AccountInstructions
         return $messages;
     }
 
-    private function getURLData(object $row): ?string
+    private function getURLData(object $row, bool $refresh): ?string
     {
         if ($row->information_value !== null
             && $row->information_expiration !== null
             && $row->information_expiration > get_current_date()) {
             return $row->information_value;
-        } else {
+        } else if ($refresh || $row->information_value === null) {
             $html = timed_file_get_contents($row->information_url, 5);
 
             if ($html !== false) {
@@ -273,44 +278,57 @@ class AccountInstructions
                             $containsKeywords = $this->managerAI->getText($result[1], $result[2]);
                         }
                     }
-                    set_sql_query(
+                    $expiration = get_future_date($row->information_duration);
+                    $containsKeywords = empty($containsKeywords)
+                        ? null
+                        : $row->information_url . "|" . strtolower($containsKeywords);
+
+                    if (set_sql_query(
                         InstructionsTable::PUBLIC,
                         array(
                             "information_value" => $doc,
-                            "information_expiration" => get_future_date($row->information_duration),
-                            "contains" => empty($containsKeywords)
-                                ? null
-                                : $row->information_url . "|" . strtolower($containsKeywords)
+                            "information_expiration" => $expiration,
+                            "contains" => $containsKeywords
                         ),
                         array(
                             array("id", $row->id)
                         ),
                         null,
                         1
-                    );
+                    )) {
+                        $row->information_value = $doc;
+                        $row->information_expiration = $expiration;
+                        $row->contains = $containsKeywords === null ? array() : $containsKeywords;
+                        $this->publicInstructions[$row->id] = $row;
+                        unset($this->containsCache[$row->id]);
+                    }
                     return $doc;
                 }
             }
+            return null;
+        } else {
+            return $row->information_value;
         }
-        return null;
     }
 
     // Separator
 
     public function getLocal(?array $allow = null, ?string $userInput = null): array
     {
-        if (!empty($this->localInstructions)) {
-            $hasSpecific = !empty($allow);
-            $array = $this->localInstructions;
+        $array = $this->localInstructions;
+
+        if (!empty($array)) {
+            $isArray = is_array($allow);
 
             foreach ($array as $arrayKey => $row) {
-                if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
-                    if ($userInput === null || empty($array->contains)) {
+                if (!$isArray
+                    || (sizeof($allow) === 0 ? $row->default_use !== null : in_array($row->id, $allow))) {
+                    if ($userInput === null || empty($row->contains)) {
                         $continue = true;
                     } else {
                         $continue = false;
 
-                        foreach ($array->contains as $contains) {
+                        foreach ($row->contains as $contains) {
                             if (str_contains($userInput, $contains)) {
                                 $continue = true;
                                 break;
@@ -333,29 +351,40 @@ class AccountInstructions
         }
     }
 
-    public function getPublic(?array $allow = null, ?string $userInput = null): array
+    public function getPublic(?array $allow = null, ?string $userInput = null, bool $refresh = true): array
     {
         $array = $this->publicInstructions;
 
         if (!empty($array)) {
-            $hasSpecific = !empty($allow);
+            $isArray = is_array($allow);
+            $hasUserInput = $userInput !== null;
+
+            if ($hasUserInput) {
+                $userInput = explode(" ", $userInput);
+            }
 
             foreach ($array as $arrayKey => $row) {
-                if ($hasSpecific ? in_array($row->id, $allow) : $row->default_use !== null) {
-                    if ($userInput === null || empty($array->contains)) {
-                        $doc = $this->getURLData($row);
+                if (!$isArray
+                    || (sizeof($allow) === 0 ? $row->default_use !== null : in_array($row->id, $allow))) {
+                    if (!$hasUserInput || empty($row->contains)) {
+                        $doc = $this->getURLData($row, $refresh);
                     } else {
                         $doc = null;
 
-                        foreach ($array->contains as $contains) {
-                            if (str_contains($userInput, $contains)) {
-                                $doc = $this->getURLData($row);
+                        foreach ($userInput as $input) {
+                            if ($this->equals($row, $input)) {
+                                $doc = $this->getURLData($row, $refresh);
                                 break;
                             }
                         }
                     }
 
                     if ($doc !== null) {
+                        $doc = $this->buildExtra(
+                            $row->information_url
+                            . ($row->creation_reason !== null ? " (aka " . $row->creation_reason . ")" : ""),
+                            $doc
+                        );
                         if (false && $row->sub_directories !== null) {
                             $links = get_urls_from_string($url);
 
@@ -392,5 +421,28 @@ class AccountInstructions
             }
         }
         return $array;
+    }
+
+    private function equals(object $row, string $word): bool
+    {
+        $word = strtolower($word);
+        $hasKey = array_key_exists($row->id, $this->containsCache);
+
+        if ($hasKey
+            && in_array($word, $this->containsCache[$row->id])) {
+            return true;
+        }
+
+        foreach ($row->contains as $contains) {
+            if ($word == $contains) {
+                if ($hasKey) {
+                    $this->containsCache[$row->id][] = $word;
+                } else {
+                    $this->containsCache[$row->id] = array($word);
+                }
+                return true;
+            }
+        }
+        return false;
     }
 }
