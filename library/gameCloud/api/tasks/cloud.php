@@ -692,6 +692,12 @@ if (true
             } else {
                 echo "-1";
             }
+        } else if ($data == "hasAccount") {
+            if ($account->exists()) {
+                echo "true";
+            } else {
+                echo "false";
+            }
         }
     } else if ($action == "add") {
         if ($data == "userVerification") {
