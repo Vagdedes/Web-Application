@@ -31,7 +31,8 @@ if (true
     $purpose = $purpose->getProperties();
     $account = new Account();
 
-    if (!is_object($purpose)) {
+    if (!is_object($purpose)
+        || $purpose->type !== null && $purpose->type != $action) {
         return;
     }
 
@@ -517,6 +518,7 @@ if (true
 
                                 if ($points == 2) {
                                     $result = "true";
+                                    break;
                                 }
                             }
                         }
