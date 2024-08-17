@@ -58,13 +58,12 @@ class AccountInstructions
                 null
             )
         );
-
-        $this->getPublic();
     }
 
     public function setAI(?ManagerAI $chatAI): void
     {
         $this->managerAI = $chatAI;
+        $this->getPublic();
     }
 
     private function calculateContains(array $array): array
