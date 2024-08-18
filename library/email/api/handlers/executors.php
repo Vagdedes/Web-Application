@@ -357,7 +357,18 @@ function get_user_exemption_token(int|string|float $planID, int|string $emailID)
     // Resize
     $token = random_string($email_exempt_token_length);
 
-    if (!sql_query("UPDATE $email_user_exemption_keys_table SET token = '$token' WHERE plan_id = '$planID' AND email_id = '$emailID';")) {
+    if (!set_sql_query(
+        $email_user_exemption_keys_table,
+        array(
+            "token" => $token
+        ),
+        array(
+            array("plan_id", $planID),
+            array("email_id", $emailID)
+        ),
+        null,
+        1
+    )) {
         return "";
     }
     return $token;
