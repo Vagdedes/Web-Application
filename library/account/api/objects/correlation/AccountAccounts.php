@@ -272,7 +272,10 @@ class AccountAccounts
         return $array;
     }
 
-    public function hasAdded(int|string $id, int|float|string $credential = null, int $limit = 0, bool $manual = false): MethodReply
+    public function hasAdded(int|string            $id,
+                             int|float|string|null $credential = null,
+                             int                   $limit = 0,
+                             bool                  $manual = false): MethodReply
     {
         $acceptedAccount = new AcceptedAccount($this->account->getDetail("application_id"), $id, null, $manual);
 

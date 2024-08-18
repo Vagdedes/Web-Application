@@ -18,9 +18,7 @@ if (true
 
     $productObject = null;
     $accessFailure = null;
-    $licenseID = null;
     $fileID = null;
-    $platformID = null;
     $token = null;
 
     $data = properly_sql_encode($data, true);
@@ -95,7 +93,6 @@ if (true
                 }
             } else if ($requiresVerification) {
                 $accessFailure = 899453502;
-                $licenseID = null;
                 $fileID = null;
             }
         } else if ($requiresVerification) {
@@ -141,12 +138,12 @@ if (true
 
                         if (!empty($acceptedPlatforms)) {
                             foreach ($acceptedPlatforms as $row) {
-                                $acceptedAccount = $account->getAccounts()->hasAdded($row->accepted_account_id, $licenseID, 1);
+                                $acceptedAccount = $account->getAccounts()->hasAdded($row->accepted_account_id, $gameCloudUser->getLicense(), 1);
 
                                 if ($acceptedAccount->isPositiveOutcome()) {
                                     $token = $user_agent;
                                     $productObject = $validProductObject;
-                                    $platformID = $gameCloudUser->setPlatform($row->id);
+                                    $gameCloudUser->setPlatform($row->id);
                                     break;
                                 }
                             }
@@ -188,12 +185,12 @@ if (true
         $cause = $action . "-" . $data;
         $remainingDaySeconds = strtotime("tomorrow") - time();
         $search_hash = array_to_integer(array(
-            $licenseID,
+            $gameCloudUser->getLicense(),
             $ipAddressModified,
             $cause,
             $version,
             $productObject->id,
-            $platformID,
+            $gameCloudUser->getPlatform(),
             $hasAccessFailure ? $accessFailure : null
         ));
         $query = get_sql_query(
@@ -240,8 +237,8 @@ if (true
                 array(
                     "search_hash" => $search_hash,
                     "verification_requirement" => $verificationRequirement,
-                    "platform_id" => $platformID,
-                    "license_id" => $licenseID,
+                    "platform_id" => $gameCloudUser->getPlatform(),
+                    "license_id" => $gameCloudUser->getLicense(),
                     "ip_address" => $ipAddressModified,
                     "token" => $token,
                     "version" => $version,
@@ -265,8 +262,8 @@ if (true
             $cacheKey = array(
                 $hasValue ? $value : null,
                 $version,
-                $platformID,
-                $licenseID,
+                $gameCloudUser->getPlatform(),
+                $gameCloudUser->getLicense(),
                 $data
             );
             $cache = get_key_value_pair($cacheKey);
@@ -286,11 +283,11 @@ if (true
                         null,
                         null,
                         array("platform_id", "IS", null, 0),
-                        array("platform_id", $platformID),
+                        array("platform_id", $gameCloudUser->getPlatform()),
                         null,
                         null,
                         array("license_id", "IS", null, 0),
-                        array("license_id", $licenseID),
+                        array("license_id", $gameCloudUser->getLicense()),
                         null,
                     ),
                     null,
@@ -402,8 +399,8 @@ if (true
                     null,
                     null,
                     array("license_id", "IS", null, 0),
-                    array("platform_id", $platformID),
-                    array("license_id", $licenseID),
+                    array("platform_id", $gameCloudUser->getPlatform()),
+                    array("license_id", $gameCloudUser->getLicense()),
                     null,
                 ),
                 array(
@@ -555,11 +552,11 @@ if (true
                         null,
                         null,
                         array("platform_id", "IS", null, 0),
-                        array("platform_id", $platformID),
+                        array("platform_id", $gameCloudUser->getPlatform()),
                         null,
                         null,
                         array("license_id", "IS", null, 0),
-                        array("license_id", $licenseID),
+                        array("license_id", $gameCloudUser->getLicense()),
                         null,
                         null,
                         array("expiration_date", "IS", null, 0),
@@ -602,11 +599,11 @@ if (true
                     array("deletion_date", null),
                     null,
                     array("platform_id", "IS", null, 0),
-                    array("platform_id", $platformID),
+                    array("platform_id", $gameCloudUser->getPlatform()),
                     null,
                     null,
                     array("license_id", "IS", null, 0),
-                    array("license_id", $licenseID),
+                    array("license_id", $gameCloudUser->getLicense()),
                     null,
                     null,
                     array("expiration_date", "IS", null, 0),
@@ -652,8 +649,8 @@ if (true
                             $detection_slots_tracking_table,
                             array("id", "slots_used", "server_ip_address", "server_port"),
                             array(
-                                array("platform_id", $platformID),
-                                array("license_id", $licenseID),
+                                array("platform_id", $gameCloudUser->getPlatform()),
+                                array("license_id", $gameCloudUser->getLicense()),
                                 array("last_access_date", ">=", get_past_date("5 minutes")),
                             )
                         );
@@ -689,8 +686,8 @@ if (true
                             sql_insert(
                                 $detection_slots_tracking_table,
                                 array(
-                                    "platform_id" => $platformID,
-                                    "license_id" => $licenseID,
+                                    "platform_id" => $gameCloudUser->getPlatform(),
+                                    "license_id" => $gameCloudUser->getLicense(),
                                     "server_ip_address" => $ipAddressModified,
                                     "server_port" => $split[0],
                                     "slots_used" => $split[1],
@@ -719,8 +716,8 @@ if (true
 
                 if ($verificationResult <= 0) {
                     echo "false";
-                } else if ($platformID !== null) {
-                    echo $platformID;
+                } else if ($gameCloudUser->getPlatform() !== null) {
+                    echo $gameCloudUser->getPlatform();
                 } else {
                     echo "true";
                 }
@@ -769,7 +766,10 @@ if (true
                                 "inline" => false)
                         );
                         $response = has_memory_cooldown(
-                            "game-cloud=discord-webhook=" . $platformID . "-" . $licenseID,
+                            "game-cloud=discord-webhook="
+                            . $gameCloudUser->getPlatform()
+                            . "-"
+                            . $gameCloudUser->getLicense(),
                             "2 seconds"
                         ) ? true
                             : send_discord_webhook(
@@ -804,8 +804,8 @@ if (true
                                 array(
                                     "creation_date" => $date,
                                     "version" => $version,
-                                    "platform_id" => $platformID,
-                                    "license_id" => $licenseID,
+                                    "platform_id" => $gameCloudUser->getPlatform(),
+                                    "license_id" => $gameCloudUser->getLicense(),
                                     "product_id" => $productObject->id,
                                     "webhook_url" => $url,
                                     "details" => json_encode($details),
@@ -829,8 +829,8 @@ if (true
             }
         } else if ($data == "punishedPlayers") {
             $cacheKey = array(
-                $platformID,
-                $licenseID,
+                $gameCloudUser->getPlatform(),
+                $gameCloudUser->getLicense(),
                 $productObject->id,
                 $data
             );
@@ -884,8 +884,8 @@ if (true
                             ),
                             array(
                                 array("product_id", $productObject->id),
-                                array("license_id", $licenseID),
-                                array("platform_id", $platformID)
+                                array("license_id", $gameCloudUser->getLicense()),
+                                array("platform_id", $gameCloudUser->getPlatform())
                             ),
                             array(
                                 "DESC",
@@ -963,7 +963,7 @@ if (true
                                 if ($noPlayerIpAddress) {
                                     $playerIpAddress = "NULL";
                                 }
-                                $insertValues[] = "('$platformID', '$productObject->id', '$licenseID', '$version', '$date', '$date', '$uuid', $playerIpAddress)";
+                                $insertValues[] = "('" . $gameCloudUser->getPlatform() . "', '$productObject->id', '" . $gameCloudUser->getLicense() . "', '$version', '$date', '$date', '$uuid', $playerIpAddress)";
                                 $success = true;
                             }
                         }
