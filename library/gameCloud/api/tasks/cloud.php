@@ -362,7 +362,8 @@ if (true
                     60 * 60 * 12,
                     null,
                     "You are using an outdated version. Download your favorite plugin via"
-                    . " https://www.vagdedes.com/discord and save time with our Auto Updater."
+                    . " https://www.vagdedes.com/discord and save time with our Auto Updater.",
+                    false
                 );
                 echo "true";
             } else {

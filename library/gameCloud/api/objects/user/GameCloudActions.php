@@ -16,9 +16,10 @@ class GameCloudActions
                                          int|string|null  $minimumVersion, int|string|null $maximumVersion,
                                          int|string|null  $cooldown, int|string|null $duration,
                                          int|string|float $announcement,
+                                         bool             $checkValidity = true,
                                          bool             $avoidRedundantAnnouncements = true): bool
     {
-        if ($this->user->isValid()) {
+        if (!$checkValidity || $this->user->isValid()) {
             global $staff_announcements_table;
 
             if ((
@@ -248,7 +249,7 @@ class GameCloudActions
                 "plugin_version" => $pluginVersion,
                 "server_version" => $serverVersion,
                 "detections" => ($check . "|" . $detection),
-                "creation_date"=>get_current_date()
+                "creation_date" => get_current_date()
             ))) {
             return false;
         }
