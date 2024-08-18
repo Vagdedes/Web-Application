@@ -362,7 +362,7 @@ if (true
                     60 * 60 * 12,
                     null,
                     "You are using an outdated version. Download your favorite plugin via"
-                    . " https://www.idealistic.ai/discord and save time with our Auto Updater."
+                    . " https://www.vagdedes.com/discord and save time with our Auto Updater."
                 );
                 echo "true";
             } else {
@@ -572,7 +572,16 @@ if (true
                 );
 
                 if (!empty($query)) {
+                    $added = array();
+
                     foreach ($query as $arrayKey => $row) {
+                        $hash = string_to_integer($row->announcement);
+
+                        if (in_array($hash, $added)) {
+                            continue;
+                        } else {
+                            $added[] = $hash;
+                        }
                         $query[$arrayKey] = base64_encode(
                             $row->id
                             . $separator . $row->announcement
