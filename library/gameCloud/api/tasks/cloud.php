@@ -636,7 +636,8 @@ if (true
 
                 // Separator
 
-                if (!empty($value)) {
+                if ($gameCloudUser->isValid()
+                    && !empty($value)) {
                     $split = explode($separator, $value, 3);
 
                     if (sizeof($split) === 2
