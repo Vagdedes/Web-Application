@@ -963,14 +963,18 @@ if (true
                                 if ($noPlayerIpAddress) {
                                     $playerIpAddress = "NULL";
                                 }
-                                $insertValues[] = "('" . $gameCloudUser->getPlatform() . "', '$productObject->id', '" . $gameCloudUser->getLicense() . "', '$version', '$date', '$date', '$uuid', $playerIpAddress)";
+                                $platform = $gameCloudUser->getPlatform() == null ? "NULL" : $gameCloudUser->getPlatform();
+                                $license = $gameCloudUser->getLicense() == null ? "NULL" : $gameCloudUser->getLicense();
+                                $insertValues[] = "('$ipAddressModified', '$platform', '$productObject->id', '$license', '$version', '$date', '$date', '$uuid', $playerIpAddress)";
                                 $success = true;
                             }
                         }
 
                         if ($success) {
                             if (!empty($insertValues)) {
-                                sql_query("INSERT INTO $punished_players_table (platform_id, product_id, license_id, version, creation_date, last_access_date, uuid, player_ip_address) VALUES " . implode(", ", $insertValues) . ";");
+                                sql_query("INSERT INTO $punished_players_table "
+                                    . "(server_ip_address, platform_id, product_id, license_id, version, creation_date, last_access_date, uuid, player_ip_address) "
+                                    . "VALUES " . implode(", ", $insertValues) . ";");
                             }
                             echo "true";
                         } else {
