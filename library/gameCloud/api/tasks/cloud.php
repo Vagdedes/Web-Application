@@ -618,7 +618,8 @@ if (true
 
             if ($slots > 0) {
                 if ($account->exists()) {
-                    if ($account->getPurchases()->owns(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PRODUCT)) {
+                    if ($account->getPurchases()->owns(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PRODUCT)
+                        || $account->getPermissions()->hasPermission(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PERMISSION)) {
                         echo "-1";
                         return;
                     } else if ($slots < 20

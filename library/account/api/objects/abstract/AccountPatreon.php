@@ -26,7 +26,8 @@ class AccountPatreon
     );
 
     public const
-        DETECTION_SLOTS_20_PERMISSION = "patreon.spartan.detection.slots.20";
+        DETECTION_SLOTS_20_PERMISSION = "patreon.spartan.detection.slots.20",
+        DETECTION_SLOTS_UNLIMITED_PERMISSION = "patreon.spartan.detection.slots.unlimited";
 
     public function __construct(Account $account)
     {
