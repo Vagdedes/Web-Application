@@ -15,14 +15,18 @@ class AccountPatreon
         VISIONARY_PATREON_TIER = 21608146;
 
     public const
-        DETECTION_SLOTS_20_TIER = array(22435075, self::MOTIVATOR_PATREON_TIER, self::SPONSOR_PATREON_TIER),
+        DETECTION_SLOTS_20_TIER = array(
+        22435075,
+        self::MOTIVATOR_PATREON_TIER,
+        self::SPONSOR_PATREON_TIER
+    ),
         DETECTION_SLOTS_UNLIMITED_TIER = array(
-        23711252,
-        23711267,
-        23711279,
-        23711287,
-        23711293,
-        23711295,
+        23711252, // 6 months split
+        23711267, // 5 months split
+        23711279, // 4 months split
+        23711287, // 3 months split
+        23711293, // 2 months split
+        23711295, // Pay once
         self::VISIONARY_PATREON_TIER
     );
 
