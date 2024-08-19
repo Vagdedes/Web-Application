@@ -50,7 +50,16 @@ class AccountPatreon
                         self::DETECTION_SLOTS_20_PERMISSION
                     ));
                 } else {
-                    $this->retrieve = $this->find($name, null, false);
+                    $this->retrieve = $this->find($name, self::DETECTION_SLOTS_UNLIMITED_TIER);
+
+                    if ($this->retrieve->isPositiveOutcome()) {
+                        $this->account->getPermissions()->addSystemPermission(array(
+                            "patreon.subscriber",
+                            self::DETECTION_SLOTS_UNLIMITED_PERMISSION
+                        ));
+                    } else {
+                        $this->retrieve = $this->find($name, null, false);
+                    }
                 }
             } else {
                 $this->retrieve = new MethodReply(false);
