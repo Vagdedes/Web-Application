@@ -22,7 +22,8 @@ class AccountPatreon
         23711279,
         23711287,
         23711293,
-        23711295
+        23711295,
+        self::VISIONARY_PATREON_TIER
     );
 
     public const
