@@ -326,11 +326,6 @@ class AccountProduct
                         }
                         $object->identification = $identifications;
                     }
-                    if (!$hasProduct) {
-                        $cacheKeyCopy = $cacheKey;
-                        $cacheKeyCopy[sizeof($cacheKey) - 1] = $productID;
-                        set_key_value_pair($cacheKeyCopy, array($object), "1 minute"); // Update individual cache conveniently
-                    }
                 } else {
                     unset($array[$arrayKey]);
                 }
