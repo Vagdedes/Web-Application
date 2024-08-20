@@ -22,7 +22,6 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
     $results = array();
 
     // Separator
-    set_sql_cache();
     $blacklist = get_sql_query(
         "personal.expensesBlacklist",
         array("transaction_key", "transaction_value"),

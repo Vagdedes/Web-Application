@@ -14,7 +14,6 @@ class AccountNotifications
     public function getType(int|string $id): MethodReply
     {
         global $account_notification_types_table;
-        set_sql_cache();
         $query = get_sql_query(
             $account_notification_types_table,
             array("id", "name", "description", "creation_date"),
@@ -54,10 +53,6 @@ class AccountNotifications
                 "expiration_date" => get_future_date($duration),
             )
         )) {
-            $this->account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
-
             if ($run) {
                 $this->get($type, 1, true);
             }
@@ -72,7 +67,6 @@ class AccountNotifications
             return array();
         }
         global $account_notifications_table;
-        set_sql_cache(self::class);
         $date = get_current_date();
         $query = get_sql_query(
             $account_notifications_table,
@@ -91,8 +85,6 @@ class AccountNotifications
         );
 
         if ($complete && !empty($query)) {
-            $complete = false;
-
             foreach ($query as $row) {
                 if (set_sql_query(
                     $account_notifications_table,
@@ -121,14 +113,7 @@ class AccountNotifications
                             )
                         );
                     }
-                    $complete = true;
                 }
-            }
-
-            if ($complete) {
-                $this->account->clearMemory(self::class, function ($value) {
-                    return is_array($value);
-                });
             }
         }
         return $query;

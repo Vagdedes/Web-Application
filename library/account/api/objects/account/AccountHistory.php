@@ -24,9 +24,6 @@ class AccountHistory
                 "new_data" => $newData
             )
         )) {
-            $this->account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
             return true;
         }
         return false;
@@ -51,7 +48,6 @@ class AccountHistory
             return new MethodReply(false, $functionality->getMessage());
         }
         global $account_history_table;
-        set_sql_cache(self::class);
         return new MethodReply(
             true,
             null,

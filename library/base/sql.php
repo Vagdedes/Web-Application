@@ -238,20 +238,45 @@ function sql_build_order(string|array|null $order): ?string
 
 // Cache
 
-function get_sql_cache_key(mixed $key, mixed $value = null): string
+function sql_clear_cache(string $table, array $columns): bool
 {
-    return $value === null
-        ? serialize($key)
-        : substr(serialize(array($key => $value)), 5, -1);
-}
+    $retrieverTable = "memory.queryCacheRetriever";
+    $trackerTable = "memory.queryCacheTracker";
 
-function set_sql_cache(mixed $tag = null): void
-{
-}
+    if (in_array("*", $columns)) {
+        $columns[] = "*";
+    }
+    $query = sql_query(
+        "SELECT id, hash FROM " . $trackerTable
+        . " WHERE table_name = '$table' AND column_name IN ('" . implode("', '", $columns) . "');"
+    );
 
-function sql_clear_cache(string $table, array $columns): void
-{
+    if (($query->num_rows ?? 0) > 0) {
+        $ids = array();
+        $hashes = array();
 
+        while ($row = $query->fetch_assoc()) {
+            $ids[] = $row["id"];
+
+            if (!in_array($row["hash"], $hashes)) {
+                $hashes[] = $row["hash"];
+            }
+        }
+        $query = sql_query(
+            "DELETE FROM " . $retrieverTable
+            . " WHERE table_name = '$table' AND hash IN ('" . implode("', '", $hashes) . "');"
+        );
+
+        if ($query) {
+            $query = sql_query(
+                "DELETE FROM " . $trackerTable
+                . " WHERE id IN ('" . implode("', '", $ids) . "');"
+            );
+        }
+        return (bool)$query;
+    } else {
+        return false;
+    }
 }
 
 function sql_store_cache(string $table, array $query, array $columns,
@@ -268,34 +293,40 @@ function sql_store_cache(string $table, array $query, array $columns,
 
     if (strlen($store) <= 16314) {
         load_sql_database(SqlDatabaseCredentials::MEMORY);
-        $memoryTable = "memory.queryCacheRetriever";
+        $retrieverTable = "memory.queryCacheRetriever";
+        $trackerTable = "memory.queryCacheTracker";
 
         if ($cacheExists) {
             $query = sql_query(
-                "UPDATE " . $memoryTable
+                "UPDATE " . $retrieverTable
                 . " SET results = '$store' "
                 . "WHERE table_name = '$table' AND hash = '$hash';"
             );
+
+            if ($query) {
+                $query = sql_query(
+                    "DELETE FROM " . $trackerTable
+                    . " WHERE table_name = '$table' AND hash = '$hash';"
+                );
+            }
         } else {
             $query = sql_query(
-                "INSERT INTO " . $memoryTable
+                "INSERT INTO " . $retrieverTable
                 . " (table_name, hash, results) "
                 . "VALUES ('$table', '$hash', '$store');"
             );
+        }
+        if ($query) {
+            $columnsString = array();
 
-            if ($query) {
-                $memoryTable = "memory.queryCacheTracker";
-                $columnsString = array();
-
-                foreach ($columns as $column) {
-                    $columnsString[] = "('" . implode("', '", $column) . "')";
-                }
-                $query = sql_query(
-                    "INSERT INTO " . $memoryTable
-                    . " (table_name, column_name, hash) "
-                    . "VALUES " . implode(", ", $columnsString) . ";"
-                );
+            foreach ($columns as $column) {
+                $columnsString[] = "('" . implode("', '", $column) . "')";
             }
+            $query = sql_query(
+                "INSERT INTO " . $trackerTable
+                . " (table_name, column_name, hash) "
+                . "VALUES " . implode(", ", $columnsString) . ";"
+            );
         }
         load_previous_sql_database();
         return (bool)$query;

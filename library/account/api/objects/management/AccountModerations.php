@@ -30,7 +30,6 @@ class AccountModerations
                 null,
             );
         }
-        set_sql_cache();
         $array = get_sql_query(
             $moderations_table,
             array("id", "name"),
@@ -69,7 +68,6 @@ class AccountModerations
                 null,
             );
         }
-        set_sql_cache();
         $query = get_sql_query(
             $moderations_table,
             $hasSelect ? $select : array("id"),
@@ -140,12 +138,6 @@ class AccountModerations
                 "expiration_date" => ($duration ? get_future_date($duration) : null),
             )
         )) {
-            $this->account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
-            $account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
             return new MethodReply(true, "Executed moderation action successfully.");
         }
         return new MethodReply(false, "Failed to execute moderation action.");
@@ -196,12 +188,6 @@ class AccountModerations
             null,
             1
         )) {
-            $this->account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
-            $account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
             return new MethodReply(true, "Cancelled moderation action successfully.");
         }
         return new MethodReply(false, "Failed to execute moderation action.");
@@ -219,7 +205,6 @@ class AccountModerations
             }
         }
         global $executed_moderations_table;
-        set_sql_cache(self::class);
         $array = get_sql_query(
             $executed_moderations_table,
             null,
@@ -255,7 +240,6 @@ class AccountModerations
             }
         }
         global $executed_moderations_table;
-        set_sql_cache(self::class);
         return !empty(get_sql_query(
             $executed_moderations_table,
             array("id"),
@@ -276,7 +260,6 @@ class AccountModerations
     public function listReceivedActions(bool $active = true): array
     {
         global $executed_moderations_table;
-        set_sql_cache(self::class);
         $array = get_sql_query(
             $executed_moderations_table,
             null,
@@ -312,7 +295,6 @@ class AccountModerations
     public function listExecutedActions(bool $active = true): array
     {
         global $executed_moderations_table;
-        set_sql_cache(self::class);
         $array = get_sql_query(
             $executed_moderations_table,
             null,

@@ -259,7 +259,6 @@ if (true
     if ($action == "get") {
         if ($data == "disabledDetections") {
             $hasValue = is_numeric($value);
-            set_sql_cache();
             $query = get_sql_query(
                 $disabled_detections_table,
                 array("detections"),
@@ -373,7 +372,6 @@ if (true
                 echo $query[0]->license_id;
             }
         } else if ($data == "automaticConfigurationChanges") {
-            set_sql_cache();
             $query = get_sql_query(
                 $configuration_changes_table,
                 array("id", "file_name", "abstract_option", "value", "if_value"),
@@ -418,7 +416,6 @@ if (true
                         $result = "false";
 
                         if ($noPlayerIpAddress) {
-                            set_sql_cache();
                             $query = get_sql_query(
                                 $punished_players_table,
                                 array("id", "player_ip_address"),
@@ -432,7 +429,6 @@ if (true
                                 )
                             );
                         } else {
-                            set_sql_cache();
                             $query = get_sql_query(
                                 $punished_players_table,
                                 array("id", "player_ip_address"),
@@ -515,7 +511,6 @@ if (true
             }
         } else if ($data == "staffAnnouncements") {
             try {
-                set_sql_cache();
                 $query = get_sql_query(
                     $staff_announcements_table,
                     array("id", "announcement", "cooldown"),
@@ -570,7 +565,6 @@ if (true
             } catch (Throwable $ignored) {
             }
         } else if ($data == "detectionSlots") {
-            set_sql_cache();
             $query = get_sql_query(
                 $detection_slots_table,
                 array("slots"),

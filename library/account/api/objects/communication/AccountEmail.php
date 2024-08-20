@@ -133,9 +133,6 @@ class AccountEmail
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $account->clearMemory(self::class, function ($value) {
-            return is_array($value);
-        });
         $oldEmail = $account->getDetail("email_address");
         $change = $account->setDetail("email_address", $email);
 
@@ -204,9 +201,6 @@ class AccountEmail
                 ))) {
                 return new MethodReply(false, "Failed to interact with the database.");
             }
-            $this->account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
         } else {
             $token = $array[0]->token;
             $createdCode = $array[0]->code;
@@ -226,7 +220,6 @@ class AccountEmail
     public function isVerified(): bool
     {
         global $email_verifications_table;
-        set_sql_cache(self::class);
         return !empty(get_sql_query(
             $email_verifications_table,
             array("id"),

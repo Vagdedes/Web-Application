@@ -7,7 +7,6 @@ class AcceptedAccount
     public function __construct(?int $applicationID, int|string $id, string $name = null, bool $manual = true)
     {
         global $accepted_accounts_table;
-        set_sql_cache();
         $query = get_sql_query(
             $accepted_accounts_table,
             null,

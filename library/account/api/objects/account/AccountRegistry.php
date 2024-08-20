@@ -94,7 +94,6 @@ class AccountRegistry
         if (!$this->account->transform(null, $email, null, null, false)->exists()) {
             return new MethodReply(false, "Failed to find newly created account.");
         }
-        $this->account->clearMemory();
 
         if (!$this->account->getHistory()->add("register", null, $email)) {
             return new MethodReply(false, "Failed to update user history.");

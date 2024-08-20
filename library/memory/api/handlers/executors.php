@@ -96,12 +96,8 @@ function set_key_value_pair(mixed $key, mixed $value = null, int|string|null $fu
 function clear_memory(?array     $keys = null,
                       bool       $abstractSearch = false,
                       int|string $stopAfterSuccessfulIterations = 0,
-                      ?callable  $valueVerifier = null,
-                      ?array     $localSegments = null): void
+                      ?callable  $valueVerifier = null): void
 {
-    if ($localSegments === null) {
-        share_clear_memory($keys, $stopAfterSuccessfulIterations, $abstractSearch);
-    }
     if (!empty($keys)) {
         $hasLimit = is_numeric($stopAfterSuccessfulIterations) && $stopAfterSuccessfulIterations > 0;
 
@@ -113,7 +109,7 @@ function clear_memory(?array     $keys = null,
             }
         }
         if ($abstractSearch) {
-            $segments = is_array($localSegments) ? $localSegments : get_memory_segment_ids();
+            $segments = get_memory_segment_ids();
 
             if (!empty($segments)) {
                 foreach ($segments as $segment) {
@@ -168,7 +164,7 @@ function clear_memory(?array     $keys = null,
             }
         }
     } else {
-        $segments = is_array($localSegments) ? $localSegments : get_memory_segment_ids();
+        $segments = get_memory_segment_ids();
 
         if (!empty($segments)) {
             foreach ($segments as $segment) {

@@ -14,7 +14,6 @@ class AccountPurchases
         global $product_purchases_table;
         $array = array();
         $date = get_current_date();
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $product_purchases_table,
             null,
@@ -26,11 +25,8 @@ class AccountPurchases
         );
 
         if (!empty($query)) {
-            $clearMemory = false;
-
             foreach ($query as $row) {
                 if ($row->expiration_date !== null && $row->expiration_date < $date) {
-                    $clearMemory = true;
                     $product = $this->account->getProduct()->find($row->product_id);
 
                     if ($product->isPositiveOutcome()) {
@@ -55,12 +51,6 @@ class AccountPurchases
                         }
                     }
                 }
-            }
-
-            if ($clearMemory) {
-                $this->account->clearMemory(self::class, function ($value) {
-                    return is_array($value);
-                });
             }
         }
 
@@ -132,7 +122,6 @@ class AccountPurchases
     public function getExpired(): array
     {
         global $product_purchases_table;
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $product_purchases_table,
             null,
@@ -145,13 +134,10 @@ class AccountPurchases
         );
 
         if (!empty($query)) {
-            $clearMemory = false;
-
             foreach ($query as $key => $row) {
                 if ($row->expiration_notification === null) {
                     $row->expiration_notification = 1;
                     $query[$key] = $row;
-                    $clearMemory = true;
                     $product = $this->account->getProduct()->find($row->product_id);
 
                     if ($product->isPositiveOutcome()) {
@@ -163,12 +149,6 @@ class AccountPurchases
                     }
                 }
             }
-
-            if ($clearMemory) {
-                $this->account->clearMemory(self::class, function ($value) {
-                    return is_array($value);
-                });
-            }
         }
         return $query;
     }
@@ -176,7 +156,6 @@ class AccountPurchases
     public function getDeleted(): array
     {
         global $product_purchases_table;
-        set_sql_cache(self::class);
         return get_sql_query(
             $product_purchases_table,
             null,
@@ -362,9 +341,6 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $this->account->clearMemory(self::class, function ($value) {
-            return is_array($value);
-        });
 
         if (!$this->account->getHistory()->add("buy_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -373,7 +349,6 @@ class AccountPurchases
             if (!$this->account->getHistory()->add("use_coupon", null, $coupon)) {
                 return new MethodReply(false, "Failed to update user history (2).");
             }
-            $this->account->clearMemory(ProductCoupon::class);
         }
         if ($sendEmail !== null) {
             $details = array(
@@ -439,9 +414,6 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $this->account->clearMemory(self::class, function ($value) {
-            return is_array($value);
-        });
 
         if (!$this->account->getHistory()->add("remove_product", null, $productID)) {
             return new MethodReply(false, "Failed to update user history (1).");
@@ -524,9 +496,6 @@ class AccountPurchases
         )) {
             return new MethodReply(false, "Failed to interact with the database (3).");
         }
-        $this->account->clearMemory(self::class, function ($value) {
-            return is_array($value);
-        });
 
         if (!$this->account->getHistory()->add("exchange_product", $productID, $newProductID)) {
             return new MethodReply(false, "Failed to update user history.");

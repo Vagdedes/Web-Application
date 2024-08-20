@@ -26,7 +26,6 @@ class AccountPermissions
     {
         global $account_roles_table;
         $array = array();
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $account_roles_table,
             array("role_id"),
@@ -67,7 +66,6 @@ class AccountPermissions
             return true;
         } else {
             global $account_roles_table;
-            set_sql_cache();
             return !empty(get_sql_query(
                 $account_roles_table,
                 array("id"),
@@ -123,7 +121,6 @@ class AccountPermissions
     {
         global $account_permissions_table;
         $array = array();
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $account_permissions_table,
             array("permission"),

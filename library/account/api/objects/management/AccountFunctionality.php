@@ -41,7 +41,6 @@ class AccountFunctionality
                 null,
             );
         }
-        set_sql_cache();
         $array = get_sql_query(
             $functionalities_table,
             array("id", "name"),
@@ -84,7 +83,6 @@ class AccountFunctionality
                 null,
             );
         }
-        set_sql_cache();
         $query = get_sql_query(
             $functionalities_table,
             $hasSelect ? $select : array("id"),
@@ -188,12 +186,6 @@ class AccountFunctionality
                 "expiration_date" => ($duration ? get_future_date($duration) : null),
             )
         )) {
-            $this->account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
-            $account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
             return new MethodReply(true, "Blocked feature for user successfully.");
         }
         return new MethodReply(false);
@@ -243,12 +235,6 @@ class AccountFunctionality
             null,
             1
         )) {
-            $this->account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
-            $account->clearMemory(self::class, function ($value) {
-                return is_array($value);
-            });
             return new MethodReply(true, "Cancelled blocked feature of user successfully.");
         }
         return new MethodReply(false, "Failed to execute moderation action.");
@@ -266,7 +252,6 @@ class AccountFunctionality
             }
         }
         global $blocked_functionalities_table;
-        set_sql_cache(self::class);
         $array = get_sql_query(
             $blocked_functionalities_table,
             null,
@@ -302,7 +287,6 @@ class AccountFunctionality
             }
         }
         global $blocked_functionalities_table;
-        set_sql_cache(self::class);
         return !empty(get_sql_query(
             $blocked_functionalities_table,
             array("id"),
@@ -323,7 +307,6 @@ class AccountFunctionality
     public function listReceivedActions(bool $active = true): array
     {
         global $blocked_functionalities_table;
-        set_sql_cache(self::class);
         $array = get_sql_query(
             $blocked_functionalities_table,
             null,
@@ -359,7 +342,6 @@ class AccountFunctionality
     public function listExecutedActions(bool $active = true): array
     {
         global $blocked_functionalities_table;
-        set_sql_cache(self::class);
         $array = get_sql_query(
             $blocked_functionalities_table,
             null,

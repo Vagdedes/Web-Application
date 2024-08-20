@@ -6,7 +6,6 @@ function get_accepted_platforms(?array     $select = null, int|string $id = null
     global $accepted_platforms_table;
     $hasID = $id !== null;
     $hasAcceptedAccountID = $acceptedAccountID !== null;
-    set_sql_cache();
     return get_sql_query(
         $accepted_platforms_table,
         $select,

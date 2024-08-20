@@ -67,7 +67,6 @@ class AccountSession
     public function getAll(array $select = array("account_id"), int $limit = 0): array
     {
         global $account_sessions_table;
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $account_sessions_table,
             $select,
@@ -118,16 +117,6 @@ class AccountSession
         return $this->isCustom() || delete_all_cookies();
     }
 
-    private function clearTokenCache(int|string $token): void
-    {
-        clear_memory(array(
-            array(
-                self::class,
-                get_sql_cache_key("token", $token)
-            )
-        ), true, 1);
-    }
-
     public function find(): MethodReply
     {
         global $account_sessions_table;
@@ -139,7 +128,6 @@ class AccountSession
             $key = $hasCustomKey
                 ? $this->customKey
                 : string_to_integer($key, true);
-            set_sql_cache(self::class);
             $array = get_sql_query(
                 $account_sessions_table,
                 array("id", "account_id", "ip_address"),
@@ -162,47 +150,38 @@ class AccountSession
                 $account = $this->account->getNew($object->account_id);
 
                 if ($account->exists()) { // Check if session account exists
-                    if (!has_memory_cooldown(
-                        array(self::class,
-                            "refresh_session",
-                            "account_id" => $object->account_id,
-                            "token" => $key
-                        ), self::session_cache_time)) {
-                        $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
+                    $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
-                        if ($punishment->isPositiveOutcome()) {
-                            set_sql_query(
-                                $account_sessions_table,
-                                array(
-                                    "deletion_date" => $date
-                                ),
-                                array(
-                                    array("id", $object->id)
-                                ),
-                                null,
-                                1
-                            ); // Delete session from database
-                            $this->clearTokenCache($key);
-                            $account->clearMemory(self::class);
-                            return new MethodReply(
-                                false,
-                                null,
-                                $this->account->exists() ? $this->account->getNew(0) : $this->account
-                            );
-                        } else {
-                            set_sql_query(
-                                $account_sessions_table,
-                                array(
-                                    "modification_date" => $date,
-                                    "expiration_date" => get_future_date(self::session_account_refresh_expiration)
-                                ),
-                                array(
-                                    array("id", $object->id)
-                                ),
-                                null,
-                                1
-                            ); // Extend expiration date of session
-                        }
+                    if ($punishment->isPositiveOutcome()) {
+                        set_sql_query(
+                            $account_sessions_table,
+                            array(
+                                "deletion_date" => $date
+                            ),
+                            array(
+                                array("id", $object->id)
+                            ),
+                            null,
+                            1
+                        ); // Delete session from database
+                        return new MethodReply(
+                            false,
+                            null,
+                            $this->account->exists() ? $this->account->getNew(0) : $this->account
+                        );
+                    } else {
+                        set_sql_query(
+                            $account_sessions_table,
+                            array(
+                                "modification_date" => $date,
+                                "expiration_date" => get_future_date(self::session_account_refresh_expiration)
+                            ),
+                            array(
+                                array("id", $object->id)
+                            ),
+                            null,
+                            1
+                        ); // Extend expiration date of session
                     }
 
                     if ($object->ip_address === get_client_ip_address()
@@ -223,7 +202,6 @@ class AccountSession
                             null,
                             1
                         );
-                        $this->clearTokenCache($key);
                     }
                 }
             }
@@ -298,7 +276,6 @@ class AccountSession
                                 1
                             ); // Delete existing valid session
                         }
-                        $this->account->clearMemory(self::class);
                     }
                 }
                 if (sql_insert(
@@ -313,11 +290,9 @@ class AccountSession
                         "end_date" => get_future_date(self::session_account_total_expiration)
                     )
                 )) { // Insert information into the database
-                    $this->clearTokenCache($key);
                     return new MethodReply(true);
                 } else {
                     $this->deleteKey();
-                    $this->clearTokenCache($key);
                     return new MethodReply(false, "Failed to create session in the database.");
                 }
             } else {
@@ -357,8 +332,6 @@ class AccountSession
                     1
                 );
 
-                $this->clearTokenCache($key);
-                $this->account->clearMemory(self::class);
                 $this->account->getHistory()->add("log_out");
 
                 if (!empty($array)) { // Check if session exists

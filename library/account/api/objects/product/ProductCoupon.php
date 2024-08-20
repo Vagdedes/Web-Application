@@ -7,7 +7,6 @@ class ProductCoupon
     public function __construct(int|float|string $name, int|string $accountID, int|string $productID)
     {
         global $product_coupons_table;
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $product_coupons_table,
             array("discount", "uses"),
@@ -39,7 +38,6 @@ class ProductCoupon
             $query = $query[0];
             $uses = $query->uses;
             $discount = $query->discount;
-            set_sql_cache(self::class);
             $query = get_sql_query(
                 $product_purchases_table,
                 array("id"),

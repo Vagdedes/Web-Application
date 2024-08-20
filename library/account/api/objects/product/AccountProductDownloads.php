@@ -171,9 +171,6 @@ class AccountProductDownloads
                 );
             }
         }
-        $this->account->clearMemory(self::class, function ($value) {
-            return is_array($value);
-        });
         send_file_download($fileCopy, false);
         unlink($fileCopy);
         exit();
@@ -392,7 +389,6 @@ class AccountProductDownloads
     public function getList(bool $active = false, int $limit = 0): array
     {
         global $product_downloads_table;
-        set_sql_cache(self::class);
         return get_sql_query(
             $product_downloads_table,
             null,
@@ -409,7 +405,6 @@ class AccountProductDownloads
     function getCount(bool $active = false, int $limit = 0): int
     {
         global $product_downloads_table;
-        set_sql_cache(self::class);
         return sizeof(
             get_sql_query(
                 $product_downloads_table,

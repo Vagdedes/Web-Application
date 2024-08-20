@@ -7,7 +7,6 @@ class GameCloudConnection
     public function __construct(int|string $reason, string $key = "name")
     {
         global $accepted_purposes_table;
-        set_sql_cache();
         $query = get_sql_query(
             $accepted_purposes_table,
             null,

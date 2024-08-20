@@ -12,7 +12,6 @@ class AccountSettings
     public function get(string $option, mixed $default): MethodReply
     {
         global $account_settings_table;
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $account_settings_table,
             array("option_value"),
@@ -84,9 +83,6 @@ class AccountSettings
         if ($cooldown !== null) {
             $functionality->addInstantCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
         }
-        $this->account->clearMemory(self::class, function ($value) {
-            return is_array($value);
-        });
         return new MethodReply(true);
     }
 
@@ -153,9 +149,6 @@ class AccountSettings
         if ($cooldown !== null) {
             $functionality->addInstantCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
         }
-        $this->account->clearMemory(self::class, function ($value) {
-            return is_array($value);
-        });
         return new MethodReply(
             true,
             "Functionality successfully " . ($enabled ? "enabled." : "disabled."),

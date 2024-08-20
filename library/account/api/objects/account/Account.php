@@ -96,7 +96,6 @@ class Account
 
             if ($hasIdentification) {
                 global $account_identification_table;
-                set_sql_cache(self::class);
                 $query = get_sql_query(
                     $account_identification_table,
                     array("account_id"),
@@ -118,7 +117,6 @@ class Account
                 $runQuery = true;
             }
             if ($runQuery) {
-                set_sql_cache(self::class);
                 $query = get_sql_query(
                     $accounts_table,
                     null,
@@ -232,7 +230,6 @@ class Account
             )) {
                 return new MethodReply(false, "Failed to interact with the database.");
             }
-            $this->clearMemory(self::class);
             $this->object->{$detail} = $value;
         }
         return new MethodReply(true);
@@ -393,76 +390,12 @@ class Account
     {
         if ($this->exists()) {
             if (isset($this->transactions)) {
-                $this->transactions->clearCache();
                 $this->transactions->getSuccessful();
             }
             if (isset($this->email)
                 && !$this->email->isVerified()) {
                 $this->email->initiateVerification(null, $this->session->isCustom());
             }
-        }
-    }
-
-    public function clearMemory(mixed $key = null, ?callable $callable = null): void
-    {
-        if (isset($this->object->id)
-            && isset($this->object->name)
-            && isset($this->object->email_address)) {
-            $potentialKeys = 4;
-
-            if ($key === null) {
-                clear_memory(
-                    array(
-                        get_sql_cache_key("account_id", $this->object->id),
-                        get_sql_cache_key("id", $this->object->id),
-                        get_sql_cache_key("name", $this->object->name),
-                        get_sql_cache_key("email_address", $this->object->email_address)
-                    ),
-                    true,
-                    $potentialKeys,
-                    $callable
-                );
-            } else if (is_array($key)) {
-                $key1 = get_sql_cache_key("account_id", $this->object->id);
-                $key2 = get_sql_cache_key("id", $this->object->id);
-                $key3 = get_sql_cache_key("name", $this->object->name);
-                $key4 = get_sql_cache_key("email_address", $this->object->email_address);
-
-                foreach ($key as $item) {
-                    clear_memory(
-                        array(
-                            array($item, $key1),
-                            array($item, $key2),
-                            array($item, $key3),
-                            array($item, $key4)
-                        ),
-                        true,
-                        $potentialKeys,
-                        $callable
-                    );
-                }
-            } else {
-                clear_memory(
-                    array(array(
-                        $key,
-                        get_sql_cache_key("account_id", $this->object->id)
-                    ), array(
-                        $key,
-                        get_sql_cache_key("id", $this->object->id)
-                    ), array(
-                        $key,
-                        get_sql_cache_key("name", $this->object->name)
-                    ), array(
-                        $key,
-                        get_sql_cache_key("email_address", $this->object->email_address)
-                    )),
-                    true,
-                    $potentialKeys,
-                    $callable
-                );
-            }
-        } else if ($key !== null) {
-            clear_memory(array($key), true, 1);
         }
     }
 }

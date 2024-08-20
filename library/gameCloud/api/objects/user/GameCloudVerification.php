@@ -29,7 +29,6 @@ class GameCloudVerification
         $result = $this::ordinary_verification_value;
         $licenseID = $this->user->getLicense();
 
-        set_sql_cache();
         $query = get_sql_query(
             $license_management_table,
             array("type", "number", "expiration_date"),
@@ -174,9 +173,6 @@ class GameCloudVerification
             )) {
             return false;
         }
-        $this->user->clearMemory(self::class, function ($value) {
-            return is_numeric($value);
-        });
         return true;
     }
 }

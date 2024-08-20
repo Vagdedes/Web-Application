@@ -144,9 +144,6 @@ class AccountAccounts
             ))) {
             return new MethodReply(false, "Failed to interact with the database (1).");
         }
-        $this->account->clearMemory(self::class, function ($value) {
-            return is_array($value);
-        });
 
         if (!$this->account->getHistory()->add("add_account", null, $credential)) {
             return new MethodReply(false, "Failed to update user history.");
@@ -222,9 +219,6 @@ class AccountAccounts
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $this->account->clearMemory(self::class, function ($value) {
-            return is_array($value);
-        });
 
         if ($cooldown !== null) {
             $functionality->addInstantCooldown(AccountFunctionality::REMOVE_ACCOUNT, $cooldown);
@@ -239,7 +233,6 @@ class AccountAccounts
             return array();
         }
         global $added_accounts_table;
-        set_sql_cache(self::class);
         $array = get_sql_query(
             $added_accounts_table,
             null,
@@ -283,7 +276,6 @@ class AccountAccounts
             return new MethodReply(false);
         }
         global $added_accounts_table;
-        set_sql_cache(self::class);
         $array = get_sql_query(
             $added_accounts_table,
             array("credential"),

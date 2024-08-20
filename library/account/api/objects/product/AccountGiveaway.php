@@ -12,7 +12,6 @@ class AccountGiveaway
     public function hasWon(int|string $productID): bool
     {
         global $giveaway_winners_table;
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $giveaway_winners_table,
             array("giveaway_id"),
@@ -25,8 +24,6 @@ class AccountGiveaway
             global $product_giveaways_table;
 
             foreach ($query as $row) {
-                set_sql_cache(self::class);
-
                 if (!empty(get_sql_query(
                     $product_giveaways_table,
                     array("id"),
@@ -122,9 +119,6 @@ class AccountGiveaway
                         "expiration_date" => get_future_date($duration)
                     )
                 )) {
-                    clear_memory(array(self::class), true, 0, function ($value) {
-                        return is_array($value);
-                    });
                     return true;
                 }
             }
@@ -137,7 +131,6 @@ class AccountGiveaway
                                ?array          $exclude = null): MethodReply
     {
         global $product_giveaways_table;
-        set_sql_cache(self::class);
         $array = get_sql_query(
             $product_giveaways_table,
             array("id", "product_id", "expiration_date", "amount"),
@@ -233,7 +226,6 @@ class AccountGiveaway
     {
         if ($this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
             global $product_giveaways_table;
-            set_sql_cache(self::class);
             $giveaways = get_sql_query($product_giveaways_table,
                 array("id", "product_id"),
                 array(
@@ -256,7 +248,6 @@ class AccountGiveaway
                     return new MethodReply(false);
                 }
                 global $giveaway_winners_table;
-                set_sql_cache(self::class);
                 $winners = get_sql_query(
                     $giveaway_winners_table,
                     array("account_id"),

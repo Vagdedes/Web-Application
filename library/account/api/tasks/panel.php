@@ -726,7 +726,6 @@ if (is_private_connection()) {
                                 !empty(get_form_post("abstract")),
                                 get_form_post("limit"),
                                 null,
-                                !empty(get_form_post("global")) ? null : get_memory_segment_ids()
                             );
                         } else {
                             var_dump("No permission");
@@ -795,7 +794,6 @@ if (is_private_connection()) {
         addFormInput("text", "key", "Key");
         addFormInput("number", "abstract", "Abstract");
         addFormInput("number", "limit", "Limit");
-        addFormInput("number", "global", "Global");
         addFormSubmit($clearMemory, "Clear Memory");
         endForm();
 

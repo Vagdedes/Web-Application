@@ -69,7 +69,6 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
     global $email_plans_table;
 
     // Find plan
-    set_sql_cache();
     $query = get_sql_query(
         $email_plans_table,
         array("id", "test", "redundant", "title", "comments", "contents", "default_cooldown"),

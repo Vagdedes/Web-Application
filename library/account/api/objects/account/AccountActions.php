@@ -125,7 +125,6 @@ class AccountActions
                             );
                         }
                     }
-                    $this->account->clearMemory();
                     return new MethodReply(true, "User successfully deleted permanently.");
                 }
                 return new MethodReply(false, "Failed to delete account.");
@@ -144,7 +143,6 @@ class AccountActions
             )) {
                 return new MethodReply(false, "Failed to interact with the database.");
             }
-            $this->account->clearMemory();
             return new MethodReply(true, "User successfully deleted.");
         }
     }

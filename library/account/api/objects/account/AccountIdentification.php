@@ -16,7 +16,6 @@ class AccountIdentification
     {
         global $account_identification_table;
         $accountID = $this->account->getDetail("id");
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $account_identification_table,
             array("id", "code", "expiration_date"),
@@ -48,9 +47,6 @@ class AccountIdentification
                             "expiration_date" => get_future_date(self::expiration_time)
                         )
                     )) {
-                        $this->account->clearMemory(self::class, function ($value) {
-                            return is_array($value);
-                        });
                         $this->identification = $code;
                         return;
                     }
@@ -90,9 +86,6 @@ class AccountIdentification
                             null,
                             1
                         )) {
-                            $this->account->clearMemory(self::class, function ($value) {
-                                return is_array($value);
-                            });
                             $this->identification = $code;
                             return;
                         }

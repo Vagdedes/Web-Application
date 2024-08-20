@@ -64,7 +64,6 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
     global $discord_webhook_plans_table;
 
     // Find plan
-    set_sql_cache();
     $query = get_sql_query(
         $discord_webhook_plans_table,
         null,

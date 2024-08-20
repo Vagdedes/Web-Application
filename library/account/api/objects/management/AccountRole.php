@@ -9,7 +9,6 @@ class AccountRole
     public function __construct(?int $applicationID, int|string $id, bool $checkDeletion = true)
     {
         global $roles_table;
-        set_sql_cache();
         $query = get_sql_query(
             $roles_table,
             array("name", "prefix", "suffix", "public", "priority"),
@@ -72,7 +71,6 @@ class AccountRole
     public function hasPermission(string $permission): bool
     {
         global $role_permissions_table;
-        set_sql_cache(self::class);
         return !empty(get_sql_query(
             $role_permissions_table,
             array("id"),
@@ -90,7 +88,6 @@ class AccountRole
     {
         global $role_permissions_table;
         $array = array();
-        set_sql_cache(self::class);
         $query = get_sql_query(
             $role_permissions_table,
             array("permission"),
