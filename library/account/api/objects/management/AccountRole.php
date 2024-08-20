@@ -72,7 +72,7 @@ class AccountRole
     public function hasPermission(string $permission): bool
     {
         global $role_permissions_table;
-        set_sql_cache();
+        set_sql_cache(self::class);
         return !empty(get_sql_query(
             $role_permissions_table,
             array("id"),
@@ -88,30 +88,23 @@ class AccountRole
 
     public function getPermissions(): array
     {
-        $cacheKey = array(self::class, "role_id" => $this->id);
-        $cache = get_key_value_pair($cacheKey);
+        global $role_permissions_table;
+        $array = array();
+        set_sql_cache(self::class);
+        $query = get_sql_query(
+            $role_permissions_table,
+            array("permission"),
+            array(
+                array("role_id", $this->id),
+                array("deletion_date", null),
+            )
+        );
 
-        if (is_array($cache)) {
-            return $cache;
-        } else {
-            global $role_permissions_table;
-            $array = array();
-            $query = get_sql_query(
-                $role_permissions_table,
-                array("permission"),
-                array(
-                    array("role_id", $this->id),
-                    array("deletion_date", null),
-                )
-            );
-
-            if (!empty($query)) {
-                foreach ($query as $row) {
-                    $array[] = $row->permission;
-                }
+        if (!empty($query)) {
+            foreach ($query as $row) {
+                $array[] = $row->permission;
             }
-            set_key_value_pair($cacheKey, $array);
-            return $array;
         }
+        return $array;
     }
 }

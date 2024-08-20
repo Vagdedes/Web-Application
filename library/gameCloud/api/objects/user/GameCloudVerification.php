@@ -27,30 +27,14 @@ class GameCloudVerification
     {
         global $license_management_table;
         $result = $this::ordinary_verification_value;
-        $platform = $this->user->getPlatform();
         $licenseID = $this->user->getLicense();
 
-        // Cache
-        $cacheKey = array(
-            $platform,
-            $licenseID,
-            $fileID,
-            $productID,
-            $ipAddress,
-            self::class
-        );
-        $cache = get_key_value_pair($cacheKey);
-
-        if (is_numeric($cache)) {
-            return $cache;
-        }
-
-        // Live
+        set_sql_cache();
         $query = get_sql_query(
             $license_management_table,
             array("type", "number", "expiration_date"),
             array(
-                array("platform_id", $platform),
+                array("platform_id", $this->user->getPlatform()),
                 array("deletion_date", null),
                 null,
                 array("number", "=", $licenseID, 0),
@@ -87,7 +71,6 @@ class GameCloudVerification
                 }
             }
         }
-        set_key_value_pair($cacheKey, $result, "1 hour");
         return $result;
     }
 

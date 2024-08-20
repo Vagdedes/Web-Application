@@ -24,49 +24,41 @@ class AccountPermissions
 
     public function getRoles(): array
     {
-        $accountID = $this->account->getDetail("id");
-        $cacheKey = array(self::class, "account_id" => $accountID, "roles");
-        $cache = get_key_value_pair($cacheKey);
+        global $account_roles_table;
+        $array = array();
+        set_sql_cache(self::class);
+        $query = get_sql_query(
+            $account_roles_table,
+            array("role_id"),
+            array(
+                array("account_id", $this->account->getDetail("id")),
+                array("creation_date", "IS NOT", null),
+                array("deletion_date", null),
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
+            )
+        );
 
-        if (is_array($cache)) {
-            return $cache;
-        } else {
-            global $account_roles_table;
-            $array = array();
-            $query = get_sql_query(
-                $account_roles_table,
-                array("role_id"),
-                array(
-                    array("account_id", $accountID),
-                    array("creation_date", "IS NOT", null),
-                    array("deletion_date", null),
-                    null,
-                    array("expiration_date", "IS", null, 0),
-                    array("expiration_date", ">", get_current_date()),
-                    null
-                )
-            );
+        if (!empty($query)) {
+            foreach ($query as $row) {
+                $role = new AccountRole(
+                    $this->account->getDetail("application_id"),
+                    $row->role_id
+                );
 
-            if (!empty($query)) {
-                foreach ($query as $row) {
-                    $role = new AccountRole(
-                        $this->account->getDetail("application_id"),
-                        $row->role_id
-                    );
-
-                    if ($role->exists()) {
-                        $array[] = $role;
-                    }
+                if ($role->exists()) {
+                    $array[] = $role;
                 }
             }
-            $array[] = new AccountRole(
-                $this->account->getDetail("application_id"),
-                $this->defaultRoleID,
-                false
-            );
-            set_key_value_pair($cacheKey, $array);
-            return $array;
         }
+        $array[] = new AccountRole(
+            $this->account->getDetail("application_id"),
+            $this->defaultRoleID,
+            false
+        );
+        return $array;
     }
 
     public function hasRole(int|string $role): bool
@@ -129,36 +121,28 @@ class AccountPermissions
 
     public function getGivenPermissions(): array
     {
-        $accountID = $this->account->getDetail("id");
-        $cacheKey = array(self::class, "account_id" => $accountID, "given");
-        $cache = get_key_value_pair($cacheKey);
+        global $account_permissions_table;
+        $array = array();
+        set_sql_cache(self::class);
+        $query = get_sql_query(
+            $account_permissions_table,
+            array("permission"),
+            array(
+                array("account_id", $this->account->getDetail("id")),
+                array("deletion_date", null),
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
+            )
+        );
 
-        if (is_array($cache)) {
-            return $cache;
-        } else {
-            global $account_permissions_table;
-            $array = array();
-            $query = get_sql_query(
-                $account_permissions_table,
-                array("permission"),
-                array(
-                    array("account_id", $accountID),
-                    array("deletion_date", null),
-                    null,
-                    array("expiration_date", "IS", null, 0),
-                    array("expiration_date", ">", get_current_date()),
-                    null
-                )
-            );
-
-            if (!empty($query)) {
-                foreach ($query as $row) {
-                    $array[] = $row->permission;
-                }
+        if (!empty($query)) {
+            foreach ($query as $row) {
+                $array[] = $row->permission;
             }
-            set_key_value_pair($cacheKey, $array);
-            return $array;
         }
+        return $array;
     }
 
     public function getSystemPermissions(): array

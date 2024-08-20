@@ -18,18 +18,6 @@ class AccountTransactions
 
     public function getSuccessful(mixed $types = null, int $limit = PaymentProcessor::limit): array
     {
-        $cacheKey = array(
-            self::class,
-            "account_id" => $this->account->getDetail("id"),
-            $types,
-            $limit,
-            "successful"
-        );
-        $cache = get_key_value_pair($cacheKey);
-
-        if (is_array($cache)) {
-            return $cache;
-        }
         $array = array();
 
         foreach ($this->getTypes($types) as $transactionType) {
@@ -65,32 +53,6 @@ class AccountTransactions
             }
             $array = array_merge($array, $loopArray);
         }
-        set_key_value_pair($cacheKey, $array);
-        return $array;
-    }
-
-    public function getFailed(mixed $types = null, int $limit = PaymentProcessor::limit): array
-    {
-        $cacheKey = array(
-            self::class,
-            "account_id" => $this->account->getDetail("id"),
-            $types,
-            $limit,
-            "failed"
-        );
-        $cache = get_key_value_pair($cacheKey);
-
-        if (is_array($cache)) {
-            return $cache;
-        }
-        $array = array();
-
-        foreach ($this->getTypes($types) as $transactionType) {
-            foreach (get_failed_paypal_transactions($limit) as $transaction) {
-                $array[] = $transaction;
-            }
-        }
-        set_key_value_pair($cacheKey, $array);
         return $array;
     }
 

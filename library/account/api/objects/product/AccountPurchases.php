@@ -11,20 +11,10 @@ class AccountPurchases
 
     public function getCurrent(bool $databaseOnly = false): array
     {
-        $cacheKey = array(
-            self::class,
-            "account_id" => $this->account->getDetail("id"),
-            "current",
-            $databaseOnly
-        );
-        $cache = get_key_value_pair($cacheKey);
-
-        if (is_array($cache)) {
-            return $cache;
-        }
         global $product_purchases_table;
         $array = array();
         $date = get_current_date();
+        set_sql_cache(self::class);
         $query = get_sql_query(
             $product_purchases_table,
             null,
@@ -136,7 +126,6 @@ class AccountPurchases
                 }
             }
         }
-        set_key_value_pair($cacheKey, $array);
         return $array;
     }
 

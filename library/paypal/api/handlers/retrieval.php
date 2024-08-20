@@ -55,9 +55,17 @@ function find_paypal_transactions_by_data_pair(array $keyValueArray, int $limit 
 function queue_paypal_transaction(int|string $transactionID): bool
 {
     global $paypal_transactions_queue_table;
-    $query = sql_query("SELECT id FROM $paypal_transactions_queue_table WHERE transaction_id = '$transactionID';");
+    $query = get_sql_query(
+        $paypal_transactions_queue_table,
+        array("transaction_id"),
+        array(
+            array("transaction_id", $transactionID)
+        ),
+        null,
+        1
+    );
 
-    if (!isset($query->num_rows) || $query->num_rows === 0) {
+    if (empty($query)) {
         return sql_insert(
                 $paypal_transactions_queue_table,
                 array("transaction_id" => $transactionID),

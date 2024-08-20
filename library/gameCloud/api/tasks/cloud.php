@@ -259,82 +259,69 @@ if (true
     if ($action == "get") {
         if ($data == "disabledDetections") {
             $hasValue = is_numeric($value);
-            $cacheKey = array(
-                $hasValue ? $value : null,
-                $version,
-                $gameCloudUser->getPlatform(),
-                $gameCloudUser->getLicense(),
-                $data
-            );
-            $cache = get_key_value_pair($cacheKey);
-
-            if ($cache !== null) {
-                echo $cache;
-            } else {
-                $query = get_sql_query(
-                    $disabled_detections_table,
-                    array("detections"),
-                    array(
-                        array("deletion_date", null),
-                        $hasValue ? array("server_version", ">=", $value) : array("server_version", null),
-                        null,
-                        array("plugin_version", "IS", null, 0),
-                        array("plugin_version", $version),
-                        null,
-                        null,
-                        array("platform_id", "IS", null, 0),
-                        array("platform_id", $gameCloudUser->getPlatform()),
-                        null,
-                        null,
-                        array("license_id", "IS", null, 0),
-                        array("license_id", $gameCloudUser->getLicense()),
-                        null,
-                    ),
+            set_sql_cache();
+            $query = get_sql_query(
+                $disabled_detections_table,
+                array("detections"),
+                array(
+                    array("deletion_date", null),
+                    $hasValue ? array("server_version", ">=", $value) : array("server_version", null),
                     null,
-                    25
-                );
-                $result = "";
+                    array("plugin_version", "IS", null, 0),
+                    array("plugin_version", $version),
+                    null,
+                    null,
+                    array("platform_id", "IS", null, 0),
+                    array("platform_id", $gameCloudUser->getPlatform()),
+                    null,
+                    null,
+                    array("license_id", "IS", null, 0),
+                    array("license_id", $gameCloudUser->getLicense()),
+                    null,
+                ),
+                null,
+                25
+            );
+            $result = "";
 
-                if (!empty($query)) {
-                    $array = array();
+            if (!empty($query)) {
+                $array = array();
 
-                    foreach ($query as $row) {
-                        $blocks = explode(" ", $row->detections);
+                foreach ($query as $row) {
+                    $blocks = explode(" ", $row->detections);
 
-                        foreach ($blocks as $block) {
-                            $detections = explode("|", $block);
+                    foreach ($blocks as $block) {
+                        $detections = explode("|", $block);
 
-                            if (sizeof($detections) >= 2) {
-                                $check = $detections[0];
-                                unset($detections[0]);
+                        if (sizeof($detections) >= 2) {
+                            $check = $detections[0];
+                            unset($detections[0]);
 
-                                if (array_key_exists($check, $array)) {
-                                    $storedDetections = $array[$check];
+                            if (array_key_exists($check, $array)) {
+                                $storedDetections = $array[$check];
 
-                                    foreach ($detections as $detection) {
-                                        if (!in_array($detection, $storedDetections)) {
-                                            $array[$check][] = $detection;
-                                        }
+                                foreach ($detections as $detection) {
+                                    if (!in_array($detection, $storedDetections)) {
+                                        $array[$check][] = $detection;
                                     }
-                                } else {
-                                    $array[$check] = $detections;
                                 }
+                            } else {
+                                $array[$check] = $detections;
                             }
                         }
                     }
-                    $result = implode(
-                        $line,
-                        array_map(
-                            function ($key, $value) {
-                                return $key . "|" . implode("|", $value);
-                            },
-                            array_keys($array),
-                            $array
-                        )
-                    );
-                    echo $result;
                 }
-                set_key_value_pair($cacheKey, $result, "1 minute");
+                $result = implode(
+                    $line,
+                    array_map(
+                        function ($key, $value) {
+                            return $key . "|" . implode("|", $value);
+                        },
+                        array_keys($array),
+                        $array
+                    )
+                );
+                echo $result;
             }
         } else if ($data == "outdatedVersionCheck") {
             $outdatedVersionCheck_refreshRate = array(1, "hour");
@@ -427,19 +414,11 @@ if (true
                     $noPlayerIpAddress = $playerIpAddress == "NULL";
                     $playerIpAddress = $noPlayerIpAddress ? null : string_to_integer($playerIpAddress, true);
 
-                    $cacheKey = array(
-                        $uuid,
-                        $playerIpAddress,
-                        $data
-                    );
-                    $cache = get_key_value_pair($cacheKey);
-
-                    if (is_string($cache)) {
-                        echo $cache;
-                    } else if ($noPlayerIpAddress || is_ip_address($playerIpAddress)) {
+                    if ($noPlayerIpAddress || is_ip_address($playerIpAddress)) {
                         $result = "false";
 
                         if ($noPlayerIpAddress) {
+                            set_sql_cache();
                             $query = get_sql_query(
                                 $punished_players_table,
                                 array("id", "player_ip_address"),
@@ -453,6 +432,7 @@ if (true
                                 )
                             );
                         } else {
+                            set_sql_cache();
                             $query = get_sql_query(
                                 $punished_players_table,
                                 array("id", "player_ip_address"),
@@ -520,7 +500,6 @@ if (true
                                 }
                             }
                         }
-                        set_key_value_pair($cacheKey, $result, "10 seconds");
                         echo $result;
                     }
                 }
@@ -964,18 +943,38 @@ if (true
                                 if ($noPlayerIpAddress) {
                                     $playerIpAddress = "NULL";
                                 }
-                                $platform = $gameCloudUser->getPlatform() == null ? "NULL" : $gameCloudUser->getPlatform();
-                                $license = $gameCloudUser->getLicense() == null ? "NULL" : $gameCloudUser->getLicense();
-                                $insertValues[] = "('$ipAddressModified', '$platform', '$productObject->id', '$license', '$version', '$date', '$date', '$uuid', $playerIpAddress)";
+                                $insertValues[] = array(
+                                    $ipAddressModified,
+                                    $gameCloudUser->getPlatform(),
+                                    $productObject->id,
+                                    $gameCloudUser->getLicense(),
+                                    $version,
+                                    $date,
+                                    $date,
+                                    $uuid,
+                                    $playerIpAddress
+                                );
                                 $success = true;
                             }
                         }
 
                         if ($success) {
                             if (!empty($insertValues)) {
-                                sql_query("INSERT INTO $punished_players_table "
-                                    . "(server_ip_address, platform_id, product_id, license_id, version, creation_date, last_access_date, uuid, player_ip_address) "
-                                    . "VALUES " . implode(", ", $insertValues) . ";");
+                                sql_insert_multiple(
+                                    $punished_players_table,
+                                    array(
+                                        "server_ip_address",
+                                        "platform_id",
+                                        "product_id",
+                                        "license_id",
+                                        "version",
+                                        "creation_date",
+                                        "last_access_date",
+                                        "uuid",
+                                        "player_ip_address"
+                                    ),
+                                    $insertValues
+                                );
                             }
                             echo "true";
                         } else {

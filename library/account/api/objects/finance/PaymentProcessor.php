@@ -196,7 +196,7 @@ class PaymentProcessor
                                     }
                                     if ($isIndividual) {
                                         if ($failedTransactions === null) {
-                                            $failedTransactions = $account->getTransactions()->getFailed(null, $productCount);
+                                            $failedTransactions = get_failed_paypal_transactions();
                                         }
                                         if (in_array($transactionID, $failedTransactions)) {
                                             $account->getPurchases()->remove($product->id, $transactionSearchProperties->tier_id, $transactionID);

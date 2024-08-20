@@ -416,19 +416,41 @@ function sql_query(string $command): mixed
 
 function sql_insert(string $table, array $pairs)
 {
-    $columnsArray = "";
-    $valuesArray = "";
+    $columnsArray = array();
+    $valuesArray = array();
 
     foreach ($pairs as $column => $value) {
-        $columnsArray .= properly_sql_encode($column) . ", ";
-        $valuesArray .= ($value === null ? "NULL, " :
-            (is_bool($value) ? ($value ? "'1', " : "NULL, ") :
-                "'" . properly_sql_encode($value, true) . "', "));
+        $columnsArray [] = properly_sql_encode($column);
+        $valuesArray [] = ($value === null ? "NULL" :
+            (is_bool($value) ? ($value ? "'1'" : "NULL") :
+                "'" . properly_sql_encode($value, true) . "'"));
     }
-    $columnsArray = substr($columnsArray, 0, -2);
-    $valuesArray = substr($valuesArray, 0, -2);
+    $columnsArray = implode(", ", $columnsArray);
+    $valuesArray = implode(", ", $valuesArray);
     $table = properly_sql_encode($table);
     return sql_query("INSERT INTO $table ($columnsArray) VALUES ($valuesArray);");
+}
+
+function sql_insert_multiple(string $table, array $columns, array $values)
+{
+    $columnsArray = array();
+    $valuesArray = array();
+
+    foreach ($columns as $column) {
+        $columnsArray [] = properly_sql_encode($column);
+    }
+    foreach ($values as $subValues) {
+        foreach ($subValues as $key => $value) {
+            $subValues[$key] = ($value === null ? "NULL" :
+                (is_bool($value) ? ($value ? "'1'" : "NULL") :
+                    "'" . properly_sql_encode($value, true) . "'"));
+        }
+        $valuesArray [] = "(" . implode(", ", $subValues) . ")";
+    }
+    $columnsArray = implode(", ", $columnsArray);
+    $valuesArray = implode(", ", $valuesArray);
+    $table = properly_sql_encode($table);
+    return sql_query("INSERT INTO $table ($columnsArray) VALUES $valuesArray;");
 }
 
 // Set
