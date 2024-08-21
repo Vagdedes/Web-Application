@@ -51,15 +51,6 @@ class AccountObjectives
                     true,
                     "7 days"
                 );
-            } else if ($this->account->getPatreon()->retrieve()->isPositiveOutcome()) {
-                if (empty($this->account->getPatreon()->retrieve()->getMessage())) {
-                    $array = $this->create(
-                        $array,
-                        "Thanks for subscribing to our free Patreon!",
-                        "We also offer one-time purchases. "
-                        . "Check <#760150094225211413> for more info!"
-                    );
-                }
             }
             return $array;
         }
