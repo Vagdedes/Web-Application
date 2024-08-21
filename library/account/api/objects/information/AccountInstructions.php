@@ -6,10 +6,11 @@ class AccountInstructions
     private const AI_HASH = 596802337;
 
     private Account $account;
-    private array
+    private ?array
         $localInstructions,
         $publicInstructions,
-        $replacements,
+        $replacements;
+    private array
         $extra,
         $deleteExtra,
         $containsCache;
@@ -21,42 +22,26 @@ class AccountInstructions
         $this->extra = array();
         $this->deleteExtra = array();
         $this->containsCache = array();
-        $this->localInstructions = $this->calculateContains(get_sql_query(
-            InstructionsTable::LOCAL,
-            null,
-            array(
-                array("deletion_date", null),
-                null,
-                array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", get_current_date()),
-                null
-            ),
-            "priority DESC"
-        ));
-        $this->publicInstructions = $this->calculateContains(get_sql_query(
-            InstructionsTable::PUBLIC,
-            null,
-            array(
-                array("deletion_date", null),
-                null,
-                array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", get_current_date()),
-                null
-            ),
-            "priority DESC"
-        ));
+        $this->localInstructions = null;
+        $this->publicInstructions = null;
+        $this->replacements = null;
+    }
 
-        $this->replacements = get_sql_query(
-            InstructionsTable::REPLACEMENTS,
-            null,
-            array(
-                array("deletion_date", null),
+    private function cacheReplacements(): void
+    {
+        if ($this->replacements === null) {
+            $this->replacements = get_sql_query(
+                InstructionsTable::REPLACEMENTS,
                 null,
-                array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", get_current_date()),
-                null
-            )
-        );
+                array(
+                    array("deletion_date", null),
+                    null,
+                    array("expiration_date", "IS", null, 0),
+                    array("expiration_date", ">", get_current_date()),
+                    null
+                )
+            );
+        }
     }
 
     public function setAI(?ManagerAI $chatAI): void
@@ -312,6 +297,21 @@ class AccountInstructions
 
     public function getLocal(?array $allow = null, ?string $userInput = null): array
     {
+        if ($this->localInstructions === null) {
+            $this->localInstructions = $this->calculateContains(get_sql_query(
+                InstructionsTable::LOCAL,
+                null,
+                array(
+                    array("deletion_date", null),
+                    null,
+                    array("expiration_date", "IS", null, 0),
+                    array("expiration_date", ">", get_current_date()),
+                    null
+                ),
+                "priority DESC"
+            ));
+            $this->cacheReplacements();
+        }
         $array = $this->localInstructions;
 
         if (!empty($array)) {
@@ -350,6 +350,21 @@ class AccountInstructions
 
     public function getPublic(?array $allow = null, ?string $userInput = null, bool $refresh = true): array
     {
+        if ($this->publicInstructions === null) {
+            $this->publicInstructions = $this->calculateContains(get_sql_query(
+                InstructionsTable::PUBLIC,
+                null,
+                array(
+                    array("deletion_date", null),
+                    null,
+                    array("expiration_date", "IS", null, 0),
+                    array("expiration_date", ">", get_current_date()),
+                    null
+                ),
+                "priority DESC"
+            ));
+            $this->cacheReplacements();
+        }
         $array = $this->publicInstructions;
 
         if (!empty($array)) {

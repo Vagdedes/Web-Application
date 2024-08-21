@@ -5,14 +5,15 @@ class AccountSession
     private Account $account;
     private ?int $customKey, $type;
 
-    private const session_key_name = "vagdedes_account_session",
+    private const
+        session_key_name = "vagdedes_account_session",
         session_account_refresh_expiration = "2 days",
         session_account_total_expiration = "15 days",
         session_max_creation_tries = 100;
 
-    public const session_token_length = 128,
-        session_cookie_expiration = 86400 * 3,
-        session_cache_time = "1 minute";
+    public const
+        session_token_length = 128,
+        session_cookie_expiration = 86400 * 3;
 
     public function __construct(Account $account)
     {
@@ -53,8 +54,6 @@ class AccountSession
             $select,
             array(
                 array("expiration_date", ">", $date),
-                array("end_date", ">", $date),
-                array("deletion_date", null)
             ),
             array(
                 "DESC",
@@ -117,7 +116,7 @@ class AccountSession
         return $this->isCustom() || delete_all_cookies();
     }
 
-    public function find(): MethodReply
+    public function find(bool $checkIpAddress = true): MethodReply
     {
         global $account_sessions_table;
         $key = $this->createKey();
@@ -130,13 +129,12 @@ class AccountSession
                 : string_to_integer($key, true);
             $array = get_sql_query(
                 $account_sessions_table,
-                array("id", "account_id", "ip_address"),
+                array("id", "account_id", "ip_address", "creation_date"),
                 array(
                     array("type", $this->type),
                     array("token", $key),
                     array("expiration_date", ">", $date),
-                    array("end_date", ">", $date),
-                    array("deletion_date", null)
+                    $checkIpAddress ? array("ip_address", get_client_ip_address()) : ""
                 ),
                 array(
                     "DESC",
@@ -150,59 +148,22 @@ class AccountSession
                 $account = $this->account->getNew($object->account_id);
 
                 if ($account->exists()) { // Check if session account exists
-                    $punishment = $account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
-
-                    if ($punishment->isPositiveOutcome()) {
-                        set_sql_query(
-                            $account_sessions_table,
-                            array(
-                                "deletion_date" => $date
-                            ),
-                            array(
-                                array("id", $object->id)
-                            ),
-                            null,
-                            1
-                        ); // Delete session from database
-                        return new MethodReply(
-                            false,
-                            null,
-                            $this->account->exists() ? $this->account->getNew(0) : $this->account
-                        );
-                    } else {
-                        set_sql_query(
-                            $account_sessions_table,
-                            array(
-                                "modification_date" => $date,
-                                "expiration_date" => get_future_date(self::session_account_refresh_expiration)
-                            ),
-                            array(
-                                array("id", $object->id)
-                            ),
-                            null,
-                            1
-                        ); // Extend expiration date of session
-                    }
-
-                    if ($object->ip_address === get_client_ip_address()
-                        || $account->getPermissions()->isAdministrator()
-                        && $account->getSettings()->isEnabled("two_factor_authentication")) { // Check if IP address is the same or the user is an administrator
-                        return new MethodReply(true, null, $account);
-                    } else {
-                        global $account_sessions_table;
-                        $this->deleteKey();
-                        set_sql_query(
-                            $account_sessions_table,
-                            array(
-                                "deletion_date" => $date
-                            ),
-                            array(
-                                array("token", $key)
-                            ),
-                            null,
-                            1
-                        );
-                    }
+                    $maxTime = strtotime($object->creation_date) + strtotime(self::session_account_total_expiration);
+                    set_sql_query(
+                        $account_sessions_table,
+                        array(
+                            "expiration_date" => min(
+                                get_future_date(self::session_account_refresh_expiration),
+                                date('Y-m-d H:i:s', $maxTime)
+                            )
+                        ),
+                        array(
+                            array("id", $object->id)
+                        ),
+                        null,
+                        1
+                    ); // Extend expiration date of session
+                    return new MethodReply(true, null, $account);
                 }
             }
         } else { // Delete session cookie if key is at incorrect length
@@ -256,8 +217,6 @@ class AccountSession
                         array("id"),
                         array(
                             array("account_id", $this->account->getDetail("id")),
-                            array("deletion_date", null),
-                            array("end_date", ">", $date),
                             array("expiration_date", ">", $date)
                         )
                     ); // Search for existing sessions that may be valid
@@ -267,7 +226,7 @@ class AccountSession
                             set_sql_query(
                                 $account_sessions_table,
                                 array(
-                                    "deletion_date" => $date
+                                    "expiration_date" => $date
                                 ),
                                 array(
                                     array("id", $object->id)
@@ -287,7 +246,6 @@ class AccountSession
                         "account_id" => $this->account->getDetail("id"),
                         "creation_date" => $date,
                         "expiration_date" => get_future_date(self::session_account_refresh_expiration),
-                        "end_date" => get_future_date(self::session_account_total_expiration)
                     )
                 )) { // Insert information into the database
                     return new MethodReply(true);
@@ -321,8 +279,6 @@ class AccountSession
                     array(
                         array("type", $this->type),
                         array("token", $key),
-                        array("deletion_date", null),
-                        array("end_date", ">", $date),
                         array("expiration_date", ">", $date)
                     ),
                     array(
@@ -338,7 +294,7 @@ class AccountSession
                     set_sql_query(
                         $account_sessions_table,
                         array(
-                            "deletion_date" => $date
+                            "expiration_date" => $date
                         ),
                         array(
                             array("id", $array[0]->id)
