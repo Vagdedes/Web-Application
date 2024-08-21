@@ -70,14 +70,18 @@ class AccountActions
         if (!$this->account->getHistory()->add("log_in")) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $session = $this->account->getSession()->create();
+        $session = $this->account->getSession()->find();
 
         if (!$session->isPositiveOutcome()) {
-            return new MethodReply(false, $session->getMessage());
+            $session = $this->account->getSession()->create();
+
+            if (!$session->isPositiveOutcome()) {
+                return new MethodReply(false, $session->getMessage());
+            }
         }
         $functionality->addInstantCooldown(AccountFunctionality::LOG_IN, self::log_in_out_cooldown);
         $this->account->refresh();
-        return new MethodReply(true, "You have been logged in.");
+        return new MethodReply(true);
     }
 
     public function logOut(): MethodReply

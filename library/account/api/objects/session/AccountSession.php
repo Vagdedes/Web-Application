@@ -210,14 +210,14 @@ class AccountSession
                 );
 
             if (empty($array)) { // Check if session does not exist
-                if (!$this->account->getPermissions()->isAdministrator()
-                    || !$this->account->getSettings()->isEnabled("two_factor_authentication")) {
+                if (!$this->account->getSettings()->isEnabled("two_factor_authentication")) {
                     $array = get_sql_query(
                         $account_sessions_table,
                         array("id"),
                         array(
                             array("account_id", $this->account->getDetail("id")),
-                            array("expiration_date", ">", $date)
+                            array("expiration_date", ">", $date),
+                            array("type", $this->type)
                         )
                     ); // Search for existing sessions that may be valid
 
@@ -280,12 +280,7 @@ class AccountSession
                         array("type", $this->type),
                         array("token", $key),
                         array("expiration_date", ">", $date)
-                    ),
-                    array(
-                        "DESC",
-                        "id"
-                    ),
-                    1
+                    )
                 );
 
                 $this->account->getHistory()->add("log_out");
