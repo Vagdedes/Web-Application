@@ -34,6 +34,8 @@ class AccountPatreon
         DETECTION_SLOTS_20_PERMISSION = "patreon.spartan.detection.slots.20",
         DETECTION_SLOTS_UNLIMITED_PERMISSION = "patreon.spartan.detection.slots.unlimited";
 
+    public const DETECTION_SLOTS_UNLIMITED_REQUIRED_EUR = 50;
+
     public function __construct(Account $account)
     {
         $this->account = $account;
@@ -64,6 +66,18 @@ class AccountPatreon
                         ));
                     } else {
                         $this->retrieve = $this->find($name, null, false);
+
+                        if ($this->retrieve->isPositiveOutcome()) {
+                            $object = $this->retrieve->getObject();
+
+                            if ($object->attributes->lifetime_support_cents
+                                >= self::DETECTION_SLOTS_UNLIMITED_REQUIRED_EUR * 1000) {
+                                $this->account->getPermissions()->addSystemPermission(array(
+                                    "patreon.subscriber",
+                                    self::DETECTION_SLOTS_UNLIMITED_PERMISSION
+                                ));
+                            }
+                        }
                     }
                 }
             } else {

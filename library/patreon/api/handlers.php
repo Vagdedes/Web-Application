@@ -119,8 +119,6 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
 
 function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTiers = null, bool $paid = true): array
 {
-    $hasIgnoreTiers = $ignoreTiers !== null;
-    $hasTargetTiers = $ignoreTiers !== null;
     $totalCacheKey = array(
         $ignoreTiers,
         $targetTiers,
