@@ -247,6 +247,7 @@ class AccountProduct
                     $object->downloads = get_sql_query(
                         $product_updates_table,
                         array(
+                            "no_account",
                             "file_name",
                             "file_rename",
                             "file_type",
