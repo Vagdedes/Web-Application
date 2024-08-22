@@ -21,12 +21,12 @@ class AccountPatreon
         self::SPONSOR_PATREON_TIER
     ),
         DETECTION_SLOTS_UNLIMITED_TIER = array(
+        23739985, // 8 months split
         23711252, // 6 months split
-        23711267, // 5 months split
-        23711279, // 4 months split
-        23711287, // 3 months split
-        23711293, // 2 months split
-        23711295, // Pay once
+        23739993, // 4 months split
+        23739990, // 3 months split
+        23739997, // 2 months split
+        23740028, // Pay once
         self::VISIONARY_PATREON_TIER
     );
 
