@@ -11,20 +11,22 @@ class AccountHistory
 
     public function add(string $action, mixed $oldData = null, mixed $newData = null): bool
     {
-        global $account_history_table;
+        if ($this->account->exists()) {
+            global $account_history_table;
 
-        if (sql_insert($account_history_table,
-            array(
-                "account_id" => $this->account->getDetail("id"),
-                "action_id" => $action,
-                "ip_address" => get_client_ip_address(),
-                "user_agent" => get_user_agent(),
-                "creation_date" => get_current_date(),
-                "old_data" => $oldData,
-                "new_data" => $newData
-            )
-        )) {
-            return true;
+            if (sql_insert($account_history_table,
+                array(
+                    "account_id" => $this->account->getDetail("id"),
+                    "action_id" => $action,
+                    "ip_address" => get_client_ip_address(),
+                    "user_agent" => get_user_agent(),
+                    "creation_date" => get_current_date(),
+                    "old_data" => $oldData,
+                    "new_data" => $newData
+                )
+            )) {
+                return true;
+            }
         }
         return false;
     }
@@ -46,6 +48,9 @@ class AccountHistory
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
+        }
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "Account does not exist.");
         }
         global $account_history_table;
         return new MethodReply(

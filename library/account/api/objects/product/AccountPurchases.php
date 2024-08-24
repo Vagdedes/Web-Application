@@ -11,6 +11,9 @@ class AccountPurchases
 
     public function getCurrent(bool $databaseOnly = false): array
     {
+        if (!$this->account->exists()) {
+            return array();
+        }
         global $product_purchases_table;
         $array = array();
         $date = get_current_date();
@@ -121,6 +124,9 @@ class AccountPurchases
 
     public function getExpired(): array
     {
+        if (!$this->account->exists()) {
+            return array();
+        }
         global $product_purchases_table;
         $query = get_sql_query(
             $product_purchases_table,
@@ -155,6 +161,9 @@ class AccountPurchases
 
     public function getDeleted(): array
     {
+        if (!$this->account->exists()) {
+            return array();
+        }
         global $product_purchases_table;
         return get_sql_query(
             $product_purchases_table,
@@ -231,6 +240,9 @@ class AccountPurchases
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
+        }
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
         }
         $product = $this->account->getProduct()->find($productID, false);
 
@@ -392,6 +404,9 @@ class AccountPurchases
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
         }
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
+        }
         $purchase = $this->owns($productID, $tierID, true);
 
         if (!$purchase->isPositiveOutcome()) {
@@ -429,6 +444,9 @@ class AccountPurchases
 
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
+        }
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
         }
         if ($productID === $newProductID) {
             return new MethodReply(false, "Cannot exchange purchase with the same product.");
@@ -510,4 +528,5 @@ class AccountPurchases
         }
         return new MethodReply(true, "Successfully exchanged purchase with a different product.");
     }
+
 }

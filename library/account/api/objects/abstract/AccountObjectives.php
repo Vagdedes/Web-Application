@@ -12,6 +12,9 @@ class AccountObjectives
 
     public function get(): array
     {
+        if (!$this->account->exists()) {
+            return array();
+        }
         if (!$this->account->getEmail()->isVerified()) {
             return $this->create(
                 array(),

@@ -15,18 +15,17 @@ require_once '/var/www/.structure/library/account/api/objects/account/AccountReg
 
 // Abstract
 require_once '/var/www/.structure/library/account/api/objects/abstract/AccountPatreon.php';
+require_once '/var/www/.structure/library/account/api/objects/abstract/AccountObjectives.php';
 
 // Account
 require_once '/var/www/.structure/library/account/api/objects/account/AccountHistory.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountSettings.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountActions.php';
-require_once '/var/www/.structure/library/account/api/objects/account/AccountObjectives.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountIdentification.php';
 
 // Product
 require_once '/var/www/.structure/library/account/api/objects/product/AccountProductDownloads.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountPurchases.php';
-require_once '/var/www/.structure/library/account/api/objects/product/AccountReviews.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountGiveaway.php';
 require_once '/var/www/.structure/library/account/api/objects/product/AccountProduct.php';
 require_once '/var/www/.structure/library/account/api/objects/product/ProductCoupon.php';
@@ -38,9 +37,6 @@ require_once '/var/www/.structure/library/account/api/objects/management/Account
 require_once '/var/www/.structure/library/account/api/objects/management/AccountRole.php';
 require_once '/var/www/.structure/library/account/api/objects/management/AccountCooldowns.php';
 
-// Credential
-require_once '/var/www/.structure/library/account/api/objects/security/AccountPassword.php';
-
 // Communication
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountEmail.php';
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountNotifications.php';
@@ -51,16 +47,16 @@ require_once '/var/www/.structure/library/account/api/objects/correlation/Accept
 require_once '/var/www/.structure/library/account/api/objects/correlation/AccountAccounts.php';
 
 // Finance
-require_once '/var/www/.structure/library/account/api/objects/finance/AccountAffiliate.php';
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountTransactions.php';
 
 // Information
 require_once '/var/www/.structure/library/account/api/objects/information/AccountInstructions.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountStatistics.php';
 
-// Session
-require_once '/var/www/.structure/library/account/api/objects/session/AccountSession.php';
-require_once '/var/www/.structure/library/account/api/objects/session/TwoFactorAuthentication.php';
+// Security
+require_once '/var/www/.structure/library/account/api/objects/security/AccountSession.php';
+require_once '/var/www/.structure/library/account/api/objects/security/TwoFactorAuthentication.php';
+require_once '/var/www/.structure/library/account/api/objects/security/AccountPassword.php';
 
 // Finance
 require_once '/var/www/.structure/library/account/api/objects/finance/PaymentProcessor.php';

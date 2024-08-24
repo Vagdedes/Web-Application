@@ -2,7 +2,7 @@
 
 class PaymentProcessor
 {
-    private ?int $applicationID;
+    private Account $account;
     public const
         days_of_processing = "5 days", // This due to the banking system delay of 2-5 business days
         limit = 1000,
@@ -10,9 +10,9 @@ class PaymentProcessor
         STRIPE = AccountAccounts::STRIPE_EMAIL,
         ALL_TYPES = array(self::PAYPAL, self::STRIPE);
 
-    public function __construct(?int $applicationID)
+    public function __construct(Account $account)
     {
-        $this->applicationID = $applicationID;
+        $this->account = $account;
     }
 
     public function getSource(object $transaction, bool $returnIncomplete = false): ?array
@@ -63,13 +63,10 @@ class PaymentProcessor
     /**
      * @throws Exception
      */
-    public function run(Account $account = null): void
+    public function run(): void
     {
-        $isIndividual = $account !== null;
-
-        if (!$isIndividual) {
-            $account = new Account();
-        }
+        $isIndividual = $this->account->exists();
+        $account = $this->account;
         $products = $account->getProduct()->find(null, false);
 
         if ($products->isPositiveOutcome()) {
@@ -436,7 +433,7 @@ class PaymentProcessor
                         $account = $account->getNew($row->account_id);
 
                         if ($account->exists()) {
-                            $this->run($account);
+                            $this->run();
                         }
                     }
                 }
@@ -511,7 +508,7 @@ class PaymentProcessor
                     "creation_date" => $date
                 )
             )) {
-            $applicationID = $this->applicationID;
+            $applicationID = $this->account->getDetail("application_id");
 
             if ($applicationID === null) {
                 $applicationID = 0;

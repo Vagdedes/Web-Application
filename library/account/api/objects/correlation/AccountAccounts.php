@@ -15,6 +15,9 @@ class AccountAccounts
 
     public function getAvailable(?array $select = null, int|string $id = null): array
     {
+        if (!$this->account->exists()) {
+            return array();
+        }
         global $accepted_accounts_table;
         return get_sql_query(
             $accepted_accounts_table,
@@ -37,6 +40,9 @@ class AccountAccounts
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
+        }
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
         }
         if (!$this->account->getEmail()->isVerified()) {
             if (!$this->account->getEmail()->initiateVerification(null, $emailCode)->isPositiveOutcome()) {
@@ -183,6 +189,9 @@ class AccountAccounts
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
+        }
         $isNumeric = is_numeric($type);
         $acceptedAccount = new AcceptedAccount(
             $this->account->getDetail("application_id"),
@@ -232,6 +241,9 @@ class AccountAccounts
         if (!$this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_ACCOUNTS)->isPositiveOutcome()) {
             return array();
         }
+        if (!$this->account->exists()) {
+            return array();
+        }
         global $added_accounts_table;
         $array = get_sql_query(
             $added_accounts_table,
@@ -270,6 +282,9 @@ class AccountAccounts
                              int                   $limit = 0,
                              bool                  $manual = false): MethodReply
     {
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
+        }
         $acceptedAccount = new AcceptedAccount($this->account->getDetail("application_id"), $id, null, $manual);
 
         if (!$acceptedAccount->exists()) {

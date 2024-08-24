@@ -31,7 +31,7 @@ if (!empty($path)) {
 
             if (json_decode($contents)) {
                 if (isset($_GET["download"])) {
-                    copy_and_send_file_download($contents, Account::DOWNLOADS_PATH);
+                    copy_and_send_file_download($contents, AccountProductDownloads::DOWNLOADS_PATH);
                 } else {
                     header('Content-type: Application/JSON');
                 }

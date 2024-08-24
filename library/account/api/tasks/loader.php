@@ -14,11 +14,7 @@ function load_account_page(bool $loadContents = true, ?callable $callable = null
         <head>" . get_google_analytics() . "
             <title>Idealistic AI | $title</title>
             <meta name='description' content='$metaDescription'>
-        	<link rel='shortcut icon' type='image/png' href='" . Account::IMAGES_PATH . "idealistic/logo.png'>"
-        . ($loadContents
-            ? "<link rel='stylesheet' href='" . Account::WEBSITE_DESIGN_PATH . "universal.css?id=$randomNumber>'>"
-            . "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
-            : "")
+        	<link rel='shortcut icon' type='image/png' href='https://vagdedes.com/.images/idealistic/logo.png'>"
         . "<script src='https://www.google.com/recaptcha/api.js'></script>
         </head>
     <body>";

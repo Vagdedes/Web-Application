@@ -14,7 +14,7 @@ class AccountFunctionality
         CHANGE_NAME = "change_name", CANCEL_BLOCKED_FUNCTIONALITY = "cancel_blocked_functionality",
         CANCEL_USER_MODERATION = "cancel_user_moderation", COMPLETE_EMAIL_VERIFICATION = "complete_email_verification",
         REMOVE_PRODUCT = "remove_product", EXCHANGE_PRODUCT = "exchange_product",
-        AUTO_UPDATER = "auto_updater", ADD_NOTIFICATION = "add_notification", GET_NOTIFICATION = "get_notification",
+        ADD_NOTIFICATION = "add_notification", GET_NOTIFICATION = "get_notification",
         VIEW_ACCOUNTS = "view_accounts", COMPLETE_CHANGE_PASSWORD = "complete_change_password";
 
     public function __construct(Account $account)

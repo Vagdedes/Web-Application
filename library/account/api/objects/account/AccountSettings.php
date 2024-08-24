@@ -11,6 +11,9 @@ class AccountSettings
 
     public function get(string $option, mixed $default): MethodReply
     {
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
+        }
         global $account_settings_table;
         $query = get_sql_query(
             $account_settings_table,
@@ -29,6 +32,9 @@ class AccountSettings
 
     public function isEnabled(string $option, mixed $default = null): bool
     {
+        if (!$this->account->exists()) {
+            return false;
+        }
         $option = $this->get($option, $default)->getObject();
         return $option !== null && $option !== false;
     }
@@ -40,6 +46,9 @@ class AccountSettings
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
+        }
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
         }
         global $account_settings_table;
         $date = get_current_date();
@@ -93,6 +102,9 @@ class AccountSettings
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
+        }
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
         }
         global $account_settings_table;
         $date = get_current_date();

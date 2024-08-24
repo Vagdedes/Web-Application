@@ -5,9 +5,8 @@ load_account_page(false, function (Account $account) {
 
     if (is_numeric($id) && is_private_connection()) {
         if ($account->exists()) {
-            $result = $account->getDownloads()->findOrCreate(
-                $id,
-                1
+            $result = $account->getDownloads()->create(
+                $id
             );
 
             if (!$result->isPositiveOutcome()) {
@@ -58,7 +57,6 @@ load_account_page(false, function (Account $account) {
                         } else {
                             $reply = $tokenAccount->getDownloads()->create(
                                 $download->product_id,
-                                $download->token,
                                 1,
                                 true,
                                 null,

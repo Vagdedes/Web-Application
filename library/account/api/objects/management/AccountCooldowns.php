@@ -11,60 +11,67 @@ class AccountCooldowns
 
     public function addInstant(string $action, int|string $duration): bool
     {
-        $action = string_to_integer($action);
+        if ($this->account->exists()) {
+            $action = string_to_integer($action);
 
-        if (!$this->has($action, false)) {
-            global $account_instant_cooldowns_table;
-            sql_insert($account_instant_cooldowns_table,
-                array(
-                    "account_id" => $this->account->getDetail("id"),
-                    "action_id" => $action,
-                    "expiration" => strtotime(get_future_date($duration))
-                )
-            );
-            return true;
+            if (!$this->has($action, false)) {
+                global $account_instant_cooldowns_table;
+                sql_insert($account_instant_cooldowns_table,
+                    array(
+                        "account_id" => $this->account->getDetail("id"),
+                        "action_id" => $action,
+                        "expiration" => strtotime(get_future_date($duration))
+                    )
+                );
+                return true;
+            }
         }
         return false;
     }
 
     public function addBuffer(string $action, int|string $threshold, int|string $duration): bool
     {
-        $action = string_to_integer($action);
-        $reply = $this->internalHas($action, false);
+        if ($this->account->exists()) {
+            $action = string_to_integer($action);
+            $reply = $this->internalHas($action, false);
 
-        if ($reply->isPositiveOutcome()) {
-            $object = $reply->getObject();
+            if ($reply->isPositiveOutcome()) {
+                $object = $reply->getObject();
 
-            if ($object === null || $object->threshold == $threshold) {
+                if ($object === null || $object->threshold == $threshold) {
+                    return true;
+                }
+                global $account_buffer_cooldowns_table;
+                set_sql_query(
+                    $account_buffer_cooldowns_table,
+                    array("threshold" => ($threshold + 1)),
+                    array(
+                        array("id", $object->id),
+                    ),
+                    null,
+                    1
+                );
+            } else {
+                global $account_buffer_cooldowns_table;
+                sql_insert($account_buffer_cooldowns_table,
+                    array(
+                        "account_id" => $this->account->getDetail("id"),
+                        "action_id" => $action,
+                        "threshold" => 1,
+                        "expiration" => strtotime(get_future_date($duration))
+                    )
+                );
                 return true;
             }
-            global $account_buffer_cooldowns_table;
-            set_sql_query(
-                $account_buffer_cooldowns_table,
-                array("threshold" => ($threshold + 1)),
-                array(
-                    array("id", $object->id),
-                ),
-                null,
-                1
-            );
-        } else {
-            global $account_buffer_cooldowns_table;
-            sql_insert($account_buffer_cooldowns_table,
-                array(
-                    "account_id" => $this->account->getDetail("id"),
-                    "action_id" => $action,
-                    "threshold" => 1,
-                    "expiration" => strtotime(get_future_date($duration))
-                )
-            );
-            return true;
         }
         return false;
     }
 
     private function internalHas(string $action, bool $hash = true): MethodReply
     {
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "No account found.");
+        }
         global $account_instant_cooldowns_table, $account_buffer_cooldowns_table;
 
         if ($hash) {

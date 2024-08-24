@@ -2,11 +2,6 @@
 
 class Account
 {
-    public const
-        LOAD_BALANCER_IP = "10.0.0.3",
-        IMAGES_PATH = "https://vagdedes.com/.images/",
-        WEBSITE_DESIGN_PATH = "https://vagdedes.com/.css/",
-        DOWNLOADS_PATH = "/var/www/vagdedes/.temporary/";
 
     private object $object;
     private bool $exists;
@@ -26,9 +21,7 @@ class Account
     private AccountIdentification $identification;
     private AccountNotifications $notifications;
     private AccountPhoneNumber $phoneNumber;
-    private AccountReviews $reviews;
     private AccountPatreon $patreon;
-    private AccountAffiliate $affiliate;
     private AccountProduct $product;
     private AccountGiveaway $giveaway;
     private AccountFunctionality $functionality;
@@ -57,12 +50,24 @@ class Account
             $checkDeletion
         );
 
-        // Standalone
+        // Dependent
+        $this->settings = new AccountSettings($this);
+        $this->history = new AccountHistory($this);
+        $this->transactions = new AccountTransactions($this);
+        $this->purchases = new AccountPurchases($this);
+        $this->cooldowns = new AccountCooldowns($this);
+        $this->accounts = new AccountAccounts($this);
+        $this->permissions = new AccountPermissions($this);
+        $this->objectives = new AccountObjectives($this);
+        $this->notifications = new AccountNotifications($this);
+        $this->phoneNumber = new AccountPhoneNumber($this);
+        $this->patreon = new AccountPatreon($this);
+
+        // Partial
         $this->email = new AccountEmail($this);
         $this->actions = new AccountActions($this);
         $this->password = new AccountPassword($this);
         $this->downloads = new AccountProductDownloads($this);
-        $this->affiliate = new AccountAffiliate($this);
         $this->giveaway = new AccountGiveaway($this);
         $this->moderations = new AccountModerations($this);
         $this->functionality = new AccountFunctionality($this);
@@ -74,15 +79,15 @@ class Account
         $this->registry = new AccountRegistry($this);
         $this->session = new AccountSession($this);
         $this->twoFactorAuthentication = new TwoFactorAuthentication($this);
-        $this->paymentProcessor = new PaymentProcessor($applicationID);
+        $this->paymentProcessor = new PaymentProcessor($this);
     }
 
     private function transformLocal(?int    $applicationID = null,
-                              ?int    $id = null,
-                              ?string $email = null,
-                              ?string $username = null,
-                              ?string $identification = null,
-                              bool    $checkDeletion = true): void
+                                    ?int    $id = null,
+                                    ?string $email = null,
+                                    ?string $username = null,
+                                    ?string $identification = null,
+                                    bool    $checkDeletion = true): void
     {
         $hasID = $id !== null;
         $hasUsername = $username !== null;
@@ -142,18 +147,6 @@ class Account
                 } else {
                     $this->exists = true;
                     $this->object = $query[0];
-                    $this->settings = new AccountSettings($this);
-                    $this->history = new AccountHistory($this);
-                    $this->transactions = new AccountTransactions($this);
-                    $this->purchases = new AccountPurchases($this);
-                    $this->cooldowns = new AccountCooldowns($this);
-                    $this->accounts = new AccountAccounts($this);
-                    $this->permissions = new AccountPermissions($this);
-                    $this->objectives = new AccountObjectives($this);
-                    $this->notifications = new AccountNotifications($this);
-                    $this->phoneNumber = new AccountPhoneNumber($this);
-                    $this->reviews = new AccountReviews($this);
-                    $this->patreon = new AccountPatreon($this);
                 }
             } else {
                 $this->def($applicationID);
@@ -322,19 +315,9 @@ class Account
         return $this->phoneNumber;
     }
 
-    public function getReviews(): AccountReviews
-    {
-        return $this->reviews;
-    }
-
     public function getPatreon(): AccountPatreon
     {
         return $this->patreon;
-    }
-
-    public function getAffiliate(): AccountAffiliate
-    {
-        return $this->affiliate;
     }
 
     public function getProductGiveaway(): AccountGiveaway

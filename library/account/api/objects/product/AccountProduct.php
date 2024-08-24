@@ -53,7 +53,6 @@ class AccountProduct
                    $product_divisions_table,
                    $product_cards_table,
                    $product_purchases_table,
-                   $product_reviews_table,
                    $product_tiers_table;
 
             foreach ($array as $arrayKey => $object) {
@@ -91,14 +90,6 @@ class AccountProduct
                         unset($array[$arrayKey]);
                         continue;
                     }
-                    $object->reviews = get_sql_query(
-                        $product_reviews_table,
-                        array("account_id", "ratio", "name", "description", "creation_date"),
-                        array(
-                            array("product_id", $productID),
-                            array("deletion_date", null),
-                        )
-                    );
                     $object->tiers = new stdClass();
                     $object->tiers->free = array();
                     $object->tiers->paid = array();

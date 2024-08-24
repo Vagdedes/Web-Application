@@ -39,6 +39,9 @@ class AccountNotifications
         if (!$this->account->getFunctionality()->getResult(AccountFunctionality::ADD_NOTIFICATION)->isPositiveOutcome()) {
             return false;
         }
+        if (!$this->account->exists()) {
+            return false;
+        }
         global $account_notifications_table;
 
         if (sql_insert($account_notifications_table,
@@ -64,6 +67,9 @@ class AccountNotifications
     public function get(int|string|null $type = null, int $limit = 0, bool $complete = false): array
     {
         if (!$this->account->getFunctionality()->getResult(AccountFunctionality::GET_NOTIFICATION)->isPositiveOutcome()) {
+            return array();
+        }
+        if (!$this->account->exists()) {
             return array();
         }
         global $account_notifications_table;

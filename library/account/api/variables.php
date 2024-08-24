@@ -60,7 +60,6 @@ $product_identification_table = "product.identification";
 $product_updates_table = "product.updates";
 $product_transaction_search_table = "product.transactionSearch";
 $product_transaction_search_executions_table = "product.transactionSearchExecutions";
-$product_reviews_table = "product.reviews";
 $product_tiers_table = "product.tiers";
 
 // Giveaway
@@ -69,11 +68,6 @@ $giveaway_winners_table = "giveaway.winners";
 
 // Transactions
 $unknown_email_processing_table = "transactions.unknownEmailProcessing";
-
-// Affiliate
-$affiliate_campaigns_table = "affiliate.campaign";
-$affiliate_sharing_table = "affiliate.sharring";
-$affiliate_types_table = "affiliate.types";
 
 // Communication
 $communication_contents_table = "communication.contents";

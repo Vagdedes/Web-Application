@@ -24,6 +24,9 @@ class AccountPermissions
 
     public function getRoles(): array
     {
+        if (!$this->account->exists()) {
+            return array();
+        }
         global $account_roles_table;
         $array = array();
         $query = get_sql_query(
@@ -62,6 +65,9 @@ class AccountPermissions
 
     public function hasRole(int|string $role): bool
     {
+        if (!$this->account->exists()) {
+            return false;
+        }
         if ($role == $this->defaultRoleID) {
             return true;
         } else {
@@ -119,6 +125,9 @@ class AccountPermissions
 
     public function getGivenPermissions(): array
     {
+        if (!$this->account->exists()) {
+            return array();
+        }
         global $account_permissions_table;
         $array = array();
         $query = get_sql_query(
@@ -150,12 +159,14 @@ class AccountPermissions
 
     public function addSystemPermission(string|array $permission): void
     {
-        if (is_array($permission)) {
-            foreach ($permission as $key) {
-                $this->addSystemPermission($key);
+        if ($this->account->exists()) {
+            if (is_array($permission)) {
+                foreach ($permission as $key) {
+                    $this->addSystemPermission($key);
+                }
+            } else if (!in_array($permission, $this->systemPermissions)) {
+                $this->systemPermissions[] = $permission;
             }
-        } else if (!in_array($permission, $this->systemPermissions)) {
-            $this->systemPermissions[] = $permission;
         }
     }
 
