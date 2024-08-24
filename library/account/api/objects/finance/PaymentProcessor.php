@@ -305,9 +305,9 @@ class PaymentProcessor
 
             if (!$isIndividual) {
                 foreach ($products as $product) {
-                    if (isset($product->identification[AccountAccounts::BUILTBYBIT_URL])) {
+                    if (array_key_exists(AccountAccounts::SPIGOTMC_URL, $product->identification)) {
                         $ownerships = get_builtbybit_resource_ownerships(
-                            $product->identification[AccountAccounts::BUILTBYBIT_URL],
+                            $product->identification[AccountAccounts::BUILTBYBIT_URL]->accepted_account_product_id,
                         );
 
                         if (!empty($ownerships)) {
@@ -363,9 +363,9 @@ class PaymentProcessor
                                 }
                             }
                         }
-                    } else if (isset($product->identification[AccountAccounts::POLYMART_URL])) {
+                    } else if (array_key_exists(AccountAccounts::POLYMART_URL, $product->identification)) {
                         $buyers = get_polymart_buyers(
-                            $product->identification[AccountAccounts::POLYMART_URL],
+                            $product->identification[AccountAccounts::POLYMART_URL]->accepted_account_product_id,
                         );
 
                         if (!empty($buyers)) {

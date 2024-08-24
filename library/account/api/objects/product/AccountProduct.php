@@ -324,7 +324,7 @@ class AccountProduct
                         $identifications = array();
 
                         foreach ($object->identification as $identification) {
-                            $identifications[$identification->accepted_account_id] = $identification->accepted_account_product_id;
+                            $identifications[$identification->accepted_account_id] = $identification;
                         }
                         $object->identification = $identifications;
                     }
@@ -350,6 +350,32 @@ class AccountProduct
         unset($newObject->identification);
         unset($newObject->tiers->all);
         return $newObject;
+    }
+
+    public function findIdentificationURL(object $productObject): ?string
+    {
+        if ($productObject->latest_version?->identification_url !== null
+            && $this->account->exists()) {
+            $potentialAccounts = array(
+                AccountAccounts::SPIGOTMC_URL,
+                AccountAccounts::BUILTBYBIT_URL,
+                AccountAccounts::POLYMART_URL,
+            );
+
+            foreach ($potentialAccounts as $potentialAccount) {
+                $identification = $productObject->identification[$potentialAccount] ?? null;
+
+                if ($identification !== null
+                    && $identification->product_url !== null) {
+                    $accounts = $this->account->getAccounts()->getAdded($potentialAccount, 1);
+
+                    if (!empty($accounts)) {
+                        return $identification->product_url;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
 }

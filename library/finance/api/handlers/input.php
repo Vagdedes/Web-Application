@@ -246,8 +246,8 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
 
         foreach ($products->getObject() as $product) {
             if (!$product->is_free
-                && isset($product->identification[AccountAccounts::BUILTBYBIT_URL])) {
-                $bbbProductID = $product->identification[AccountAccounts::BUILTBYBIT_URL];
+                && array_key_exists(AccountAccounts::SPIGOTMC_URL, $product->identification)) {
+                $bbbProductID = $product->identification[AccountAccounts::BUILTBYBIT_URL]->accepted_account_product_id;
 
                 if (!in_array($bbbProductID, $identification)) {
                     $identification[] = $bbbProductID;

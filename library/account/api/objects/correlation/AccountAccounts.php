@@ -227,7 +227,7 @@ class AccountAccounts
         return new MethodReply(true, "Successfully deleted account.");
     }
 
-    public function getAdded($id = null, $limit = 0, bool $manual = false): array
+    public function getAdded(int|string|null $id = null, $limit = 0, bool $manual = false): array
     {
         if (!$this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_ACCOUNTS)->isPositiveOutcome()) {
             return array();
