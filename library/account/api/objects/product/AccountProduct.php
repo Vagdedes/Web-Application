@@ -247,7 +247,7 @@ class AccountProduct
                     $object->downloads = get_sql_query(
                         $product_updates_table,
                         array(
-                            "no_account",
+                            "identification_url",
                             "file_name",
                             "file_rename",
                             "file_type",
@@ -311,7 +311,8 @@ class AccountProduct
                         $product_identification_table,
                         array(
                             "accepted_account_id",
-                            "accepted_account_product_id"
+                            "accepted_account_product_id",
+                            "product_url"
                         ),
                         array(
                             array("product_id", $productID),
