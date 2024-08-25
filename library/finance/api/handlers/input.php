@@ -76,7 +76,7 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                                 ? ($beforeTax - $tax)
                                 : $beforeTax;
                             $resultObject->fees = $fee;
-                            $resultObject->tax = $paypalBusinessEmail ? $tax : 0.0;
+                            $resultObject->tax = 0.0;
                             $resultObject->loss = 0.0;
 
                             if ($receiver != $totalString) {
@@ -89,14 +89,9 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                         } else {
                             $resultObject = $results[$receiver];
                             $resultObject->profit_before_tax += $beforeTax;
-                            $resultObject->profit_after_tax += $paypalBusinessEmail
-                                ? ($beforeTax - $tax)
-                                : $beforeTax;
+                            $resultObject->profit_after_tax += $beforeTax;
                             $resultObject->fees += $fee;
 
-                            if ($paypalBusinessEmail) {
-                                $resultObject->tax += $tax;
-                            }
                             if ($receiver != $totalString) {
                                 $resultObject->succesful_transactions[strtotime($date)] = $object;
                                 ksort($resultObject->succesful_transactions);
@@ -201,10 +196,10 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                     foreach ($receivers as $receiver) {
                         if (!array_key_exists($receiver, $results)) {
                             $resultObject = new stdClass();
-                            $resultObject->profit_before_tax = 0;
-                            $resultObject->profit_after_tax = 0;
-                            $resultObject->fees = 0;
-                            $resultObject->tax = 0;
+                            $resultObject->profit_before_tax = 0.0;
+                            $resultObject->profit_after_tax = 0.0;
+                            $resultObject->fees = 0.0;
+                            $resultObject->tax = 0.0;
                             $resultObject->loss = $beforeTax;
 
                             if ($receiver != $totalString) {
@@ -240,7 +235,6 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
         );
         $feePercentage = 0.05;
         $currency = "USD";
-        $bbbWrapper = get_builtbybit_wrapper();
         $identification = array();
         $redundantDates = array();
 
@@ -276,7 +270,7 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                                     if (!array_key_exists($receiver, $results)) {
                                         $resultObject = new stdClass();
                                         $resultObject->profit_before_tax = $beforeTax;
-                                        $resultObject->profit_after_tax = $beforeTax;
+                                        $resultObject->profit_after_tax = $beforeTax - $tax;
                                         $resultObject->fees = $fee;
                                         $resultObject->tax = $tax;
 
@@ -289,8 +283,9 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                                     } else {
                                         $resultObject = $results[$receiver];
                                         $resultObject->profit_before_tax += $beforeTax;
-                                        $resultObject->profit_after_tax += $beforeTax;
+                                        $resultObject->profit_after_tax += $beforeTax - $tax;
                                         $resultObject->fees += $fee;
+                                        $resultObject->tax += $tax;
 
                                         if ($receiver != $totalString) {
                                             $resultObject->succesful_transactions[strtotime($date)] = $object;
