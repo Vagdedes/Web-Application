@@ -303,7 +303,8 @@ class AccountProduct
                         array(
                             "accepted_account_id",
                             "accepted_account_product_id",
-                            "product_url"
+                            "product_url",
+                            "default_use"
                         ),
                         array(
                             array("product_id", $productID),
@@ -352,12 +353,16 @@ class AccountProduct
                 AccountAccounts::BUILTBYBIT_URL,
                 AccountAccounts::POLYMART_URL,
             );
+            $default = null;
 
             foreach ($potentialAccounts as $potentialAccount) {
                 $identification = $productObject->identification[$potentialAccount] ?? null;
 
                 if ($identification !== null
                     && $identification->product_url !== null) {
+                    if ($identification->default_use !== null) {
+                        $default = $identification->product_url;
+                    }
                     $accounts = $this->account->getAccounts()->getAdded($potentialAccount, 1);
 
                     if (!empty($accounts)) {
@@ -365,6 +370,7 @@ class AccountProduct
                     }
                 }
             }
+            return $default;
         }
         return null;
     }
