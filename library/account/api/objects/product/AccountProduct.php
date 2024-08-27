@@ -304,7 +304,9 @@ class AccountProduct
                             "accepted_account_id",
                             "accepted_account_product_id",
                             "product_url",
-                            "default_use"
+                            "default_use",
+                            "requires_purchase",
+                            "requires_account"
                         ),
                         array(
                             array("product_id", $productID),
@@ -346,20 +348,28 @@ class AccountProduct
 
     public function findIdentificationURL(object $productObject): ?string
     {
-        if ($productObject->latest_version?->identification_url !== null
-            && $this->account->exists()) {
+        if ($productObject->latest_version?->identification_url !== null) {
             $potentialAccounts = array(
                 AccountAccounts::SPIGOTMC_URL,
                 AccountAccounts::BUILTBYBIT_URL,
                 AccountAccounts::POLYMART_URL,
             );
             $default = null;
+            $hasAccount = $this->account->exists();
 
             foreach ($potentialAccounts as $potentialAccount) {
                 $identification = $productObject->identification[$potentialAccount] ?? null;
 
                 if ($identification !== null
                     && $identification->product_url !== null) {
+                    if ($hasAccount) {
+                        if ($identification->requires_purchase !== null
+                            && !$this->account->getPurchases()->owns($productObject->id)) {
+                            continue;
+                        }
+                    } else if ($identification->requires_account !== null) {
+                        continue;
+                    }
                     if ($identification->default_use !== null) {
                         $default = $identification->product_url;
                     }
