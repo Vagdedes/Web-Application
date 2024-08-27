@@ -349,16 +349,12 @@ class AccountProduct
     public function findIdentificationURL(object $productObject): ?string
     {
         if ($productObject->latest_version?->identification_url !== null) {
-            $potentialAccounts = array(
-                AccountAccounts::SPIGOTMC_URL,
-                AccountAccounts::BUILTBYBIT_URL,
-                AccountAccounts::POLYMART_URL,
-            );
+            $potentialAccounts = $this->account->getAccounts()->getAdded();
             $default = null;
             $hasAccount = $this->account->exists();
 
             foreach ($potentialAccounts as $potentialAccount) {
-                $identification = $productObject->identification[$potentialAccount] ?? null;
+                $identification = $productObject->identification[$potentialAccount->accepted_account_id] ?? null;
 
                 if ($identification !== null
                     && $identification->product_url !== null) {
@@ -373,11 +369,7 @@ class AccountProduct
                     if ($identification->default_use !== null) {
                         $default = $identification->product_url;
                     }
-                    $accounts = $this->account->getAccounts()->getAdded($potentialAccount, 1);
-
-                    if (!empty($accounts)) {
-                        return $identification->product_url;
-                    }
+                    return $identification->product_url;
                 }
             }
             return $default;
