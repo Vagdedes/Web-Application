@@ -346,17 +346,24 @@ class AccountProduct
         return $newObject;
     }
 
-    public function findIdentifications(object $productObject): array
+    public function findIdentifications(object $productObject, ?array $backupIdentifications = null): array
     {
         if ($productObject->latest_version?->identification_url !== null) {
+            $hasAccount = $this->account->exists();
             $potentialAccounts = $this->account->getAccounts()->getAdded();
+
+            if (empty($potentialAccounts)) {
+                $potentialAccounts = $backupIdentifications;
+            }
             $array = array();
             $default = array();
-            $hasAccount = $this->account->exists();
             $applicationID = $this->account->getDetail("application_id");
 
             foreach ($potentialAccounts as $potentialAccount) {
-                $identification = $productObject->identification[$potentialAccount->accepted_account_id] ?? null;
+                if (is_object($potentialAccount)) {
+                    $potentialAccount = $potentialAccount->accepted_account_id;
+                }
+                $identification = $productObject->identification[$potentialAccount] ?? null;
 
                 if ($identification !== null
                     && $identification->product_url !== null) {

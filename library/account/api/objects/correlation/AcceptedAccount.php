@@ -4,7 +4,7 @@ class AcceptedAccount
 {
     private ?object $object;
 
-    public function __construct(?int $applicationID, int|string $id, string $name = null, bool $manual = true)
+    public function __construct(?int $applicationID, int|string|null $id, string $name = null, bool $manual = true)
     {
         global $accepted_accounts_table;
         $query = get_sql_query(
