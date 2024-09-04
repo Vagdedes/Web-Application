@@ -346,18 +346,25 @@ class AccountProduct
         return $newObject;
     }
 
-    public function findIdentificationURL(object $productObject): ?string
+    public function findIdentificationURLs(object $productObject): array
     {
         if ($productObject->latest_version?->identification_url !== null) {
             $potentialAccounts = $this->account->getAccounts()->getAdded();
-            $default = null;
+            $array = array();
+            $default = array();
             $hasAccount = $this->account->exists();
+            $applicationID = $this->account->getDetail("application_id");
 
             foreach ($potentialAccounts as $potentialAccount) {
                 $identification = $productObject->identification[$potentialAccount->accepted_account_id] ?? null;
 
                 if ($identification !== null
                     && $identification->product_url !== null) {
+                    $acceptedAccount = new AcceptedAccount($applicationID, $identification->accepted_account_id, null,);
+
+                    if (!$acceptedAccount->exists()) {
+                        continue;
+                    }
                     if ($hasAccount) {
                         if ($identification->requires_purchase !== null
                             && !$this->account->getPurchases()->owns($productObject->id)) {
@@ -366,15 +373,17 @@ class AccountProduct
                     } else if ($identification->requires_account !== null) {
                         continue;
                     }
+                    $identification->accepted_account = $acceptedAccount->getObject();
+
                     if ($identification->default_use !== null) {
-                        $default = $identification->product_url;
+                        $default[] = $identification;
                     }
-                    return $identification->product_url;
+                    $array[] = $identification;
                 }
             }
-            return $default;
+            return empty($array) ? $default : $array;
         }
-        return null;
+        return array();
     }
 
 }
