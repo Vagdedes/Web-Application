@@ -346,7 +346,7 @@ class AccountProduct
         return $newObject;
     }
 
-    public function findIdentificationURLs(object $productObject): array
+    public function findIdentifications(object $productObject): array
     {
         if ($productObject->latest_version?->identification_url !== null) {
             $potentialAccounts = $this->account->getAccounts()->getAdded();
