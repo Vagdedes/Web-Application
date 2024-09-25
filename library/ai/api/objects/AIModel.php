@@ -3,7 +3,8 @@
 class AIModel
 {
     public int $familyID, $modelID, $context;
-    public string $code, $name, $description;
+    public string $code, $name;
+    public ?string $description;
     public object $parameter, $currency;
     public float $received_token_cost, $sent_token_cost;
     public bool $exists;
