@@ -9,18 +9,9 @@ class AIModelFamily
 {
     public const
         CHAT_GPT_3_5 = 1,
-        CHAT_GPT_4 = 2;
-}
-
-class AIModelType
-{
-    public const
-        CHAT_GPT_3_5_DIALOGUE = 1, //16k
-        CHAT_GPT_3_5_INSTRUCTIONS = 2, //4k
-        CHAT_GPT_4_COMPLEX = 3, //32k
-        CHAT_GPT_4 = 4, //8k
-        CHAT_GPT_4_EXPANDED = 5, //128k
-        CHAT_GPT_4_OMNI = 8; //128k
+        CHAT_GPT_4 = 2,
+        OPENAI_O1 = 3,
+        OPENAI_O1_MINI = 4;
 }
 
 class AICurrency

@@ -102,13 +102,11 @@ class ManagerAI
             }
         }
 
-        switch ($model->modelID) {
-            case AIModelType::CHAT_GPT_3_5_DIALOGUE:
-            case AIModelType::CHAT_GPT_3_5_INSTRUCTIONS:
-            case AIModelType::CHAT_GPT_4_COMPLEX:
-            case AIModelType::CHAT_GPT_4:
-            case AIModelType::CHAT_GPT_4_EXPANDED:
-            case AIModelType::CHAT_GPT_4_OMNI:
+        switch ($model->family) {
+            case AIModelFamily::CHAT_GPT_3_5:
+            case AIModelFamily::CHAT_GPT_4:
+            case AIModelFamily::OPENAI_O1:
+            case AIModelFamily::OPENAI_O1_MINI:
                 $link = "https://api.openai.com/v1/chat/completions";
                 $parameters["model"] = $model->code;
 
@@ -218,13 +216,11 @@ class ManagerAI
 
     public function getText(object $model, ?object $object): ?string
     {
-        switch ($model->modelID) {
-            case AIModelType::CHAT_GPT_3_5_DIALOGUE:
-            case AIModelType::CHAT_GPT_3_5_INSTRUCTIONS:
-            case AIModelType::CHAT_GPT_4_COMPLEX:
-            case AIModelType::CHAT_GPT_4:
-            case AIModelType::CHAT_GPT_4_EXPANDED:
-            case AIModelType::CHAT_GPT_4_OMNI:
+        switch ($model->family) {
+            case AIModelFamily::CHAT_GPT_3_5:
+            case AIModelFamily::CHAT_GPT_4:
+            case AIModelFamily::OPENAI_O1:
+            case AIModelFamily::OPENAI_O1_MINI:
                 return $object?->choices[0]?->message->content;
             default:
                 return null;
@@ -233,13 +229,11 @@ class ManagerAI
 
     public function getCost(object $model, ?object $object): ?string
     {
-        switch ($model->modelID) {
-            case AIModelType::CHAT_GPT_3_5_DIALOGUE:
-            case AIModelType::CHAT_GPT_3_5_INSTRUCTIONS:
-            case AIModelType::CHAT_GPT_4_COMPLEX:
-            case AIModelType::CHAT_GPT_4:
-            case AIModelType::CHAT_GPT_4_EXPANDED:
-            case AIModelType::CHAT_GPT_4_OMNI:
+        switch ($model->family) {
+            case AIModelFamily::CHAT_GPT_3_5:
+            case AIModelFamily::CHAT_GPT_4:
+            case AIModelFamily::OPENAI_O1:
+            case AIModelFamily::OPENAI_O1_MINI:
                 return ($object->usage->prompt_tokens * $model->sent_token_cost)
                     + ($object->usage->completion_tokens * $model->received_token_cost);
             default:
