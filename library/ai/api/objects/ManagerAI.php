@@ -102,7 +102,7 @@ class ManagerAI
             }
         }
 
-        switch ($model->family) {
+        switch ($model->familyID) {
             case AIModelFamily::CHAT_GPT_3_5:
             case AIModelFamily::CHAT_GPT_4:
             case AIModelFamily::OPENAI_O1:
@@ -216,7 +216,7 @@ class ManagerAI
 
     public function getText(object $model, ?object $object): ?string
     {
-        switch ($model->family) {
+        switch ($model->familyID) {
             case AIModelFamily::CHAT_GPT_3_5:
             case AIModelFamily::CHAT_GPT_4:
             case AIModelFamily::OPENAI_O1:
@@ -229,7 +229,7 @@ class ManagerAI
 
     public function getCost(object $model, ?object $object): ?string
     {
-        switch ($model->family) {
+        switch ($model->familyID) {
             case AIModelFamily::CHAT_GPT_3_5:
             case AIModelFamily::CHAT_GPT_4:
             case AIModelFamily::OPENAI_O1:
