@@ -38,17 +38,9 @@ class Account
                                 ?string $email = null,
                                 ?string $username = null,
                                 ?string $identification = null,
-                                bool    $checkDeletion = true)
+                                bool    $checkDeletion = true,
+                                ?string $attemptCreation = null)
     {
-        $this->transformLocal(
-            $applicationID,
-            $id,
-            $email,
-            $username,
-            $identification,
-            $checkDeletion
-        );
-
         // Dependent
         $this->settings = new AccountSettings($this);
         $this->history = new AccountHistory($this);
@@ -78,6 +70,17 @@ class Account
         $this->session = new AccountSession($this);
         $this->twoFactorAuthentication = new TwoFactorAuthentication($this);
         $this->paymentProcessor = new PaymentProcessor($this);
+
+        // Transform
+        $this->transformLocal(
+            $applicationID,
+            $id,
+            $email,
+            $username,
+            $identification,
+            $checkDeletion,
+            $attemptCreation
+        );
     }
 
     private function transformLocal(?int    $applicationID = null,
@@ -85,14 +88,16 @@ class Account
                                     ?string $email = null,
                                     ?string $username = null,
                                     ?string $identification = null,
-                                    bool    $checkDeletion = true): void
+                                    bool    $checkDeletion = true,
+                                    ?string $attemptCreation = null): void
     {
         $hasID = $id !== null;
         $hasUsername = $username !== null;
         $hasIdentification = $identification !== null;
+        $hasEmail = is_email($email);
 
         if (!$hasIdentification
-            && ($hasID ? $id <= 0 : !$hasUsername && !is_email($email))) {
+            && ($hasID ? $id <= 0 : !$hasUsername && !$hasEmail)) {
             $this->def($applicationID);
         } else {
             global $accounts_table;
@@ -118,6 +123,14 @@ class Account
                 }
             } else {
                 $runQuery = true;
+
+                if ($attemptCreation !== null && $hasEmail) {
+                    $this->getRegistry()->create(
+                        $email,
+                        isset($attemptCreation[0]) ? $attemptCreation : null,
+                        $hasUsername ? $username : null
+                    );
+                }
             }
             if ($runQuery) {
                 $query = get_sql_query(
@@ -125,7 +138,7 @@ class Account
                     null,
                     array(
                         $hasID ? array("id", $id) : "",
-                        $email !== null ? array("email_address", strtolower($email)) : "",
+                        $hasEmail ? array("email_address", strtolower($email)) : "",
                         $hasUsername ? array("name", $username) : "",
                         $checkDeletion ? array("deletion_date", null) : "",
                         $applicationID !== self::IGNORE_APPLICATION ? array("application_id", $applicationID) : ""
@@ -156,7 +169,8 @@ class Account
                               ?string $email = null,
                               ?string $username = null,
                               ?string $identification = null,
-                              bool    $checkDeletion = true): self
+                              bool    $checkDeletion = true,
+                              ?string $attemptCreation = null): self
     {
         $this->transformLocal(
             $this->getDetail("application_id"),
@@ -164,7 +178,8 @@ class Account
             $email,
             $username,
             $identification,
-            $checkDeletion
+            $checkDeletion,
+            $attemptCreation
         );
         return $this;
     }

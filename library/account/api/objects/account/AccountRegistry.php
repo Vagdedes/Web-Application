@@ -11,7 +11,7 @@ class AccountRegistry
         $this->account = $account;
     }
 
-    public function create(?string $email, ?string $password, ?string $name,
+    public function create(?string $email, ?string $password = null, ?string $name = null,
                            ?string $firstName = null, ?string $middleName = null, ?string $lastName = null,
                            ?string $discordWebhook = self::DEFAULT_WEBHOOK): MethodReply
     {
@@ -76,7 +76,8 @@ class AccountRegistry
             )) === 2) {
             return new MethodReply(false, "You cannot create more accounts for now, please try again later.");
         }
-        if (!sql_insert($accounts_table,
+        if (!sql_insert(
+            $accounts_table,
             array(
                 "type" => $this->account->getSession()->getType(),
                 "custom_id" => $this->account->getSession()->getCustomKey(),
@@ -88,7 +89,8 @@ class AccountRegistry
                 "last_name" => $lastName,
                 "creation_date" => get_current_date(),
                 "application_id" => $applicationID
-            ))) {
+            )
+        )) {
             return new MethodReply(false, "Failed to create new account.");
         }
         if (!$this->account->transform(null, $email, null, null, false)->exists()) {
