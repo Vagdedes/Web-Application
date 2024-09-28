@@ -110,7 +110,6 @@ if (is_private_connection()) {
     $userObject->memory = new stdClass();
 
     if ($hasAccount) {
-        $account->refresh();
         $accountObj = $account->getObject();
         unset($accountObj->password);
         $userObject->account = $accountObj;

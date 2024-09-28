@@ -1,9 +1,9 @@
 <?php
 $minecraft_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36";
 
-function get_minecraft_head_image(string $uuid, int $pixels = 100): string
+function get_minecraft_head_image(string $uuidOrName, int $pixels = 100): string
 {
-    return "https://mc-heads.net/avatar/$uuid/$pixels/";
+    return "https://mc-heads.net/avatar/$uuidOrName/$pixels/";
 }
 
 function get_minecraft_uuid(string $name, int $timeoutSeconds = 0): ?string
