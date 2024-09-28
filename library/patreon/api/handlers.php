@@ -201,7 +201,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
     }
 }
 
-function patreon_object_has_tier(object $object, ?array $ignoreTiers = null, ?array $targetTiers = null): bool
+function patreon_object_has_tier(?object $object, ?array $ignoreTiers = null, ?array $targetTiers = null): bool
 {
     if (isset($object->relationships->currently_entitled_tiers->data)) {
         $hasIgnoreTiers = !empty($ignoreTiers);
@@ -217,7 +217,7 @@ function patreon_object_has_tier(object $object, ?array $ignoreTiers = null, ?ar
     return false;
 }
 
-function patreon_object_is_paid(object $object): bool
+function patreon_object_is_paid(?object $object): bool
 {
     return $object?->attributes?->patron_status == "active_patron";
 }
