@@ -492,11 +492,11 @@ if (true
 
             if ($slots > 0) {
                 if ($account->exists()) {
-                    if ($account->getPurchases()->owns(AccountPatreon::DETECTION_SLOTS_UNLIMITED_PRODUCT)) {
+                    if ($account->getPurchases()->owns(GameCloudVariables::DETECTION_SLOTS_UNLIMITED_PRODUCT)) {
                         echo "-1";
                         return;
                     } else if ($slots < 10
-                        && $account->getPurchases()->owns(AccountPatreon::SPARTAN_SYN)) {
+                        && $account->getPurchases()->owns(GameCloudVariables::SPARTAN_SYN)) {
                         $slots = 10;
                     }
                 }

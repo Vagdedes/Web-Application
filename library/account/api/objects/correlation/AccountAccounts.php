@@ -5,7 +5,7 @@ class AccountAccounts
     private Account $account;
     public const PAYPAL_EMAIL = 1, STRIPE_EMAIL = 8,
         SPIGOTMC_URL = 5, BUILTBYBIT_URL = 6, POLYMART_URL = 7,
-        DISCORD_TAG = 2, PATREON_FULL_NAME = 4, PLATFORM_USERNAME = 3,
+        PATREON_FULL_NAME = 4, PLATFORM_USERNAME = 3,
         PHONE_NUMBER = 9;
 
     public function __construct(Account $account)

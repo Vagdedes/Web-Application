@@ -17,7 +17,6 @@ class Account
     private AccountProductDownloads $downloads;
     private AccountPassword $password;
     private AccountEmail $email;
-    private AccountObjectives $objectives;
     private AccountIdentification $identification;
     private AccountNotifications $notifications;
     private AccountPhoneNumber $phoneNumber;
@@ -58,7 +57,6 @@ class Account
         $this->cooldowns = new AccountCooldowns($this);
         $this->accounts = new AccountAccounts($this);
         $this->permissions = new AccountPermissions($this);
-        $this->objectives = new AccountObjectives($this);
         $this->notifications = new AccountNotifications($this);
         $this->phoneNumber = new AccountPhoneNumber($this);
         $this->patreon = new AccountPatreon($this);
@@ -293,11 +291,6 @@ class Account
     public function getEmail(): AccountEmail
     {
         return $this->email;
-    }
-
-    public function getObjectives(): AccountObjectives
-    {
-        return $this->objectives;
     }
 
     public function getIdentification(): AccountIdentification
