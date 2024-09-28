@@ -95,8 +95,17 @@ class AccountProduct
                     $object->tiers->paid = array();
                     $object->tiers->all = get_sql_query(
                         $product_tiers_table,
-                        array("id", "name", "price", "currency", "required_patreon_tiers",
-                            "required_permission", "give_permission", "required_products"),
+                        array(
+                            "id",
+                            "name",
+                            "price",
+                            "currency",
+                            "required_patreon_tiers",
+                            "required_patreon_cents",
+                            "required_permission",
+                            "give_permission",
+                            "required_products"
+                        ),
                         array(
                             array("product_id", $productID),
                             array("deletion_date", null),

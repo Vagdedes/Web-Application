@@ -153,7 +153,6 @@ class AccountPermissions
 
     public function getSystemPermissions(): array
     {
-        $this->account->getPatreon()->retrieve();
         return $this->systemPermissions;
     }
 

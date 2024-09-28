@@ -11,37 +11,26 @@ class AccountPatreon
         $this->retrieve = null;
     }
 
-    public function retrieve(?array $specificTiers = null): MethodReply
+    public function retrieve(?array $specificTiers = null, ?int $lifetimeCents = null, bool $and = false): MethodReply
     {
         if ($this->retrieve === null) {
-            $name = $this->account->getAccounts()->hasAdded(AccountAccounts::PATREON_FULL_NAME, null, 1);
+            $name = $this->account->getAccounts()->hasAdded(
+                AccountAccounts::PATREON_FULL_NAME,
+                null,
+                1
+            );
 
             if ($name->isPositiveOutcome()) {
-                $name = $name->getObject()[0];
-                $this->retrieve = $this->find($name, GameCloudVariables::DETECTION_SLOTS_UNLIMITED_TIER);
+                $this->retrieve = $this->find(
+                    $name->getObject()[0],
+                    $specificTiers
+                );
 
-                if ($this->retrieve->isPositiveOutcome()) {
-                    $this->account->getPurchases()->add(
-                        GameCloudVariables::DETECTION_SLOTS_UNLIMITED_PRODUCT,
-                        null,
-                        null,
-                        null,
-                        null,
-                        "1 day"
+                if (!$this->retrieve->isPositiveOutcome()) {
+                    $this->retrieve = $this->find(
+                        $name->getObject()[0],
+                        $specificTiers
                     );
-                } else {
-                    $this->retrieve = $this->find($name, null, false);
-
-                    if ($this->retrieve->isPositiveOutcome()) {
-                        $object = $this->retrieve->getObject();
-
-                        if ($object->attributes->lifetime_support_cents
-                            >= GameCloudVariables::DETECTION_SLOTS_UNLIMITED_REQUIRED_EUR * 1000) {
-                            $this->account->getPurchases()->add(
-                                GameCloudVariables::DETECTION_SLOTS_UNLIMITED_PRODUCT
-                            );
-                        }
-                    }
                 }
             } else {
                 $this->retrieve = new MethodReply(false);
@@ -49,37 +38,30 @@ class AccountPatreon
         } else {
             $this->retrieve = new MethodReply(false);
         }
-        if (empty($specificTiers)) {
-            return $this->retrieve;
-        } else if (!empty($this->retrieve->getMessage())) {
-            $object = $this->retrieve->getObject();
-            return new MethodReply(
-                patreon_object_has_tier($object, null, $specificTiers),
-                $this->retrieve->getMessage(),
-                $object
-            );
-        } else {
-            return new MethodReply(
-                false,
-                $this->retrieve->getMessage(),
-                $this->retrieve->getObject()
-            );
-        }
+        $object = $this->retrieve->getObject();
+        return new MethodReply(
+            patreon_object_is_paid($object)
+            && patreon_object_has_tier($object, null, $specificTiers)
+            && (!$and || $lifetimeCents !== null && $object?->attributes?->lifetime_support_cents >= $lifetimeCents),
+            $this->retrieve->getMessage(),
+            $object
+        );
     }
 
-    private function find(string $name, ?array $tiers = null, bool $paid = true): MethodReply
+    private function find(string $name, ?array $tiers = null): MethodReply
     {
-        $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers, $paid);
+        $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers, null);
 
         if (!empty($patreonSubscriptions)) {
             $name = trim($name);
 
             foreach ($patreonSubscriptions as $subscription) {
                 if (trim($subscription->attributes->full_name) == $name) {
-                    return new MethodReply(true, $paid ? "active" : null, $subscription);
+                    return new MethodReply(true, null, $subscription);
                 }
             }
         }
         return new MethodReply(false);
     }
+
 }

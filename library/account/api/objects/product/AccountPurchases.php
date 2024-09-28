@@ -88,7 +88,8 @@ class AccountPurchases
                                             || $this->account->getPermissions()->hasPermission($tier->required_permission))
                                         && (empty($tier->required_patreon_tiers)
                                             || $this->account->getPatreon()->retrieve(
-                                                $tier->required_patreon_tiers
+                                                $tier->required_patreon_tiers,
+                                                $tier->required_patreon_cents
                                             )->isPositiveOutcome())) {
                                         $tierObject = $tier;
                                         break;

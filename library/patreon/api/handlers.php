@@ -117,7 +117,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
     }
 }
 
-function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTiers = null, bool $paid = true): array
+function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTiers = null, ?bool $paid = true): array
 {
     $totalCacheKey = array(
         $ignoreTiers,
@@ -183,13 +183,8 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                 foreach ($reply->data as $patron) {
                     if (isset($patron->type)
                         && $patron->type == "member") {
-                        if ($paid
-                            ? (isset($patron->attributes->patron_status)
-                                && $patron->attributes->patron_status == "active_patron"
-                                && isset($patron->relationships->currently_entitled_tiers->data))
-                            : (!isset($patron->attributes->patron_status)
-                                || $patron->attributes->patron_status != "active_patron"
-                                || !isset($patron->relationships->currently_entitled_tiers->data))) {
+                        if ($paid === null
+                            || patreon_object_is_paid($patron) === $paid) {
                             if (patreon_object_has_tier($patron, $ignoreTiers, $targetTiers)) {
                                 $results[] = $patron;
                             }
@@ -209,8 +204,8 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
 function patreon_object_has_tier(object $object, ?array $ignoreTiers = null, ?array $targetTiers = null): bool
 {
     if (isset($object->relationships->currently_entitled_tiers->data)) {
-        $hasIgnoreTiers = $ignoreTiers !== null;
-        $hasTargetTiers = $targetTiers !== null;
+        $hasIgnoreTiers = !empty($ignoreTiers);
+        $hasTargetTiers = !empty($targetTiers);
 
         foreach ($object->relationships->currently_entitled_tiers->data as $tier) {
             if ((!$hasIgnoreTiers || !in_array($tier->id, $ignoreTiers))
@@ -220,4 +215,9 @@ function patreon_object_has_tier(object $object, ?array $ignoreTiers = null, ?ar
         }
     }
     return false;
+}
+
+function patreon_object_is_paid(object $object): bool
+{
+    return $object?->attributes?->patron_status == "active_patron";
 }
