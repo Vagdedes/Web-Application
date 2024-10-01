@@ -50,14 +50,12 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                 $fee = isset($transaction->FEEAMT) ? abs($transaction->FEEAMT) : 0.0;
                 $amount = $transaction->AMT;
                 $beforeTax = $amount - $fee;
-                $tax = $beforeTax - ($beforeTax / $standardTax);
                 $currency = $transaction->CURRENCYCODE;
                 $foundEmail = isset($transaction->RECEIVERBUSINESS);
                 $receivers = array(
                     $totalString,
                     $foundEmail ? "paypal:" . $transaction->RECEIVERBUSINESS : "Unknown"
                 );
-                $paypalBusinessEmail = $foundEmail && $transaction->RECEIVERBUSINESS == "VagdedesBilling@gmail.com";
 
                 $object = new stdClass();
                 $object->date = $date;
@@ -72,9 +70,7 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                         if (!array_key_exists($receiver, $results)) {
                             $resultObject = new stdClass();
                             $resultObject->profit_before_tax = $beforeTax;
-                            $resultObject->profit_after_tax = $paypalBusinessEmail
-                                ? ($beforeTax - $tax)
-                                : $beforeTax;
+                            $resultObject->profit_after_tax = $beforeTax;
                             $resultObject->fees = $fee;
                             $resultObject->tax = 0.0;
                             $resultObject->loss = 0.0;
@@ -149,7 +145,6 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                 $fee = isset($transaction->fee) ? $transaction->fee / 100.0 : 0.0;
                 $amount = $transaction->amount / 100.0;
                 $beforeTax = $amount - $fee;
-                $tax = $beforeTax - ($beforeTax / $standardTax);
                 $currency = strtoupper($transaction->currency);
                 $receivers = array(
                     $totalString,
@@ -251,7 +246,6 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                     if ($amount !== null) {
                         $fee = $amount * $feePercentage;
                         $beforeTax = $amount - $fee;
-                        $tax = $beforeTax - ($beforeTax / $standardTax);
 
                         foreach ($ownerships as $ownership) {
                             $date = $ownership->creation_date;
@@ -270,9 +264,9 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                                     if (!array_key_exists($receiver, $results)) {
                                         $resultObject = new stdClass();
                                         $resultObject->profit_before_tax = $beforeTax;
-                                        $resultObject->profit_after_tax = $beforeTax - $tax;
+                                        $resultObject->profit_after_tax = $beforeTax;
                                         $resultObject->fees = $fee;
-                                        $resultObject->tax = $tax;
+                                        $resultObject->tax = 0.0;
 
                                         if ($receiver != $totalString) {
                                             $array = array();
@@ -283,9 +277,8 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                                     } else {
                                         $resultObject = $results[$receiver];
                                         $resultObject->profit_before_tax += $beforeTax;
-                                        $resultObject->profit_after_tax += $beforeTax - $tax;
+                                        $resultObject->profit_after_tax += $beforeTax;
                                         $resultObject->fees += $fee;
-                                        $resultObject->tax += $tax;
 
                                         if ($receiver != $totalString) {
                                             $resultObject->succesful_transactions[strtotime($date)] = $object;
@@ -322,7 +315,6 @@ function get_financial_input(int|string $year, int|string $month, $standardTax =
                 $amount = $patron->attributes->currently_entitled_amount_cents / 100.0;
                 $fee = ($amount * $feePercentage) + $feeAmount;
                 $beforeTax = $amount - $fee;
-                $tax = $beforeTax - ($beforeTax / $standardTax);
 
                 $object = new stdClass();
                 $object->user = $patron->attributes->full_name;
