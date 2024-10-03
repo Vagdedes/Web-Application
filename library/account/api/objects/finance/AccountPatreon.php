@@ -14,29 +14,31 @@ class AccountPatreon
     public function retrieve(?array $specificTiers = null, ?int $lifetimeCents = null, bool $and = false): MethodReply
     {
         if ($this->retrieve === null) {
-            $name = $this->account->getAccounts()->hasAdded(
-                AccountAccounts::PATREON_FULL_NAME,
-                null,
-                1
-            );
-
-            if ($name->isPositiveOutcome()) {
-                $this->retrieve = $this->find(
-                    $name->getObject()[0],
-                    $specificTiers
+            if (empty($specificTiers) && empty($lifetimeCents)) {
+                $this->retrieve = new MethodReply(false);
+            } else {
+                $name = $this->account->getAccounts()->hasAdded(
+                    AccountAccounts::PATREON_FULL_NAME,
+                    null,
+                    1
                 );
 
-                if (!$this->retrieve->isPositiveOutcome()) {
+                if ($name->isPositiveOutcome()) {
                     $this->retrieve = $this->find(
                         $name->getObject()[0],
                         $specificTiers
                     );
+
+                    if (!$this->retrieve->isPositiveOutcome()) {
+                        $this->retrieve = $this->find(
+                            $name->getObject()[0],
+                            $specificTiers
+                        );
+                    }
+                } else {
+                    $this->retrieve = new MethodReply(false);
                 }
-            } else {
-                $this->retrieve = new MethodReply(false);
             }
-        } else {
-            $this->retrieve = new MethodReply(false);
         }
         $object = $this->retrieve->getObject();
         return new MethodReply(
