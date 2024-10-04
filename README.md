@@ -1,1 +1,1 @@
-Application built in PHP made to utilize one of multiple identical scalable servers behind one of multiple identical scalable load-balancers.
+## PROJECT IS PUBLISHED WITH THE PURPOSE OF SHOWCASING PROGRAMMING ABILITIES.
