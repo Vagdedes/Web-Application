@@ -268,7 +268,7 @@ class AccountProduct
                             array("expiration_date", ">", get_current_date()),
                             null,
                         ),
-                        "version DESC, required_permission DESC",
+                        "creation_date DESC, required_permission DESC",
                         10
                     );
                     $object->download_note = null;
