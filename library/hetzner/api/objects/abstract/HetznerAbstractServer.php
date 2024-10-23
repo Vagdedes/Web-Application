@@ -16,4 +16,9 @@ abstract class HetznerAbstractServer
         $this->storageGB = $storageGB;
     }
 
+    public function maxCpuPercentage(): float
+    {
+        return $this->cpuCores * 100.0;
+    }
+
 }
