@@ -3,15 +3,16 @@
 class HetznerLoadBalancerType
 {
 
-    public string $type;
+    public string $name;
     public int $targets, $maxConnections;
 
-    public function __construct(string $type,
+    public function __construct(string $name,
                                 int    $targets,
                                 int    $maxConnections)
     {
-        $this->type = $type;
+        $this->name = $name;
         $this->targets = $targets;
         $this->maxConnections = $maxConnections;
     }
+
 }

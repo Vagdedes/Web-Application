@@ -2,19 +2,19 @@
 
 // LOAD BALANCER
 
-$HETZNER_LOAD_BALANCER_LB11 = new HetznerLoadBalancerType(
+$HETZNER_LOAD_BALANCER_1 = new HetznerLoadBalancerType(
     'lb11',
     25,
     10_000
 );
 
-$HETZNER_LOAD_BALANCER_LB21 = new HetznerLoadBalancerType(
+$HETZNER_LOAD_BALANCER_2 = new HetznerLoadBalancerType(
     'lb21',
     75,
     20_000
 );
 
-$HETZNER_LOAD_BALANCER_LB31 = new HetznerLoadBalancerType(
+$HETZNER_LOAD_BALANCER_3 = new HetznerLoadBalancerType(
     'lb31',
     150,
     40_000

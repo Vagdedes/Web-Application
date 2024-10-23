@@ -9,4 +9,5 @@ class HetznerServerLocation
     {
         $this->name = $name;
     }
+
 }

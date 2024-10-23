@@ -9,4 +9,5 @@ class HetznerServerSnapshot
     {
         $this->name = $name;
     }
+
 }

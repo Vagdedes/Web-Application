@@ -16,3 +16,4 @@ require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/Hetzn
 require_once '/var/www/.structure/library/hetzner/api/objects/HetznerLoadBalancer.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/HetznerServerSnapshot.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/HetznerNetwork.php';
+require_once '/var/www/.structure/library/hetzner/api/objects/HetznerServer.php';
