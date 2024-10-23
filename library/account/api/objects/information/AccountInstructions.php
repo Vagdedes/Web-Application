@@ -130,14 +130,9 @@ class AccountInstructions
 
     private function prepare(mixed $object): string|bool
     {
-        if (is_object($object)) {
-            $object = clear_object_null_keys($object);
-            return @json_encode($object);
-        } else if (is_array($object)) {
-            $object = clear_array_null_keys($object);
-            return @json_encode($object);
-        }
-        return $object === null ? "" : $object;
+        return is_object($object) || is_array($object)
+            ? @json_encode($object)
+            : ($object === null ? "" : $object);
     }
 
     public function replace(array   $messages,
