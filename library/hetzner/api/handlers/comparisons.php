@@ -8,9 +8,9 @@ class HetznerComparison
         global $HETZNER_X86_SERVERS;
 
         foreach ($HETZNER_X86_SERVERS as $key => $value) {
-            if ($server->cpuCores == $value->cpuCores
-                && $server->memoryGB == $value->memoryGB
-                && (!$storage || $server->storageGB == $value->storageGB)) {
+            if ($server->cpuCores === $value->cpuCores
+                && $server->memoryGB === $value->memoryGB
+                && (!$storage || $server->storageGB === $value->storageGB)) {
                 return $key;
             }
         }
@@ -22,9 +22,9 @@ class HetznerComparison
         global $HETZNER_ARM_SERVERS;
 
         foreach ($HETZNER_ARM_SERVERS as $key => $value) {
-            if ($server->cpuCores == $value->cpuCores
-                && $server->memoryGB == $value->memoryGB
-                && (!$storage || $server->storageGB == $value->storageGB)) {
+            if ($server->cpuCores === $value->cpuCores
+                && $server->memoryGB === $value->memoryGB
+                && (!$storage || $server->storageGB === $value->storageGB)) {
                 return $key;
             }
         }
@@ -38,8 +38,8 @@ class HetznerComparison
         global $HETZNER_LOAD_BALANCERS;
 
         foreach ($HETZNER_LOAD_BALANCERS as $key => $value) {
-            if ($loadBalancer->type->targets == $value->targets
-                && $loadBalancer->type->maxConnections == $value->maxConnections) {
+            if ($loadBalancer->type->targets === $value->targets
+                && $loadBalancer->type->maxConnections === $value->maxConnections) {
                 return $key;
             }
         }
