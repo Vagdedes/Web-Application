@@ -10,6 +10,7 @@ class HetznerComparison
         foreach ($HETZNER_X86_SERVERS as $key => $value) {
             if ($server->cpuCores === $value->cpuCores
                 && $server->memoryGB === $value->memoryGB
+                && $server->pricePerHour === $value->pricePerHour
                 && (!$storage || $server->storageGB === $value->storageGB)) {
                 return $key;
             }
@@ -24,6 +25,7 @@ class HetznerComparison
         foreach ($HETZNER_ARM_SERVERS as $key => $value) {
             if ($server->cpuCores === $value->cpuCores
                 && $server->memoryGB === $value->memoryGB
+                && $server->pricePerHour === $value->pricePerHour
                 && (!$storage || $server->storageGB === $value->storageGB)) {
                 return $key;
             }
@@ -39,7 +41,8 @@ class HetznerComparison
 
         foreach ($HETZNER_LOAD_BALANCERS as $key => $value) {
             if ($loadBalancer->type->targets === $value->targets
-                && $loadBalancer->type->maxConnections === $value->maxConnections) {
+                && $loadBalancer->type->maxConnections === $value->maxConnections
+                && $loadBalancer->type->pricePerHour === $value->pricePerHour) {
                 return $key;
             }
         }
@@ -50,8 +53,8 @@ class HetznerComparison
 
     public static function shouldUpgradeServerLevel(HetznerServer $server): bool
     {
-        global $UPGRADE_USAGE_RATIO;
-        return $server->cpuPercentage / $server->type->maxCpuPercentage() >= $UPGRADE_USAGE_RATIO;
+        return $server->cpuPercentage / $server->type->maxCpuPercentage()
+            >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
     }
 
     public static function canUpgradeServer(HetznerServer $server): bool
@@ -71,8 +74,8 @@ class HetznerComparison
 
     public static function shouldUpgradeLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
     {
-        global $UPGRADE_USAGE_RATIO;
-        return $loadBalancer->liveConnections / (float)$loadBalancer->type->maxConnections >= $UPGRADE_USAGE_RATIO;
+        return $loadBalancer->liveConnections / (float)$loadBalancer->type->maxConnections
+            >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
     }
 
 }

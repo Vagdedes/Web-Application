@@ -7,13 +7,15 @@ abstract class HetznerAbstractServer
     public int $cpuCores;
     public int $memoryGB;
     public int $storageGB;
+    public float $pricePerHour;
 
-    public function __construct(string $name, int $cpuCores, int $memoryGB, int $storageGB)
+    public function __construct(string $name, int $cpuCores, int $memoryGB, int $storageGB, float $pricePerHour)
     {
         $this->name = $name;
         $this->cpuCores = $cpuCores;
         $this->memoryGB = $memoryGB;
         $this->storageGB = $storageGB;
+        $this->pricePerHour = $pricePerHour;
     }
 
     public function maxCpuPercentage(): float
