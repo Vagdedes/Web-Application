@@ -7,7 +7,13 @@ class HetznerVariables
 
     public const
         HETZNER_UPGRADE_USAGE_RATIO = 0.85,
-        HETZNER_BACKUP_PRICE_MULTIPLIER = 1.2;
+        HETZNER_DOWNGRADE_USAGE_RATIO = self::HETZNER_UPGRADE_USAGE_RATIO / 2.0,
+        HETZNER_MINIMUM_LOAD_BALANCERS = 2,
+        HETZNER_MINIMUM_SERVERS = 2,
+        HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'balancer-default',
+        HETZNER_LOAD_BALANCER_NAME_PATTERN = 'balancer-',
+        HETZNER_DEFAULT_SERVER_NAME = 'application-default',
+        HETZNER_SERVER_NAME_PATTERN = 'application-';
 
 }
 
@@ -73,29 +79,25 @@ $HETZNER_ARM_SERVERS = array(
         'cax11',
         2,
         4,
-        40,
-        0.0053
+        40
     ),
     new HetznerArmServer(
         'cax21',
         4,
         8,
-        80,
-        0.0096
+        80
     ),
     new HetznerArmServer(
         'cax31',
         8,
         16,
-        160,
-        0.0192
+        160
     ),
     new HetznerArmServer(
         'cax41',
         16,
         32,
-        320,
-        0.0384
+        320
     )
 );
 
@@ -106,36 +108,31 @@ $HETZNER_X86_SERVERS = array(
         'cpx11',
         2,
         2,
-        40,
-        0.0063
+        40
     ),
     new HetznerX86Server(
         'cpx21',
         3,
         4,
-        80,
-        0.0112
+        80
     ),
     new HetznerX86Server(
         'cpx31',
         4,
         8,
-        160,
-        0.0211
+        160
     ),
     new HetznerX86Server(
         'cpx41',
         8,
         16,
-        240,
-        0.0409
+        240
     ),
     new HetznerX86Server(
         'cpx51',
         16,
         32,
-        360,
-        0.1232
+        360
     )
 );
 

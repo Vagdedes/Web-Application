@@ -10,6 +10,7 @@ class HetznerServer
     public HetznerServerLocation $location;
     public ?HetznerNetwork $network;
     public bool $backups;
+    public int $customStorageGB;
 
     public function __construct(?string               $name,
                                 float                 $cpuPercentage,
@@ -17,7 +18,8 @@ class HetznerServer
                                 ?HetznerLoadBalancer  $loadBalancer,
                                 ?HetznerNetwork       $network,
                                 HetznerServerLocation $location,
-                                bool                  $backups)
+                                bool                  $backups,
+                                int                   $customStorageGB)
     {
         $this->name = $name;
         $this->cpuPercentage = $cpuPercentage;
@@ -26,15 +28,7 @@ class HetznerServer
         $this->loadBalancer = $loadBalancer;
         $this->network = $network;
         $this->backups = $backups;
-    }
-
-    public function getPricePerHour(): float
-    {
-        if ($this->backups) {
-            return $this->type->pricePerHour * HetznerVariables::HETZNER_BACKUP_PRICE_MULTIPLIER;
-        } else {
-            return $this->type->pricePerHour;
-        }
+        $this->customStorageGB = $customStorageGB;
     }
 
 }
