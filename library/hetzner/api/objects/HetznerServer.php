@@ -11,6 +11,7 @@ class HetznerServer
     public ?HetznerNetwork $network;
     public bool $backups;
     public int $customStorageGB;
+    public bool $blockingAction;
 
     public function __construct(?string               $name,
                                 float                 $cpuPercentage,
@@ -19,7 +20,8 @@ class HetznerServer
                                 ?HetznerNetwork       $network,
                                 HetznerServerLocation $location,
                                 bool                  $backups,
-                                int                   $customStorageGB)
+                                int                   $customStorageGB,
+                                bool                  $blockingAction)
     {
         $this->name = $name;
         $this->cpuPercentage = $cpuPercentage;
@@ -29,6 +31,7 @@ class HetznerServer
         $this->network = $network;
         $this->backups = $backups;
         $this->customStorageGB = $customStorageGB;
+        $this->blockingAction = $blockingAction;
     }
 
 }

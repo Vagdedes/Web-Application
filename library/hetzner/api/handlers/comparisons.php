@@ -61,6 +61,8 @@ class HetznerComparison
             <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO;
     }
 
+    // Separator
+
     public static function canUpgradeServer(HetznerServer $server): bool
     {
         if ($server->type instanceof HetznerArmServer) {
@@ -91,6 +93,8 @@ class HetznerComparison
         }
     }
 
+    // Separator
+
     public static function canDeleteServer(HetznerServer $server): bool
     {
         return $server->name != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME;
@@ -115,6 +119,8 @@ class HetznerComparison
             <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO;
     }
 
+    // Separator
+
     public static function canUpgradeLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
     {
         global $HETZNER_LOAD_BALANCERS;
@@ -126,6 +132,8 @@ class HetznerComparison
     {
         return self::getLoadBalancerLevel($loadBalancer->type) > 0;
     }
+
+    // Separator
 
     public static function canDeleteLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
     {

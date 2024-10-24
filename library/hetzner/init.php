@@ -20,3 +20,4 @@ require_once '/var/www/.structure/library/hetzner/api/objects/HetznerServer.php'
 
 // Handlers
 require_once '/var/www/.structure/library/hetzner/api/handlers/comparisons.php';
+require_once '/var/www/.structure/library/hetzner/api/handlers/actions.php';
