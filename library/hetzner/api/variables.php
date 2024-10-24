@@ -6,6 +6,8 @@ class HetznerVariables
 {
 
     public const
+        HETZNER_API_VERSION = 'v1',
+        HETZNER_CREDENTIALS_DIRECTORY = "hetzner_credentials",
         HETZNER_UPGRADE_USAGE_RATIO = 0.85,
         HETZNER_DOWNGRADE_USAGE_RATIO = self::HETZNER_UPGRADE_USAGE_RATIO / 2.0,
         HETZNER_MINIMUM_LOAD_BALANCERS = 2,
@@ -13,7 +15,9 @@ class HetznerVariables
         HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'balancer-default',
         HETZNER_LOAD_BALANCER_NAME_PATTERN = 'balancer-',
         HETZNER_DEFAULT_SERVER_NAME = 'application-default',
-        HETZNER_SERVER_NAME_PATTERN = 'application-';
+        HETZNER_SERVER_NAME_PATTERN = 'application-',
+        HETZNER_DEFAULT_NETWORK = 'application-network',
+        HETZNER_DEFAULT_SNAPSHOT = 'application-snapshot';
 
 }
 
@@ -52,24 +56,6 @@ $HETZNER_LOAD_BALANCERS = array(
         40_000,
         0.0495
     )
-);
-
-// LOCATION
-
-$HETZNER_LOCATION_NUREMBERG = new HetznerServerLocation(
-    'nbg1',
-);
-
-// SNAPSHOT
-
-$HETZNER_APPLICATION_SNAPSHOT = new HetznerServerSnapshot(
-    'application-snapshot'
-);
-
-// NETWORK
-
-$HETZNER_APPLICATION_NETWORK = new HetznerServerSnapshot(
-    'application-network'
 );
 
 // ARM SERVER

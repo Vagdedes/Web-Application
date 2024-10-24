@@ -8,7 +8,6 @@ class HetznerServer
     public HetznerAbstractServer $type;
     public ?HetznerLoadBalancer $loadBalancer;
     public HetznerServerLocation $location;
-    public ?HetznerNetwork $network;
     public bool $backups;
     public int $customStorageGB;
     public bool $blockingAction;
@@ -17,7 +16,6 @@ class HetznerServer
                                 float                 $cpuPercentage,
                                 HetznerAbstractServer $type,
                                 ?HetznerLoadBalancer  $loadBalancer,
-                                ?HetznerNetwork       $network,
                                 HetznerServerLocation $location,
                                 bool                  $backups,
                                 int                   $customStorageGB,
@@ -28,10 +26,24 @@ class HetznerServer
         $this->type = $type;
         $this->location = $location;
         $this->loadBalancer = $loadBalancer;
-        $this->network = $network;
         $this->backups = $backups;
         $this->customStorageGB = $customStorageGB;
         $this->blockingAction = $blockingAction;
+    }
+
+    public function upgrade(): bool
+    {
+        return false;
+    }
+
+    public function downgrade(): bool
+    {
+        return false;
+    }
+
+    public function remove(): bool
+    {
+        return false;
     }
 
 }

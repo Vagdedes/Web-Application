@@ -1,8 +1,5 @@
 <?php
 
-// Base
-require_once '/var/www/.structure/library/hetzner/api/variables.php';
-
 // Abstract
 require_once '/var/www/.structure/library/hetzner/api/objects/abstract/HetznerAbstractServer.php';
 
@@ -14,10 +11,12 @@ require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/Hetzn
 
 // Executions
 require_once '/var/www/.structure/library/hetzner/api/objects/HetznerLoadBalancer.php';
-require_once '/var/www/.structure/library/hetzner/api/objects/HetznerServerSnapshot.php';
-require_once '/var/www/.structure/library/hetzner/api/objects/HetznerNetwork.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/HetznerServer.php';
+
+// Base
+require_once '/var/www/.structure/library/hetzner/api/variables.php';
 
 // Handlers
 require_once '/var/www/.structure/library/hetzner/api/handlers/comparisons.php';
 require_once '/var/www/.structure/library/hetzner/api/handlers/actions.php';
+require_once '/var/www/.structure/library/hetzner/api/handlers/connection.php';

@@ -3,9 +3,10 @@ require_once '/var/www/.structure/library/hetzner/api/tasks/helpers/loadbalance.
 
 function hetzner_maintain_network(): bool
 {
-    $loadBalancers = array();
-    $servers = array();
-    $array = hetzner_load_balance($loadBalancers, $servers);
+    $array = hetzner_load_balance(
+        HetznerAction::getLoadBalancers(),
+        HetznerAction::getServers()
+    );
 
     if (!empty($array)) {
         $result = false;
@@ -13,28 +14,22 @@ function hetzner_maintain_network(): bool
         foreach ($array as $action => $machine) {
             switch ($action) {
                 case HetznerChanges::UPGRADE_SERVER:
-                    $result &= HetznerAction::upgradeServer($machine);
+                case HetznerChanges::UPGRADE_LOADBALANCER:
+                    $result &= $machine->upgrade();
                     break;
                 case HetznerChanges::DOWNGRADE_SERVER:
-                    $result &= HetznerAction::downgradeServer($machine);
-                    break;
-                case HetznerChanges::ADD_NEW_SERVER:
-                    $result &= HetznerAction::addNewServer($machine);
+                case HetznerChanges::DOWNGRADE_LOADBALANCER:
+                    $result &= $machine->downgrade();
                     break;
                 case HetznerChanges::REMOVE_SERVER:
-                    $result &= HetznerAction::removeServer($machine);
+                case HetznerChanges::REMOVE_LOADBALANCER:
+                    $result &= $machine->remove();
                     break;
-                case HetznerChanges::UPGRADE_LOADBALANCER:
-                    $result &= HetznerAction::upgradeLoadBalancer($machine);
-                    break;
-                case HetznerChanges::DOWNGRADE_LOADBALANCER:
-                    $result &= HetznerAction::downgradeLoadBalancer($machine);
+                case HetznerChanges::ADD_NEW_SERVER:
+                    $result &= HetznerAction::addNewServerLike($machine);
                     break;
                 case HetznerChanges::ADD_NEW_LOADBALANCER:
-                    $result &= HetznerAction::addNewLoadBalancer($machine);
-                    break;
-                case HetznerChanges::REMOVE_LOADBALANCER:
-                    $result &= HetznerAction::removeLoadBalancer($machine);
+                    $result &= HetznerAction::addNewLoadBalancerLike($machine);
                     break;
                 default:
                     break;
@@ -42,6 +37,8 @@ function hetzner_maintain_network(): bool
         }
         return $result;
     } else {
-        return HetznerAction::updateServers($servers);
+        return HetznerAction::updateServers(
+            HetznerAction::getServers()
+        );
     }
 }

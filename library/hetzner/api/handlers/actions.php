@@ -3,48 +3,57 @@
 class HetznerAction
 {
 
-    public static function upgradeServer(HetznerServer $server): bool
+    public static function getServers(): array
     {
-        return false;
+        $array = array();
+        $query = get_hetzner_object_pages("servers");
+
+        if (!empty($query)) {
+            foreach ($query as $page) {
+                foreach ($page->servers as $server) {
+                    $array[] = new HetznerServer(
+                        $server->name,
+                        0, // todo
+                        $server->server_type->architecture == "x86"
+                            ? new HetznerX86Server(
+                            strtolower($server->server_type->description),
+                            $server->server_type->cores,
+                            $server->server_type->memory,
+                            $server->server_type->disk
+                        ) : new HetznerArmServer(
+                            strtolower($server->server_type->description),
+                            $server->server_type->cores,
+                            $server->server_type->memory,
+                            $server->server_type->disk
+                        ),
+                        null,
+                        new HetznerServerLocation($server->datacenter->location->name),
+                        false, // todo
+                        $server->primary_disk_size,
+                        false  // todo
+                    );
+                    break 2;
+                }
+            }
+        }
+        var_dump($array);
+        return $array;
     }
 
-    public static function downgradeServer(HetznerServer $server): bool
+    public static function getLoadBalancers(): array
     {
-        return false;
+        $array = array();
+        return $array;
     }
 
     // Separator
 
-    public static function addNewServer(HetznerServer $server): bool
+    public static function addNewServerLike(HetznerServer $server): bool
     {
         return false;
     }
 
-    public static function removeServer(HetznerServer $server): bool
-    {
-        return false;
-    }
-
-    // Separator
-
-    public static function upgradeLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
-    {
-        return false;
-    }
-
-    public static function downgradeLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
-    {
-        return false;
-    }
-
-    // Separator
-
-    public static function addNewLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
-    {
-        return false;
-    }
-
-    public static function removeLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
+    public static function addNewLoadBalancerLike(HetznerLoadBalancer $loadBalancer): bool
     {
         return false;
     }
