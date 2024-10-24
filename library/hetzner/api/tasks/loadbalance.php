@@ -21,7 +21,6 @@ function hetzner_load_balance_steps(array $loadBalancers, array $servers): array
 
                     if (HetznerComparison::canUpgradeLoadBalancer($loadBalancer)) {
                         $toChange[] = $loadBalancer;
-                        break;
                     }
                 }
             } else {
@@ -31,7 +30,7 @@ function hetzner_load_balance_steps(array $loadBalancers, array $servers): array
 
         if ($requiresChange) {
             if (!empty($toChange)) {
-                $array[HetznerChanges::UPGRADE_LOADBALANCER] = $toChange; // todo find minimum upgraded
+                $array[HetznerChanges::UPGRADE_LOADBALANCER] = HetznerComparison::findLeastLevelLoadBalancer($toChange);
             } else {
                 $array[HetznerChanges::ADD_NEW_LOADBALANCER] = true;
             }
@@ -42,16 +41,19 @@ function hetzner_load_balance_steps(array $loadBalancers, array $servers): array
 
                     if (HetznerComparison::canDowngradeLoadBalancer($loadBalancer)) {
                         $toChange[] = $loadBalancer;
-                        break;
                     }
                 }
             }
 
             if ($requiresChange) {
                 if (!empty($toChange)) {
-                    $array[HetznerChanges::DOWNGRADE_LOADBALANCER] = $toChange;
+                    $array[HetznerChanges::DOWNGRADE_LOADBALANCER] = HetznerComparison::findLeastLevelLoadBalancer($toChange);
                 } else if (sizeof($loadBalancers) > HetznerVariables::HETZNER_MINIMUM_LOAD_BALANCERS) {
-                    $array[HetznerChanges::REMOVE_LOADBALANCER] = true; // todo find minimum upgraded
+                    $loadBalancer = HetznerComparison::findLeastLevelLoadBalancer($toChange, true);
+
+                    if ($loadBalancer !== null) {
+                        $array[HetznerChanges::REMOVE_LOADBALANCER] = $loadBalancer;
+                    }
                 }
             }
         }
@@ -72,7 +74,6 @@ function hetzner_load_balance_steps(array $loadBalancers, array $servers): array
 
                     if (HetznerComparison::canUpgradeServer($server)) {
                         $toChange[] = $server;
-                        break;
                     }
                 }
             } else {
@@ -82,7 +83,7 @@ function hetzner_load_balance_steps(array $loadBalancers, array $servers): array
 
         if ($requiresChange) {
             if (!empty($toChange)) {
-                $array[HetznerChanges::UPGRADE_SERVER] = $toChange; // todo find minimum upgraded
+                $array[HetznerChanges::UPGRADE_SERVER] = HetznerComparison::findLeastLevelServer($toChange);
             } else {
                 $array[HetznerChanges::ADD_NEW_SERVER] = true;
             }
@@ -92,17 +93,20 @@ function hetzner_load_balance_steps(array $loadBalancers, array $servers): array
                     $requiresChange = true;
 
                     if (HetznerComparison::canDowngradeServer($server)) {
-                        $toChange = $server;
-                        break;
+                        $toChange[] = $server;
                     }
                 }
             }
 
             if ($requiresChange) {
                 if (!empty($toChange)) {
-                    $array[HetznerChanges::DOWNGRADE_SERVER] = $toChange;
+                    $array[HetznerChanges::DOWNGRADE_SERVER] = HetznerComparison::findLeastLevelServer($toChange);
                 } else if (sizeof($servers) > HetznerVariables::HETZNER_MINIMUM_SERVERS) {
-                    $array[HetznerChanges::REMOVE_SERVER] = true; // todo find minimum upgraded
+                    $server = HetznerComparison::findLeastLevelServer($toChange, true);
+
+                    if ($server !== null) {
+                        $array[HetznerChanges::REMOVE_SERVER] = $server;
+                    }
                 }
             }
         }

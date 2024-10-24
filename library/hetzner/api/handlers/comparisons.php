@@ -137,4 +137,32 @@ class HetznerComparison
         return starts_with($loadBalancer->name, HetznerVariables::HETZNER_LOAD_BALANCER_NAME_PATTERN);
     }
 
+    // Separator
+
+    public static function findLeastLevelServer(array $servers, bool $delete = false): ?HetznerServer
+    {
+        $min = null;
+
+        foreach ($servers as $server) {
+            if ((!$delete || self::canDeleteServer($server))
+                && ($min === null || self::getServerLevel($server) < self::getServerLevel($min))) {
+                $min = $server;
+            }
+        }
+        return $min;
+    }
+
+    public static function findLeastLevelLoadBalancer(array $loadBalancers, bool $delete = false): ?HetznerLoadBalancer
+    {
+        $min = null;
+
+        foreach ($loadBalancers as $loadBalancer) {
+            if ((!$delete || self::canDeleteLoadBalancer($loadBalancer))
+                && ($min === null || self::getLoadBalancerLevel($loadBalancer->type) < self::getLoadBalancerLevel($min->type))) {
+                $min = $loadBalancer;
+            }
+        }
+        return $min;
+    }
+
 }
