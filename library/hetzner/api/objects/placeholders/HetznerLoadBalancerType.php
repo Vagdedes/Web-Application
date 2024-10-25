@@ -4,18 +4,15 @@ class HetznerLoadBalancerType
 {
 
     public string $name;
-    public int $targets, $maxConnections;
-    public float $pricePerHour;
+    public int $maxTargets, $maxConnections;
 
     public function __construct(string $name,
                                 int    $targets,
-                                int    $maxConnections,
-                                float  $pricePerHour)
+                                int    $maxConnections)
     {
         $this->name = $name;
-        $this->targets = $targets;
+        $this->maxTargets = $targets;
         $this->maxConnections = $maxConnections;
-        $this->pricePerHour = $pricePerHour;
     }
 
 }

@@ -12,7 +12,6 @@ abstract class HetznerAbstractServer
         $this->name = $name;
         $this->cpuCores = $cpuCores;
         $this->memoryGB = $memoryGB;
-        $this->storageGB = $storageGB;
     }
 
     public function maxCpuPercentage(): float

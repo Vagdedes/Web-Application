@@ -10,13 +10,12 @@ class HetznerVariables
         HETZNER_CREDENTIALS_DIRECTORY = "hetzner_credentials",
         HETZNER_UPGRADE_USAGE_RATIO = 0.85,
         HETZNER_DOWNGRADE_USAGE_RATIO = self::HETZNER_UPGRADE_USAGE_RATIO / 2.0,
-        HETZNER_MINIMUM_LOAD_BALANCERS = 2,
-        HETZNER_MINIMUM_SERVERS = 2,
+        HETZNER_MINIMUM_LOAD_BALANCERS = 1,
+        HETZNER_MINIMUM_SERVERS = 1,
         HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'balancer-default',
         HETZNER_LOAD_BALANCER_NAME_PATTERN = 'balancer-',
         HETZNER_DEFAULT_SERVER_NAME = 'application-default',
         HETZNER_SERVER_NAME_PATTERN = 'application-',
-        HETZNER_DEFAULT_NETWORK = 'application-network',
         HETZNER_DEFAULT_SNAPSHOT = 'application-snapshot';
 
 }
@@ -30,6 +29,8 @@ class HetznerChanges
         UPGRADE_LOADBALANCER = 'upgrade_loadbalancer',
         DOWNGRADE_LOADBALANCER = 'downgrade_loadbalancer',
         ADD_NEW_SERVER = 'add_new_server',
+        ATTACH_SERVER_TO_LOADBALANCER = 'attach_server_to_loadbalancer',
+        OPTIMIZE = 'optimize',
         REMOVE_SERVER = 'remove_server',
         ADD_NEW_LOADBALANCER = 'add_new_loadbalancer',
         REMOVE_LOADBALANCER = 'remove_loadbalancer';
@@ -41,20 +42,17 @@ $HETZNER_LOAD_BALANCERS = array(
     new HetznerLoadBalancerType(
         'lb11',
         25,
-        10_000,
-        0.0088
+        10_000
     ),
     new HetznerLoadBalancerType(
         'lb21',
         75,
-        20_000,
-        0.0253
+        20_000
     ),
     new HetznerLoadBalancerType(
         'lb31',
         150,
-        40_000,
-        0.0495
+        40_000
     )
 );
 

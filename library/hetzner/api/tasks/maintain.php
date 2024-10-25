@@ -1,11 +1,12 @@
 <?php
-require_once '/var/www/.structure/library/hetzner/api/tasks/helpers/loadbalance.php';
 
 function hetzner_maintain_network(): bool
 {
-    $array = hetzner_load_balance(
-        HetznerAction::getLoadBalancers(),
-        HetznerAction::getServers()
+    $loadBalancers = HetznerAction::getLoadBalancers();
+    $servers = HetznerAction::getServers($loadBalancers);
+    $array = HetznerAction::predictGrowthActions(
+        $loadBalancers,
+        $servers
     );
 
     if (!empty($array)) {
@@ -26,10 +27,16 @@ function hetzner_maintain_network(): bool
                     $result &= $machine->remove();
                     break;
                 case HetznerChanges::ADD_NEW_SERVER:
-                    $result &= HetznerAction::addNewServerLike($machine);
+                    $result &= HetznerAction::addNewServerBasedOn($machine->network);
                     break;
                 case HetznerChanges::ADD_NEW_LOADBALANCER:
-                    $result &= HetznerAction::addNewLoadBalancerLike($machine);
+                    $result &= HetznerAction::addNewLoadBalancerBasedOn($machine->network);
+                    break;
+                case HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER:
+                    $result &= $machine->attachToLoadBalancers($loadBalancers);
+                    break;
+                case HetznerChanges::OPTIMIZE:
+                    $result &= HetznerAction::optimize($loadBalancers, $servers);
                     break;
                 default:
                     break;
@@ -37,8 +44,6 @@ function hetzner_maintain_network(): bool
         }
         return $result;
     } else {
-        return HetznerAction::updateServers(
-            HetznerAction::getServers()
-        );
+        return HetznerAction::updateServersBasedOnSnapshot($servers);
     }
 }

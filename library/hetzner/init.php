@@ -1,15 +1,17 @@
 <?php
+// Dependency
+require_once '/var/www/.structure/library/cloudflare/init.php';
 
 // Abstract
 require_once '/var/www/.structure/library/hetzner/api/objects/abstract/HetznerAbstractServer.php';
 
-// Placeholders
+// Placeholders (Object)
 require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/HetznerServerLocation.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/HetznerLoadBalancerType.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/HetznerArmServer.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/HetznerX86Server.php';
 
-// Executions
+// Executions (Object)
 require_once '/var/www/.structure/library/hetzner/api/objects/HetznerLoadBalancer.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/HetznerServer.php';
 

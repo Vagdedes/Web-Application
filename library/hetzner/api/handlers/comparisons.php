@@ -38,9 +38,9 @@ class HetznerComparison
         global $HETZNER_LOAD_BALANCERS;
 
         foreach ($HETZNER_LOAD_BALANCERS as $key => $value) {
-            if ($loadBalancer->targets === $value->targets
-                && $loadBalancer->maxConnections === $value->maxConnections
-                && $loadBalancer->pricePerHour === $value->pricePerHour) {
+            if ($loadBalancer->name === $value->name
+                && $loadBalancer->maxTargets === $value->maxTargets
+                && $loadBalancer->maxConnections === $value->maxConnections) {
                 return $key;
             }
         }
