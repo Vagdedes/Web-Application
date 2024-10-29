@@ -6,7 +6,7 @@ class HetznerVariables
 {
 
     public const
-        CPU_METRICS_PAST_SECONDS = 120,
+        CPU_METRICS_PAST_SECONDS = 60,
         CONNECTION_METRICS_PAST_SECONDS = 60,
         HETZNER_API_VERSION = 'v1',
         HETZNER_CREDENTIALS_DIRECTORY = "hetzner_credentials",
@@ -20,22 +20,6 @@ class HetznerVariables
         HETZNER_SERVER_NAME_PATTERN = 'application-',
         HETZNER_DEFAULT_SNAPSHOT = 'application-snapshot';
 
-}
-
-class HetznerChanges
-{
-
-    public const
-        UPGRADE_SERVER = 'upgrade_server',
-        DOWNGRADE_SERVER = 'downgrade_server',
-        UPGRADE_LOADBALANCER = 'upgrade_loadbalancer',
-        DOWNGRADE_LOADBALANCER = 'downgrade_loadbalancer',
-        ADD_NEW_SERVER = 'add_new_server',
-        ATTACH_SERVER_TO_LOADBALANCER = 'attach_server_to_loadbalancer',
-        OPTIMIZE = 'optimize',
-        REMOVE_SERVER = 'remove_server',
-        ADD_NEW_LOADBALANCER = 'add_new_loadbalancer',
-        REMOVE_LOADBALANCER = 'remove_loadbalancer';
 }
 
 // LOAD BALANCER

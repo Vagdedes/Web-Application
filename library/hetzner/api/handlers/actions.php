@@ -47,9 +47,6 @@ class HetznerAction
                                 if ($network->isServerIncluded($serverID)) {
                                     $array[] = new HetznerServer(
                                         $serverID,
-                                        $server->public_net->ipv4->ip,
-                                        $server->public_net->ipv6->ip,
-                                        "", // todo
                                         $metrics,
                                         strtolower($server->server_type->architecture) == "x86"
                                             ? new HetznerX86Server(
@@ -162,19 +159,19 @@ class HetznerAction
 
     // Separator
 
-    public static function addNewServerBasedOn(HetznerNetwork $network): bool
+    public static function addNewServerBasedOn(HetznerNetwork $network, int $level): bool
     {
         return false;
     }
 
-    public static function addNewLoadBalancerBasedOn(HetznerNetwork $network): bool
+    public static function addNewLoadBalancerBasedOn(HetznerNetwork $network, int $level): bool
     {
         return false;
     }
 
     // Separator
 
-    public static function updateServersBasedOnSnapshot(
+    public static function update(
         array  $servers,
         string $snapshot = HetznerVariables::HETZNER_DEFAULT_SNAPSHOT
     ): bool
@@ -187,20 +184,19 @@ class HetznerAction
         return false;
     }
 
-    public static function predictGrowthActions(array $loadBalancers, array $servers): array
+    public static function grow(array $loadBalancers, array $servers): bool
     {
-        $array = array();
+        $grow = false;
 
         // Attach Servers [And (Optionally) Add Load-Balancers]
+
+        $serversToAdd = 0;
 
         foreach ($servers as $arrayKey => $server) {
             if (HetznerComparison::shouldConsiderServer($server)) {
                 if (!$server->isInLoadBalancer()) {
-                    if (array_key_exists(HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER, $array)) {
-                        $array[HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER][] = $server;
-                    } else {
-                        $array[HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER] = array($server);
-                    }
+                    $grow |= $server->attachToLoadBalancer($loadBalancers);
+                    $serversToAdd++;
                 }
             } else {
                 unset($servers[$arrayKey]);
@@ -208,7 +204,6 @@ class HetznerAction
         }
 
         if (!empty($array)) {
-            $serversToAdd = sizeof($array[HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER]);
             $loadBalancerPositions = 0;
 
             foreach ($loadBalancers as $loadBalancer) {
@@ -234,10 +229,8 @@ class HetznerAction
                             $serverThatCannotBeAdded
                         );
 
-                        if (array_key_exists(HetznerChanges::UPGRADE_LOADBALANCER, $array)) {
-                            $array[HetznerChanges::UPGRADE_LOADBALANCER][] = $loadBalancerToUpgrade;
-                        } else {
-                            $array[HetznerChanges::UPGRADE_LOADBALANCER] = array($loadBalancerToUpgrade);
+                        if ($newLevel === -1) {
+                            break;
                         }
                         foreach ($loadBalancers as $arrayKey => $loadBalancer) {
                             if ($loadBalancer->identifier === $loadBalancerToUpgrade->identifier) {
@@ -253,15 +246,10 @@ class HetznerAction
                 }
 
                 if ($serverThatCannotBeAdded > 0) {
-                    foreach ($HETZNER_LOAD_BALANCERS as $loadBalancerType) {
-                        if ($loadBalancerType->maxTargets >= $serverThatCannotBeAdded) {
-                            $array[HetznerChanges::ADD_NEW_LOADBALANCER] = $loadBalancerType;
-                            break;
-                        }
-                    }
+
                 }
             }
-            return $array;
+            return $grow;
         } else {
             foreach ($loadBalancers as $arrayKey => $loadBalancer) {
                 if (!HetznerComparison::shouldConsiderLoadBalancer($loadBalancer)) {
@@ -291,17 +279,18 @@ class HetznerAction
 
         if ($requiresChange) {
             if (!empty($toChange)) {
-                $array[HetznerChanges::UPGRADE_LOADBALANCER] = array(
-                    HetznerComparison::findLeastLevelLoadBalancer($toChange)
-                );
+                $grow |= HetznerComparison::findLeastLevelLoadBalancer($toChange)->upgrade();
             } else {
-                $array[HetznerChanges::ADD_NEW_LOADBALANCER] = 1;
+                $grow |= HetznerAction::addNewLoadBalancerBasedOn(
+                    $loadBalancers[0]->network,
+                    0
+                );
             }
         } else {
             foreach ($loadBalancers as $loadBalancer) {
                 if (HetznerComparison::shouldDowngradeLoadBalancer($loadBalancer)) {
                     if ($loadBalancer->blockingAction) {
-                        return array();
+                        return false;
                     } else {
                         $requiresChange = true;
 
@@ -314,12 +303,12 @@ class HetznerAction
 
             if ($requiresChange) {
                 if (!empty($toChange)) {
-                    $array[HetznerChanges::DOWNGRADE_LOADBALANCER] = HetznerComparison::findLeastLevelLoadBalancer($toChange);
+                    $grow |= HetznerComparison::findLeastLevelLoadBalancer($toChange)->downgrade();
                 } else if (sizeof($loadBalancers) > HetznerVariables::HETZNER_MINIMUM_LOAD_BALANCERS) {
                     $loadBalancer = HetznerComparison::findLeastLevelLoadBalancer($toChange, true);
 
                     if ($loadBalancer !== null) {
-                        $array[HetznerChanges::REMOVE_LOADBALANCER] = $loadBalancer;
+                        $grow |= $loadBalancer->remove();
                     }
                 }
             }
@@ -333,7 +322,7 @@ class HetznerAction
         foreach ($servers as $server) {
             if (HetznerComparison::shouldUpgradeServer($server)) {
                 if ($server->blockingAction) {
-                    return array();
+                    return false;
                 } else {
                     $requiresChange = true;
 
@@ -346,15 +335,18 @@ class HetznerAction
 
         if ($requiresChange) {
             if (!empty($toChange)) {
-                $array[HetznerChanges::UPGRADE_SERVER] = HetznerComparison::findLeastLevelServer($toChange);
+                $grow |= HetznerComparison::findLeastLevelServer($toChange)->upgrade();
             } else {
-                $array[HetznerChanges::ADD_NEW_SERVER] = 1;
+                $grow |= HetznerAction::addNewServerBasedOn(
+                    $servers[0]->network,
+                    0
+                );
             }
         } else {
             foreach ($servers as $server) {
                 if (HetznerComparison::shouldDowngradeServer($server)) {
                     if ($server->blockingAction) {
-                        return array();
+                        return false;
                     } else {
                         $requiresChange = true;
 
@@ -367,21 +359,17 @@ class HetznerAction
 
             if ($requiresChange) {
                 if (!empty($toChange)) {
-                    $array[HetznerChanges::DOWNGRADE_SERVER] = HetznerComparison::findLeastLevelServer($toChange);
+                    $grow |= HetznerComparison::findLeastLevelServer($toChange)->downgrade();
                 } else if (sizeof($servers) > HetznerVariables::HETZNER_MINIMUM_SERVERS) {
                     $server = HetznerComparison::findLeastLevelServer($toChange, true);
 
                     if ($server !== null) {
-                        $array[HetznerChanges::REMOVE_SERVER] = $server;
+                        $grow |= $server->remove();
                     }
                 }
             }
         }
-
-        if (empty($array)) {
-            $array[HetznerChanges::OPTIMIZE] = true;
-        }
-        return $array;
+        return $grow;
     }
 
 }

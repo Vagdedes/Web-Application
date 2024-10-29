@@ -3,7 +3,7 @@
 class HetznerServer
 {
 
-    public ?string $identifier, $ipv4, $ipv6, $local;
+    public ?string $identifier;
     public float $cpuPercentage;
     public HetznerAbstractServer $type;
     public ?HetznerLoadBalancer $loadBalancer;
@@ -13,9 +13,6 @@ class HetznerServer
     public bool $blockingAction;
 
     public function __construct(?string               $identifier,
-                                ?string               $ipv4,
-                                ?string               $ipv6,
-                                ?string               $local,
                                 float                 $cpuPercentage,
                                 HetznerAbstractServer $type,
                                 ?HetznerLoadBalancer  $loadBalancer,
@@ -25,9 +22,6 @@ class HetznerServer
                                 bool                  $blockingAction)
     {
         $this->identifier = $identifier;
-        $this->ipv4 = $ipv4;
-        $this->ipv6 = $ipv6;
-        $this->local = $local;
         $this->cpuPercentage = $cpuPercentage;
         $this->network = $network;
         $this->type = $type;
