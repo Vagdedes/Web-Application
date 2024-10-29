@@ -216,4 +216,16 @@ class HetznerComparison
         return $min;
     }
 
+    public static function findLeastPopulatedLoadBalancer(array $loadBalancers): ?HetznerLoadBalancer
+    {
+        $min = null;
+
+        foreach ($loadBalancers as $loadBalancer) {
+            if ($min === null || $loadBalancer->targetCount() < $min->targetCount()) {
+                $min = $loadBalancer;
+            }
+        }
+        return $min;
+    }
+
 }

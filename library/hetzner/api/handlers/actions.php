@@ -45,7 +45,7 @@ class HetznerAction
                         if ($metrics !== null) {
                             foreach ($networks as $network) {
                                 if ($network->isServerIncluded($serverID)) {
-                                    $array[] = new HetznerServer(
+                                    $array[$serverID] = new HetznerServer(
                                         $serverID,
                                         $metrics,
                                         strtolower($server->server_type->architecture) == "x86"
@@ -114,7 +114,7 @@ class HetznerAction
                                         $targets[] = $target?->server?->id;
                                     }
                                 }
-                                $array[] = new HetznerLoadBalancer(
+                                $array[$loadBalancerID] = new HetznerLoadBalancer(
                                     $loadBalancerID,
                                     0, // todo
                                     new HetznerLoadBalancerType(
@@ -146,7 +146,7 @@ class HetznerAction
         if (!empty($query)) {
             foreach ($query as $page) {
                 foreach ($page->networks as $network) {
-                    $array[] = new HetznerNetwork(
+                    $array[$network->id] = new HetznerNetwork(
                         $network->id,
                         $network->servers,
                         $network->load_balancers
@@ -188,12 +188,15 @@ class HetznerAction
     {
         $grow = false;
 
-        // Attach Servers [And (Optionally) Add Load-Balancers]
+        // Attach Server/s [And (Optionally) Add Load-Balancer/s]
 
         $serversToAdd = 0;
 
         foreach ($servers as $arrayKey => $server) {
             if (HetznerComparison::shouldConsiderServer($server)) {
+                if ($server->blockingAction) {
+                    return false;
+                }
                 if (!$server->isInLoadBalancer()) {
                     $grow |= $server->attachToLoadBalancer($loadBalancers);
                     $serversToAdd++;
@@ -208,6 +211,9 @@ class HetznerAction
 
             foreach ($loadBalancers as $loadBalancer) {
                 if (HetznerComparison::shouldConsiderLoadBalancer($loadBalancer)) {
+                    if ($loadBalancer->blockingAction) {
+                        return false;
+                    }
                     $loadBalancerPositions += $loadBalancer->getRemainingTargetSpace();
                 }
             }
@@ -232,11 +238,7 @@ class HetznerAction
                         if ($newLevel === -1) {
                             break;
                         }
-                        foreach ($loadBalancers as $arrayKey => $loadBalancer) {
-                            if ($loadBalancer->identifier === $loadBalancerToUpgrade->identifier) {
-                                unset($loadBalancers[$arrayKey]);
-                            }
-                        }
+                        unset($loadBalancers[$loadBalancerToUpgrade->identifier]);
                         $serverThatCannotBeAdded -= $HETZNER_LOAD_BALANCERS[$newLevel]->maxTargets - $loadBalancerToUpgrade->targetCount();
 
                         if ($serverThatCannotBeAdded <= 0) {
@@ -253,12 +255,15 @@ class HetznerAction
         } else {
             foreach ($loadBalancers as $arrayKey => $loadBalancer) {
                 if (!HetznerComparison::shouldConsiderLoadBalancer($loadBalancer)) {
+                    if ($loadBalancer->blockingAction) {
+                        return false;
+                    }
                     unset($loadBalancers[$arrayKey]);
                 }
             }
         }
 
-        // Upgrade/Downgrade/Add/Delete Load-Balancers
+        // Upgrade/Downgrade/Add/Delete Load-Balancer/s
 
         $requiresChange = false;
         $toChange = array();
@@ -266,7 +271,7 @@ class HetznerAction
         foreach ($loadBalancers as $loadBalancer) {
             if (HetznerComparison::shouldUpgradeLoadBalancer($loadBalancer)) {
                 if ($loadBalancer->blockingAction) {
-                    return array();
+                    return false;
                 } else {
                     $requiresChange = true;
 
@@ -314,7 +319,7 @@ class HetznerAction
             }
         }
 
-        // Upgrade/Downgrade/Add/Delete Servers
+        // Upgrade/Downgrade/Add/Delete Server/s
 
         $requiresChange = false;
         $toChange = array();
