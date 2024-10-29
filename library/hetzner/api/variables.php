@@ -14,11 +14,11 @@ class HetznerVariables
         HETZNER_DOWNGRADE_USAGE_RATIO = self::HETZNER_UPGRADE_USAGE_RATIO / 2.0,
         HETZNER_MINIMUM_LOAD_BALANCERS = 1,
         HETZNER_MINIMUM_SERVERS = 1,
-        HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'balancer-default',
-        HETZNER_LOAD_BALANCER_NAME_PATTERN = 'balancer-',
-        HETZNER_DEFAULT_SERVER_NAME = 'application-default',
-        HETZNER_SERVER_NAME_PATTERN = 'application-',
-        HETZNER_DEFAULT_SNAPSHOT = 'application-snapshot';
+        HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'application.load-balancer.default',
+        HETZNER_LOAD_BALANCER_NAME_PATTERN = 'application.load-balancer.',
+        HETZNER_DEFAULT_SERVER_NAME = 'application.default',
+        HETZNER_SERVER_NAME_PATTERN = 'application.',
+        HETZNER_DEFAULT_SNAPSHOT = 'application.snapshot';
 
 }
 

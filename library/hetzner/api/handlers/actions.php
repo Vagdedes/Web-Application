@@ -248,17 +248,28 @@ class HetznerAction
                 }
 
                 if ($serversThatCannotBeAdded > 0) {
-                    $newLevel = HetznerComparison::findIdealLoadBalancerLevel(
-                        $HETZNER_LOAD_BALANCERS[0],
-                        0,
-                        $serversThatCannotBeAdded
-                    );
-
-                    if ($newLevel !== -1) {
-                        $grow |= HetznerAction::addNewLoadBalancerBasedOn(
-                            $loadBalancers[0]->network,
-                            $newLevel
+                    while (true) {
+                        $newLevel = HetznerComparison::findIdealLoadBalancerLevel(
+                            $HETZNER_LOAD_BALANCERS[0],
+                            0,
+                            $serversThatCannotBeAdded
                         );
+
+                        if ($newLevel !== -1) {
+                            if (HetznerAction::addNewLoadBalancerBasedOn(
+                                $loadBalancers[0]->network,
+                                $newLevel
+                            )) {
+                                $grow = true;
+                                $serversThatCannotBeAdded -= $HETZNER_LOAD_BALANCERS[$newLevel]->maxTargets;
+
+                                if ($serversThatCannotBeAdded <= 0) {
+                                    break;
+                                }
+                            }
+                        } else {
+                            break;
+                        }
                     }
                 }
             }
