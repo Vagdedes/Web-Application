@@ -18,8 +18,12 @@ function hetzner_maintain_network(): bool
             foreach ($array as $action => $value) {
                 switch ($action) {
                     case HetznerChanges::UPGRADE_SERVER:
-                    case HetznerChanges::UPGRADE_LOADBALANCER:
                         $result &= $value->upgrade();
+                        break;
+                    case HetznerChanges::UPGRADE_LOADBALANCER:
+                        foreach ($value as $loadBalancer) {
+                            $result &= $loadBalancer->upgrade();
+                        }
                         break;
                     case HetznerChanges::DOWNGRADE_SERVER:
                     case HetznerChanges::DOWNGRADE_LOADBALANCER:

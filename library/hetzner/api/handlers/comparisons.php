@@ -47,6 +47,27 @@ class HetznerComparison
         return -1;
     }
 
+    public static function findIdealLoadBalancerLevel(
+        HetznerLoadBalancerType $loadBalancer,
+        int                     $currentTargets,
+        int                     $desiredTargets
+    ): int
+    {
+        global $HETZNER_LOAD_BALANCERS;
+        $desiredTargets += $currentTargets;
+        $currentLevel = self::getLoadBalancerLevel($loadBalancer);
+        $lastLevel = sizeof($HETZNER_LOAD_BALANCERS) - 1;
+
+        foreach ($HETZNER_LOAD_BALANCERS as $key => $value) {
+            if ($key > $currentLevel && $value->maxTargets >= $desiredTargets) {
+                return $key;
+            }
+        }
+        return $currentLevel === $lastLevel
+            ? -1
+            : $lastLevel;
+    }
+
     // Separator
 
     public static function shouldUpgradeServer(HetznerServer $server): bool
@@ -83,10 +104,10 @@ class HetznerComparison
         if ($level > 0) {
             if ($server->type instanceof HetznerArmServer) {
                 global $HETZNER_ARM_SERVERS;
-                return $server->type->storageGB <= $HETZNER_ARM_SERVERS[$level - 1]->storageGB;
+                return $server->customStorageGB <= $HETZNER_ARM_SERVERS[$level - 1]->storageGB;
             } else {
                 global $HETZNER_X86_SERVERS;
-                return $server->type->storageGB <= $HETZNER_X86_SERVERS[$level - 1]->storageGB;
+                return $server->customStorageGB <= $HETZNER_X86_SERVERS[$level - 1]->storageGB;
             }
         } else {
             return false;
@@ -128,9 +149,30 @@ class HetznerComparison
         return $level !== -1 && $level < sizeof($HETZNER_LOAD_BALANCERS) - 1;
     }
 
-    public static function canDowngradeLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
+    public static function canDowngradeLoadBalancer(
+        HetznerLoadBalancer $loadBalancer,
+        array               $loadBalancers,
+        array               $servers
+    ): bool
     {
-        return self::getLoadBalancerLevel($loadBalancer->type) > 0;
+        $level = self::getLoadBalancerLevel($loadBalancer->type);
+
+        if ($level > 0) {
+            global $HETZNER_LOAD_BALANCERS;
+            $newType = $HETZNER_LOAD_BALANCERS[$level - 1];
+            $newFreeSpace = 0;
+
+            foreach ($loadBalancers as $loopLoadBalancer) {
+                if ($loopLoadBalancer->identifier === $loadBalancer->identifier) {
+                    $newFreeSpace += $newType->maxTargets - $loopLoadBalancer->targetCount();
+                } else {
+                    $newFreeSpace += $loopLoadBalancer->getRemainingTargetSpace();
+                }
+            }
+            return $newFreeSpace >= sizeof($servers);
+        } else {
+            return false;
+        }
     }
 
     // Separator

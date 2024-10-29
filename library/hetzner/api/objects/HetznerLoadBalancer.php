@@ -55,6 +55,11 @@ class HetznerLoadBalancer
         return false;
     }
 
+    public function removeTarget(HetznerServer $server): bool
+    {
+        return false;
+    }
+
     // Separator
 
     public function getRemainingTargetSpace(): int

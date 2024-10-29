@@ -6,7 +6,7 @@ class HetznerAction
     private static function date(string $time = "now"): string
     {
         $dateTime = new DateTime($time);
-        return $dateTime->format(DateTime::ATOM);
+        return urlencode($dateTime->format(DateTime::ATOM));
     }
 
     public static function getServers(?array $networks, ?array $loadBalancers): ?array
@@ -32,8 +32,8 @@ class HetznerAction
                     $metrics = get_hetzner_object_pages(
                         "servers/" . $serverID . "/metrics"
                         . "?type=cpu"
-                        . "&start=" . urlencode(self::date("-" . HetznerVariables::CPU_METRICS_PAST_SECONDS . " seconds"))
-                        . "&end=" . urlencode(self::date()),
+                        . "&start=" . self::date("-" . HetznerVariables::CPU_METRICS_PAST_SECONDS . " seconds")
+                        . "&end=" . self::date(),
                         false
                     );
 
@@ -100,8 +100,8 @@ class HetznerAction
                             $metrics = get_hetzner_object_pages(
                                 "load_balancers/" . $loadBalancerID . "/metrics"
                                 . "?type=connections_per_second"
-                                . "&start=" . urlencode(self::date("-" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS . " seconds"))
-                                . "&end=" . urlencode(self::date()),
+                                . "&start=" . self::date("-" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS . " seconds")
+                                . "&end=" . self::date(),
                                 false
                             );
 
@@ -109,7 +109,7 @@ class HetznerAction
                                 return null;
                             } else {
                                 $metrics = $metrics[0]?->metrics?->time_series?->connections_per_second?->values;
-                                //var_dump($metrics);
+                                var_dump($metrics);
                                 $targets = array();
 
                                 if (!empty($loadBalancer->targets)) {
@@ -138,7 +138,6 @@ class HetznerAction
                 }
             }
         }
-        var_dump($array);
         return $array;
     }
 
@@ -192,7 +191,7 @@ class HetznerAction
     {
         $array = array();
 
-        // Attach/Add Servers And/Or Add Load-Balancers
+        // Attach Servers [And (Optionally) Add Load-Balancers]
 
         foreach ($servers as $arrayKey => $server) {
             if (HetznerComparison::shouldConsiderServer($server)) {
@@ -217,10 +216,50 @@ class HetznerAction
                     $loadBalancerPositions += $loadBalancer->getRemainingTargetSpace();
                 }
             }
-            $serverThatCannotAdd = $serversToAdd - $loadBalancerPositions;
+            $serverThatCannotBeAdded = $serversToAdd - $loadBalancerPositions;
 
-            if ($serverThatCannotAdd > 0) {
-                $array[HetznerChanges::ADD_NEW_LOADBALANCER] = $serverThatCannotAdd;
+            if ($serverThatCannotBeAdded > 0) {
+                global $HETZNER_LOAD_BALANCERS;
+
+                while (true) {
+                    $loadBalancerToUpgrade = HetznerComparison::findLeastLevelLoadBalancer($loadBalancers);
+
+                    if ($loadBalancerToUpgrade === null) {
+                        break;
+                    }
+                    if (HetznerComparison::canUpgradeLoadBalancer($loadBalancerToUpgrade)) {
+                        $newLevel = HetznerComparison::findIdealLoadBalancerLevel(
+                            $loadBalancerToUpgrade->type,
+                            $loadBalancerToUpgrade->targetCount(),
+                            $serverThatCannotBeAdded
+                        );
+
+                        if (array_key_exists(HetznerChanges::UPGRADE_LOADBALANCER, $array)) {
+                            $array[HetznerChanges::UPGRADE_LOADBALANCER][] = $loadBalancerToUpgrade;
+                        } else {
+                            $array[HetznerChanges::UPGRADE_LOADBALANCER] = array($loadBalancerToUpgrade);
+                        }
+                        foreach ($loadBalancers as $arrayKey => $loadBalancer) {
+                            if ($loadBalancer->identifier === $loadBalancerToUpgrade->identifier) {
+                                unset($loadBalancers[$arrayKey]);
+                            }
+                        }
+                        $serverThatCannotBeAdded -= $HETZNER_LOAD_BALANCERS[$newLevel]->maxTargets - $loadBalancerToUpgrade->targetCount();
+
+                        if ($serverThatCannotBeAdded <= 0) {
+                            break;
+                        }
+                    }
+                }
+
+                if ($serverThatCannotBeAdded > 0) {
+                    foreach ($HETZNER_LOAD_BALANCERS as $loadBalancerType) {
+                        if ($loadBalancerType->maxTargets >= $serverThatCannotBeAdded) {
+                            $array[HetznerChanges::ADD_NEW_LOADBALANCER] = $loadBalancerType;
+                            break;
+                        }
+                    }
+                }
             }
             return $array;
         } else {
@@ -252,7 +291,9 @@ class HetznerAction
 
         if ($requiresChange) {
             if (!empty($toChange)) {
-                $array[HetznerChanges::UPGRADE_LOADBALANCER] = HetznerComparison::findLeastLevelLoadBalancer($toChange);
+                $array[HetznerChanges::UPGRADE_LOADBALANCER] = array(
+                    HetznerComparison::findLeastLevelLoadBalancer($toChange)
+                );
             } else {
                 $array[HetznerChanges::ADD_NEW_LOADBALANCER] = 1;
             }
@@ -264,7 +305,7 @@ class HetznerAction
                     } else {
                         $requiresChange = true;
 
-                        if (HetznerComparison::canDowngradeLoadBalancer($loadBalancer)) {
+                        if (HetznerComparison::canDowngradeLoadBalancer($loadBalancer, $loadBalancers, $servers)) {
                             $toChange[] = $loadBalancer;
                         }
                     }
