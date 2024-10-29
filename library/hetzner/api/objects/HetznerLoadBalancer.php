@@ -27,7 +27,7 @@ class HetznerLoadBalancer
         $this->network = $network;
     }
 
-    public function upgrade(): bool
+    public function upgrade(int $level = -1): bool
     {
         return false;
     }
@@ -48,8 +48,10 @@ class HetznerLoadBalancer
 
     public function addTarget(HetznerServer $server): bool
     {
-        if ($this->hasRemainingTargetSpace()) {
-            // todo
+        if ($this->hasRemainingTargetSpace()
+            && !$this->isTarget($server->identifier)
+            && !$server->isInLoadBalancer()) {
+            $this->targets[] = $server->identifier;
             return false;
         }
         return false;
@@ -57,6 +59,12 @@ class HetznerLoadBalancer
 
     public function removeTarget(HetznerServer $server): bool
     {
+        if ($this->isTarget($server->identifier)
+            && $server->isInLoadBalancer()
+            && $server->loadBalancer->identifier === $this->identifier) {
+            $this->targets[] = $server->identifier;
+            return false;
+        }
         return false;
     }
 
@@ -74,9 +82,9 @@ class HetznerLoadBalancer
 
     // Separator
 
-    public function isTarget(string $ip): int
+    public function isTarget(string $serverID): int
     {
-        return in_array($ip, $this->targets);
+        return array_key_exists($serverID, $this->targets);
     }
 
     public function targetCount(): int

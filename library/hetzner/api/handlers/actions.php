@@ -111,7 +111,7 @@ class HetznerAction
 
                                 if (!empty($loadBalancer->targets)) {
                                     foreach ($loadBalancer->targets as $target) {
-                                        $targets[] = $target?->server?->id;
+                                        $targets[$target?->server?->id] = true;
                                     }
                                 }
                                 $array[$loadBalancerID] = new HetznerLoadBalancer(
@@ -198,7 +198,7 @@ class HetznerAction
                     return false;
                 }
                 if (!$server->isInLoadBalancer()) {
-                    $grow |= $server->attachToLoadBalancer($loadBalancers);
+                    $grow |= $server->attachToLoadBalancers($loadBalancers);
                     $serversToAdd++;
                 }
             } else {
@@ -217,9 +217,9 @@ class HetznerAction
                     $loadBalancerPositions += $loadBalancer->getRemainingTargetSpace();
                 }
             }
-            $serverThatCannotBeAdded = $serversToAdd - $loadBalancerPositions;
+            $serversThatCannotBeAdded = $serversToAdd - $loadBalancerPositions;
 
-            if ($serverThatCannotBeAdded > 0) {
+            if ($serversThatCannotBeAdded > 0) {
                 global $HETZNER_LOAD_BALANCERS;
 
                 while (true) {
@@ -228,27 +228,38 @@ class HetznerAction
                     if ($loadBalancerToUpgrade === null) {
                         break;
                     }
-                    if (HetznerComparison::canUpgradeLoadBalancer($loadBalancerToUpgrade)) {
-                        $newLevel = HetznerComparison::findIdealLoadBalancerLevel(
-                            $loadBalancerToUpgrade->type,
-                            $loadBalancerToUpgrade->targetCount(),
-                            $serverThatCannotBeAdded
-                        );
+                    unset($loadBalancers[$loadBalancerToUpgrade->identifier]);
+                    $targetCount = $loadBalancerToUpgrade->targetCount();
+                    $newLevel = HetznerComparison::findIdealLoadBalancerLevel(
+                        $loadBalancerToUpgrade->type,
+                        $targetCount,
+                        $serversThatCannotBeAdded
+                    );
 
-                        if ($newLevel === -1) {
-                            break;
-                        }
-                        unset($loadBalancers[$loadBalancerToUpgrade->identifier]);
-                        $serverThatCannotBeAdded -= $HETZNER_LOAD_BALANCERS[$newLevel]->maxTargets - $loadBalancerToUpgrade->targetCount();
+                    if ($newLevel !== -1
+                        && $loadBalancerToUpgrade->upgrade($newLevel)) {
+                        $grow = true;
+                        $serversThatCannotBeAdded -= $HETZNER_LOAD_BALANCERS[$newLevel]->maxTargets - $targetCount;
 
-                        if ($serverThatCannotBeAdded <= 0) {
+                        if ($serversThatCannotBeAdded <= 0) {
                             break;
                         }
                     }
                 }
 
-                if ($serverThatCannotBeAdded > 0) {
+                if ($serversThatCannotBeAdded > 0) {
+                    $newLevel = HetznerComparison::findIdealLoadBalancerLevel(
+                        $HETZNER_LOAD_BALANCERS[0],
+                        0,
+                        $serversThatCannotBeAdded
+                    );
 
+                    if ($newLevel !== -1) {
+                        $grow |= HetznerAction::addNewLoadBalancerBasedOn(
+                            $loadBalancers[0]->network,
+                            $newLevel
+                        );
+                    }
                 }
             }
             return $grow;

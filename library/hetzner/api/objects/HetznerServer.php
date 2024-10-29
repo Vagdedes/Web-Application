@@ -57,18 +57,16 @@ class HetznerServer
 
     public function attachToLoadBalancers(array $loadBalancers): bool
     {
-        if (!$this->isInLoadBalancer()) {
-            while (true) {
-                $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers);
+        while (true) {
+            $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers);
 
-                if ($loadBalancer === null) {
-                    break;
-                }
-                if ($loadBalancer->addTarget($this)) {
-                    return true;
-                } else {
-                    unset($loadBalancers[$loadBalancer->identifier]);
-                }
+            if ($loadBalancer === null) {
+                break;
+            }
+            if ($loadBalancer->addTarget($this)) {
+                return true;
+            } else {
+                unset($loadBalancers[$loadBalancer->identifier]);
             }
         }
         return false;
