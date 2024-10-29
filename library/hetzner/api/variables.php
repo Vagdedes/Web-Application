@@ -6,6 +6,8 @@ class HetznerVariables
 {
 
     public const
+        CPU_METRICS_PAST_SECONDS = 120,
+        CONNECTION_METRICS_PAST_SECONDS = 60,
         HETZNER_API_VERSION = 'v1',
         HETZNER_CREDENTIALS_DIRECTORY = "hetzner_credentials",
         HETZNER_UPGRADE_USAGE_RATIO = 0.85,

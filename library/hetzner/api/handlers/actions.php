@@ -3,94 +3,161 @@
 class HetznerAction
 {
 
-    private static function date($offsetSeconds = 0)
+    private static function date(string $time = "now"): string
     {
-        // Create a new DateTime object initialized with the current time
-        $dateTime = new DateTime();
-
-        // Apply the offset in seconds
-        if ($offsetSeconds !== 0) {
-            $intervalSpec = ($offsetSeconds >= 0 ? '+' : '-') . 'PT' . abs($offsetSeconds) . 'S';
-            $dateInterval = new DateInterval($intervalSpec);
-            if ($offsetSeconds > 0) {
-                $dateTime->add($dateInterval);
-            } else {
-                $dateTime->sub($dateInterval);
-            }
-        }
-
-        // Format the date in ISO 8601, including microseconds
-        return $dateTime->format('Y-m-d\TH:i:s.u');
+        $dateTime = new DateTime($time);
+        return $dateTime->format(DateTime::ATOM);
     }
 
-    public static function getServers(array $loadBalancers): array
+    public static function getServers(?array $networks, ?array $loadBalancers): ?array
     {
+        if (empty($networks)
+            || empty($loadBalancers)) {
+            return null;
+        }
         $array = array();
         $query = get_hetzner_object_pages("servers");
 
         if (!empty($query)) {
             foreach ($query as $page) {
                 foreach ($page->servers as $server) {
-                    $ipv4 = $server->public_net->ipv4->ip;
-                    $ipv6 = $server->public_net->ipv6->ip;
-                    $private = array_shift($server->private_net)->ip;
                     $loadBalancerOfObject = null;
+                    $serverID = $server->id;
 
                     foreach ($loadBalancers as $loadBalancer) {
-                        if ($loadBalancer->hasIP($ipv4)
-                            || $loadBalancer->hasIP($ipv6)
-                            || $loadBalancer->hasIP($private)) {
+                        if ($loadBalancer->isTarget($serverID)) {
                             $loadBalancerOfObject = $loadBalancer;
                         }
                     }
-                    var_dump(get_hetzner_object_pages(
-                            "servers/" . $server->id . "/metrics"
-                            . "?type=cpu"
-                            . "&end=" . self::date()
-                            . "&start=" . self::date(-300)
-                        )
-                    );
-                    var_dump("servers/" . $server->id . "/metrics"
+                    $metrics = get_hetzner_object_pages(
+                        "servers/" . $serverID . "/metrics"
                         . "?type=cpu"
-                        . "&end=" . self::date()
-                        . "&start=" . self::date(-300));
-                    $array[] = new HetznerServer(
-                        $server->name,
-                        $server->public_net->ipv4->ip,
-                        $server->public_net->ipv6->ip,
-                        array_shift($server->private_net)->ip,
-                        0, // todo
-                        $server->server_type->architecture == "x86"
-                            ? new HetznerX86Server(
-                            strtolower($server->server_type->name),
-                            $server->server_type->cores,
-                            $server->server_type->memory,
-                            $server->server_type->disk
-                        ) : new HetznerArmServer(
-                            strtolower($server->server_type->name),
-                            $server->server_type->cores,
-                            $server->server_type->memory,
-                            $server->server_type->disk
-                        ),
-                        $loadBalancerOfObject,
-                        new HetznerServerLocation(
-                            $server->datacenter->location->name
-                        ),
-                        null, // todo
-                        $server->primary_disk_size,
-                        $server->locked
+                        . "&start=" . urlencode(self::date("-" . HetznerVariables::CPU_METRICS_PAST_SECONDS . " seconds"))
+                        . "&end=" . urlencode(self::date()),
+                        false
                     );
-                    break 2;
+
+                    if (empty($metrics)) {
+                        return null;
+                    } else {
+                        $metrics = $metrics[0]?->metrics?->time_series?->cpu?->values[0][1] ?? null;
+
+                        if ($metrics !== null) {
+                            foreach ($networks as $network) {
+                                if ($network->isServerIncluded($serverID)) {
+                                    $array[] = new HetznerServer(
+                                        $serverID,
+                                        $server->public_net->ipv4->ip,
+                                        $server->public_net->ipv6->ip,
+                                        "", // todo
+                                        $metrics,
+                                        strtolower($server->server_type->architecture) == "x86"
+                                            ? new HetznerX86Server(
+                                            strtolower($server->server_type->name),
+                                            $server->server_type->cores,
+                                            $server->server_type->memory,
+                                            $server->server_type->disk
+                                        ) : new HetznerArmServer(
+                                            strtolower($server->server_type->name),
+                                            $server->server_type->cores,
+                                            $server->server_type->memory,
+                                            $server->server_type->disk
+                                        ),
+                                        $loadBalancerOfObject,
+                                        new HetznerServerLocation(
+                                            $server->datacenter->location->name
+                                        ),
+                                        $network,
+                                        $server->primary_disk_size,
+                                        $server->locked
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-        //var_dump($array);
         return $array;
     }
 
-    public static function getLoadBalancers(): array
+    public static function getLoadBalancers(?array $networks): ?array
     {
+        if (empty($networks)) {
+            return null;
+        }
+        $query = get_hetzner_object_pages("load_balancers");
         $array = array();
+
+        if (!empty($query)) {
+            foreach ($query as $page) {
+                foreach ($page->load_balancers as $loadBalancer) {
+                    $loadBalancerID = $loadBalancer->id;
+
+                    foreach ($networks as $network) {
+                        if ($network->isLoadBalancerIncluded($loadBalancerID)) {
+                            $metrics = get_hetzner_object_pages(
+                                "load_balancers/" . $loadBalancerID . "/metrics"
+                                . "?type=connections_per_second"
+                                . "&start=" . urlencode(self::date("-" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS . " seconds"))
+                                . "&end=" . urlencode(self::date()),
+                                false
+                            );
+
+                            if (empty($metrics)) {
+                                return null;
+                            } else {
+                                $metrics = $metrics[0]?->metrics?->time_series?->connections_per_second?->values;
+                                //var_dump($metrics);
+                                $targets = array();
+
+                                if (!empty($loadBalancer->targets)) {
+                                    foreach ($loadBalancer->targets as $target) {
+                                        $targets[] = $target?->server?->id;
+                                    }
+                                }
+                                $array[] = new HetznerLoadBalancer(
+                                    $loadBalancerID,
+                                    0, // todo
+                                    new HetznerLoadBalancerType(
+                                        strtolower($loadBalancer->load_balancer_type->name),
+                                        $loadBalancer->load_balancer_type->max_targets,
+                                        $loadBalancer->load_balancer_type->max_connections
+                                    ),
+                                    new HetznerServerLocation(
+                                        $loadBalancer->location->name
+                                    ),
+                                    $network,
+                                    $targets,
+                                );
+                                break 3;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        var_dump($array);
+        return $array;
+    }
+
+    public static function getNetworks(): ?array
+    {
+        $query = get_hetzner_object_pages("networks");
+        $array = array();
+
+        if (!empty($query)) {
+            foreach ($query as $page) {
+                foreach ($page->networks as $network) {
+                    $array[] = new HetznerNetwork(
+                        $network->id,
+                        $network->servers,
+                        $network->load_balancers
+                    );
+                }
+            }
+        }
         return $array;
     }
 
@@ -125,12 +192,16 @@ class HetznerAction
     {
         $array = array();
 
-        // Separator
+        // Attach/Add Servers And/Or Add Load-Balancers
 
         foreach ($servers as $arrayKey => $server) {
             if (HetznerComparison::shouldConsiderServer($server)) {
-                if (!$server->isInLoadBalancer($loadBalancers)) {
-                    $array[HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER] = $server;
+                if (!$server->isInLoadBalancer()) {
+                    if (array_key_exists(HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER, $array)) {
+                        $array[HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER][] = $server;
+                    } else {
+                        $array[HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER] = array($server);
+                    }
                 }
             } else {
                 unset($servers[$arrayKey]);
@@ -138,29 +209,44 @@ class HetznerAction
         }
 
         if (!empty($array)) {
+            $serversToAdd = sizeof($array[HetznerChanges::ATTACH_SERVER_TO_LOADBALANCER]);
+            $loadBalancerPositions = 0;
+
+            foreach ($loadBalancers as $loadBalancer) {
+                if (HetznerComparison::shouldConsiderLoadBalancer($loadBalancer)) {
+                    $loadBalancerPositions += $loadBalancer->getRemainingTargetSpace();
+                }
+            }
+            $serverThatCannotAdd = $serversToAdd - $loadBalancerPositions;
+
+            if ($serverThatCannotAdd > 0) {
+                $array[HetznerChanges::ADD_NEW_LOADBALANCER] = $serverThatCannotAdd;
+            }
             return $array;
+        } else {
+            foreach ($loadBalancers as $arrayKey => $loadBalancer) {
+                if (!HetznerComparison::shouldConsiderLoadBalancer($loadBalancer)) {
+                    unset($loadBalancers[$arrayKey]);
+                }
+            }
         }
 
-        // Separator
+        // Upgrade/Downgrade/Add/Delete Load-Balancers
 
         $requiresChange = false;
         $toChange = array();
 
-        foreach ($loadBalancers as $arrayKey => $loadBalancer) {
-            if (HetznerComparison::shouldConsiderLoadBalancer($loadBalancer)) {
-                if (HetznerComparison::shouldUpgradeLoadBalancer($loadBalancer)) {
-                    if ($loadBalancer->blockingAction) {
-                        return array();
-                    } else {
-                        $requiresChange = true;
+        foreach ($loadBalancers as $loadBalancer) {
+            if (HetznerComparison::shouldUpgradeLoadBalancer($loadBalancer)) {
+                if ($loadBalancer->blockingAction) {
+                    return array();
+                } else {
+                    $requiresChange = true;
 
-                        if (HetznerComparison::canUpgradeLoadBalancer($loadBalancer)) {
-                            $toChange[] = $loadBalancer;
-                        }
+                    if (HetznerComparison::canUpgradeLoadBalancer($loadBalancer)) {
+                        $toChange[] = $loadBalancer;
                     }
                 }
-            } else {
-                unset($loadBalancers[$arrayKey]);
             }
         }
 
@@ -168,7 +254,7 @@ class HetznerAction
             if (!empty($toChange)) {
                 $array[HetznerChanges::UPGRADE_LOADBALANCER] = HetznerComparison::findLeastLevelLoadBalancer($toChange);
             } else {
-                $array[HetznerChanges::ADD_NEW_LOADBALANCER] = true;
+                $array[HetznerChanges::ADD_NEW_LOADBALANCER] = 1;
             }
         } else {
             foreach ($loadBalancers as $loadBalancer) {
@@ -198,7 +284,7 @@ class HetznerAction
             }
         }
 
-        // Separator
+        // Upgrade/Downgrade/Add/Delete Servers
 
         $requiresChange = false;
         $toChange = array();
@@ -221,7 +307,7 @@ class HetznerAction
             if (!empty($toChange)) {
                 $array[HetznerChanges::UPGRADE_SERVER] = HetznerComparison::findLeastLevelServer($toChange);
             } else {
-                $array[HetznerChanges::ADD_NEW_SERVER] = true;
+                $array[HetznerChanges::ADD_NEW_SERVER] = 1;
             }
         } else {
             foreach ($servers as $server) {

@@ -3,7 +3,7 @@
 class HetznerServer
 {
 
-    public ?string $name, $ipv4, $ipv6, $local;
+    public ?string $identifier, $ipv4, $ipv6, $local;
     public float $cpuPercentage;
     public HetznerAbstractServer $type;
     public ?HetznerLoadBalancer $loadBalancer;
@@ -12,7 +12,7 @@ class HetznerServer
     public int $customStorageGB;
     public bool $blockingAction;
 
-    public function __construct(?string               $name,
+    public function __construct(?string               $identifier,
                                 ?string               $ipv4,
                                 ?string               $ipv6,
                                 ?string               $local,
@@ -24,7 +24,7 @@ class HetznerServer
                                 int                   $customStorageGB,
                                 bool                  $blockingAction)
     {
-        $this->name = $name;
+        $this->identifier = $identifier;
         $this->ipv4 = $ipv4;
         $this->ipv6 = $ipv6;
         $this->local = $local;
@@ -56,20 +56,20 @@ class HetznerServer
 
     // Separator
 
-    public function isInLoadBalancer(array $loadBalancers): bool
+    public function isInLoadBalancer(): bool
     {
-        foreach ($loadBalancers as $loadBalancer) {
-            if ($loadBalancer->hasIP($this->ipv4)
-                || $loadBalancer->hasIP($this->ipv6)
-                || $loadBalancer->hasIP($this->local)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->loadBalancer !== null;
     }
 
     public function attachToLoadBalancers(array $loadBalancers): bool
     {
+        if (!$this->isInLoadBalancer()) {
+            foreach ($loadBalancers as $loadBalancer) {
+                if ($loadBalancer->addTarget($this)) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 

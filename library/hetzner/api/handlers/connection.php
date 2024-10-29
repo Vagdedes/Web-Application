@@ -19,19 +19,21 @@ function get_hetzner_object(string $service): object|bool|null
     ), false);
 }
 
-function get_hetzner_object_pages(string $service): array
+function get_hetzner_object_pages(string $service, bool $page = true): array
 {
     $results = array();
-    $object = get_hetzner_object($service . "?page=1");
+    $object = get_hetzner_object($service . ($page ? "?page=1" : ""));
 
     if (is_object($object)) {
         $results[] = $object;
     }
-    while ($object?->meta?->pagination?->next_page !== null) {
-        $object = get_hetzner_object($service . "?page=" . $object?->meta?->pagination?->next_page);
+    if ($page) {
+        while ($object?->meta?->pagination?->next_page !== null) {
+            $object = get_hetzner_object($service . "?page=" . urlencode($object?->meta?->pagination?->next_page));
 
-        if (is_object($object)) {
-            $results[] = $object;
+            if (is_object($object)) {
+                $results[] = $object;
+            }
         }
     }
     return $results;

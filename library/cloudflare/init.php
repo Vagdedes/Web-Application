@@ -1,6 +1,6 @@
 <?php
 // Object
-require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/CloudflareDomain.php';
+require_once '/var/www/.structure/library/cloudflare/api/objects/CloudflareDomain.php';
 
 // Base
 require_once '/var/www/.structure/library/cloudflare/api/variables.php';

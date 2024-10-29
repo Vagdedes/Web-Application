@@ -6,6 +6,7 @@ require_once '/var/www/.structure/library/cloudflare/init.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/abstract/HetznerAbstractServer.php';
 
 // Placeholders (Object)
+require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/HetznerNetwork.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/HetznerServerLocation.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/HetznerLoadBalancerType.php';
 require_once '/var/www/.structure/library/hetzner/api/objects/placeholders/HetznerArmServer.php';

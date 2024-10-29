@@ -3,7 +3,7 @@
 class HetznerLoadBalancer
 {
 
-    public ?string $name;
+    public ?string $identifier;
     public HetznerLoadBalancerType $type;
     public HetznerServerLocation $location;
     public HetznerNetwork $network;
@@ -11,19 +11,20 @@ class HetznerLoadBalancer
     public bool $blockingAction;
     public array $targets;
 
-    public function __construct(?string                 $name,
+    public function __construct(?string                 $identifier,
                                 int                     $liveConnections,
                                 HetznerLoadBalancerType $type,
                                 HetznerServerLocation   $location,
-                                bool                    $blockingAction,
+                                HetznerNetwork          $network,
                                 array                   $targets)
     {
-        $this->name = $name;
+        $this->identifier = $identifier;
         $this->liveConnections = $liveConnections;
         $this->location = $location;
         $this->type = $type;
-        $this->blockingAction = $blockingAction;
+        $this->blockingAction = false;
         $this->targets = $targets;
+        $this->network = $network;
     }
 
     public function upgrade(): bool
@@ -45,7 +46,30 @@ class HetznerLoadBalancer
 
     // Separator
 
-    public function hasIP(string $ip): int
+    public function addTarget(HetznerServer $server): bool
+    {
+        if ($this->hasRemainingTargetSpace()) {
+            // todo
+            return false;
+        }
+        return false;
+    }
+
+    // Separator
+
+    public function getRemainingTargetSpace(): int
+    {
+        return $this->type->maxTargets - $this->targetCount();
+    }
+
+    public function hasRemainingTargetSpace(): int
+    {
+        return $this->getRemainingTargetSpace() > 0;
+    }
+
+    // Separator
+
+    public function isTarget(string $ip): int
     {
         return in_array($ip, $this->targets);
     }
