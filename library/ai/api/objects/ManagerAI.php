@@ -145,7 +145,7 @@ class ManagerAI
             }
 
             if ($contentType !== null) {
-                $parameters = json_encode($parameters);
+                $parameters = @json_encode($parameters);
                 $reply = get_curl(
                     $link,
                     "POST",
@@ -153,7 +153,7 @@ class ManagerAI
                         "Content-Type: " . $contentType,
                         "Authorization: Bearer " . $this->apiKey
                     ),
-                    $parameters,
+                    array($parameters),
                     $timeoutSeconds
                 );
 

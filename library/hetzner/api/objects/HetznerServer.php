@@ -3,7 +3,8 @@
 class HetznerServer
 {
 
-    public ?string $identifier;
+    public string $name;
+    public int $identifier;
     public float $cpuPercentage;
     public HetznerAbstractServer $type;
     public ?HetznerLoadBalancer $loadBalancer;
@@ -12,7 +13,8 @@ class HetznerServer
     public int $customStorageGB;
     public bool $blockingAction;
 
-    public function __construct(?string               $identifier,
+    public function __construct(string                $name,
+                                int                   $identifier,
                                 float                 $cpuPercentage,
                                 HetznerAbstractServer $type,
                                 ?HetznerLoadBalancer  $loadBalancer,
@@ -21,6 +23,7 @@ class HetznerServer
                                 int                   $customStorageGB,
                                 bool                  $blockingAction)
     {
+        $this->name = $name;
         $this->identifier = $identifier;
         $this->cpuPercentage = $cpuPercentage;
         $this->network = $network;

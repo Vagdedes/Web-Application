@@ -3,10 +3,10 @@
 class HetznerNetwork
 {
 
-    public string $identifier;
+    public int $identifier;
     public array $servers, $loadBalancers;
 
-    public function __construct(string $identifier, array $servers, array $loadBalancers)
+    public function __construct(int $identifier, array $servers, array $loadBalancers)
     {
         $this->identifier = $identifier;
         $this->servers = $servers;

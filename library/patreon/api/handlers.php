@@ -67,7 +67,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     set_time_limit($timeout + 2);
                 }
                 set_time_limit($timeout + 2);
-                $reply = json_decode(get_curl(
+                $reply = @json_decode(get_curl(
                     $link,
                     "GET",
                     array(
@@ -158,7 +158,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                 if ($limit !== false && $limit > 0) {
                     set_time_limit($timeout + 2);
                 }
-                $reply = json_decode(get_curl(
+                $reply = @json_decode(get_curl(
                     $link,
                     "GET",
                     array(

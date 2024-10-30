@@ -3,7 +3,8 @@
 class HetznerLoadBalancer
 {
 
-    public ?string $identifier;
+    public string $name;
+    public int $identifier;
     public HetznerLoadBalancerType $type;
     public HetznerServerLocation $location;
     public HetznerNetwork $network;
@@ -11,13 +12,15 @@ class HetznerLoadBalancer
     public bool $blockingAction;
     public array $targets;
 
-    public function __construct(?string                 $identifier,
+    public function __construct(string                  $name,
+                                int                     $identifier,
                                 int                     $liveConnections,
                                 HetznerLoadBalancerType $type,
                                 HetznerServerLocation   $location,
                                 HetznerNetwork          $network,
                                 array                   $targets)
     {
+        $this->name = $name;
         $this->identifier = $identifier;
         $this->liveConnections = $liveConnections;
         $this->location = $location;

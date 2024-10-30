@@ -9,6 +9,15 @@ class HetznerAction
         return urlencode($dateTime->format(DateTime::ATOM));
     }
 
+    private static function createdMachine(array $query): bool
+    {
+        return !empty($query)
+            && ($query[0]?->action?->error?->code !== null
+                || $query[0]?->action?->error?->message !== null);
+    }
+
+    // Separator
+
     public static function getServers(?array $networks, ?array $loadBalancers): ?array
     {
         if (empty($networks)
@@ -16,7 +25,7 @@ class HetznerAction
             return null;
         }
         $array = array();
-        $query = get_hetzner_object_pages("servers");
+        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "servers");
 
         if (!empty($query)) {
             foreach ($query as $page) {
@@ -30,11 +39,13 @@ class HetznerAction
                         }
                     }
                     $metrics = get_hetzner_object_pages(
+                        HetznerConnectionType::GET,
                         "servers/" . $serverID . "/metrics"
                         . "?type=cpu"
                         . "&start=" . self::date("-" . HetznerVariables::CPU_METRICS_PAST_SECONDS . " seconds")
                         . "&end=" . self::date()
                         . "&step=" . HetznerVariables::CPU_METRICS_PAST_SECONDS,
+                        null,
                         false
                     );
 
@@ -43,37 +54,35 @@ class HetznerAction
                     } else {
                         $metrics = $metrics[0]?->metrics?->time_series?->cpu?->values[0][1] ?? null;
 
-                        if ($metrics !== null) {
-                            foreach ($networks as $network) {
-                                if ($network->isServerIncluded($serverID)) {
-                                    $array[$serverID] = new HetznerServer(
-                                        $serverID,
-                                        $metrics,
-                                        strtolower($server->server_type->architecture) == "x86"
-                                            ? new HetznerX86Server(
-                                            strtolower($server->server_type->name),
-                                            $server->server_type->cores,
-                                            $server->server_type->memory,
-                                            $server->server_type->disk
-                                        ) : new HetznerArmServer(
-                                            strtolower($server->server_type->name),
-                                            $server->server_type->cores,
-                                            $server->server_type->memory,
-                                            $server->server_type->disk
-                                        ),
-                                        $loadBalancerOfObject,
-                                        new HetznerServerLocation(
-                                            $server->datacenter->location->name
-                                        ),
-                                        $network,
-                                        $server->primary_disk_size,
-                                        $server->locked
-                                    );
-                                    break;
-                                }
+                        foreach ($networks as $network) {
+                            if ($network->isServerIncluded($serverID)) {
+                                $array[$serverID] = new HetznerServer(
+                                    $server->name,
+                                    $serverID,
+                                    $metrics === null ? 0.0 : $metrics,
+                                    strtolower($server->server_type->architecture) == "x86"
+                                        ? new HetznerX86Server(
+                                        strtolower($server->server_type->name),
+                                        $server->server_type->cores,
+                                        $server->server_type->memory,
+                                        $server->server_type->disk
+                                    ) : new HetznerArmServer(
+                                        strtolower($server->server_type->name),
+                                        $server->server_type->cores,
+                                        $server->server_type->memory,
+                                        $server->server_type->disk
+                                    ),
+                                    $loadBalancerOfObject,
+                                    new HetznerServerLocation(
+                                        $server->datacenter->location->name,
+                                        $server->datacenter->location->network_zone
+                                    ),
+                                    $network,
+                                    $server->primary_disk_size,
+                                    $server->locked
+                                );
+                                break;
                             }
-                        } else {
-                            return null;
                         }
                     }
                 }
@@ -87,7 +96,7 @@ class HetznerAction
         if (empty($networks)) {
             return null;
         }
-        $query = get_hetzner_object_pages("load_balancers");
+        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "load_balancers");
         $array = array();
 
         if (!empty($query)) {
@@ -98,11 +107,13 @@ class HetznerAction
                     foreach ($networks as $network) {
                         if ($network->isLoadBalancerIncluded($loadBalancerID)) {
                             $metrics = get_hetzner_object_pages(
+                                HetznerConnectionType::GET,
                                 "load_balancers/" . $loadBalancerID . "/metrics"
                                 . "?type=open_connections"
                                 . "&start=" . self::date("-" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS . " seconds")
                                 . "&end=" . self::date()
                                 . "&step=" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS,
+                                null,
                                 false
                             );
 
@@ -110,33 +121,30 @@ class HetznerAction
                                 return null;
                             } else {
                                 $metrics = $metrics[0]?->metrics?->time_series?->open_connections?->values[0][1] ?? null;
+                                $targets = array();
 
-                                if ($metrics !== null) {
-                                    $targets = array();
-
-                                    if (!empty($loadBalancer->targets)) {
-                                        foreach ($loadBalancer->targets as $target) {
-                                            $targets[$target?->server?->id] = true;
-                                        }
+                                if (!empty($loadBalancer->targets)) {
+                                    foreach ($loadBalancer->targets as $target) {
+                                        $targets[$target?->server?->id] = true;
                                     }
-                                    $array[$loadBalancerID] = new HetznerLoadBalancer(
-                                        $loadBalancerID,
-                                        $metrics,
-                                        new HetznerLoadBalancerType(
-                                            strtolower($loadBalancer->load_balancer_type->name),
-                                            $loadBalancer->load_balancer_type->max_targets,
-                                            $loadBalancer->load_balancer_type->max_connections
-                                        ),
-                                        new HetznerServerLocation(
-                                            $loadBalancer->location->name
-                                        ),
-                                        $network,
-                                        $targets,
-                                    );
-                                    break;
-                                } else {
-                                    return null;
                                 }
+                                $array[$loadBalancerID] = new HetznerLoadBalancer(
+                                    $loadBalancer->name,
+                                    $loadBalancerID,
+                                    $metrics === null ? 0 : $metrics,
+                                    new HetznerLoadBalancerType(
+                                        strtolower($loadBalancer->load_balancer_type->name),
+                                        $loadBalancer->load_balancer_type->max_targets,
+                                        $loadBalancer->load_balancer_type->max_connections
+                                    ),
+                                    new HetznerServerLocation(
+                                        $loadBalancer->location->name,
+                                        $loadBalancer->location->network_zone
+                                    ),
+                                    $network,
+                                    $targets,
+                                );
+                                break;
                             }
                         }
                     }
@@ -148,7 +156,7 @@ class HetznerAction
 
     public static function getNetworks(): ?array
     {
-        $query = get_hetzner_object_pages("networks");
+        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "networks");
         $array = array();
 
         if (!empty($query)) {
@@ -167,14 +175,67 @@ class HetznerAction
 
     // Separator
 
-    public static function addNewServerBasedOn(HetznerNetwork $network, int $level): bool
+    public static function addNewServerBasedOn(
+        array                 $servers,
+        HetznerServerLocation $location,
+        HetznerNetwork        $network,
+        int                   $level
+    ): bool
     {
+        if (true) {
+            global $HETZNER_ARM_SERVERS;
+            // todo
+        } else {
+            global $HETZNER_X86_SERVERS;
+            // todo
+        }
         return false;
     }
 
-    public static function addNewLoadBalancerBasedOn(HetznerNetwork $network, int $level): bool
+    public static function addNewLoadBalancerBasedOn(
+        array                 $loadBalancers,
+        HetznerServerLocation $location,
+        HetznerNetwork        $network,
+        int                   $level
+    ): bool
     {
-        return false;
+        global $HETZNER_LOAD_BALANCERS;
+        $object = new stdClass();
+
+        $algorithm = new stdClass();
+        $algorithm->type = "least_connections";
+        $object->algorithm = $algorithm;
+
+        $object->load_balancer_type = $HETZNER_LOAD_BALANCERS[$level]->name;
+
+        $object->location = $location->name;
+
+        while (true) {
+            $object->name = HetznerVariables::HETZNER_LOAD_BALANCER_NAME_PATTERN . random_number();
+
+            foreach ($loadBalancers as $loadBalancer) {
+                if ($loadBalancer->name == $object->name) {
+                    $object->name = null;
+                    break;
+                }
+            }
+
+            if ($object->name !== null) {
+                break;
+            }
+        }
+
+        $object->network = $network->identifier;
+
+        //$object->targets = array(); // todo
+        return self::createdMachine(
+            get_hetzner_object_pages(
+                HetznerConnectionType::POST,
+                "load_balancers",
+                json_encode($object),
+                false
+            )
+        );
     }
 
     // Separator
@@ -190,6 +251,16 @@ class HetznerAction
     public static function growOrShrink(array $loadBalancers, array $servers): bool
     {
         $grow = false;
+
+        foreach ($servers as $loopLoadBalancer) {
+            HetznerAction::addNewServerBasedOn(
+                $servers,
+                $loopLoadBalancer->location,
+                $loopLoadBalancer->network,
+                0
+            );
+            break;
+        }
 
         // Attach Server/s [And (Optionally) Add Load-Balancer/s]
 
@@ -259,16 +330,21 @@ class HetznerAction
                         );
 
                         if ($newLevel !== -1) {
-                            if (HetznerAction::addNewLoadBalancerBasedOn(
-                                $loadBalancers[0]->network,
-                                $newLevel
-                            )) {
-                                $grow = true;
-                                $serversThatCannotBeAdded -= $HETZNER_LOAD_BALANCERS[$newLevel]->maxTargets;
+                            foreach ($loadBalancers as $loopLoadBalancer) {
+                                if (HetznerAction::addNewLoadBalancerBasedOn(
+                                    $loadBalancers,
+                                    $loopLoadBalancer->location,
+                                    $loopLoadBalancer->network,
+                                    $newLevel
+                                )) {
+                                    $grow = true;
+                                    $serversThatCannotBeAdded -= $HETZNER_LOAD_BALANCERS[$newLevel]->maxTargets;
 
-                                if ($serversThatCannotBeAdded <= 0) {
-                                    break;
+                                    if ($serversThatCannotBeAdded <= 0) {
+                                        break;
+                                    }
                                 }
+                                break;
                             }
                         } else {
                             break;
@@ -311,10 +387,15 @@ class HetznerAction
             if (!empty($toChange)) {
                 $grow |= HetznerComparison::findLeastLevelLoadBalancer($toChange)->upgrade();
             } else {
-                $grow |= HetznerAction::addNewLoadBalancerBasedOn(
-                    $loadBalancers[0]->network,
-                    0
-                );
+                foreach ($loadBalancers as $loopLoadBalancer) {
+                    $grow |= HetznerAction::addNewLoadBalancerBasedOn(
+                        $loadBalancers,
+                        $loopLoadBalancer->location,
+                        $loopLoadBalancer->network,
+                        0
+                    );
+                    break;
+                }
             }
         } else {
             foreach ($loadBalancers as $loadBalancer) {
@@ -367,10 +448,14 @@ class HetznerAction
             if (!empty($toChange)) {
                 $grow |= HetznerComparison::findLeastLevelServer($toChange)->upgrade();
             } else {
-                $grow |= HetznerAction::addNewServerBasedOn(
-                    $servers[0]->network,
-                    0
-                );
+                foreach ($servers as $loopServer) {
+                    $grow |= HetznerAction::addNewServerBasedOn(
+                        $servers,
+                        $loopServer->location,
+                        $loopServer->network,
+                        0
+                    );
+                }
             }
         } else {
             foreach ($servers as $server) {
