@@ -9,7 +9,7 @@ function hetzner_maintain_network(): bool
     if ($servers !== null) {
         return HetznerAction::grow($loadBalancers, $servers)
             || HetznerAction::update($servers)
-            || HetznerAction::optimize($loadBalancers, $servers);
+            || HetznerAction::shrinkOrRestructure($loadBalancers, $servers);
     } else {
         return false;
     }

@@ -179,7 +179,7 @@ class HetznerAction
         return false;
     }
 
-    public static function optimize(array $loadBalancers, array $servers): bool
+    public static function shrinkOrRestructure(array $loadBalancers, array $servers): bool
     {
         return false;
     }
