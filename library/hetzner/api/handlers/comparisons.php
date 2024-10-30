@@ -50,7 +50,7 @@ class HetznerComparison
     public static function findIdealLoadBalancerLevel(
         HetznerLoadBalancerType $loadBalancer,
         int                     $currentTargets,
-        int $newTargets
+        int                     $newTargets
     ): int
     {
         global $HETZNER_LOAD_BALANCERS;

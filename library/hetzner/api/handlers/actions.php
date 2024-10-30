@@ -33,7 +33,8 @@ class HetznerAction
                         "servers/" . $serverID . "/metrics"
                         . "?type=cpu"
                         . "&start=" . self::date("-" . HetznerVariables::CPU_METRICS_PAST_SECONDS . " seconds")
-                        . "&end=" . self::date(),
+                        . "&end=" . self::date()
+                        . "&step=" . HetznerVariables::CPU_METRICS_PAST_SECONDS,
                         false
                     );
 
@@ -71,6 +72,8 @@ class HetznerAction
                                     break;
                                 }
                             }
+                        } else {
+                            return null;
                         }
                     }
                 }
@@ -96,39 +99,44 @@ class HetznerAction
                         if ($network->isLoadBalancerIncluded($loadBalancerID)) {
                             $metrics = get_hetzner_object_pages(
                                 "load_balancers/" . $loadBalancerID . "/metrics"
-                                . "?type=connections_per_second"
+                                . "?type=open_connections"
                                 . "&start=" . self::date("-" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS . " seconds")
-                                . "&end=" . self::date(),
+                                . "&end=" . self::date()
+                                . "&step=" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS,
                                 false
                             );
 
                             if (empty($metrics)) {
                                 return null;
                             } else {
-                                $metrics = $metrics[0]?->metrics?->time_series?->connections_per_second?->values;
-                                var_dump($metrics);
-                                $targets = array();
+                                $metrics = $metrics[0]?->metrics?->time_series?->open_connections?->values[0][1] ?? null;
 
-                                if (!empty($loadBalancer->targets)) {
-                                    foreach ($loadBalancer->targets as $target) {
-                                        $targets[$target?->server?->id] = true;
+                                if ($metrics !== null) {
+                                    $targets = array();
+
+                                    if (!empty($loadBalancer->targets)) {
+                                        foreach ($loadBalancer->targets as $target) {
+                                            $targets[$target?->server?->id] = true;
+                                        }
                                     }
+                                    $array[$loadBalancerID] = new HetznerLoadBalancer(
+                                        $loadBalancerID,
+                                        $metrics,
+                                        new HetznerLoadBalancerType(
+                                            strtolower($loadBalancer->load_balancer_type->name),
+                                            $loadBalancer->load_balancer_type->max_targets,
+                                            $loadBalancer->load_balancer_type->max_connections
+                                        ),
+                                        new HetznerServerLocation(
+                                            $loadBalancer->location->name
+                                        ),
+                                        $network,
+                                        $targets,
+                                    );
+                                    break;
+                                } else {
+                                    return null;
                                 }
-                                $array[$loadBalancerID] = new HetznerLoadBalancer(
-                                    $loadBalancerID,
-                                    0, // todo
-                                    new HetznerLoadBalancerType(
-                                        strtolower($loadBalancer->load_balancer_type->name),
-                                        $loadBalancer->load_balancer_type->max_targets,
-                                        $loadBalancer->load_balancer_type->max_connections
-                                    ),
-                                    new HetznerServerLocation(
-                                        $loadBalancer->location->name
-                                    ),
-                                    $network,
-                                    $targets,
-                                );
-                                break 3;
                             }
                         }
                     }
@@ -179,12 +187,7 @@ class HetznerAction
         return false;
     }
 
-    public static function shrinkOrRestructure(array $loadBalancers, array $servers): bool
-    {
-        return false;
-    }
-
-    public static function grow(array $loadBalancers, array $servers): bool
+    public static function growOrShrink(array $loadBalancers, array $servers): bool
     {
         $grow = false;
 
@@ -392,6 +395,7 @@ class HetznerAction
 
                     if ($server !== null) {
                         $grow |= $server->remove();
+                        // todo shrink load balancers
                     }
                 }
             }
