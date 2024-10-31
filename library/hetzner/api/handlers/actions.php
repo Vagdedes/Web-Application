@@ -18,6 +18,23 @@ class HetznerAction
 
     // Separator
 
+    public static function getDefaultImage(string $timeBefore = null): ?string
+    {
+        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "images");
+
+        if (!empty($query)) {
+            foreach ($query as $page) {
+                foreach ($page->images as $image) {
+                    var_dump($image);
+                }
+            }
+        }
+        return ""; // todo
+    }
+
+
+    // Separator
+
     public static function getServers(?array $networks, ?array $loadBalancers): ?array
     {
         if (empty($networks)
@@ -191,48 +208,53 @@ class HetznerAction
         int                   $level
     ): bool
     {
-        $object = new stdClass();
+        $image = self::getDefaultImage();
 
-        while (true) {
-            $object->name = HetznerVariables::HETZNER_SERVER_NAME_PATTERN . random_number();
+        if ($image !== null) {
+            $object = new stdClass();
 
-            foreach ($servers as $server) {
-                if ($server->name == $object->name) {
-                    $object->name = null;
+            while (true) {
+                $object->name = HetznerVariables::HETZNER_SERVER_NAME_PATTERN . random_number();
+
+                foreach ($servers as $server) {
+                    if ($server->name == $object->name) {
+                        $object->name = null;
+                        break;
+                    }
+                }
+
+                if ($object->name !== null) {
                     break;
                 }
             }
 
-            if ($object->name !== null) {
-                break;
+            $object->location = $location->name;
+
+            $object->image = $image;
+
+            $object->start_after_create = true;
+
+            $object->networks = array(
+                $network->identifier
+            );
+
+            if ($serverType instanceof HetznerArmServer) {
+                global $HETZNER_ARM_SERVERS;
+                $object->server_type = $HETZNER_ARM_SERVERS[$level]->name;
+            } else {
+                global $HETZNER_X86_SERVERS;
+                $object->server_type = $HETZNER_X86_SERVERS[$level]->name;
             }
+            return self::executedAction(
+                get_hetzner_object_pages(
+                    HetznerConnectionType::POST,
+                    "servers",
+                    json_encode($object),
+                    false
+                )
+            );
         }
-
-        $object->location = $location->name;
-
-        $object->image = HetznerVariables::HETZNER_DEFAULT_SNAPSHOT;
-
-        $object->start_after_create = true;
-
-        $object->networks = array(
-            $network->identifier
-        );
-
-        if ($serverType instanceof HetznerArmServer) {
-            global $HETZNER_ARM_SERVERS;
-            $object->server_type = $HETZNER_ARM_SERVERS[$level]->name;
-        } else {
-            global $HETZNER_X86_SERVERS;
-            $object->server_type = $HETZNER_X86_SERVERS[$level]->name;
-        }
-        return self::executedAction(
-            get_hetzner_object_pages(
-                HetznerConnectionType::POST,
-                "servers",
-                json_encode($object),
-                false
-            )
-        );
+        return false;
     }
 
     public static function addNewLoadBalancerBasedOn(
@@ -312,16 +334,15 @@ class HetznerAction
 
     // Separator
 
-    public static function update(
-        array $servers,
-        int   $snapshot = HetznerVariables::HETZNER_DEFAULT_SNAPSHOT
-    ): bool
+    public static function update(array $servers): bool
     {
-        if (false) { // todo
+        $image = self::getDefaultImage("5 minutes");
+
+        if ($image !== null) {
             $update = false;
 
             foreach ($servers as $server) {
-                $update |= $server->update($snapshot);
+                $update |= $server->update($image);
             }
             return $update;
         }
@@ -330,6 +351,10 @@ class HetznerAction
 
     public static function growOrShrink(array $loadBalancers, array $servers): bool
     {
+        if (true) {
+            self::getDefaultImage();
+            return false;
+        }
         $grow = false;
 
         // Attach Server/s [And (Optionally) Add Load-Balancer/s]

@@ -167,11 +167,11 @@ class HetznerServer
 
     // Separator
 
-    public function update(int $snapshot): bool
+    public function update(int $image): bool
     {
-        if (HetznerComparison::canDeleteServer($this)) {
+        if ($this->name != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME) {
             $object = new stdClass();
-            $object->image = $snapshot;
+            $object->image = $image;
             return HetznerAction::executedAction(
                 get_hetzner_object_pages(
                     HetznerConnectionType::POST,

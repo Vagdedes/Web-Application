@@ -15,10 +15,10 @@ class HetznerVariables
         HETZNER_MINIMUM_LOAD_BALANCERS = 1,
         HETZNER_MINIMUM_SERVERS = 2, // 2 because of upgrades/downgrades that still require 1 for the load balancers
         HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'application.lb.default',
+        HETZNER_DEFAULT_IMAGE_NAME = 'application.snapshot',
         HETZNER_LOAD_BALANCER_NAME_PATTERN = 'application.lb.',
         HETZNER_DEFAULT_SERVER_NAME = 'application.default',
-        HETZNER_SERVER_NAME_PATTERN = 'application.',
-        HETZNER_DEFAULT_SNAPSHOT = 194752273; // todo replace with query
+        HETZNER_SERVER_NAME_PATTERN = 'application.';
 
 }
 
