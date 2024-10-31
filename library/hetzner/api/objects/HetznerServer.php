@@ -179,6 +179,20 @@ class HetznerServer
 
     public function attachToLoadBalancers(array $servers, array $loadBalancers): bool
     {
+        foreach ($servers as $server) {
+            if ($server->loadBalancer !== null
+                && $server->loadBalancer->hasRemainingTargetSpace()
+                && $server->loadBalancer->targetCount() === 1
+                && HetznerComparison::serverRequiresUpgradeOrDowngrade($server) !== null) {
+                return HetznerAction::addNewServerBasedOn(
+                    $servers,
+                    $server->location,
+                    $server->type,
+                    $server->network,
+                    0
+                );
+            }
+        }
         while (true) {
             $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers);
 
