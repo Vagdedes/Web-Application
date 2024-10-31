@@ -84,8 +84,14 @@ class HetznerLoadBalancer
 
     public function remove(): bool
     {
-        // todo
-        return false;
+        return HetznerAction::executedAction(
+            get_hetzner_object_pages(
+                HetznerConnectionType::DELETE,
+                "load_balancers/" . $this->identifier,
+                null,
+                false
+            )
+        );
     }
 
     // Separator
