@@ -153,7 +153,7 @@ class ManagerAI
                         "Content-Type: " . $contentType,
                         "Authorization: Bearer " . $this->apiKey
                     ),
-                    array($parameters),
+                    $parameters,
                     $timeoutSeconds
                 );
 
