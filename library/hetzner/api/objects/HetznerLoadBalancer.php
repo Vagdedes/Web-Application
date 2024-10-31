@@ -30,15 +30,53 @@ class HetznerLoadBalancer
         $this->network = $network;
     }
 
-    public function upgrade(int $level = -1): bool
+    public function upgrade(int $level = 0): bool
     {
-        // todo
+        if ($level === 0) {
+            $level = HetznerComparison::getLoadBalancerLevel($this->type);
+
+            if ($level === -1) {
+                return false;
+            }
+        }
+        global $HETZNER_LOAD_BALANCERS;
+        $level += 1;
+
+        if ($level <= sizeof($HETZNER_LOAD_BALANCERS)) {
+            $object = new stdClass();
+            $object->load_balancer_type = $HETZNER_LOAD_BALANCERS[$level]->name;
+
+            return HetznerAction::executedAction(
+                get_hetzner_object_pages(
+                    HetznerConnectionType::POST,
+                    "load_balancers/" . $this->identifier . "/actions/change_type",
+                    json_encode($object),
+                    false
+                )
+            );
+        }
         return false;
     }
 
     public function downgrade(): bool
     {
-        // todo
+        $level = HetznerComparison::getLoadBalancerLevel($this->type);
+
+        if ($level > 0) {
+            global $HETZNER_LOAD_BALANCERS;
+            $level -= 1;
+            $object = new stdClass();
+            $object->load_balancer_type = $HETZNER_LOAD_BALANCERS[$level]->name;
+
+            return HetznerAction::executedAction(
+                get_hetzner_object_pages(
+                    HetznerConnectionType::POST,
+                    "load_balancers/" . $this->identifier . "/actions/change_type",
+                    json_encode($object),
+                    false
+                )
+            );
+        }
         return false;
     }
 

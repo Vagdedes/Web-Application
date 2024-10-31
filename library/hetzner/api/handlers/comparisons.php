@@ -48,14 +48,14 @@ class HetznerComparison
     }
 
     public static function findIdealLoadBalancerLevel(
-        HetznerLoadBalancerType $loadBalancer,
+        HetznerLoadBalancerType $loadBalancerType,
         int                     $currentTargets,
         int                     $newTargets
     ): int
     {
         global $HETZNER_LOAD_BALANCERS;
         $newTargets += $currentTargets;
-        $currentLevel = self::getLoadBalancerLevel($loadBalancer);
+        $currentLevel = self::getLoadBalancerLevel($loadBalancerType);
         $lastLevel = sizeof($HETZNER_LOAD_BALANCERS) - 1;
 
         foreach ($HETZNER_LOAD_BALANCERS as $key => $value) {
