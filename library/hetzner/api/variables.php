@@ -18,7 +18,7 @@ class HetznerVariables
         HETZNER_LOAD_BALANCER_NAME_PATTERN = 'application.lb.',
         HETZNER_DEFAULT_SERVER_NAME = 'application.default',
         HETZNER_SERVER_NAME_PATTERN = 'application.',
-        HETZNER_DEFAULT_SNAPSHOT = 194752273;
+        HETZNER_DEFAULT_SNAPSHOT = 194752273; // todo replace with query
 
 }
 
