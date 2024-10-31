@@ -428,9 +428,9 @@ class HetznerAction
 
             if ($upgradeOrDowngrade !== null) {
                 if ($upgradeOrDowngrade) {
-                    $grow |= $loopServer->upgrade();
+                    $grow |= $loopServer->upgrade($servers);
                 } else {
-                    $grow |= $loopServer->downgrade();
+                    $grow |= $loopServer->downgrade($servers);
                 }
             }
         }
@@ -521,7 +521,7 @@ class HetznerAction
 
         if ($requiresChange) {
             if (!empty($toChange)) {
-                $grow |= HetznerComparison::findLeastLevelServer($toChange)->upgrade();
+                $grow |= HetznerComparison::findLeastLevelServer($toChange)->upgrade($servers);
             } else {
                 foreach ($servers as $loopServer) {
                     $grow |= HetznerAction::addNewServerBasedOn(
@@ -550,7 +550,7 @@ class HetznerAction
 
             if ($requiresChange) {
                 if (!empty($toChange)) {
-                    $grow |= HetznerComparison::findLeastLevelServer($toChange)->downgrade();
+                    $grow |= HetznerComparison::findLeastLevelServer($toChange)->downgrade($servers);
                 } else if (sizeof($servers) > HetznerVariables::HETZNER_MINIMUM_SERVERS) {
                     $server = HetznerComparison::findLeastLevelServer($toChange, true);
 

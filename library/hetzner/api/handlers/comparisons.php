@@ -96,35 +96,29 @@ class HetznerComparison
 
     public static function canUpgradeServer(HetznerServer $server): bool
     {
-        if ($server->loadBalancer !== null
-            && $server->loadBalancer->targetCount() > 1) {
-            if ($server->type instanceof HetznerArmServer) {
-                global $HETZNER_ARM_SERVERS;
-                $level = self::getServerLevel($server);
-                return $level !== -1 && $level < sizeof($HETZNER_ARM_SERVERS) - 1;
-            } else {
-                global $HETZNER_X86_SERVERS;
-                $level = self::getServerLevel($server);
-                return $level !== -1 && $level < sizeof($HETZNER_X86_SERVERS) - 1;
-            }
+        if ($server->type instanceof HetznerArmServer) {
+            global $HETZNER_ARM_SERVERS;
+            $level = self::getServerLevel($server);
+            return $level !== -1 && $level < sizeof($HETZNER_ARM_SERVERS) - 1;
+        } else {
+            global $HETZNER_X86_SERVERS;
+            $level = self::getServerLevel($server);
+            return $level !== -1 && $level < sizeof($HETZNER_X86_SERVERS) - 1;
         }
         return false;
     }
 
     public static function canDowngradeServer(HetznerServer $server): bool
     {
-        if ($server->loadBalancer !== null
-            && $server->loadBalancer->targetCount() > 1) {
-            $level = self::getServerLevel($server);
+        $level = self::getServerLevel($server);
 
-            if ($level > 0) {
-                if ($server->type instanceof HetznerArmServer) {
-                    global $HETZNER_ARM_SERVERS;
-                    return $server->customStorageGB <= $HETZNER_ARM_SERVERS[$level - 1]->storageGB;
-                } else {
-                    global $HETZNER_X86_SERVERS;
-                    return $server->customStorageGB <= $HETZNER_X86_SERVERS[$level - 1]->storageGB;
-                }
+        if ($level > 0) {
+            if ($server->type instanceof HetznerArmServer) {
+                global $HETZNER_ARM_SERVERS;
+                return $server->customStorageGB <= $HETZNER_ARM_SERVERS[$level - 1]->storageGB;
+            } else {
+                global $HETZNER_X86_SERVERS;
+                return $server->customStorageGB <= $HETZNER_X86_SERVERS[$level - 1]->storageGB;
             }
         }
         return false;

@@ -32,11 +32,13 @@ class HetznerLoadBalancer
 
     public function upgrade(int $level = -1): bool
     {
+        // todo
         return false;
     }
 
     public function downgrade(): bool
     {
+        // todo
         return false;
     }
 
@@ -44,6 +46,7 @@ class HetznerLoadBalancer
 
     public function remove(): bool
     {
+        // todo
         return false;
     }
 
