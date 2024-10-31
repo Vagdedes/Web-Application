@@ -81,10 +81,14 @@ class HetznerServer
 
     public function remove(): bool
     {
-        if (HetznerComparison::canDeleteServer($this)) {
-
-        }
-        return false;
+        return self::executedAction(
+            get_hetzner_object_pages(
+                HetznerConnectionType::DELETE,
+                "servers/" . $this->identifier,
+                null,
+                false
+            )
+        );
     }
 
     // Separator

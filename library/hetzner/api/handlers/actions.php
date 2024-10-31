@@ -9,7 +9,7 @@ class HetznerAction
         return urlencode($dateTime->format(DateTime::ATOM));
     }
 
-    private static function createdMachine(array $query): bool
+    private static function executedAction(array $query): bool
     {
         return !empty($query)
             && ($query[0]?->action?->error?->code !== null
@@ -149,7 +149,7 @@ class HetznerAction
                                     $targets,
                                 );
 
-                                if (HetznerComparison::shouldConsiderLoadBalancer($loadBalancer)) {
+                                if (HetznerComparison::shouldConsiderLoadBalancer($object)) {
                                     $array[$loadBalancerID] = $object;
                                 }
                                 break;
@@ -225,7 +225,7 @@ class HetznerAction
             global $HETZNER_X86_SERVERS;
             $object->server_type = $HETZNER_X86_SERVERS[$level]->name;
         }
-        return self::createdMachine(
+        return self::executedAction(
             get_hetzner_object_pages(
                 HetznerConnectionType::POST,
                 "servers",
@@ -300,7 +300,7 @@ class HetznerAction
             $service
         );
 
-        return self::createdMachine(
+        return self::executedAction(
             get_hetzner_object_pages(
                 HetznerConnectionType::POST,
                 "load_balancers",
@@ -332,14 +332,8 @@ class HetznerAction
     {
         $grow = false;
 
-        foreach ($servers as $server) {
-            HetznerAction::addNewServerBasedOn(
-                $servers,
-                $server->location,
-                $server->network,
-                $server->type,
-                0
-            );
+        foreach ($servers as $loopServer) {
+            $loopServer->upgrade();
             break;
         }
 
@@ -426,6 +420,8 @@ class HetznerAction
                         }
                     }
                 }
+            } else {
+                // todo shrink load balancers
             }
             return $grow;
         }
@@ -547,7 +543,6 @@ class HetznerAction
 
                     if ($server !== null) {
                         $grow |= $server->remove();
-                        // todo shrink load balancers
                     }
                 }
             }

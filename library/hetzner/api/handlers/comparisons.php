@@ -119,7 +119,7 @@ class HetznerComparison
 
     public static function canDeleteServer(HetznerServer $server): bool
     {
-        return $server->identifier != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME;
+        return $server->name != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME;
     }
 
     public static function shouldConsiderServer(HetznerServer $server): bool
@@ -180,7 +180,7 @@ class HetznerComparison
 
     public static function canDeleteLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
     {
-        return $loadBalancer->identifier != HetznerVariables::HETZNER_DEFAULT_LOAD_BALANCER_NAME;
+        return $loadBalancer->name != HetznerVariables::HETZNER_DEFAULT_LOAD_BALANCER_NAME;
     }
 
     public static function shouldConsiderLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
