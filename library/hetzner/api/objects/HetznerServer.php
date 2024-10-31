@@ -38,19 +38,54 @@ class HetznerServer
 
     public function upgrade(): bool
     {
-        $level = HetznerComparison::getServerLevel($this) + 1;
+        $level = HetznerComparison::getServerLevel($this);
 
-        if ($this instanceof HetznerArmServer) {
-            global $HETZNER_ARM_SERVERS;
+        if ($level !== -1) {
+            $level += 1;
+            $type = null;
 
-            if ($level <= sizeof($HETZNER_ARM_SERVERS)) {
-                $level = $HETZNER_ARM_SERVERS[$level];
+            if ($this->type instanceof HetznerArmServer) {
+                global $HETZNER_ARM_SERVERS;
+
+                if ($level <= sizeof($HETZNER_ARM_SERVERS)) {
+                    $type = $HETZNER_ARM_SERVERS[$level]->name;
+                }
+            } else {
+                global $HETZNER_X86_SERVERS;
+
+                if ($level <= sizeof($HETZNER_X86_SERVERS)) {
+                    $type = $HETZNER_X86_SERVERS[$level]->name;
+                }
             }
-        } else {
-            global $HETZNER_X86_SERVERS;
 
-            if ($level <= sizeof($HETZNER_X86_SERVERS)) {
-                $level = $HETZNER_X86_SERVERS[$level];
+            if ($type !== null) {
+                $object = new stdClass();
+                $object->server_type = $type;
+                $object->upgrade_disk = false;
+                get_hetzner_object_pages(
+                    HetznerConnectionType::POST,
+                    "servers/" . $this->identifier . "/actions/poweroff",
+                    null,
+                    false
+                );
+                if (HetznerComparison::serverRequiresUpgradeOrDowngrade($this) === null) {
+                    $object2 = new stdClass();
+                    $object2->name = $this->name . ".up";
+                    get_hetzner_object_pages(
+                        HetznerConnectionType::PUT,
+                        "servers/" . $this->identifier,
+                        json_encode($object2),
+                        false
+                    );
+                }
+                return HetznerAction::executedAction(
+                    get_hetzner_object_pages(
+                        HetznerConnectionType::POST,
+                        "servers/" . $this->identifier . "/actions/change_type",
+                        json_encode($object),
+                        false
+                    )
+                );
             }
         }
         return false;
@@ -63,10 +98,42 @@ class HetznerServer
         if ($level > 0) {
             $level -= 1;
 
-            if ($this instanceof HetznerArmServer) {
+            if ($this->type instanceof HetznerArmServer) {
                 global $HETZNER_ARM_SERVERS;
+                $type = $HETZNER_ARM_SERVERS[$level]->name;
             } else {
                 global $HETZNER_X86_SERVERS;
+                $type = $HETZNER_X86_SERVERS[$level]->name;
+            }
+
+            if ($type !== null) {
+                $object = new stdClass();
+                $object->server_type = $type;
+                $object->upgrade_disk = false;
+                get_hetzner_object_pages(
+                    HetznerConnectionType::POST,
+                    "servers/" . $this->identifier . "/actions/poweroff",
+                    null,
+                    false
+                );
+                if (HetznerComparison::serverRequiresUpgradeOrDowngrade($this) === null) {
+                    $object2 = new stdClass();
+                    $object2->name = $this->name . ".down";
+                    get_hetzner_object_pages(
+                        HetznerConnectionType::PUT,
+                        "servers/" . $this->identifier,
+                        json_encode($object2),
+                        false
+                    );
+                }
+                return HetznerAction::executedAction(
+                    get_hetzner_object_pages(
+                        HetznerConnectionType::POST,
+                        "servers/" . $this->identifier . "/actions/change_type",
+                        json_encode($object),
+                        false
+                    )
+                );
             }
         }
         return false;
@@ -76,12 +143,24 @@ class HetznerServer
 
     public function update(int $snapshot): bool
     {
+        if (HetznerComparison::canDeleteServer($this)) {
+            $object = new stdClass();
+            $object->image = $snapshot;
+            return HetznerAction::executedAction(
+                get_hetzner_object_pages(
+                    HetznerConnectionType::POST,
+                    "servers/" . $this->identifier . "/actions/rebuild",
+                    json_encode($object),
+                    false
+                )
+            );
+        }
         return false;
     }
 
     public function remove(): bool
     {
-        return self::executedAction(
+        return HetznerAction::executedAction(
             get_hetzner_object_pages(
                 HetznerConnectionType::DELETE,
                 "servers/" . $this->identifier,
@@ -98,7 +177,7 @@ class HetznerServer
         return $this->loadBalancer !== null;
     }
 
-    public function attachToLoadBalancers(array $loadBalancers): bool
+    public function attachToLoadBalancers(array $servers, array $loadBalancers): bool
     {
         while (true) {
             $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers);

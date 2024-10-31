@@ -54,8 +54,7 @@ class HetznerLoadBalancer
         if ($this->hasRemainingTargetSpace()
             && !$this->isTarget($server->identifier)
             && !$server->isInLoadBalancer()) {
-            $this->targets[] = $server->identifier;
-            return false;
+            // todo
         }
         return false;
     }
@@ -65,8 +64,7 @@ class HetznerLoadBalancer
         if ($this->isTarget($server->identifier)
             && $server->isInLoadBalancer()
             && $server->loadBalancer->identifier === $this->identifier) {
-            $this->targets[] = $server->identifier;
-            return false;
+            // todo
         }
         return false;
     }

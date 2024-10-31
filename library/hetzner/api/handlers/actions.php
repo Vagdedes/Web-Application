@@ -9,7 +9,7 @@ class HetznerAction
         return urlencode($dateTime->format(DateTime::ATOM));
     }
 
-    private static function executedAction(array $query): bool
+    public static function executedAction(array $query): bool
     {
         return !empty($query)
             && ($query[0]?->action?->error?->code !== null
@@ -317,7 +317,7 @@ class HetznerAction
         int   $snapshot = HetznerVariables::HETZNER_DEFAULT_SNAPSHOT
     ): bool
     {
-        if (true) { // todo
+        if (false) { // todo
             $update = false;
 
             foreach ($servers as $server) {
@@ -332,11 +332,6 @@ class HetznerAction
     {
         $grow = false;
 
-        foreach ($servers as $loopServer) {
-            $loopServer->upgrade();
-            break;
-        }
-
         // Attach Server/s [And (Optionally) Add Load-Balancer/s]
 
         $serversToAdd = 0;
@@ -346,7 +341,7 @@ class HetznerAction
                 return false;
             }
             if (!$server->isInLoadBalancer()) {
-                $grow |= $server->attachToLoadBalancers($loadBalancers);
+                $grow |= $server->attachToLoadBalancers($servers, $loadBalancers);
                 $serversToAdd++;
             }
         }
@@ -424,6 +419,24 @@ class HetznerAction
                 // todo shrink load balancers
             }
             return $grow;
+        }
+
+        // Finish Server/s Upgrade/Downgrade
+
+        foreach ($servers as $loopServer) {
+            $upgradeOrDowngrade = HetznerComparison::serverRequiresUpgradeOrDowngrade($loopServer);
+
+            if ($upgradeOrDowngrade !== null) {
+                if ($upgradeOrDowngrade) {
+                    $grow |= $loopServer->upgrade();
+                } else {
+                    $grow |= $loopServer->downgrade();
+                }
+            }
+        }
+
+        if ($grow) {
+            return true;
         }
 
         // Upgrade/Downgrade/Add/Delete Load-Balancer/s

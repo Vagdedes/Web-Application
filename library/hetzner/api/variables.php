@@ -13,7 +13,7 @@ class HetznerVariables
         HETZNER_UPGRADE_USAGE_RATIO = 0.85,
         HETZNER_DOWNGRADE_USAGE_RATIO = self::HETZNER_UPGRADE_USAGE_RATIO / 2.0,
         HETZNER_MINIMUM_LOAD_BALANCERS = 1,
-        HETZNER_MINIMUM_SERVERS = 1,
+        HETZNER_MINIMUM_SERVERS = 2, // 2 because of upgrades/downgrades that still require 1 for the load balancers
         HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'application.lb.default',
         HETZNER_LOAD_BALANCER_NAME_PATTERN = 'application.lb.',
         HETZNER_DEFAULT_SERVER_NAME = 'application.default',
@@ -27,6 +27,7 @@ class HetznerConnectionType
     public const
         GET = "GET",
         POST = "POST",
+        PUT = "PUT",
         DELETE = "DELETE";
 }
 
