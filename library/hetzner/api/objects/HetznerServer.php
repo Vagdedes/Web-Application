@@ -46,6 +46,13 @@ class HetznerServer
         return false;
     }
 
+    // Separator
+
+    public function update(int $snapshot): bool
+    {
+        return false;
+    }
+
     public function remove(): bool
     {
         return false;

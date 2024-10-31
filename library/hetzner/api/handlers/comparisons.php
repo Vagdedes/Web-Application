@@ -124,7 +124,7 @@ class HetznerComparison
 
     public static function shouldConsiderServer(HetznerServer $server): bool
     {
-        return starts_with($server->identifier, HetznerVariables::HETZNER_SERVER_NAME_PATTERN);
+        return starts_with($server->name, HetznerVariables::HETZNER_SERVER_NAME_PATTERN);
     }
 
     // Separator
@@ -185,7 +185,7 @@ class HetznerComparison
 
     public static function shouldConsiderLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
     {
-        return starts_with($loadBalancer->identifier, HetznerVariables::HETZNER_LOAD_BALANCER_NAME_PATTERN);
+        return starts_with($loadBalancer->name, HetznerVariables::HETZNER_LOAD_BALANCER_NAME_PATTERN);
     }
 
     // Separator

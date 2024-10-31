@@ -179,17 +179,52 @@ class HetznerAction
         array                 $servers,
         HetznerServerLocation $location,
         HetznerNetwork        $network,
+        HetznerAbstractServer $serverType,
         int                   $level
     ): bool
     {
-        if (true) {
+        $object = new stdClass();
+
+        while (true) {
+            $object->name = HetznerVariables::HETZNER_SERVER_NAME_PATTERN . random_number();
+
+            foreach ($servers as $server) {
+                if ($server->name == $object->name) {
+                    $object->name = null;
+                    break;
+                }
+            }
+
+            if ($object->name !== null) {
+                break;
+            }
+        }
+
+        $object->location = $location->name;
+
+        $object->image = HetznerVariables::HETZNER_DEFAULT_SNAPSHOT;
+
+        $object->start_after_create = true;
+
+        $object->networks = array(
+            $network->identifier
+        );
+
+        if ($serverType instanceof HetznerArmServer) {
             global $HETZNER_ARM_SERVERS;
-            // todo
+            $object->server_type = $HETZNER_ARM_SERVERS[$level]->name;
         } else {
             global $HETZNER_X86_SERVERS;
-            // todo
+            $object->server_type = $HETZNER_X86_SERVERS[$level]->name;
         }
-        return false;
+        return self::createdMachine(
+            get_hetzner_object_pages(
+                HetznerConnectionType::POST,
+                "servers",
+                json_encode($object),
+                false
+            )
+        );
     }
 
     public static function addNewLoadBalancerBasedOn(
@@ -201,14 +236,6 @@ class HetznerAction
     {
         global $HETZNER_LOAD_BALANCERS;
         $object = new stdClass();
-
-        $algorithm = new stdClass();
-        $algorithm->type = "least_connections";
-        $object->algorithm = $algorithm;
-
-        $object->load_balancer_type = $HETZNER_LOAD_BALANCERS[$level]->name;
-
-        $object->location = $location->name;
 
         while (true) {
             $object->name = HetznerVariables::HETZNER_LOAD_BALANCER_NAME_PATTERN . random_number();
@@ -225,9 +252,46 @@ class HetznerAction
             }
         }
 
+        $algorithm = new stdClass();
+        $algorithm->type = "least_connections";
+        $object->algorithm = $algorithm;
+
+        $object->load_balancer_type = $HETZNER_LOAD_BALANCERS[$level]->name;
+
+        $object->location = $location->name;
+
         $object->network = $network->identifier;
 
-        //$object->targets = array(); // todo
+        $port = 80;
+        $http = new stdClass();
+        $http->domain = "";
+        $http->path = "/";
+        $http->status_codes = array(
+            "2??",
+            "3??"
+        );
+        $http->tls = false;
+
+        $healthCheck = new stdClass();
+        $healthCheck->proxy_protocol = false;
+        $healthCheck->interval = 15;
+        $healthCheck->retries = 3;
+        $healthCheck->timeout = 10;
+        $healthCheck->port = $port;
+        $healthCheck->protocol = "http";
+        $healthCheck->http = $http;
+
+        $service = new stdClass();
+        $service->destination_port = $port;
+        $service->listen_port = $port;
+        $service->protocol = "http";
+        $service->health_check = $healthCheck;
+        $service->proxyprotocol = false;
+
+        $object->services = array(
+            $service
+        );
+
         return self::createdMachine(
             get_hetzner_object_pages(
                 HetznerConnectionType::POST,
@@ -241,8 +305,8 @@ class HetznerAction
     // Separator
 
     public static function update(
-        array  $servers,
-        string $snapshot = HetznerVariables::HETZNER_DEFAULT_SNAPSHOT
+        array $servers,
+        int   $snapshot = HetznerVariables::HETZNER_DEFAULT_SNAPSHOT
     ): bool
     {
         return false;
@@ -252,14 +316,17 @@ class HetznerAction
     {
         $grow = false;
 
-        foreach ($servers as $loopLoadBalancer) {
-            HetznerAction::addNewServerBasedOn(
-                $servers,
-                $loopLoadBalancer->location,
-                $loopLoadBalancer->network,
-                0
-            );
-            break;
+        foreach ($servers as $server) {
+            if (HetznerComparison::shouldConsiderServer($server)) {
+                HetznerAction::addNewServerBasedOn(
+                    $servers,
+                    $server->location,
+                    $server->network,
+                    $server->type,
+                    0
+                );
+                break;
+            }
         }
 
         // Attach Server/s [And (Optionally) Add Load-Balancer/s]
@@ -453,6 +520,7 @@ class HetznerAction
                         $servers,
                         $loopServer->location,
                         $loopServer->network,
+                        $loopServer->type,
                         0
                     );
                 }
