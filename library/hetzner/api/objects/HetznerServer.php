@@ -38,11 +38,37 @@ class HetznerServer
 
     public function upgrade(): bool
     {
+        $level = HetznerComparison::getServerLevel($this) + 1;
+
+        if ($this instanceof HetznerArmServer) {
+            global $HETZNER_ARM_SERVERS;
+
+            if ($level <= sizeof($HETZNER_ARM_SERVERS)) {
+                $level = $HETZNER_ARM_SERVERS[$level];
+            }
+        } else {
+            global $HETZNER_X86_SERVERS;
+
+            if ($level <= sizeof($HETZNER_X86_SERVERS)) {
+                $level = $HETZNER_X86_SERVERS[$level];
+            }
+        }
         return false;
     }
 
     public function downgrade(): bool
     {
+        $level = HetznerComparison::getServerLevel($this);
+
+        if ($level > 0) {
+            $level -= 1;
+
+            if ($this instanceof HetznerArmServer) {
+                global $HETZNER_ARM_SERVERS;
+            } else {
+                global $HETZNER_X86_SERVERS;
+            }
+        }
         return false;
     }
 
@@ -55,6 +81,9 @@ class HetznerServer
 
     public function remove(): bool
     {
+        if (HetznerComparison::canDeleteServer($this)) {
+
+        }
         return false;
     }
 
