@@ -52,17 +52,26 @@ class AccountInstructions
 
     private function calculateContains(array $array): array
     {
+        $final = array();
+        $merge = array();
+
         if (!empty($array)) {
-            foreach ($array as $arrayKey => $row) {
+            foreach ($array as $row) {
                 if ($row->contains === null) {
                     $row->contains = array();
                 } else {
                     $row->contains = explode("|", $row->contains);
                 }
-                $array[$arrayKey] = $row;
+                if ($row->priority === null
+                    || array_key_exists($row->priority, $final)) {
+                    $merge[] = $row;
+                } else {
+                    $final[$row->priority] = $row;
+                }
             }
         }
-        return $array;
+        krsort($final);
+        return array_merge($final, $merge);
     }
 
     // Separator
@@ -140,75 +149,77 @@ class AccountInstructions
         return $object === null ? "" : $object;
     }
 
-    public function replace(array   $messages,
+    private function deepReplace(mixed $mix, mixed $objectKey, mixed $objectValue, bool $preparedValue = false): mixed
+    {
+        if (!$preparedValue) {
+            $objectValue = $this->prepare($objectValue);
+        }
+        if (is_object($mix)) {
+            foreach ($mix as $key => $value) {
+                $mix->{$key} = $this->deepReplace($value, $objectKey, $objectValue, true);
+            }
+            return $mix;
+        } else if (is_array($mix)) {
+            foreach ($mix as $key => $value) {
+                $mix[$key] = $this->deepReplace($value, $objectKey, $objectValue, true);
+            }
+            return $mix;
+        } else {
+            return str_replace(
+                InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
+                $objectValue,
+                $mix
+            );
+        }
+    }
+
+    public function replace(array   $array,
                             ?object $object,
                             ?array  $callables,
                             bool    $extra): array
     {
         if ($object !== null) {
+            var_dump("1");
             foreach ($object as $objectKey => $objectValue) {
-                $objectValue = $this->prepare($objectValue);
-
-                if ($objectValue !== false) {
-                    foreach ($messages as $messageKey => $message) {
-                        $messages[$messageKey] = str_replace(
-                            InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
-                            $objectValue,
-                            $message
-                        );
-                    }
-                } else {
-                    foreach ($messages as $messageKey => $message) {
-                        $messages[$messageKey] = str_replace(
-                            InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
-                            "",
-                            $message
-                        );
-                    }
-                }
+                $array = $this->deepReplace(
+                    $array,
+                    $objectKey,
+                    $objectValue
+                );
             }
+        } else {
+            var_dump("-1");
         }
 
         if (!empty($callables)) {
             foreach ($callables as $callableKey => $callable) {
                 try {
                     try {
-                        $callable = $this->prepare($callable());
+                        $callable = $callable();
                     } catch (Throwable $e) {
                         $callable = false;
                         var_dump($e->getTraceAsString());
                     }
-
-                    if ($callable !== false) {
-                        foreach ($messages as $messageKey => $message) {
-                            $messages[$messageKey] = str_replace(
-                                InformationPlaceholder::STARTER . $callableKey . InformationPlaceholder::ENDER,
-                                $callable,
-                                $message
-                            );
-                        }
-                    } else {
-                        foreach ($messages as $messageKey => $message) {
-                            $messages[$messageKey] = str_replace(
-                                InformationPlaceholder::STARTER . $callableKey . InformationPlaceholder::ENDER,
-                                "",
-                                $message
-                            );
-                        }
-                    }
+                    $array = $this->deepReplace(
+                        $array,
+                        $callableKey,
+                        $callable
+                    );
                 } catch (Throwable $e) {
                     var_dump($e->getTraceAsString());
                 }
             }
+            var_dump("2");
+        } else {
+            var_dump("-2");
         }
         if ($extra && !empty($this->extra)) {
-            foreach ($messages as $messageKey => $message) {
-                foreach ($this->extra as $extra) {
-                    $messages[$messageKey] .= $extra;
-                }
-            }
+            $array = array_merge($array, $this->extra);
+            var_dump("3");
+        } else {
+            var_dump("-3");
         }
-        return $messages;
+        return $array;
     }
 
     private function getURLData(mixed $arrayKey, object $row, bool $refresh): ?string
@@ -313,7 +324,10 @@ class AccountInstructions
                     array("expiration_date", ">", get_current_date()),
                     null
                 ),
-                "priority DESC"
+                array(
+                    "DESC",
+                    "priority"
+                )
             ));
             $this->cacheReplacements();
         }
@@ -339,7 +353,7 @@ class AccountInstructions
                     }
 
                     if ($continue) {
-                        $array[$arrayKey] = $row->information;
+                        $array[$arrayKey] = $row;
                     } else {
                         unset($array[$arrayKey]);
                     }
@@ -347,6 +361,7 @@ class AccountInstructions
                     unset($array[$arrayKey]);
                 }
             }
+            krsort($array);
             return $array;
         } else {
             return array();
@@ -366,7 +381,10 @@ class AccountInstructions
                     array("expiration_date", ">", get_current_date()),
                     null
                 ),
-                "priority DESC"
+                array(
+                    "DESC",
+                    "priority"
+                )
             ));
             $this->cacheReplacements();
         }
@@ -426,10 +444,9 @@ class AccountInstructions
                                 }
                             }
                         }
-                        $array[$arrayKey] = $doc;
-                    } else if ($row->information_value !== null) {
-                        $array[$arrayKey] = $row->information_value;
-                    } else {
+                        $row->information_value = $doc;
+                        $array[$arrayKey] = $row;
+                    } else if ($row->information_value === null) {
                         unset($array[$arrayKey]);
                     }
                 } else {
@@ -437,6 +454,7 @@ class AccountInstructions
                 }
             }
         }
+        krsort($array);
         return $array;
     }
 

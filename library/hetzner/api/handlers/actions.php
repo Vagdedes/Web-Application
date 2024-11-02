@@ -22,14 +22,19 @@ class HetznerAction
     {
         $query = get_hetzner_object_pages(HetznerConnectionType::GET, "images");
 
-        if (!empty($query)) {
+        if (!empty($query)) { // todo
             foreach ($query as $page) {
                 foreach ($page->images as $image) {
                     var_dump($image);
+                    if ($image->name == HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME) {
+                        var_dump($image);
+                    } else {
+                        var_dump($image->name);
+                    }
                 }
             }
         }
-        return ""; // todo
+        return null;
     }
 
 
