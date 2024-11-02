@@ -18,18 +18,15 @@ class HetznerAction
 
     // Separator
 
-    public static function getDefaultImage(string $timeBefore = null): ?string
+    public static function getDefaultImage(): ?string
     {
         $query = get_hetzner_object_pages(HetznerConnectionType::GET, "images");
 
-        if (!empty($query)) { // todo
+        if (!empty($query)) {
             foreach ($query as $page) {
                 foreach ($page->images as $image) {
-                    var_dump($image);
-                    if ($image->name == HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME) {
-                        var_dump($image);
-                    } else {
-                        var_dump($image->name);
+                    if ($image->description == HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME) {
+                        return $image->id;
                     }
                 }
             }
@@ -101,7 +98,9 @@ class HetznerAction
                                     ),
                                     $network,
                                     $server->primary_disk_size,
-                                    $server->locked
+                                    $server->locked,
+                                    $server->image->status == "available"
+                                    && $server->image->description == HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME
                                 );
 
                                 if (HetznerComparison::shouldConsiderServer($object)) {
@@ -341,13 +340,15 @@ class HetznerAction
 
     public static function update(array $servers): bool
     {
-        $image = self::getDefaultImage("5 minutes");
+        $image = self::getDefaultImage();
 
         if ($image !== null) {
             $update = false;
 
             foreach ($servers as $server) {
-                $update |= $server->update($image);
+                if (!$server->imageExists) {
+                    $update |= $server->update($image);
+                }
             }
             return $update;
         }
@@ -454,12 +455,12 @@ class HetznerAction
         // Finish Server/s Upgrade/Downgrade
 
         foreach ($servers as $loopServer) {
-            $upgradeOrDowngrade = HetznerComparison::serverRequiresUpgradeOrDowngrade($loopServer);
+            $status = HetznerComparison::getServerStatus($loopServer);
 
-            if ($upgradeOrDowngrade !== null) {
-                if ($upgradeOrDowngrade) {
+            if (!empty($status)) {
+                if (in_array(HetznerServerStatus::UPGRADE, $status)) {
                     $grow |= $loopServer->upgrade($servers);
-                } else {
+                } else if (in_array(HetznerServerStatus::DOWNGRADE, $status)) {
                     $grow |= $loopServer->downgrade($servers);
                 }
             }

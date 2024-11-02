@@ -14,12 +14,23 @@ class HetznerVariables
         HETZNER_DOWNGRADE_USAGE_RATIO = self::HETZNER_UPGRADE_USAGE_RATIO / 2.0,
         HETZNER_MINIMUM_LOAD_BALANCERS = 1,
         HETZNER_MINIMUM_SERVERS = 2, // 2 because of upgrades/downgrades that still require 1 for the load balancers
-        HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'application.lb.default',
-        HETZNER_DEFAULT_IMAGE_NAME = 'application.snapshot',
-        HETZNER_LOAD_BALANCER_NAME_PATTERN = 'application.lb.',
-        HETZNER_DEFAULT_SERVER_NAME = 'application.default',
-        HETZNER_SERVER_NAME_PATTERN = 'application.';
+        HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'app.lb.default',
+        HETZNER_DEFAULT_IMAGE_NAME = 'app.snapshot',
+        HETZNER_LOAD_BALANCER_NAME_PATTERN = 'app.lb.',
+        HETZNER_DEFAULT_SERVER_NAME = 'app.default',
+        HETZNER_SERVER_NAME_PATTERN = 'app.';
 
+}
+
+class HetznerServerStatus
+{
+    public const
+        UPGRADE = ".a",
+        DOWNGRADE = ".b",
+        ALL = array(
+        self::UPGRADE,
+        self::DOWNGRADE
+    );
 }
 
 class HetznerConnectionType

@@ -71,13 +71,16 @@ class HetznerComparison
 
     // Separator
 
-    public static function serverRequiresUpgradeOrDowngrade(HetznerServer $server): ?bool
+    public static function getServerStatus(HetznerServer $server): array
     {
-        return ends_with($server->name, ".up") ?
-            true :
-            (ends_with($server->name, ".down") ?
-                false :
-                null);
+        $array = array();
+
+        foreach (HetznerServerStatus::ALL as $status) {
+            if (str_contains($server->name, $status)) {
+                $array[] = $status;
+            }
+        }
+        return $array;
     }
 
     public static function shouldUpgradeServer(HetznerServer $server): bool
@@ -105,7 +108,6 @@ class HetznerComparison
             $level = self::getServerLevel($server);
             return $level !== -1 && $level < sizeof($HETZNER_X86_SERVERS) - 1;
         }
-        return false;
     }
 
     public static function canDowngradeServer(HetznerServer $server): bool
@@ -126,7 +128,7 @@ class HetznerComparison
 
     // Separator
 
-    public static function canDeleteServer(HetznerServer $server): bool
+    public static function canDeleteOrUpdateServer(HetznerServer $server): bool
     {
         return $server->name != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME;
     }
@@ -204,7 +206,7 @@ class HetznerComparison
         $min = null;
 
         foreach ($servers as $server) {
-            if ((!$delete || self::canDeleteServer($server))
+            if ((!$delete || self::canDeleteOrUpdateServer($server))
                 && ($min === null || self::getServerLevel($server) < self::getServerLevel($min))) {
                 $min = $server;
             }

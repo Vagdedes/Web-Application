@@ -11,7 +11,7 @@ class HetznerServer
     public HetznerServerLocation $location;
     public HetznerNetwork $network;
     public int $customStorageGB;
-    public bool $blockingAction;
+    public bool $blockingAction, $imageExists;
 
     public function __construct(string                $name,
                                 int                   $identifier,
@@ -21,7 +21,8 @@ class HetznerServer
                                 HetznerServerLocation $location,
                                 HetznerNetwork        $network,
                                 int                   $customStorageGB,
-                                bool                  $blockingAction)
+                                bool                  $blockingAction,
+                                bool                  $imageExists)
     {
         $this->name = $name;
         $this->identifier = $identifier;
@@ -32,6 +33,7 @@ class HetznerServer
         $this->loadBalancer = $loadBalancer;
         $this->customStorageGB = $customStorageGB;
         $this->blockingAction = $blockingAction;
+        $this->imageExists = $imageExists;
     }
 
     // Separator
@@ -62,7 +64,7 @@ class HetznerServer
                 $object = new stdClass();
                 $object->server_type = $type;
                 $object->upgrade_disk = false;
-                $isChanging = HetznerComparison::serverRequiresUpgradeOrDowngrade($this) !== null;
+                $isChanging = !empty(HetznerComparison::getServerStatus($this));
 
                 if (!$isChanging) {
                     $object2 = new stdClass();
@@ -123,7 +125,7 @@ class HetznerServer
                 $object = new stdClass();
                 $object->server_type = $type;
                 $object->upgrade_disk = false;
-                $isChanging = HetznerComparison::serverRequiresUpgradeOrDowngrade($this) !== null;
+                $isChanging = !empty(HetznerComparison::getServerStatus($this));
 
                 if (!$isChanging) {
                     $object2 = new stdClass();
@@ -169,7 +171,7 @@ class HetznerServer
 
     public function update(int $image): bool
     {
-        if ($this->name != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME) {
+        if (HetznerComparison::canDeleteOrUpdateServer($this)) {
             $object = new stdClass();
             $object->image = $image;
             return HetznerAction::executedAction(
@@ -209,7 +211,7 @@ class HetznerServer
             if ($server->loadBalancer !== null
                 && $server->loadBalancer->hasRemainingTargetSpace()
                 && $server->loadBalancer->targetCount() === 1
-                && HetznerComparison::serverRequiresUpgradeOrDowngrade($server) !== null) {
+                && !empty(HetznerComparison::getServerStatus($server))) {
                 return $server->loadBalancer->addTarget($this);
             }
         }
