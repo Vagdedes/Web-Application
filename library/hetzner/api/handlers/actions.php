@@ -446,8 +446,6 @@ class HetznerAction
                         }
                     }
                 }
-            } else {
-                // todo shrink load balancers
             }
             return $grow;
         }
@@ -587,6 +585,7 @@ class HetznerAction
 
                     if ($server !== null) {
                         $grow |= $server->remove();
+                        // todo shrink load balancers
                     }
                 }
             }
