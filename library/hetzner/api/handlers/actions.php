@@ -357,10 +357,6 @@ class HetznerAction
 
     public static function growOrShrink(array $loadBalancers, array $servers): bool
     {
-        if (true) {
-            self::getDefaultImage();
-            return false;
-        }
         $grow = false;
 
         // Attach Server/s [And (Optionally) Add Load-Balancer/s]
@@ -368,7 +364,7 @@ class HetznerAction
         $serversToAdd = 0;
 
         foreach ($servers as $server) {
-            if ($server->blockingAction) {
+            if ($server->isBlockingAction()) {
                 return false;
             }
             if (!$server->isInLoadBalancer()) {
@@ -381,7 +377,7 @@ class HetznerAction
             $loadBalancerPositions = 0;
 
             foreach ($loadBalancers as $loadBalancer) {
-                if ($loadBalancer->blockingAction) {
+                if ($loadBalancer->isBlockingAction()) {
                     return false;
                 }
                 $loadBalancerPositions += $loadBalancer->getRemainingTargetSpace();
@@ -475,7 +471,7 @@ class HetznerAction
 
         foreach ($loadBalancers as $loadBalancer) {
             if (HetznerComparison::shouldUpgradeLoadBalancer($loadBalancer)) {
-                if ($loadBalancer->blockingAction) {
+                if ($loadBalancer->isBlockingAction()) {
                     return false;
                 } else {
                     $requiresChange = true;
@@ -504,7 +500,7 @@ class HetznerAction
         } else {
             foreach ($loadBalancers as $loadBalancer) {
                 if (HetznerComparison::shouldDowngradeLoadBalancer($loadBalancer)) {
-                    if ($loadBalancer->blockingAction) {
+                    if ($loadBalancer->isBlockingAction()) {
                         return false;
                     } else {
                         $requiresChange = true;
@@ -536,7 +532,7 @@ class HetznerAction
 
         foreach ($servers as $server) {
             if (HetznerComparison::shouldUpgradeServer($server)) {
-                if ($server->blockingAction) {
+                if ($server->isBlockingAction()) {
                     return false;
                 } else {
                     $requiresChange = true;
@@ -565,7 +561,7 @@ class HetznerAction
         } else {
             foreach ($servers as $server) {
                 if (HetznerComparison::shouldDowngradeServer($server)) {
-                    if ($server->blockingAction) {
+                    if ($server->isBlockingAction()) {
                         return false;
                     } else {
                         $requiresChange = true;

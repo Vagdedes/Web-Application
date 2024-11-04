@@ -30,6 +30,15 @@ class HetznerLoadBalancer
         $this->network = $network;
     }
 
+    // Separator
+
+    public function isBlockingAction(): bool
+    {
+        return $this->blockingAction;
+    }
+
+    // Separator
+
     public function upgrade(int $level = 0): bool
     {
         if ($level === 0) {
@@ -101,7 +110,22 @@ class HetznerLoadBalancer
         if ($this->hasRemainingTargetSpace()
             && !$this->isTarget($server->identifier)
             && !$server->isInLoadBalancer()) {
-            // todo
+            $object = new stdClass();
+            $object->type = "server";
+            $object->use_private_ip = true;
+
+            $serverObj = new stdClass();
+            $serverObj->id = $server->identifier;
+            $object->server = $serverObj;
+
+            return HetznerAction::executedAction(
+                get_hetzner_object_pages(
+                    HetznerConnectionType::POST,
+                    "load_balancers/" . $this->identifier . "/actions/add_target",
+                    json_encode($object),
+                    false
+                )
+            );
         }
         return false;
     }
@@ -111,7 +135,21 @@ class HetznerLoadBalancer
         if ($this->isTarget($server->identifier)
             && $server->isInLoadBalancer()
             && $server->loadBalancer->identifier === $this->identifier) {
-            // todo
+            $object = new stdClass();
+            $object->type = "server";
+
+            $serverObj = new stdClass();
+            $serverObj->id = $server->identifier;
+            $object->server = $serverObj;
+
+            return HetznerAction::executedAction(
+                get_hetzner_object_pages(
+                    HetznerConnectionType::POST,
+                    "load_balancers/" . $this->identifier . "/actions/remove_target",
+                    json_encode($object),
+                    false
+                )
+            );
         }
         return false;
     }

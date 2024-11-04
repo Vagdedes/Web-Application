@@ -38,6 +38,31 @@ class HetznerServer
 
     // Separator
 
+    public function isBlockingAction(): bool
+    {
+        if ($this->blockingAction) {
+            return true;
+        }
+        $query = get_hetzner_object_pages(
+            HetznerConnectionType::GET,
+            "servers/" . $this->identifier . "/actions"
+        );
+
+        if (!empty($query)) {
+            foreach ($query as $page) {
+                foreach ($page->actions as $action) {
+                    if ($action->finished === null) {
+                        $this->blockingAction = true;
+                        return true;
+                    }
+                }
+            }
+        }
+        return $this->blockingAction;
+    }
+
+    // Separator
+
     public function upgrade(array $servers): bool
     {
         $level = HetznerComparison::getServerLevel($this);
@@ -68,7 +93,7 @@ class HetznerServer
 
                 if (!$isChanging) {
                     $object2 = new stdClass();
-                    $object2->name = $this->name . ".up";
+                    $object2->name = $this->name . HetznerServerStatus::UPGRADE;
                     get_hetzner_object_pages(
                         HetznerConnectionType::PUT,
                         "servers/" . $this->identifier,
@@ -84,14 +109,28 @@ class HetznerServer
                         null,
                         false
                     );
-                    return HetznerAction::executedAction(
+                    if (HetznerAction::executedAction(
                         get_hetzner_object_pages(
                             HetznerConnectionType::POST,
                             "servers/" . $this->identifier . "/actions/change_type",
                             json_encode($object),
                             false
                         )
-                    );
+                    )) {
+                        $object2 = new stdClass();
+                        $object2->name = str_replace(
+                            HetznerServerStatus::UPGRADE,
+                            "",
+                            $this->name
+                        );
+                        get_hetzner_object_pages(
+                            HetznerConnectionType::PUT,
+                            "servers/" . $this->identifier,
+                            json_encode($object2),
+                            false
+                        );
+                        return true;
+                    }
                 } else if (!$isChanging) {
                     return HetznerAction::addNewServerBasedOn(
                         $servers,
@@ -129,7 +168,7 @@ class HetznerServer
 
                 if (!$isChanging) {
                     $object2 = new stdClass();
-                    $object2->name = $this->name . ".down";
+                    $object2->name = $this->name . HetznerServerStatus::DOWNGRADE;
                     get_hetzner_object_pages(
                         HetznerConnectionType::PUT,
                         "servers/" . $this->identifier,
@@ -145,14 +184,28 @@ class HetznerServer
                         null,
                         false
                     );
-                    return HetznerAction::executedAction(
+                    if (HetznerAction::executedAction(
                         get_hetzner_object_pages(
                             HetznerConnectionType::POST,
                             "servers/" . $this->identifier . "/actions/change_type",
                             json_encode($object),
                             false
                         )
-                    );
+                    )) {
+                        $object2 = new stdClass();
+                        $object2->name = str_replace(
+                            HetznerServerStatus::DOWNGRADE,
+                            "",
+                            $this->name
+                        );
+                        get_hetzner_object_pages(
+                            HetznerConnectionType::PUT,
+                            "servers/" . $this->identifier,
+                            json_encode($object2),
+                            false
+                        );
+                        return true;
+                    }
                 } else if (!$isChanging) {
                     return HetznerAction::addNewServerBasedOn(
                         $servers,
