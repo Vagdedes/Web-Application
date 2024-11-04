@@ -34,6 +34,24 @@ class HetznerLoadBalancer
 
     public function isBlockingAction(): bool
     {
+        if ($this->blockingAction) {
+            return true;
+        }
+        $query = get_hetzner_object_pages(
+            HetznerConnectionType::GET,
+            "load_balancers/" . $this->identifier . "/actions"
+        );
+
+        if (!empty($query)) {
+            foreach ($query as $page) {
+                foreach ($page->actions as $action) {
+                    if ($action->finished === null) {
+                        $this->blockingAction = true;
+                        return true;
+                    }
+                }
+            }
+        }
         return $this->blockingAction;
     }
 

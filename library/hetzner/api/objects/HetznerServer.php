@@ -58,7 +58,7 @@ class HetznerServer
                 }
             }
         }
-        return $this->blockingAction;
+        return false;
     }
 
     // Separator
