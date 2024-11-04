@@ -3,16 +3,19 @@
 class CloudflareDomain
 {
 
-    public function __construct()
+    private string $domain;
+
+    public function __construct(string $domain)
     {
+        $this->domain = $domain;
     }
 
-    public function addDNS(): bool
+    public function add_A_DNS(string $name, string $target, bool $proxied): bool
     {
         return false;
     }
 
-    public function removeDNS(): bool
+    public function removeA_DNS(string $name): bool
     {
         return false;
     }

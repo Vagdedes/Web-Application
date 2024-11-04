@@ -34,6 +34,20 @@ class HetznerAction
         return null;
     }
 
+    public static function getDefaultDomain(): ?CloudflareDomain
+    {
+        global $backup_domain;
+        $domain = explode(".", $backup_domain);
+        $size = sizeof($domain);
+
+        if ($size >= 2) {
+            return new CloudflareDomain(
+                $domain[$size - 2] . "." . $domain[$size - 1]
+            );
+        } else {
+            return null;
+        }
+    }
 
     // Separator
 
@@ -75,38 +89,39 @@ class HetznerAction
 
                         foreach ($networks as $network) {
                             if ($network->isServerIncluded($serverID)) {
-                                $object = new HetznerServer(
-                                    $server->name,
-                                    $serverID,
-                                    $metrics === null ? 0.0 : $metrics,
-                                    strtolower($server->server_type->architecture) == "x86"
-                                        ? new HetznerX86Server(
-                                        strtolower($server->server_type->name),
-                                        $server->server_type->cores,
-                                        $server->server_type->memory,
-                                        $server->server_type->disk
-                                    ) : new HetznerArmServer(
-                                        strtolower($server->server_type->name),
-                                        $server->server_type->cores,
-                                        $server->server_type->memory,
-                                        $server->server_type->disk
-                                    ),
-                                    $loadBalancerOfObject,
-                                    new HetznerServerLocation(
-                                        $server->datacenter->location->name,
-                                        $server->datacenter->location->network_zone
-                                    ),
-                                    $network,
-                                    $server->primary_disk_size,
-                                    $server->locked,
-                                    $server->image->status == "available"
-                                    && $server->image->description == HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME
-                                );
+                                $name = $server->name;
 
-                                if (HetznerComparison::shouldConsiderServer($object)) {
+                                if (HetznerComparison::shouldConsiderServer($name)) {
+                                    $object = new HetznerServer(
+                                        $name,
+                                        $serverID,
+                                        $metrics === null ? 0.0 : $metrics,
+                                        strtolower($server->server_type->architecture) == "x86"
+                                            ? new HetznerX86Server(
+                                            strtolower($server->server_type->name),
+                                            $server->server_type->cores,
+                                            $server->server_type->memory,
+                                            $server->server_type->disk
+                                        ) : new HetznerArmServer(
+                                            strtolower($server->server_type->name),
+                                            $server->server_type->cores,
+                                            $server->server_type->memory,
+                                            $server->server_type->disk
+                                        ),
+                                        $loadBalancerOfObject,
+                                        new HetznerServerLocation(
+                                            $server->datacenter->location->name,
+                                            $server->datacenter->location->network_zone
+                                        ),
+                                        $network,
+                                        $server->primary_disk_size,
+                                        $server->locked,
+                                        $server->image->status == "available"
+                                        && $server->image->description == HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME
+                                    );
                                     $array[$serverID] = $object;
+                                    break;
                                 }
-                                break;
                             }
                         }
                     }
@@ -131,49 +146,58 @@ class HetznerAction
 
                     foreach ($networks as $network) {
                         if ($network->isLoadBalancerIncluded($loadBalancerID)) {
-                            $metrics = get_hetzner_object_pages(
-                                HetznerConnectionType::GET,
-                                "load_balancers/" . $loadBalancerID . "/metrics"
-                                . "?type=open_connections"
-                                . "&start=" . self::date("-" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS . " seconds")
-                                . "&end=" . self::date()
-                                . "&step=" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS,
-                                null,
-                                false
-                            );
+                            $name = $loadBalancer->name;
 
-                            if (empty($metrics)) {
-                                return null;
-                            } else {
-                                $metrics = $metrics[0]?->metrics?->time_series?->open_connections?->values[0][1] ?? null;
-                                $targets = array();
-
-                                if (!empty($loadBalancer->targets)) {
-                                    foreach ($loadBalancer->targets as $target) {
-                                        $targets[$target?->server?->id] = true;
-                                    }
-                                }
-                                $object = new HetznerLoadBalancer(
-                                    $loadBalancer->name,
-                                    $loadBalancerID,
-                                    $metrics === null ? 0 : $metrics,
-                                    new HetznerLoadBalancerType(
-                                        strtolower($loadBalancer->load_balancer_type->name),
-                                        $loadBalancer->load_balancer_type->max_targets,
-                                        $loadBalancer->load_balancer_type->max_connections
-                                    ),
-                                    new HetznerServerLocation(
-                                        $loadBalancer->location->name,
-                                        $loadBalancer->location->network_zone
-                                    ),
-                                    $network,
-                                    $targets,
+                            if (HetznerComparison::shouldConsiderLoadBalancer($name)) {
+                                $metrics = get_hetzner_object_pages(
+                                    HetznerConnectionType::GET,
+                                    "load_balancers/" . $loadBalancerID . "/metrics"
+                                    . "?type=open_connections"
+                                    . "&start=" . self::date("-" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS . " seconds")
+                                    . "&end=" . self::date()
+                                    . "&step=" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS,
+                                    null,
+                                    false
                                 );
 
-                                if (HetznerComparison::shouldConsiderLoadBalancer($object)) {
+                                if (empty($metrics)) {
+                                    return null;
+                                } else {
+                                    $metrics = $metrics[0]?->metrics?->time_series?->open_connections?->values[0][1] ?? null;
+                                    $targets = array();
+
+                                    if (!empty($loadBalancer->targets)) {
+                                        foreach ($loadBalancer->targets as $target) {
+                                            $targets[$target?->server?->id] = true;
+                                        }
+                                    }
+                                    $ipv4 = $loadBalancer->public_net->ipv4->ip;
+                                    $object = new HetznerLoadBalancer(
+                                        $name,
+                                        $ipv4,
+                                        $loadBalancerID,
+                                        $metrics === null ? 0 : $metrics,
+                                        new HetznerLoadBalancerType(
+                                            strtolower($loadBalancer->load_balancer_type->name),
+                                            $loadBalancer->load_balancer_type->max_targets,
+                                            $loadBalancer->load_balancer_type->max_connections
+                                        ),
+                                        new HetznerServerLocation(
+                                            $loadBalancer->location->name,
+                                            $loadBalancer->location->network_zone
+                                        ),
+                                        $network,
+                                        $targets,
+                                    );
+
                                     $array[$loadBalancerID] = $object;
+                                    HetznerAction::getDefaultDomain()->add_A_DNS(
+                                        "www",
+                                        $ipv4,
+                                        true
+                                    );
+                                    break;
                                 }
-                                break;
                             }
                         }
                     }

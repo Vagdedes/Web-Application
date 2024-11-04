@@ -133,9 +133,12 @@ class HetznerComparison
         return $server->name != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME;
     }
 
-    public static function shouldConsiderServer(HetznerServer $server): bool
+    public static function shouldConsiderServer(HetznerServer|string $server): bool
     {
-        return starts_with($server->name, HetznerVariables::HETZNER_SERVER_NAME_PATTERN);
+        return starts_with(
+            is_string($server) ? $server : $server->name,
+            HetznerVariables::HETZNER_SERVER_NAME_PATTERN
+        );
     }
 
     // Separator
@@ -194,9 +197,12 @@ class HetznerComparison
         return $loadBalancer->name != HetznerVariables::HETZNER_DEFAULT_LOAD_BALANCER_NAME;
     }
 
-    public static function shouldConsiderLoadBalancer(HetznerLoadBalancer $loadBalancer): bool
+    public static function shouldConsiderLoadBalancer(HetznerLoadBalancer|string $loadBalancer): bool
     {
-        return starts_with($loadBalancer->name, HetznerVariables::HETZNER_LOAD_BALANCER_NAME_PATTERN);
+        return starts_with(
+            is_string($loadBalancer) ? $loadBalancer : $loadBalancer->name,
+            HetznerVariables::HETZNER_LOAD_BALANCER_NAME_PATTERN
+        );
     }
 
     // Separator

@@ -3,7 +3,7 @@
 class HetznerLoadBalancer
 {
 
-    public string $name;
+    public string $name, $ipv4;
     public int $identifier;
     public HetznerLoadBalancerType $type;
     public HetznerServerLocation $location;
@@ -13,6 +13,7 @@ class HetznerLoadBalancer
     public array $targets;
 
     public function __construct(string                  $name,
+                                string                  $ipv4,
                                 int                     $identifier,
                                 int                     $liveConnections,
                                 HetznerLoadBalancerType $type,
@@ -21,6 +22,7 @@ class HetznerLoadBalancer
                                 array                   $targets)
     {
         $this->name = $name;
+        $this->ipv4 = $ipv4;
         $this->identifier = $identifier;
         $this->liveConnections = $liveConnections;
         $this->location = $location;
@@ -111,14 +113,19 @@ class HetznerLoadBalancer
 
     public function remove(): bool
     {
-        return HetznerAction::executedAction(
+        if (HetznerAction::executedAction(
             get_hetzner_object_pages(
                 HetznerConnectionType::DELETE,
                 "load_balancers/" . $this->identifier,
                 null,
                 false
             )
-        );
+        )) {
+            HetznerAction::getDefaultDomain()->removeA_DNS("www");
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // Separator
