@@ -256,15 +256,14 @@ class HetznerLoadBalancer
 
     // Separator
 
-    public function getUsageRatio(): float
+    private function getUsageRatio(): float
     {
         return $this->liveConnections / (float)$this->type->maxConnections;
     }
 
     public function shouldUpgrade(?float $customUsageRatio = null): bool
     {
-        return ($customUsageRatio !== null ? $customUsageRatio : $this->getUsageRatio())
-            >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
+        return $this->getUsageRatio() >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
     }
 
     public function shouldDowngrade(array $loadBalancers, array $servers): bool

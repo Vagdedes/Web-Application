@@ -267,15 +267,14 @@ class HetznerServer
 
     // Separator
 
-    public function getUsageRatio(bool $perCore = false): float
+    private function getUsageRatio(): float
     {
-        return $this->cpuPercentage / ($perCore ? (float)$this->type->cpuCores : 1.0) / $this->type->maxCpuPercentage();
+        return $this->cpuPercentage / $this->type->maxCpuPercentage();
     }
 
-    public function shouldUpgrade(?float $customUsageRatio = null): bool
+    public function shouldUpgrade(): bool
     {
-        return ($customUsageRatio !== null ? $customUsageRatio : $this->getUsageRatio())
-            >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
+        return $this->getUsageRatio() >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
     }
 
     public function shouldDowngrade(array $servers): bool

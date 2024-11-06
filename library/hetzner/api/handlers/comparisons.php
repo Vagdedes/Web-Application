@@ -149,12 +149,12 @@ class HetznerComparison
             $newCount = sizeof($loadBalancers) - 1;
 
             if ($newCount >= HetznerVariables::HETZNER_MINIMUM_LOAD_BALANCERS) {
-                $distributedUsageRatio = $toRemove->getUsageRatio() / (float)$newCount;
+                $distributedUsageRatio = $toRemove->liveConnections / (float)$newCount;
 
                 foreach ($loadBalancers as $loadBalancer) {
                     if ($loadBalancer->identifier !== $toRemove->identifier
                         && $loadBalancer->shouldUpgrade(
-                            $loadBalancer->getUsageRatio() + $distributedUsageRatio
+                            ($loadBalancer->liveConnections + $distributedUsageRatio) / (float)$loadBalancer->type->maxConnections
                         )) {
                         return false;
                     }
@@ -173,12 +173,13 @@ class HetznerComparison
             $newCount = sizeof($servers) - 1;
 
             if ($newCount >= HetznerVariables::HETZNER_MINIMUM_SERVERS) {
-                $distributedUsageRatioPerCore = $toRemove->getUsageRatio(true) / (float)$newCount;
+                $distributedUsageRatioPerCore = $toRemove->cpuPercentage / (float)$toRemove->type->cpuCores / (float)$newCount;
 
                 foreach ($servers as $server) {
                     if ($server->identifier !== $toRemove->identifier
                         && $server->shouldUpgrade(
-                            ($server->getUsageRatio(true) + $distributedUsageRatioPerCore) * $server->type->cpuCores
+                            (($server->cpuPercentage / (float)$server->type->cpuCores) + $distributedUsageRatioPerCore)
+                            * $server->type->cpuCores / (float)$server->type->maxCpuPercentage()
                         )) {
                         return false;
                     }
