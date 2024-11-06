@@ -29,6 +29,22 @@ class HetznerLoadBalancer
         $this->blockingAction = false;
         $this->targets = sizeof($targets);
         $this->network = $network;
+
+        if ($this->targets > 0) {
+            $activeTargets = $this->activeTargets($targets);
+
+            if ($activeTargets > 0) {
+                HetznerAction::getDefaultDomain()->add_A_DNS(
+                    "www",
+                    $ipv4,
+                    true
+                );
+            } else {
+                HetznerAction::getDefaultDomain()->removeA_DNS("www");
+            }
+        } else {
+            HetznerAction::getDefaultDomain()->removeA_DNS("www");
+        }
     }
 
     // Separator

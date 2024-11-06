@@ -208,7 +208,7 @@ class HetznerServer
                 $update = true;
             } else {
                 if ($this->loadBalancer->targetCount() > 1) {
-                    $usefulServers = 0;
+                    $activeServers = $this->loadBalancer->activeTargets($servers);
 
                     foreach ($servers as $server) {
                         if ($server->loadBalancer->identifier === $this->loadBalancer->identifier

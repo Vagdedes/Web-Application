@@ -204,11 +204,6 @@ class HetznerAction
                                     );
 
                                     $array[$loadBalancerID] = $object;
-                                    HetznerAction::getDefaultDomain()->add_A_DNS(
-                                        "www",
-                                        $ipv4,
-                                        true
-                                    );
                                     break;
                                 }
                             }
