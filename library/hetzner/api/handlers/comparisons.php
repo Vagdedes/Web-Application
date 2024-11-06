@@ -167,7 +167,7 @@ class HetznerComparison
     public static function canDowngradeLoadBalancer(
         HetznerLoadBalancer $loadBalancer,
         array               $loadBalancers,
-        array               $servers
+        int                 $serverCount
     ): bool
     {
         $level = self::getLoadBalancerLevel($loadBalancer->type);
@@ -184,7 +184,7 @@ class HetznerComparison
                     $newFreeSpace += $loopLoadBalancer->getRemainingTargetSpace();
                 }
             }
-            return $newFreeSpace >= sizeof($servers);
+            return $newFreeSpace >= $serverCount;
         } else {
             return false;
         }

@@ -529,7 +529,7 @@ class HetznerAction
                     } else {
                         $requiresChange = true;
 
-                        if (HetznerComparison::canDowngradeLoadBalancer($loadBalancer, $loadBalancers, $servers)) {
+                        if (HetznerComparison::canDowngradeLoadBalancer($loadBalancer, $loadBalancers, sizeof($servers))) {
                             $toChange[] = $loadBalancer;
                         }
                     }
@@ -543,7 +543,19 @@ class HetznerAction
                     $loadBalancer = HetznerComparison::findLeastLevelLoadBalancer($toChange, true);
 
                     if ($loadBalancer !== null) {
-                        $grow |= $loadBalancer->remove();
+                        $targetCount = $loadBalancer->targetCount();
+                        $freeSpace = 0;
+
+                        foreach ($loadBalancers as $loopLoadBalancer) {
+                            if ($loopLoadBalancer->identifier !== $loadBalancer->identifier) {
+                                $freeSpace += $loopLoadBalancer->getRemainingTargetSpace();
+
+                                if ($freeSpace >= $targetCount) {
+                                    $grow |= $loadBalancer->remove();
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -604,8 +616,19 @@ class HetznerAction
                     $server = HetznerComparison::findLeastLevelServer($toChange, true);
 
                     if ($server !== null) {
-                        $grow |= $server->remove();
-                        // todo shrink load balancers
+                        $loadBalancer = $server->loadBalancer;
+
+                        if ($loadBalancer !== null) {
+                            if (HetznerComparison::canDowngradeLoadBalancer(
+                                $loadBalancer,
+                                $loadBalancers,
+                                sizeof($servers) - 1
+                            )) {
+
+                            }
+                        } else {
+                            $grow |= $server->remove();
+                        }
                     }
                 }
             }
