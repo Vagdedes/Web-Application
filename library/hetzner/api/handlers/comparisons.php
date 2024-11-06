@@ -93,16 +93,30 @@ class HetznerComparison
         return $min;
     }
 
-    public static function findLeastPopulatedLoadBalancer(array $loadBalancers): ?HetznerLoadBalancer
+    public static function findLeastPopulatedLoadBalancer(array $loadBalancers, array $servers): ?HetznerLoadBalancer
     {
-        $min = null;
+        $object = null;
+        $minCpuCores = 0;
 
         foreach ($loadBalancers as $loadBalancer) {
-            if ($min === null || $loadBalancer->targetCount() < $min->targetCount()) {
-                $min = $loadBalancer;
+            if ($object === null) {
+                $object = $loadBalancer;
+            } else {
+                $cpuCores = 0;
+
+                foreach ($servers as $server) {
+                    if ($server->loadBalancer?->identifier === $loadBalancer->identifier) {
+                        $cpuCores += $server->type->cpuCores;
+                    }
+                }
+
+                if ($cpuCores < $minCpuCores) {
+                    $object = $loadBalancer;
+                    $minCpuCores = $cpuCores;
+                }
             }
         }
-        return $min;
+        return $object;
     }
 
     public static function findIdealLoadBalancerLevel(

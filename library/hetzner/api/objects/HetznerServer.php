@@ -209,14 +209,7 @@ class HetznerServer
             } else {
                 if ($this->loadBalancer->targetCount() > 1) {
                     $activeServers = $this->loadBalancer->activeTargets($servers);
-
-                    foreach ($servers as $server) {
-                        if ($server->loadBalancer->identifier === $this->loadBalancer->identifier
-                            && !$server->isBlockingAction()) {
-                            $usefulServers++;
-                        }
-                    }
-                    $update = $usefulServers > 0;
+                    $update = $activeServers > 0;
                 } else {
                     $update = false;
                 }
@@ -282,7 +275,7 @@ class HetznerServer
             }
         }
         while (true) {
-            $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers);
+            $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers, $servers);
 
             if ($loadBalancer === null) {
                 break;
