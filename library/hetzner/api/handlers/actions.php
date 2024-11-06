@@ -473,7 +473,7 @@ class HetznerAction
         // Finish Server/s Upgrade/Downgrade
 
         foreach ($servers as $loopServer) {
-            $status = HetznerComparison::getServerStatus($loopServer);
+            $status = $loopServer->getStatus();
 
             if (!empty($status)) {
                 if (in_array(HetznerServerStatus::UPGRADE, $status)) {
@@ -494,13 +494,13 @@ class HetznerAction
         $toChange = array();
 
         foreach ($loadBalancers as $loadBalancer) {
-            if (HetznerComparison::shouldUpgradeLoadBalancer($loadBalancer)) {
+            if ($loadBalancer->shouldUpgrade()) {
                 if ($loadBalancer->isBlockingAction()) {
                     return false;
                 } else {
                     $requiresChange = true;
 
-                    if (HetznerComparison::canUpgradeLoadBalancer($loadBalancer)) {
+                    if ($loadBalancer->canUpgrade()) {
                         $toChange[] = $loadBalancer;
                     }
                 }
@@ -523,13 +523,13 @@ class HetznerAction
             }
         } else {
             foreach ($loadBalancers as $loadBalancer) {
-                if (HetznerComparison::shouldDowngradeLoadBalancer($loadBalancer)) {
+                if ($loadBalancer->shouldDowngrade()) {
                     if ($loadBalancer->isBlockingAction()) {
                         return false;
                     } else {
                         $requiresChange = true;
 
-                        if (HetznerComparison::canDowngradeLoadBalancer($loadBalancer, $loadBalancers, sizeof($servers))) {
+                        if ($loadBalancer->canDowngrade($loadBalancers, sizeof($servers))) {
                             $toChange[] = $loadBalancer;
                         }
                     }
@@ -567,13 +567,13 @@ class HetznerAction
         $toChange = array();
 
         foreach ($servers as $server) {
-            if (HetznerComparison::shouldUpgradeServer($server)) {
+            if ($server->shouldUpgrade()) {
                 if ($server->isBlockingAction()) {
                     return false;
                 } else {
                     $requiresChange = true;
 
-                    if (HetznerComparison::canUpgradeServer($server)) {
+                    if ($server->canUpgrade()) {
                         $toChange[] = $server;
                     }
                 }
@@ -596,13 +596,13 @@ class HetznerAction
             }
         } else {
             foreach ($servers as $server) {
-                if (HetznerComparison::shouldDowngradeServer($server)) {
+                if ($server->shouldDowngrade()) {
                     if ($server->isBlockingAction()) {
                         return false;
                     } else {
                         $requiresChange = true;
 
-                        if (HetznerComparison::canDowngradeServer($server)) {
+                        if ($server->canDowngrade()) {
                             $toChange[] = $server;
                         }
                     }
@@ -619,8 +619,7 @@ class HetznerAction
                         $loadBalancer = $server->loadBalancer;
 
                         if ($loadBalancer !== null) {
-                            if (HetznerComparison::canDowngradeLoadBalancer(
-                                $loadBalancer,
+                            if ($loadBalancer->canDowngrade(
                                 $loadBalancers,
                                 sizeof($servers) - 1
                             )) {

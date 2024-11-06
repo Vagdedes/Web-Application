@@ -207,4 +207,59 @@ class HetznerLoadBalancer
         return $this->targetCount() === 0;
     }
 
+    // Separator
+
+    public function shouldUpgrade(): bool
+    {
+        return $this->liveConnections / (float)$this->type->maxConnections
+            >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
+    }
+
+    public function shouldDowngrade(): bool
+    {
+        return $this->liveConnections / (float)$this->type->maxConnections
+            <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO;
+    }
+
+    // Separator
+
+    public function canUpgrade(): bool
+    {
+        global $HETZNER_LOAD_BALANCERS;
+        $level = HetznerComparison::getLoadBalancerLevel($this->type);
+        return $level !== -1 && $level < sizeof($HETZNER_LOAD_BALANCERS) - 1;
+    }
+
+    public function canDowngrade(
+        array $loadBalancers,
+        int   $serverCount
+    ): bool
+    {
+        $level = HetznerComparison::getLoadBalancerLevel($this->type);
+
+        if ($level > 0) {
+            global $HETZNER_LOAD_BALANCERS;
+            $newType = $HETZNER_LOAD_BALANCERS[$level - 1];
+            $newFreeSpace = 0;
+
+            foreach ($loadBalancers as $loopLoadBalancer) {
+                if ($loopLoadBalancer->identifier === $this->identifier) {
+                    $newFreeSpace += $newType->maxTargets - $loopLoadBalancer->targetCount();
+                } else {
+                    $newFreeSpace += $loopLoadBalancer->getRemainingTargetSpace();
+                }
+            }
+            return $newFreeSpace >= $serverCount;
+        } else {
+            return false;
+        }
+    }
+
+    // Separator
+
+    public function canDelete(): bool
+    {
+        return $this->name != HetznerVariables::HETZNER_DEFAULT_LOAD_BALANCER_NAME;
+    }
+
 }

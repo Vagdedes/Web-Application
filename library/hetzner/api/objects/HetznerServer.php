@@ -89,7 +89,7 @@ class HetznerServer
                 $object = new stdClass();
                 $object->server_type = $type;
                 $object->upgrade_disk = false;
-                $isChanging = !empty(HetznerComparison::getServerStatus($this));
+                $isChanging = !empty($this->getStatus());
 
                 if (!$isChanging) {
                     $object2 = new stdClass();
@@ -159,7 +159,7 @@ class HetznerServer
                 $object = new stdClass();
                 $object->server_type = $type;
                 $object->upgrade_disk = false;
-                $isChanging = !empty(HetznerComparison::getServerStatus($this));
+                $isChanging = !empty($this->getStatus());
 
                 if (!$isChanging) {
                     $object2 = new stdClass();
@@ -214,7 +214,7 @@ class HetznerServer
 
     public function update(int $image): bool
     {
-        if (HetznerComparison::canDeleteOrUpdateServer($this)) {
+        if ($this->canDeleteOrUpdate()) {
             $object = new stdClass();
             $object->image = $image;
             return HetznerAction::executedAction(
@@ -251,7 +251,7 @@ class HetznerServer
             if ($server->loadBalancer !== null
                 && $server->loadBalancer->hasRemainingTargetSpace()
                 && $server->loadBalancer->targetCount() === 1
-                && !empty(HetznerComparison::getServerStatus($server))) {
+                && !empty($this->getStatus())) {
                 return $server->loadBalancer->addTarget($this);
             }
         }
@@ -268,6 +268,72 @@ class HetznerServer
             }
         }
         return false;
+    }
+
+    // Separator
+
+    public function shouldUpgrade(): bool
+    {
+        return $this->cpuPercentage / $this->type->maxCpuPercentage()
+            >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
+    }
+
+    public function shouldDowngrade(): bool
+    {
+        return $this->cpuPercentage / $this->type->maxCpuPercentage()
+            <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO;
+    }
+
+    // Separator
+
+    public function canUpgrade(): bool
+    {
+        if ($this->type instanceof HetznerArmServer) {
+            global $HETZNER_ARM_SERVERS;
+            $level = HetznerComparison::getServerLevel($this);
+            return $level !== -1 && $level < sizeof($HETZNER_ARM_SERVERS) - 1;
+        } else {
+            global $HETZNER_X86_SERVERS;
+            $level = HetznerComparison::getServerLevel($this);
+            return $level !== -1 && $level < sizeof($HETZNER_X86_SERVERS) - 1;
+        }
+    }
+
+    public function canDowngrade(): bool
+    {
+        $level = HetznerComparison::getServerLevel($this);
+
+        if ($level > 0) {
+            if ($this->type instanceof HetznerArmServer) {
+                global $HETZNER_ARM_SERVERS;
+                return $this->customStorageGB <= $HETZNER_ARM_SERVERS[$level - 1]->storageGB;
+            } else {
+                global $HETZNER_X86_SERVERS;
+                return $this->customStorageGB <= $HETZNER_X86_SERVERS[$level - 1]->storageGB;
+            }
+        }
+        return false;
+    }
+
+    // Separator
+
+    public function canDeleteOrUpdate(): bool
+    {
+        return $this->name != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME;
+    }
+
+    // Separator
+
+    public function getStatus(): array
+    {
+        $array = array();
+
+        foreach (HetznerServerStatus::ALL as $status) {
+            if (str_contains($this->name, $status)) {
+                $array[] = $status;
+            }
+        }
+        return $array;
     }
 
 }
