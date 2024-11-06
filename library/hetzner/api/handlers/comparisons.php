@@ -153,12 +153,12 @@ class HetznerComparison
         $newCount = sizeof($servers) - 1;
 
         if ($newCount > 0) {
-            $distributedUsageRatio = $toRemove->getUsageRatio() / (float)$newCount;
+            $distributedUsageRatioPerCore = $toRemove->getUsageRatio(true) / (float)$newCount;
 
             foreach ($servers as $server) {
                 if ($server->identifier !== $toRemove->identifier
                     && $server->shouldUpgrade(
-                        $server->getUsageRatio() + $distributedUsageRatio
+                        ($server->getUsageRatio(true) + $distributedUsageRatioPerCore) * $server->type->cpuCores
                     )) {
                     return false;
                 }
