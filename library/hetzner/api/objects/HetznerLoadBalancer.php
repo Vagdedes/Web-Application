@@ -76,11 +76,10 @@ class HetznerLoadBalancer
             $object->load_balancer_type = $HETZNER_LOAD_BALANCERS[$level]->name;
 
             return HetznerAction::executedAction(
-                get_hetzner_object_pages(
+                get_hetzner_object(
                     HetznerConnectionType::POST,
                     "load_balancers/" . $this->identifier . "/actions/change_type",
-                    json_encode($object),
-                    false
+                    json_encode($object)
                 )
             );
         }
@@ -98,11 +97,10 @@ class HetznerLoadBalancer
             $object->load_balancer_type = $HETZNER_LOAD_BALANCERS[$level]->name;
 
             return HetznerAction::executedAction(
-                get_hetzner_object_pages(
+                get_hetzner_object(
                     HetznerConnectionType::POST,
                     "load_balancers/" . $this->identifier . "/actions/change_type",
-                    json_encode($object),
-                    false
+                    json_encode($object)
                 )
             );
         }
@@ -114,11 +112,9 @@ class HetznerLoadBalancer
     public function remove(): bool
     {
         if (HetznerAction::executedAction(
-            get_hetzner_object_pages(
+            get_hetzner_object(
                 HetznerConnectionType::DELETE,
-                "load_balancers/" . $this->identifier,
-                null,
-                false
+                "load_balancers/" . $this->identifier
             )
         )) {
             HetznerAction::getDefaultDomain()->removeA_DNS("www");
@@ -144,11 +140,10 @@ class HetznerLoadBalancer
             $object->server = $serverObj;
 
             return HetznerAction::executedAction(
-                get_hetzner_object_pages(
+                get_hetzner_object(
                     HetznerConnectionType::POST,
                     "load_balancers/" . $this->identifier . "/actions/add_target",
-                    json_encode($object),
-                    false
+                    json_encode($object)
                 )
             );
         }
@@ -168,11 +163,10 @@ class HetznerLoadBalancer
             $object->server = $serverObj;
 
             return HetznerAction::executedAction(
-                get_hetzner_object_pages(
+                get_hetzner_object(
                     HetznerConnectionType::POST,
                     "load_balancers/" . $this->identifier . "/actions/remove_target",
-                    json_encode($object),
-                    false
+                    json_encode($object)
                 )
             );
         }

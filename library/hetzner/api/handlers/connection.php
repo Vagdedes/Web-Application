@@ -19,29 +19,27 @@ function get_hetzner_object(string $type, string $service, mixed $arguments = nu
     ), false);
 }
 
-function get_hetzner_object_pages(string $type, string $service, mixed $arguments = null, bool $page = true): array
+function get_hetzner_object_pages(string $type, string $service, mixed $arguments = null): array
 {
     $results = array();
     $object = get_hetzner_object(
         $type,
-        $service . ($page ? "?page=1" : ""),
+        $service . "?page=1",
         $arguments
     );
 
     if (is_object($object)) {
         $results[] = $object;
     }
-    if ($page) {
-        while ($object?->meta?->pagination?->next_page !== null) {
-            $object = get_hetzner_object(
-                $type,
-                $service . "?page=" . urlencode($object?->meta?->pagination?->next_page),
-                $arguments
-            );
+    while ($object?->meta?->pagination?->next_page !== null) {
+        $object = get_hetzner_object(
+            $type,
+            $service . "?page=" . urlencode($object?->meta?->pagination?->next_page),
+            $arguments
+        );
 
-            if (is_object($object)) {
-                $results[] = $object;
-            }
+        if (is_object($object)) {
+            $results[] = $object;
         }
     }
     return $results;

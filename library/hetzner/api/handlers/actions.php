@@ -9,11 +9,17 @@ class HetznerAction
         return urlencode($dateTime->format(DateTime::ATOM));
     }
 
-    public static function executedAction(array $query): bool
+    public static function executedAction(array|object|bool|null $query): bool
     {
-        return !empty($query)
-            && ($query[0]?->action?->error?->code !== null
-                || $query[0]?->action?->error?->message !== null);
+        if (is_array($query)) {
+            return !empty($query)
+                && ($query[0]?->action?->error?->code !== null
+                    || $query[0]?->action?->error?->message !== null);
+        } else {
+            return is_object($query)
+                && ($query?->action?->error?->code !== null
+                    || $query?->action?->error?->message !== null);
+        }
     }
 
     // Separator
@@ -71,21 +77,19 @@ class HetznerAction
                             $loadBalancerOfObject = $loadBalancer;
                         }
                     }
-                    $metrics = get_hetzner_object_pages(
+                    $metrics = get_hetzner_object(
                         HetznerConnectionType::GET,
                         "servers/" . $serverID . "/metrics"
                         . "?type=cpu"
                         . "&start=" . self::date("-" . HetznerVariables::CPU_METRICS_PAST_SECONDS . " seconds")
                         . "&end=" . self::date()
-                        . "&step=" . HetznerVariables::CPU_METRICS_PAST_SECONDS,
-                        null,
-                        false
+                        . "&step=" . HetznerVariables::CPU_METRICS_PAST_SECONDS
                     );
 
                     if (empty($metrics)) {
                         return null;
                     } else {
-                        $metrics = $metrics[0]?->metrics?->time_series?->cpu?->values[0][1] ?? null;
+                        $metrics = $metrics?->metrics?->time_series?->cpu?->values[0][1] ?? null;
 
                         foreach ($networks as $network) {
                             if ($network->isServerIncluded($serverID)) {
@@ -149,21 +153,19 @@ class HetznerAction
                             $name = $loadBalancer->name;
 
                             if (HetznerComparison::shouldConsiderLoadBalancer($name)) {
-                                $metrics = get_hetzner_object_pages(
+                                $metrics = get_hetzner_object(
                                     HetznerConnectionType::GET,
                                     "load_balancers/" . $loadBalancerID . "/metrics"
                                     . "?type=open_connections"
                                     . "&start=" . self::date("-" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS . " seconds")
                                     . "&end=" . self::date()
-                                    . "&step=" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS,
-                                    null,
-                                    false
+                                    . "&step=" . HetznerVariables::CONNECTION_METRICS_PAST_SECONDS
                                 );
 
                                 if (empty($metrics)) {
                                     return null;
                                 } else {
-                                    $metrics = $metrics[0]?->metrics?->time_series?->open_connections?->values[0][1] ?? null;
+                                    $metrics = $metrics?->metrics?->time_series?->open_connections?->values[0][1] ?? null;
                                     $targets = array();
 
                                     if (!empty($loadBalancer->targets)) {
@@ -274,11 +276,10 @@ class HetznerAction
                 $object->server_type = $HETZNER_X86_SERVERS[$level]->name;
             }
             return self::executedAction(
-                get_hetzner_object_pages(
+                get_hetzner_object(
                     HetznerConnectionType::POST,
                     "servers",
-                    json_encode($object),
-                    false
+                    json_encode($object)
                 )
             );
         }
@@ -351,11 +352,10 @@ class HetznerAction
         );
 
         return self::executedAction(
-            get_hetzner_object_pages(
+            get_hetzner_object(
                 HetznerConnectionType::POST,
                 "load_balancers",
-                json_encode($object),
-                false
+                json_encode($object)
             )
         );
     }

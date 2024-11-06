@@ -94,27 +94,23 @@ class HetznerServer
                 if (!$isChanging) {
                     $object2 = new stdClass();
                     $object2->name = $this->name . HetznerServerStatus::UPGRADE;
-                    get_hetzner_object_pages(
+                    get_hetzner_object(
                         HetznerConnectionType::PUT,
                         "servers/" . $this->identifier,
-                        json_encode($object2),
-                        false
+                        json_encode($object2)
                     );
                 }
                 if ($this->loadBalancer === null
                     || $this->loadBalancer->targetCount() > 1) {
-                    get_hetzner_object_pages(
+                    get_hetzner_object(
                         HetznerConnectionType::POST,
-                        "servers/" . $this->identifier . "/actions/poweroff",
-                        null,
-                        false
+                        "servers/" . $this->identifier . "/actions/poweroff"
                     );
                     if (HetznerAction::executedAction(
-                        get_hetzner_object_pages(
+                        get_hetzner_object(
                             HetznerConnectionType::POST,
                             "servers/" . $this->identifier . "/actions/change_type",
-                            json_encode($object),
-                            false
+                            json_encode($object)
                         )
                     )) {
                         $object2 = new stdClass();
@@ -123,11 +119,10 @@ class HetznerServer
                             "",
                             $this->name
                         );
-                        get_hetzner_object_pages(
+                        get_hetzner_object(
                             HetznerConnectionType::PUT,
                             "servers/" . $this->identifier,
-                            json_encode($object2),
-                            false
+                            json_encode($object2)
                         );
                         return true;
                     }
@@ -169,27 +164,23 @@ class HetznerServer
                 if (!$isChanging) {
                     $object2 = new stdClass();
                     $object2->name = $this->name . HetznerServerStatus::DOWNGRADE;
-                    get_hetzner_object_pages(
+                    get_hetzner_object(
                         HetznerConnectionType::PUT,
                         "servers/" . $this->identifier,
-                        json_encode($object2),
-                        false
+                        json_encode($object2)
                     );
                 }
                 if ($this->loadBalancer === null
                     || $this->loadBalancer->targetCount() > 1) {
-                    get_hetzner_object_pages(
+                    get_hetzner_object(
                         HetznerConnectionType::POST,
-                        "servers/" . $this->identifier . "/actions/poweroff",
-                        null,
-                        false
+                        "servers/" . $this->identifier . "/actions/poweroff"
                     );
                     if (HetznerAction::executedAction(
-                        get_hetzner_object_pages(
+                        get_hetzner_object(
                             HetznerConnectionType::POST,
                             "servers/" . $this->identifier . "/actions/change_type",
-                            json_encode($object),
-                            false
+                            json_encode($object)
                         )
                     )) {
                         $object2 = new stdClass();
@@ -198,11 +189,10 @@ class HetznerServer
                             "",
                             $this->name
                         );
-                        get_hetzner_object_pages(
+                        get_hetzner_object(
                             HetznerConnectionType::PUT,
                             "servers/" . $this->identifier,
-                            json_encode($object2),
-                            false
+                            json_encode($object2)
                         );
                         return true;
                     }
@@ -228,11 +218,10 @@ class HetznerServer
             $object = new stdClass();
             $object->image = $image;
             return HetznerAction::executedAction(
-                get_hetzner_object_pages(
+                get_hetzner_object(
                     HetznerConnectionType::POST,
                     "servers/" . $this->identifier . "/actions/rebuild",
-                    json_encode($object),
-                    false
+                    json_encode($object)
                 )
             );
         }
@@ -242,11 +231,9 @@ class HetznerServer
     public function remove(): bool
     {
         return HetznerAction::executedAction(
-            get_hetzner_object_pages(
+            get_hetzner_object(
                 HetznerConnectionType::DELETE,
-                "servers/" . $this->identifier,
-                null,
-                false
+                "servers/" . $this->identifier
             )
         );
     }

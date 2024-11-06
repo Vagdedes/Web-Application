@@ -179,7 +179,6 @@ class AccountInstructions
                             bool    $extra): array
     {
         if ($object !== null) {
-            var_dump("1");
             foreach ($object as $objectKey => $objectValue) {
                 $array = $this->deepReplace(
                     $array,
@@ -187,8 +186,6 @@ class AccountInstructions
                     $objectValue
                 );
             }
-        } else {
-            var_dump("-1");
         }
 
         if (!empty($callables)) {
@@ -209,15 +206,9 @@ class AccountInstructions
                     var_dump($e->getTraceAsString());
                 }
             }
-            var_dump("2");
-        } else {
-            var_dump("-2");
         }
         if ($extra && !empty($this->extra)) {
             $array = array_merge($array, $this->extra);
-            var_dump("3");
-        } else {
-            var_dump("-3");
         }
         return $array;
     }

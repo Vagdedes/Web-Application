@@ -15,15 +15,17 @@ class CloudflareDomain
         return CloudflareVariables::CLOUDFLARE_ZONES[$this->domain] ?? null;
     }
 
-    public function getDNS(int $page = 1): array
+    public function getDNS(): array
     {
         $zone = self::getZone();
 
         if ($zone === null) {
             return array();
         }
-        $array = array();
-        return $array;
+        return CloudflareConnection::query_pages(
+            HetznerConnectionType::GET,
+            "zones/" . $zone . "/dns_records"
+        );
     }
 
     public function add_A_DNS(string $name, string $target, bool $proxied): bool
@@ -50,11 +52,6 @@ class CloudflareDomain
 
     public function removeA_DNS(string $name): bool
     {
-        $credentials = CloudflareConnection::getAPIKey();
-
-        if ($credentials === null) {
-            return false;
-        }
         $zone = self::getZone();
 
         if ($zone === null) {
@@ -65,10 +62,17 @@ class CloudflareDomain
         if (!empty($dns)) {
             foreach ($dns as $page) {
                 foreach ($page->result as $record) {
-                    var_dump($record);
+                    if ($record->name == ($name . "." . $this->domain)) {
+                        $request = CloudflareConnection::query(
+                            HetznerConnectionType::DELETE,
+                            "zones/" . $zone . "/dns_records/" . $record->id
+                        );
+                        return $request?->success ?? false;
+                    }
                 }
             }
         }
         return false;
     }
+
 }
