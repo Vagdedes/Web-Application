@@ -131,11 +131,39 @@ class HetznerComparison
 
     public static function canRedistributeLoadBalancerTraffic(array $loadBalancers, HetznerLoadBalancer $toRemove): bool
     {
+        $newCount = sizeof($loadBalancers) - 1;
+
+        if ($newCount > 0) {
+            $distributedUsageRatio = $toRemove->getUsageRatio() / (float)$newCount;
+
+            foreach ($loadBalancers as $loadBalancer) {
+                if ($loadBalancer->identifier !== $toRemove->identifier
+                    && $loadBalancer->shouldUpgrade(
+                        $loadBalancer->getUsageRatio() + $distributedUsageRatio
+                    )) {
+                    return false;
+                }
+            }
+        }
         return false;
     }
 
     public static function canRedistributeServerTraffic(array $servers, HetznerServer $toRemove): bool
     {
+        $newCount = sizeof($servers) - 1;
+
+        if ($newCount > 0) {
+            $distributedUsageRatio = $toRemove->getUsageRatio() / (float)$newCount;
+
+            foreach ($servers as $server) {
+                if ($server->identifier !== $toRemove->identifier
+                    && $server->shouldUpgrade(
+                        $server->getUsageRatio() + $distributedUsageRatio
+                    )) {
+                    return false;
+                }
+            }
+        }
         return false;
     }
 

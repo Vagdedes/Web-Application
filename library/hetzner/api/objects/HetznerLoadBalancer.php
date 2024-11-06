@@ -209,16 +209,20 @@ class HetznerLoadBalancer
 
     // Separator
 
-    public function shouldUpgrade(): bool
+    public function getUsageRatio(): float
     {
-        return $this->liveConnections / (float)$this->type->maxConnections
+        return $this->liveConnections / (float)$this->type->maxConnections;
+    }
+
+    public function shouldUpgrade(?float $customUsageRatio = null): bool
+    {
+        return ($customUsageRatio !== null ? $customUsageRatio : $this->getUsageRatio())
             >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
     }
 
     public function shouldDowngrade(): bool
     {
-        return $this->liveConnections / (float)$this->type->maxConnections
-            <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO;
+        return $this->getUsageRatio() <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO;
     }
 
     // Separator
