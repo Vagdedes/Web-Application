@@ -92,7 +92,7 @@ class HetznerServer
                     $this->rename($this->name . HetznerServerStatus::UPGRADE);
                 }
                 if ($this->loadBalancer === null
-                    || $this->loadBalancer->targetCount() > 1) {
+                    || $this->loadBalancer->targetCount($servers) > 1) {
                     $this->powerOff();
                     $object = new stdClass();
                     $object->server_type = $type;
@@ -151,7 +151,7 @@ class HetznerServer
                     $this->rename($this->name . HetznerServerStatus::DOWNGRADE);
                 }
                 if ($this->loadBalancer === null
-                    || $this->loadBalancer->targetCount() > 1) {
+                    || $this->loadBalancer->targetCount($servers) > 1) {
                     $this->powerOff();
                     $object = new stdClass();
                     $object->server_type = $type;
@@ -193,20 +193,11 @@ class HetznerServer
     public function update(array $servers, int $image): bool
     {
         if ($this->canUpdate()) {
-            $isChanging = !empty($this->getStatus());
-
-            if (!$isChanging) {
-                $this->rename($this->name . HetznerServerStatus::UPDATE);
-            }
             if ($this->loadBalancer === null) {
                 $update = true;
             } else {
-                if ($this->loadBalancer->targetCount() > 1) {
-                    $activeServers = $this->loadBalancer->activeTargets($servers);
-                    $update = $activeServers > 0;
-                } else {
-                    $update = false;
-                }
+                $update = $this->loadBalancer->targetCount($servers) === 1
+                    || $this->loadBalancer->activeTargets($servers) > 1;
             }
             if ($update) {
                 $object = new stdClass();
@@ -220,21 +211,6 @@ class HetznerServer
                     )
                 )) {
                     $this->blockingAction = true;
-                    $this->rename(
-                        str_replace(
-                            HetznerServerStatus::UPDATE,
-                            "",
-                            $this->name
-                        )
-                    );
-                } else if (!$isChanging) {
-                    return HetznerAction::addNewServerBasedOn(
-                        $servers,
-                        $this->location,
-                        $this->network,
-                        $this->type,
-                        0
-                    );
                 }
             }
         }
@@ -262,10 +238,10 @@ class HetznerServer
     {
         foreach ($servers as $server) {
             if ($server->loadBalancer !== null
-                && $server->loadBalancer->hasRemainingTargetSpace()
-                && $server->loadBalancer->targetCount() === 1
+                && $server->loadBalancer->hasRemainingTargetSpace($servers)
+                && $server->loadBalancer->targetCount($servers) === 1
                 && !empty($this->getStatus())) {
-                return $server->loadBalancer->addTarget($this);
+                return $server->loadBalancer->addTarget($servers, $this);
             }
         }
         while (true) {
@@ -274,7 +250,7 @@ class HetznerServer
             if ($loadBalancer === null) {
                 break;
             }
-            if ($loadBalancer->addTarget($this)) {
+            if ($loadBalancer->addTarget($servers, $this)) {
                 return true;
             } else {
                 unset($loadBalancers[$loadBalancer->identifier]);
@@ -341,7 +317,8 @@ class HetznerServer
 
     public function canUpdate(): bool
     { // Not possible because default server is where changes originate from
-        return $this->name != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME;
+        return $this->name != HetznerVariables::HETZNER_DEFAULT_SERVER_NAME
+            && !empty($this->getStatus());
     }
 
     public function isUpdated(): bool

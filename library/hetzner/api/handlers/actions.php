@@ -395,7 +395,7 @@ class HetznerAction
                 if ($loadBalancer->isBlockingAction()) {
                     return false;
                 }
-                $loadBalancerPositions += $loadBalancer->getRemainingTargetSpace();
+                $loadBalancerPositions += $loadBalancer->getRemainingTargetSpace($servers);
             }
             $serversThatCannotBeAdded = $serversToAdd - $loadBalancerPositions;
 
@@ -409,7 +409,7 @@ class HetznerAction
                         break;
                     }
                     unset($loadBalancers[$loadBalancerToUpgrade->identifier]);
-                    $targetCount = $loadBalancerToUpgrade->targetCount();
+                    $targetCount = $loadBalancerToUpgrade->targetCount($servers);
                     $newLevel = HetznerComparison::findIdealLoadBalancerLevel(
                         $loadBalancerToUpgrade->type,
                         $targetCount,
@@ -471,8 +471,6 @@ class HetznerAction
                     $grow |= $loopServer->upgrade($servers);
                 } else if (in_array(HetznerServerStatus::DOWNGRADE, $status)) {
                     $grow |= $loopServer->downgrade($servers);
-                } else if (in_array(HetznerServerStatus::UPDATE, $status)) {
-                    $grow |= $loopServer->remove();
                 }
             }
         }
@@ -522,7 +520,7 @@ class HetznerAction
                     } else {
                         $requiresChange = true;
 
-                        if ($loadBalancer->canDowngrade($loadBalancers, sizeof($servers))) {
+                        if ($loadBalancer->canDowngrade($loadBalancers, $servers, false)) {
                             $toChange[] = $loadBalancer;
                         }
                     }
@@ -536,12 +534,12 @@ class HetznerAction
                     $loadBalancer = HetznerComparison::findLeastLevelLoadBalancer($toChange, true);
 
                     if ($loadBalancer !== null) {
-                        $targetCount = $loadBalancer->targetCount();
+                        $targetCount = $loadBalancer->targetCount($servers);
                         $freeSpace = 0;
 
                         foreach ($loadBalancers as $loopLoadBalancer) {
                             if ($loopLoadBalancer->identifier !== $loadBalancer->identifier) {
-                                $freeSpace += $loopLoadBalancer->getRemainingTargetSpace();
+                                $freeSpace += $loopLoadBalancer->getRemainingTargetSpace($servers);
 
                                 if ($freeSpace >= $targetCount) {
                                     $grow |= $loadBalancer->remove();
@@ -614,7 +612,8 @@ class HetznerAction
                         if ($loadBalancer !== null) {
                             if ($loadBalancer->canDowngrade(
                                 $loadBalancers,
-                                sizeof($servers) - 1
+                                $servers,
+                                true
                             )) {
 
                             }

@@ -5,5 +5,13 @@ function hetzner_maintain_network(): bool
     $networks = HetznerAction::getNetworks();
     $loadBalancers = HetznerAction::getLoadBalancers($networks);
     $servers = HetznerAction::getServers($networks, $loadBalancers);
-    return $servers !== null && HetznerAction::maintain($loadBalancers, $servers);
+
+    if ($servers !== null) {
+        foreach ($loadBalancers as $loadBalancer) {
+            $loadBalancer->completeDnsRecords($servers);
+        }
+        return HetznerAction::maintain($loadBalancers, $servers);
+    } else {
+        return false;
+    }
 }

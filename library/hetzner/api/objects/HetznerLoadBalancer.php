@@ -8,7 +8,7 @@ class HetznerLoadBalancer
     public HetznerLoadBalancerType $type;
     public HetznerServerLocation $location;
     public HetznerNetwork $network;
-    public int $liveConnections, $targets;
+    public int $liveConnections;
     public bool $blockingAction;
 
     public function __construct(string                  $name,
@@ -17,8 +17,7 @@ class HetznerLoadBalancer
                                 int                     $liveConnections,
                                 HetznerLoadBalancerType $type,
                                 HetznerServerLocation   $location,
-                                HetznerNetwork          $network,
-                                array                   $targets)
+                                HetznerNetwork          $network)
     {
         $this->name = $name;
         $this->ipv4 = $ipv4;
@@ -27,23 +26,25 @@ class HetznerLoadBalancer
         $this->location = $location;
         $this->type = $type;
         $this->blockingAction = false;
-        $this->targets = sizeof($targets);
         $this->network = $network;
+    }
 
-        if ($this->targets > 0) {
-            $activeTargets = $this->activeTargets($targets);
+    public function completeDnsRecords(array $servers): bool
+    {
+        if ($this->targetCount($servers) > 0) {
+            $activeTargets = $this->activeTargets($servers);
 
             if ($activeTargets > 0) {
-                HetznerAction::getDefaultDomain()->add_A_DNS(
+                return HetznerAction::getDefaultDomain()->add_A_DNS(
                     "www",
-                    $ipv4,
+                    $this->ipv4,
                     true
                 );
             } else {
-                HetznerAction::getDefaultDomain()->removeA_DNS("www");
+                return HetznerAction::getDefaultDomain()->removeA_DNS("www", $this->ipv4);
             }
         } else {
-            HetznerAction::getDefaultDomain()->removeA_DNS("www");
+            return HetznerAction::getDefaultDomain()->removeA_DNS("www", $this->ipv4);
         }
     }
 
@@ -141,9 +142,9 @@ class HetznerLoadBalancer
 
     // Separator
 
-    public function addTarget(HetznerServer $server, bool $replace = false): bool
+    public function addTarget(array $servers, HetznerServer $server, bool $replace = false): bool
     {
-        if ($this->hasRemainingTargetSpace()) {
+        if ($this->hasRemainingTargetSpace($servers)) {
             $loadBalancer = $server->loadBalancer;
 
             if ($loadBalancer !== null) {
@@ -203,21 +204,28 @@ class HetznerLoadBalancer
 
     // Separator
 
-    public function getRemainingTargetSpace(): int
+    public function getRemainingTargetSpace(array $servers): int
     {
-        return $this->type->maxTargets - $this->targetCount();
+        return $this->type->maxTargets - $this->targetCount($servers);
     }
 
-    public function hasRemainingTargetSpace(): int
+    public function hasRemainingTargetSpace(array $servers): int
     {
-        return $this->getRemainingTargetSpace() > 0;
+        return $this->getRemainingTargetSpace($servers) > 0;
     }
 
     // Separator
 
-    public function targetCount(): int
+    public function targetCount(array $servers): int
     {
-        return $this->targets;
+        $count = 0;
+
+        foreach ($servers as $server) {
+            if ($server->loadBalancer?->identifier === $this->identifier) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     public function activeTargets(array $servers): int
@@ -226,21 +234,12 @@ class HetznerLoadBalancer
 
         foreach ($servers as $server) {
             if ($server->loadBalancer?->identifier === $this->identifier
-                && !$server->isBlockingAction()) {
+                && !$server->isBlockingAction()
+                && empty($server->getStatus())) {
                 $count++;
             }
         }
         return $count;
-    }
-
-    public function isFull(): bool
-    {
-        return $this->targetCount() >= $this->type->maxTargets;
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->targetCount() === 0;
     }
 
     // Separator
@@ -272,7 +271,8 @@ class HetznerLoadBalancer
 
     public function canDowngrade(
         array $loadBalancers,
-        int   $serverCount
+        array $servers,
+        bool  $delete
     ): bool
     {
         $level = HetznerComparison::getLoadBalancerLevel($this->type);
@@ -284,12 +284,12 @@ class HetznerLoadBalancer
 
             foreach ($loadBalancers as $loopLoadBalancer) {
                 if ($loopLoadBalancer->identifier === $this->identifier) {
-                    $newFreeSpace += $newType->maxTargets - $loopLoadBalancer->targetCount();
+                    $newFreeSpace += $newType->maxTargets - $loopLoadBalancer->targetCount($servers);
                 } else {
-                    $newFreeSpace += $loopLoadBalancer->getRemainingTargetSpace();
+                    $newFreeSpace += $loopLoadBalancer->getRemainingTargetSpace($servers);
                 }
             }
-            return $newFreeSpace >= $serverCount;
+            return $newFreeSpace >= (sizeof($servers) - ($delete ? 1 : 0));
         } else {
             return false;
         }
