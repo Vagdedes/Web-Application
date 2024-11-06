@@ -93,14 +93,11 @@ class HetznerServer
                 }
                 if ($this->loadBalancer === null
                     || $this->loadBalancer->targetCount() > 1) {
+                    $this->powerOff();
                     $object = new stdClass();
                     $object->server_type = $type;
                     $object->upgrade_disk = false;
 
-                    get_hetzner_object(
-                        HetznerConnectionType::POST,
-                        "servers/" . $this->identifier . "/actions/poweroff"
-                    );
                     if (HetznerAction::executedAction(
                         get_hetzner_object(
                             HetznerConnectionType::POST,
@@ -155,14 +152,11 @@ class HetznerServer
                 }
                 if ($this->loadBalancer === null
                     || $this->loadBalancer->targetCount() > 1) {
+                    $this->powerOff();
                     $object = new stdClass();
                     $object->server_type = $type;
                     $object->upgrade_disk = false;
 
-                    get_hetzner_object(
-                        HetznerConnectionType::POST,
-                        "servers/" . $this->identifier . "/actions/poweroff"
-                    );
                     if (HetznerAction::executedAction(
                         get_hetzner_object(
                             HetznerConnectionType::POST,
@@ -380,6 +374,16 @@ class HetznerServer
                 HetznerConnectionType::PUT,
                 "servers/" . $this->identifier,
                 json_encode($object2)
+            )
+        );
+    }
+
+    private function powerOff(): bool
+    {
+        return HetznerAction::executedAction(
+            get_hetzner_object(
+                HetznerConnectionType::POST,
+                "servers/" . $this->identifier . "/actions/poweroff"
             )
         );
     }
