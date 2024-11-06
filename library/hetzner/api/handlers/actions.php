@@ -3,6 +3,9 @@
 class HetznerAction
 {
 
+    private static ?int $defaultImage = null;
+    private static ?CloudflareDomain $defaultDomain = null;
+
     private static function date(string $time = "now"): string
     {
         $dateTime = new DateTime($time);
@@ -26,13 +29,17 @@ class HetznerAction
 
     public static function getDefaultImage(): ?string
     {
+        if (self::$defaultImage !== null) {
+            return self::$defaultImage;
+        }
         $query = get_hetzner_object_pages(HetznerConnectionType::GET, "images");
 
         if (!empty($query)) {
             foreach ($query as $page) {
                 foreach ($page->images as $image) {
                     if ($image->description == HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME) {
-                        return $image->id;
+                        self::$defaultImage = $image->id;
+                        return self::$defaultImage;
                     }
                 }
             }
@@ -42,14 +49,18 @@ class HetznerAction
 
     public static function getDefaultDomain(): ?CloudflareDomain
     {
+        if (self::$defaultDomain !== null) {
+            return self::$defaultDomain;
+        }
         global $backup_domain;
         $domain = explode(".", $backup_domain);
         $size = sizeof($domain);
 
         if ($size >= 2) {
-            return new CloudflareDomain(
+            self::$defaultDomain = new CloudflareDomain(
                 $domain[$size - 2] . "." . $domain[$size - 1]
             );
+            return self::$defaultDomain;
         } else {
             return null;
         }
@@ -362,31 +373,7 @@ class HetznerAction
 
     // Separator
 
-    public static function update(array $servers): bool
-    {
-        $image = self::getDefaultImage();
-
-        if ($image !== null) {
-            $update = false;
-
-            foreach ($servers as $server) {
-                if (!$server->imageExists) {
-                    $loadBalancer = $server->loadBalancer;
-
-                    if ($loadBalancer !== null) {
-
-                    } else {
-
-                    }
-                    $update |= $server->update($image);
-                }
-            }
-            return $update;
-        }
-        return false;
-    }
-
-    public static function growOrShrink(array $loadBalancers, array $servers): bool
+    public static function maintain(array $loadBalancers, array $servers): bool
     {
         $grow = false;
 
@@ -398,7 +385,9 @@ class HetznerAction
             if ($server->isBlockingAction()) {
                 return false;
             }
-            if (!$server->isInLoadBalancer()) {
+            if (!$server->isUpdated()) {
+                $grow |= $server->update($servers, HetznerAction::getDefaultImage());
+            } else if (!$server->isInLoadBalancer()) {
                 $grow |= $server->attachToLoadBalancers($servers, $loadBalancers);
                 $serversToAdd++;
             }
@@ -487,6 +476,8 @@ class HetznerAction
                     $grow |= $loopServer->upgrade($servers);
                 } else if (in_array(HetznerServerStatus::DOWNGRADE, $status)) {
                     $grow |= $loopServer->downgrade($servers);
+                } else if (in_array(HetznerServerStatus::UPDATE, $status)) {
+                    $grow |= $loopServer->remove();
                 }
             }
         }

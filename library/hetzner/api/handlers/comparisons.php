@@ -127,7 +127,14 @@ class HetznerComparison
             : $lastLevel;
     }
 
-    public static function canRedistributeTraffic(array $loadBalancers, HetznerLoadBalancer $toRemove): bool
+    // Redistribute
+
+    public static function canRedistributeLoadBalancerTraffic(array $loadBalancers, HetznerLoadBalancer $toRemove): bool
+    {
+        return false;
+    }
+
+    public static function canRedistributeServerTraffic(array $servers, HetznerServer $toRemove): bool
     {
         return false;
     }

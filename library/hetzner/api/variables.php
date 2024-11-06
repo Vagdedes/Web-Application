@@ -27,9 +27,11 @@ class HetznerServerStatus
     public const
         UPGRADE = ".a",
         DOWNGRADE = ".b",
+        UPDATE = ".c",
         ALL = array(
         self::UPGRADE,
-        self::DOWNGRADE
+        self::DOWNGRADE,
+        self::UPDATE
     );
 }
 
