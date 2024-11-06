@@ -8,9 +8,8 @@ class HetznerLoadBalancer
     public HetznerLoadBalancerType $type;
     public HetznerServerLocation $location;
     public HetznerNetwork $network;
-    public int $liveConnections;
+    public int $liveConnections, $targets;
     public bool $blockingAction;
-    public array $targets;
 
     public function __construct(string                  $name,
                                 string                  $ipv4,
@@ -28,7 +27,7 @@ class HetznerLoadBalancer
         $this->location = $location;
         $this->type = $type;
         $this->blockingAction = false;
-        $this->targets = $targets;
+        $this->targets = sizeof($targets);
         $this->network = $network;
     }
 
@@ -126,11 +125,19 @@ class HetznerLoadBalancer
 
     // Separator
 
-    public function addTarget(HetznerServer $server): bool
+    public function addTarget(HetznerServer $server, bool $replace = false): bool
     {
-        if ($this->hasRemainingTargetSpace()
-            && !$this->isTarget($server->identifier)
-            && !$server->isInLoadBalancer()) {
+        if ($this->hasRemainingTargetSpace()) {
+            $loadBalancer = $server->loadBalancer;
+
+            if ($loadBalancer !== null) {
+                if ($loadBalancer->identifier === $this->identifier
+                    || !$replace) {
+                    return false;
+                } else {
+                    $loadBalancer->removeTarget($server);
+                }
+            }
             $object = new stdClass();
             $object->type = "server";
             $object->use_private_ip = true;
@@ -139,21 +146,23 @@ class HetznerLoadBalancer
             $serverObj->id = $server->identifier;
             $object->server = $serverObj;
 
-            return HetznerAction::executedAction(
+            if (HetznerAction::executedAction(
                 get_hetzner_object(
                     HetznerConnectionType::POST,
                     "load_balancers/" . $this->identifier . "/actions/add_target",
                     json_encode($object)
                 )
-            );
+            )) {
+                $server->loadBalancer = $this;
+                return true;
+            }
         }
         return false;
     }
 
     public function removeTarget(HetznerServer $server): bool
     {
-        if ($this->isTarget($server->identifier)
-            && $server->isInLoadBalancer()
+        if ($server->isInLoadBalancer()
             && $server->loadBalancer->identifier === $this->identifier) {
             $object = new stdClass();
             $object->type = "server";
@@ -162,13 +171,16 @@ class HetznerLoadBalancer
             $serverObj->id = $server->identifier;
             $object->server = $serverObj;
 
-            return HetznerAction::executedAction(
+            if (HetznerAction::executedAction(
                 get_hetzner_object(
                     HetznerConnectionType::POST,
                     "load_balancers/" . $this->identifier . "/actions/remove_target",
                     json_encode($object)
                 )
-            );
+            )) {
+                $server->loadBalancer = null;
+                return true;
+            }
         }
         return false;
     }
@@ -187,14 +199,22 @@ class HetznerLoadBalancer
 
     // Separator
 
-    public function isTarget(string $serverID): int
-    {
-        return array_key_exists($serverID, $this->targets);
-    }
-
     public function targetCount(): int
     {
-        return count($this->targets);
+        return $this->targets;
+    }
+
+    public function activeTargets(array $servers): int
+    {
+        $count = 0;
+
+        foreach ($servers as $server) {
+            if ($server->loadBalancer?->identifier === $this->identifier
+                && !$server->isBlockingAction()) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     public function isFull(): bool

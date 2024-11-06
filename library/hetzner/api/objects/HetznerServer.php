@@ -204,8 +204,24 @@ class HetznerServer
             if (!$isChanging) {
                 $this->rename($this->name . HetznerServerStatus::UPDATE);
             }
-            if ($this->loadBalancer === null
-                || $this->loadBalancer->targetCount() > 1) {
+            if ($this->loadBalancer === null) {
+                $update = true;
+            } else {
+                if ($this->loadBalancer->targetCount() > 1) {
+                    $usefulServers = 0;
+
+                    foreach ($servers as $server) {
+                        if ($server->loadBalancer->identifier === $this->loadBalancer->identifier
+                            && !$server->isBlockingAction()) {
+                            $usefulServers++;
+                        }
+                    }
+                    $update = $usefulServers > 0;
+                } else {
+                    $update = false;
+                }
+            }
+            if ($update) {
                 $object = new stdClass();
                 $object->image = $image;
 

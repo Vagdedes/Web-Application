@@ -84,7 +84,7 @@ class HetznerAction
                     $serverID = $server->id;
 
                     foreach ($loadBalancers as $loadBalancer) {
-                        if ($loadBalancer->isTarget($serverID)) {
+                        if ($server->loadBalancer?->identifier === $loadBalancer->identifier) {
                             $loadBalancerOfObject = $loadBalancer;
                         }
                     }
@@ -181,7 +181,7 @@ class HetznerAction
 
                                     if (!empty($loadBalancer->targets)) {
                                         foreach ($loadBalancer->targets as $target) {
-                                            $targets[$target?->server?->id] = true;
+                                            $targets[] = $target?->server?->id;
                                         }
                                     }
                                     $ipv4 = $loadBalancer->public_net->ipv4->ip;
