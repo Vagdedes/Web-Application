@@ -92,13 +92,7 @@ class HetznerServer
                 $isChanging = !empty($this->getStatus());
 
                 if (!$isChanging) {
-                    $object2 = new stdClass();
-                    $object2->name = $this->name . HetznerServerStatus::UPGRADE;
-                    get_hetzner_object(
-                        HetznerConnectionType::PUT,
-                        "servers/" . $this->identifier,
-                        json_encode($object2)
-                    );
+                    $this->rename($this->name . HetznerServerStatus::UPGRADE);
                 }
                 if ($this->loadBalancer === null
                     || $this->loadBalancer->targetCount() > 1) {
@@ -113,16 +107,12 @@ class HetznerServer
                             json_encode($object)
                         )
                     )) {
-                        $object2 = new stdClass();
-                        $object2->name = str_replace(
-                            HetznerServerStatus::UPGRADE,
-                            "",
-                            $this->name
-                        );
-                        get_hetzner_object(
-                            HetznerConnectionType::PUT,
-                            "servers/" . $this->identifier,
-                            json_encode($object2)
+                        $this->rename(
+                            str_replace(
+                                HetznerServerStatus::UPGRADE,
+                                "",
+                                $this->name
+                            )
                         );
                         return true;
                     }
@@ -162,13 +152,8 @@ class HetznerServer
                 $isChanging = !empty($this->getStatus());
 
                 if (!$isChanging) {
-                    $object2 = new stdClass();
-                    $object2->name = $this->name . HetznerServerStatus::DOWNGRADE;
-                    get_hetzner_object(
-                        HetznerConnectionType::PUT,
-                        "servers/" . $this->identifier,
-                        json_encode($object2)
-                    );
+                    $this->rename($this->name . HetznerServerStatus::DOWNGRADE);
+
                 }
                 if ($this->loadBalancer === null
                     || $this->loadBalancer->targetCount() > 1) {
@@ -183,16 +168,12 @@ class HetznerServer
                             json_encode($object)
                         )
                     )) {
-                        $object2 = new stdClass();
-                        $object2->name = str_replace(
-                            HetznerServerStatus::DOWNGRADE,
-                            "",
-                            $this->name
-                        );
-                        get_hetzner_object(
-                            HetznerConnectionType::PUT,
-                            "servers/" . $this->identifier,
-                            json_encode($object2)
+                        $this->rename(
+                            str_replace(
+                                HetznerServerStatus::DOWNGRADE,
+                                "",
+                                $this->name
+                            )
                         );
                         return true;
                     }
@@ -334,6 +315,21 @@ class HetznerServer
             }
         }
         return $array;
+    }
+
+    // Separator
+
+    private function rename(string $name): bool
+    {
+        $object2 = new stdClass();
+        $object2->name = $name;
+        return HetznerAction::executedAction(
+            get_hetzner_object(
+                HetznerConnectionType::PUT,
+                "servers/" . $this->identifier,
+                json_encode($object2)
+            )
+        );
     }
 
 }

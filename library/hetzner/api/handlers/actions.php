@@ -371,6 +371,13 @@ class HetznerAction
 
             foreach ($servers as $server) {
                 if (!$server->imageExists) {
+                    $loadBalancer = $server->loadBalancer;
+
+                    if ($loadBalancer !== null) {
+
+                    } else {
+
+                    }
                     $update |= $server->update($image);
                 }
             }
