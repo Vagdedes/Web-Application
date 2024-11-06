@@ -92,7 +92,7 @@ class HetznerServer
                     $this->rename($this->name . HetznerServerStatus::UPGRADE);
                 }
                 if ($this->loadBalancer === null
-                    || $this->loadBalancer->targetCount($servers) > 1) {
+                    || sizeof($this->loadBalancer->allTargets($servers)) > 1) {
                     $this->powerOff();
                     $object = new stdClass();
                     $object->server_type = $type;
@@ -151,7 +151,7 @@ class HetznerServer
                     $this->rename($this->name . HetznerServerStatus::DOWNGRADE);
                 }
                 if ($this->loadBalancer === null
-                    || $this->loadBalancer->targetCount($servers) > 1) {
+                    || sizeof($this->loadBalancer->allTargets($servers)) > 1) {
                     $this->powerOff();
                     $object = new stdClass();
                     $object->server_type = $type;
@@ -190,14 +190,14 @@ class HetznerServer
 
     // Separator
 
-    public function update(array $servers, int $image): bool
+    public function update(array $servers, int $image): bool // todo improve
     {
         if ($this->canUpdate()) {
             if ($this->loadBalancer === null) {
                 $update = true;
             } else {
-                $update = $this->loadBalancer->targetCount($servers) === 1
-                    || $this->loadBalancer->activeTargets($servers) > 1;
+                $update = sizeof($this->loadBalancer->allTargets($servers)) === 1
+                    || sizeof($this->loadBalancer->activeTargets($servers)) > 1;
             }
             if ($update) {
                 $object = new stdClass();
@@ -226,6 +226,7 @@ class HetznerServer
             )
         )) {
             $this->blockingAction = true;
+            $this->loadBalancer = null;
             return true;
         } else {
             return false;
@@ -244,7 +245,7 @@ class HetznerServer
         foreach ($servers as $server) {
             if ($server->loadBalancer !== null
                 && $server->loadBalancer->hasRemainingTargetSpace($servers)
-                && $server->loadBalancer->targetCount($servers) === 1
+                && sizeof($server->loadBalancer->allTargets($servers)) === 1
                 && !empty($this->getStatus())) {
                 return $server->loadBalancer->addTarget($servers, $this);
             }
@@ -277,9 +278,13 @@ class HetznerServer
             >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
     }
 
-    public function shouldDowngrade(): bool
+    public function shouldDowngrade(array $servers): bool
     {
-        return $this->getUsageRatio() <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO;
+        return $this->getUsageRatio() <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO
+            && HetznerComparison::canRedistributeServerTraffic(
+                $servers,
+                $this
+            );
     }
 
     // Separator

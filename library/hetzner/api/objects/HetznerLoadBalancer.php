@@ -34,8 +34,8 @@ class HetznerLoadBalancer
 
     public function completeDnsRecords(array $servers): bool
     {
-        if ($this->targetCount($servers) > 0) {
-            $activeTargets = $this->activeTargets($servers);
+        if (sizeof($this->allTargets($servers)) > 0) {
+            $activeTargets = sizeof($this->activeTargets($servers));
 
             if ($activeTargets > 0) {
                 return HetznerAction::getDefaultDomain()->add_A_DNS(
@@ -94,7 +94,7 @@ class HetznerLoadBalancer
             $object = new stdClass();
             $object->load_balancer_type = $HETZNER_LOAD_BALANCERS[$level]->name;
 
-            return HetznerAction::executedAction(
+            return HetznerAction::executedAction( // Do not change blockingAction, this request is fast
                 get_hetzner_object(
                     HetznerConnectionType::POST,
                     "load_balancers/" . $this->identifier . "/actions/change_type",
@@ -115,7 +115,7 @@ class HetznerLoadBalancer
             $object = new stdClass();
             $object->load_balancer_type = $HETZNER_LOAD_BALANCERS[$level]->name;
 
-            return HetznerAction::executedAction(
+            return HetznerAction::executedAction( // Do not change blockingAction, this request is fast
                 get_hetzner_object(
                     HetznerConnectionType::POST,
                     "load_balancers/" . $this->identifier . "/actions/change_type",
@@ -128,7 +128,7 @@ class HetznerLoadBalancer
 
     // Separator
 
-    public function remove(): bool
+    public function remove(array $servers): bool
     {
         if (HetznerAction::executedAction(
             get_hetzner_object(
@@ -137,6 +137,10 @@ class HetznerLoadBalancer
             )
         )) {
             $this->blockingAction = true;
+
+            foreach ($servers as $server) {
+                $server->loadBalancer = null;
+            }
             HetznerAction::getDefaultDomain()->removeA_DNS("www");
             return true;
         } else {
@@ -183,8 +187,7 @@ class HetznerLoadBalancer
 
     public function removeTarget(HetznerServer $server): bool
     {
-        if ($server->isInLoadBalancer()
-            && $server->loadBalancer->identifier === $this->identifier) {
+        if ($server->loadBalancer?->identifier === $this->identifier) {
             $object = new stdClass();
             $object->type = "server";
 
@@ -210,7 +213,7 @@ class HetznerLoadBalancer
 
     public function getRemainingTargetSpace(array $servers): int
     {
-        return $this->type->maxTargets - $this->targetCount($servers);
+        return $this->type->maxTargets - sizeof($this->allTargets($servers));
     }
 
     public function hasRemainingTargetSpace(array $servers): int
@@ -225,30 +228,30 @@ class HetznerLoadBalancer
         return in_array($identifier, $this->targets);
     }
 
-    public function targetCount(array $servers): int
+    public function allTargets(array $servers): array
     {
-        $count = 0;
+        $array = array();
 
         foreach ($servers as $server) {
             if ($server->loadBalancer?->identifier === $this->identifier) {
-                $count++;
+                $array[] = $server;
             }
         }
-        return $count;
+        return $array;
     }
 
-    public function activeTargets(array $servers): int
+    public function activeTargets(array $servers): array
     {
-        $count = 0;
+        $array = array();
 
         foreach ($servers as $server) {
             if ($server->loadBalancer?->identifier === $this->identifier
                 && !$server->isBlockingAction()
                 && empty($server->getStatus())) {
-                $count++;
+                $array[] = $server;
             }
         }
-        return $count;
+        return $array;
     }
 
     // Separator
@@ -264,9 +267,14 @@ class HetznerLoadBalancer
             >= HetznerVariables::HETZNER_UPGRADE_USAGE_RATIO;
     }
 
-    public function shouldDowngrade(): bool
+    public function shouldDowngrade(array $loadBalancers, array $servers): bool
     {
-        return $this->getUsageRatio() <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO;
+        return $this->getUsageRatio() <= HetznerVariables::HETZNER_DOWNGRADE_USAGE_RATIO
+            && HetznerComparison::canRedistributeLoadBalancerTraffic(
+                $loadBalancers,
+                $servers,
+                $this
+            );
     }
 
     // Separator
@@ -293,7 +301,7 @@ class HetznerLoadBalancer
 
             foreach ($loadBalancers as $loopLoadBalancer) {
                 if ($loopLoadBalancer->identifier === $this->identifier) {
-                    $newFreeSpace += $newType->maxTargets - $loopLoadBalancer->targetCount($servers);
+                    $newFreeSpace += $newType->maxTargets - sizeof($loopLoadBalancer->allTargets($servers));
                 } else {
                     $newFreeSpace += $loopLoadBalancer->getRemainingTargetSpace($servers);
                 }

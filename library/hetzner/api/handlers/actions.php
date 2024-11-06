@@ -379,7 +379,7 @@ class HetznerAction
 
         foreach ($servers as $server) {
             if ($server->isBlockingAction()) {
-                return false;
+                return $grow;
             }
             if (!$server->isUpdated()) {
                 $grow |= $server->update($servers, HetznerAction::getDefaultImage());
@@ -394,7 +394,7 @@ class HetznerAction
 
             foreach ($loadBalancers as $loadBalancer) {
                 if ($loadBalancer->isBlockingAction()) {
-                    return false;
+                    return $grow;
                 }
                 $loadBalancerPositions += $loadBalancer->getRemainingTargetSpace($servers);
             }
@@ -410,7 +410,7 @@ class HetznerAction
                         break;
                     }
                     unset($loadBalancers[$loadBalancerToUpgrade->identifier]);
-                    $targetCount = $loadBalancerToUpgrade->targetCount($servers);
+                    $targetCount = sizeof($loadBalancerToUpgrade->allTargets($servers));
                     $newLevel = HetznerComparison::findIdealLoadBalancerLevel(
                         $loadBalancerToUpgrade->type,
                         $targetCount,
@@ -488,7 +488,7 @@ class HetznerAction
         foreach ($loadBalancers as $loadBalancer) {
             if ($loadBalancer->shouldUpgrade()) {
                 if ($loadBalancer->isBlockingAction()) {
-                    return false;
+                    return $grow;
                 } else {
                     $requiresChange = true;
 
@@ -515,9 +515,9 @@ class HetznerAction
             }
         } else {
             foreach ($loadBalancers as $loadBalancer) {
-                if ($loadBalancer->shouldDowngrade()) {
+                if ($loadBalancer->shouldDowngrade($loadBalancers, $servers)) {
                     if ($loadBalancer->isBlockingAction()) {
-                        return false;
+                        return $grow;
                     } else {
                         $requiresChange = true;
 
@@ -535,7 +535,7 @@ class HetznerAction
                     $loadBalancer = HetznerComparison::findLeastLevelLoadBalancer($toChange, true);
 
                     if ($loadBalancer !== null) {
-                        $targetCount = $loadBalancer->targetCount($servers);
+                        $targetCount = sizeof($loadBalancer->allTargets($servers));
                         $freeSpace = 0;
 
                         foreach ($loadBalancers as $loopLoadBalancer) {
@@ -543,7 +543,7 @@ class HetznerAction
                                 $freeSpace += $loopLoadBalancer->getRemainingTargetSpace($servers);
 
                                 if ($freeSpace >= $targetCount) {
-                                    $grow |= $loadBalancer->remove();
+                                    $grow |= $loadBalancer->remove($servers);
                                     break;
                                 }
                             }
@@ -561,7 +561,7 @@ class HetznerAction
         foreach ($servers as $server) {
             if ($server->shouldUpgrade()) {
                 if ($server->isBlockingAction()) {
-                    return false;
+                    return $grow;
                 } else {
                     $requiresChange = true;
 
@@ -588,9 +588,9 @@ class HetznerAction
             }
         } else {
             foreach ($servers as $server) {
-                if ($server->shouldDowngrade()) {
+                if ($server->shouldDowngrade($servers)) {
                     if ($server->isBlockingAction()) {
-                        return false;
+                        return $grow;
                     } else {
                         $requiresChange = true;
 
@@ -611,12 +611,12 @@ class HetznerAction
                         $loadBalancer = $server->loadBalancer;
 
                         if ($loadBalancer !== null) {
-                            if ($loadBalancer->canDowngrade(
-                                $loadBalancers,
-                                $servers,
-                                true
-                            )) {
-
+                            if (sizeof($loadBalancer->allTargets($servers)) <= 1) {
+                                if (HetznerComparison::canRedistributeLoadBalancerTraffic($loadBalancers, $servers, $loadBalancer)) {
+                                    $grow |= $loadBalancer->remove($servers) || $server->remove();
+                                }
+                            } else {
+                                $grow |= $server->remove();
                             }
                         } else {
                             $grow |= $server->remove();

@@ -143,42 +143,51 @@ class HetznerComparison
 
     // Redistribute
 
-    public static function canRedistributeLoadBalancerTraffic(array $loadBalancers, HetznerLoadBalancer $toRemove): bool
+    public static function canRedistributeLoadBalancerTraffic(array $loadBalancers, array $servers, HetznerLoadBalancer $toRemove): bool
     {
-        $newCount = sizeof($loadBalancers) - 1;
+        if (sizeof($toRemove->allTargets($servers)) > 0) {
+            $newCount = sizeof($loadBalancers) - 1;
 
-        if ($newCount > 0) {
-            $distributedUsageRatio = $toRemove->getUsageRatio() / (float)$newCount;
+            if ($newCount >= HetznerVariables::HETZNER_MINIMUM_LOAD_BALANCERS) {
+                $distributedUsageRatio = $toRemove->getUsageRatio() / (float)$newCount;
 
-            foreach ($loadBalancers as $loadBalancer) {
-                if ($loadBalancer->identifier !== $toRemove->identifier
-                    && $loadBalancer->shouldUpgrade(
-                        $loadBalancer->getUsageRatio() + $distributedUsageRatio
-                    )) {
-                    return false;
+                foreach ($loadBalancers as $loadBalancer) {
+                    if ($loadBalancer->identifier !== $toRemove->identifier
+                        && $loadBalancer->shouldUpgrade(
+                            $loadBalancer->getUsageRatio() + $distributedUsageRatio
+                        )) {
+                        return false;
+                    }
                 }
+            } else {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static function canRedistributeServerTraffic(array $servers, HetznerServer $toRemove): bool
     {
-        $newCount = sizeof($servers) - 1;
+        if ($toRemove->loadBalancer !== null) {
+            $servers = $toRemove->loadBalancer->allTargets($servers);
+            $newCount = sizeof($servers) - 1;
 
-        if ($newCount > 0) {
-            $distributedUsageRatioPerCore = $toRemove->getUsageRatio(true) / (float)$newCount;
+            if ($newCount >= HetznerVariables::HETZNER_MINIMUM_SERVERS) {
+                $distributedUsageRatioPerCore = $toRemove->getUsageRatio(true) / (float)$newCount;
 
-            foreach ($servers as $server) {
-                if ($server->identifier !== $toRemove->identifier
-                    && $server->shouldUpgrade(
-                        ($server->getUsageRatio(true) + $distributedUsageRatioPerCore) * $server->type->cpuCores
-                    )) {
-                    return false;
+                foreach ($servers as $server) {
+                    if ($server->identifier !== $toRemove->identifier
+                        && $server->shouldUpgrade(
+                            ($server->getUsageRatio(true) + $distributedUsageRatioPerCore) * $server->type->cpuCores
+                        )) {
+                        return false;
+                    }
                 }
+            } else {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
 }
