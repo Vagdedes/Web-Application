@@ -84,8 +84,9 @@ class HetznerAction
                     $serverID = $server->id;
 
                     foreach ($loadBalancers as $loadBalancer) {
-                        if ($server->loadBalancer?->identifier === $loadBalancer->identifier) {
+                        if ($loadBalancer->isTarget($serverID)) {
                             $loadBalancerOfObject = $loadBalancer;
+                            break;
                         }
                     }
                     $metrics = get_hetzner_object(

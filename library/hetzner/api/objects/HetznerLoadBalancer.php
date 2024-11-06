@@ -10,6 +10,7 @@ class HetznerLoadBalancer
     public HetznerNetwork $network;
     public int $liveConnections;
     public bool $blockingAction;
+    private array $targets;
 
     public function __construct(string                  $name,
                                 string                  $ipv4,
@@ -17,7 +18,8 @@ class HetznerLoadBalancer
                                 int                     $liveConnections,
                                 HetznerLoadBalancerType $type,
                                 HetznerServerLocation   $location,
-                                HetznerNetwork          $network)
+                                HetznerNetwork          $network,
+                                array                   $targets)
     {
         $this->name = $name;
         $this->ipv4 = $ipv4;
@@ -27,6 +29,7 @@ class HetznerLoadBalancer
         $this->type = $type;
         $this->blockingAction = false;
         $this->network = $network;
+        $this->targets = $targets;
     }
 
     public function completeDnsRecords(array $servers): bool
@@ -133,6 +136,7 @@ class HetznerLoadBalancer
                 "load_balancers/" . $this->identifier
             )
         )) {
+            $this->blockingAction = true;
             HetznerAction::getDefaultDomain()->removeA_DNS("www");
             return true;
         } else {
@@ -215,6 +219,11 @@ class HetznerLoadBalancer
     }
 
     // Separator
+
+    public function isTarget(int $identifier): bool
+    {
+        return in_array($identifier, $this->targets);
+    }
 
     public function targetCount(array $servers): int
     {

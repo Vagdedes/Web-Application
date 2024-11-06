@@ -219,12 +219,17 @@ class HetznerServer
 
     public function remove(): bool
     {
-        return HetznerAction::executedAction(
+        if (HetznerAction::executedAction(
             get_hetzner_object(
                 HetznerConnectionType::DELETE,
                 "servers/" . $this->identifier
             )
-        );
+        )) {
+            $this->blockingAction = true;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // Separator
