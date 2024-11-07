@@ -296,7 +296,11 @@ class AccountProduct
                             }
 
                             if (!in_array($value->version, $object->supported_versions)) {
-                                $object->supported_versions[$value->version] = $value;
+                                if ($value->version === null) {
+                                    $object->supported_versions[] = $value;
+                                } else {
+                                    $object->supported_versions[$value->version] = $value;
+                                }
                             }
                             if ($object->download_note === null) {
                                 $object->download_note = $value->note;

@@ -112,8 +112,10 @@ if (true
                 $validProductObject = $validProductObject->getObject()[0];
                 $downloadProductID = $validProductObject->id;
 
-                if (($allProductsAreAllowed || in_array($downloadProductID, $purposeAllowedProducts))
-                    && array_key_exists($version, $validProductObject->supported_versions)) {
+                if (($allProductsAreAllowed
+                        || in_array($downloadProductID, $purposeAllowedProducts))
+                    && ($purpose->ignore_version !== null
+                        || array_key_exists($version, $validProductObject->supported_versions))) {
                     $productObject = $validProductObject;
                 }
             }
@@ -133,7 +135,8 @@ if (true
                     && ($allProductsAreAllowed || in_array($downloadProductID, $purposeAllowedProducts))) {
                     $validProductObject = $validProductObject->getObject()[0];
 
-                    if (array_key_exists($version, $validProductObject->supported_versions)) {
+                    if ($purpose->ignore_version !== null
+                        || array_key_exists($version, $validProductObject->supported_versions)) {
                         $acceptedPlatforms = get_accepted_platforms(array("id", "accepted_account_id"));
 
                         if (!empty($acceptedPlatforms)) {
