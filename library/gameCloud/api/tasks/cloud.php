@@ -322,36 +322,6 @@ if (true
                 );
                 echo $result;
             }
-        } else if ($data == "outdatedVersionCheck") {
-            $outdatedVersionCheck_refreshRate = array(1, "hour");
-            $result = false;
-
-            if (is_numeric($value) && $value > 0) {
-                $artificialVersion = $version + $value;
-
-                if ($artificialVersion < $productObject) {
-                    $result = true;
-                }
-            } else {
-                $result = $version < $productObject;
-            }
-
-            if ($result) {
-                $gameCloudUser->getActions()->addStaffAnnouncement(
-                    $productObject->id,
-                    GameCloudActions::OUTDATED_VERSION_PRIORITY,
-                    $version,
-                    $version,
-                    60 * 60 * 12,
-                    null,
-                    "You are using an outdated version. Download your favorite plugin via"
-                    . " https://www.vagdedes.com/discord and save time with our Auto Updater.",
-                    false
-                );
-                echo "true";
-            } else {
-                echo "false";
-            }
         } else if ($data == "userIdentification") {
             $query = get_sql_query(
                 $connection_count_table,

@@ -4,8 +4,6 @@ class GameCloudActions
 {
     private GameCloudUser $user;
 
-    public const OUTDATED_VERSION_PRIORITY = 2;
-
     public function __construct(GameCloudUser $user)
     {
         $this->user = $user;
