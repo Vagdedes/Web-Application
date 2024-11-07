@@ -242,7 +242,7 @@ class HetznerServer
 
     public function attachToLoadBalancers(array $servers, array $loadBalancers): bool
     {
-        foreach ($servers as $server) {
+        foreach ($servers as $server) { // todo improve
             if ($server->loadBalancer !== null
                 && $server->loadBalancer->hasRemainingTargetSpace($servers)
                 && sizeof($server->loadBalancer->allTargets($servers)) === 1
