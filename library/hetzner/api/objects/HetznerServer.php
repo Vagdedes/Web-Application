@@ -250,9 +250,12 @@ class HetznerServer
                 return $server->loadBalancer->addTarget($servers, $this);
             }
         }
-        $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers, $servers);
+        while (true) {
+            $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers, $servers);
 
-        if ($loadBalancer !== null) {
+            if ($loadBalancer === null) {
+                break;
+            }
             if ($loadBalancer->addTarget($servers, $this)) {
                 return true;
             } else {
