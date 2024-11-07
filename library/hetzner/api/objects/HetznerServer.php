@@ -242,7 +242,7 @@ class HetznerServer
 
     public function attachToLoadBalancers(array $servers, array $loadBalancers): bool
     {
-        foreach ($servers as $server) {
+        foreach ($servers as $server) { // todo improve
             if ($server->loadBalancer !== null
                 && $server->loadBalancer->hasRemainingTargetSpace($servers)
                 && sizeof($server->loadBalancer->allTargets($servers)) === 1
@@ -250,12 +250,9 @@ class HetznerServer
                 return $server->loadBalancer->addTarget($servers, $this);
             }
         }
-        while (true) {
-            $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers, $servers);
+        $loadBalancer = HetznerComparison::findLeastPopulatedLoadBalancer($loadBalancers, $servers);
 
-            if ($loadBalancer === null) {
-                break;
-            }
+        if ($loadBalancer !== null) {
             if ($loadBalancer->addTarget($servers, $this)) {
                 return true;
             } else {
