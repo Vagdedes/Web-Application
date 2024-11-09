@@ -190,7 +190,7 @@ class HetznerServer
 
     // Separator
 
-    public function update(array $servers, int $image): bool // todo improve
+    public function update(array $servers, int $image): bool
     {
         if ($this->canUpdate()) {
             if ($this->loadBalancer === null) {
@@ -242,12 +242,25 @@ class HetznerServer
 
     public function attachToLoadBalancers(array $servers, array $loadBalancers): bool
     {
-        foreach ($servers as $server) { // todo improve
-            if ($server->loadBalancer !== null
-                && $server->loadBalancer->hasRemainingTargetSpace($servers)
-                && sizeof($server->loadBalancer->allTargets($servers)) === 1
-                && !empty($this->getStatus())) {
-                return $server->loadBalancer->addTarget($servers, $this);
+        foreach ($loadBalancers as $loadBalancer) {
+            if ($loadBalancer->hasRemainingTargetSpace($servers)) {
+                if (sizeof($loadBalancer->allTargets($servers)) === 0
+                || sizeof($loadBalancer->activeTargets($servers)) === 0) {
+                    $add = true;
+                } else {
+                    $add = false;
+
+                    foreach ($servers as $server) {
+                        if ($server->loadBalancer?->identifier === $loadBalancer->identifier
+                            && !empty($server->getStatus())) {
+                            $add = true;
+                            break;
+                        }
+                    }
+                }
+                if ($add) {
+                    return $loadBalancer->addTarget($servers, $this);
+                }
             }
         }
         while (true) {
@@ -355,13 +368,18 @@ class HetznerServer
     {
         $object2 = new stdClass();
         $object2->name = $name;
-        return HetznerAction::executedAction(
+        if (HetznerAction::executedAction(
             get_hetzner_object(
                 HetznerConnectionType::PUT,
                 "servers/" . $this->identifier,
                 json_encode($object2)
             )
-        );
+        )) {
+            $this->name = $name;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private function powerOff(): bool
