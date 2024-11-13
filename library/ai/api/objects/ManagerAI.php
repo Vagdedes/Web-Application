@@ -24,7 +24,7 @@ class ManagerAI
             foreach ($query as $row) {
                 $model = new AIModel($row->id);
 
-                if ($model->exists) {
+                if ($model->exists()) {
                     $this->models[(int)$model->context] = $model;
                 }
             }
@@ -49,7 +49,7 @@ class ManagerAI
     public function getHistory(int|string $hash, ?bool $failure = null, ?int $limit = 0): array
     {
         return get_sql_query(
-            AIDatabaseTable::AI_TEXT_HISTORY,
+            AIDatabaseTable::AI_HISTORY,
             null,
             array(
                 array("hash", $hash),
@@ -69,14 +69,16 @@ class ManagerAI
         if (sizeof($this->models) === 1) {
             $model = $this->models[0];
 
-            if ($length > $model->context) {
+            if ($model->context !== null
+                && $length > $model->context) {
                 return array(false, null, null);
             }
         } else if (!empty($this->models)) {
             $model = null;
 
             foreach ($this->models as $rowModel) {
-                if ($length <= $rowModel->context) {
+                if ($rowModel->context !== null
+                    && $length <= $rowModel->context) {
                     $model = $rowModel;
                     break;
                 }
@@ -116,7 +118,7 @@ class ManagerAI
 
                 if (is_object($reply)) {
                     sql_insert(
-                        AIDatabaseTable::AI_TEXT_HISTORY,
+                        AIDatabaseTable::AI_HISTORY,
                         array(
                             "model_id" => $model->modelID,
                             "hash" => $hash,
@@ -131,7 +133,7 @@ class ManagerAI
             }
 
             sql_insert(
-                AIDatabaseTable::AI_TEXT_HISTORY,
+                AIDatabaseTable::AI_HISTORY,
                 array(
                     "model_id" => $model->modelID,
                     "hash" => $hash,

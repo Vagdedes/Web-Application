@@ -2,12 +2,12 @@
 
 class AIModel
 {
-    public int $familyID, $modelID, $context;
-    public string $requestUrl, $codeKey, $code, $name;
-    public ?string $description;
+    public int $typeID, $familyID, $modelID;
+    public ?int $context;
+    public string $requestUrl, $codeKey, $code;
     public object $parameter, $currency;
-    public float $received_token_cost, $sent_token_cost;
-    public bool $exists;
+    private ?float $received_token_cost, $sent_token_cost;
+    private bool $exists;
 
     public function __construct(int|string $modelID)
     {
@@ -51,13 +51,12 @@ class AIModel
                     $this->exists = true;
                     $this->currency = $queryChild[0];
                     $this->modelID = $query->id;
+                    $this->typeID = $query->type;
                     $this->familyID = $query->family;
                     $this->context = $query->context;
                     $this->requestUrl = $query->request_url;
                     $this->codeKey = $query->code_key;
                     $this->code = $query->code;
-                    $this->name = $query->name;
-                    $this->description = $query->description;
                     $this->received_token_cost = $query->received_token_cost;
                     $this->sent_token_cost = $query->sent_token_cost;
                 } else {
@@ -71,11 +70,16 @@ class AIModel
         }
     }
 
+    public function exists(): bool
+    {
+        return $this->exists;
+    }
+
     public function getText(?object $object): ?string
     {
         switch ($this->familyID) {
-            case AIModelFamily::CHAT_GPT_3_5:
-            case AIModelFamily::CHAT_GPT_4:
+            case AIModelFamily::CHAT_GPT:
+            case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::OPENAI_O1:
             case AIModelFamily::OPENAI_O1_MINI:
                 return $object?->choices[0]?->message->content;
@@ -97,12 +101,12 @@ class AIModel
     public function getCost(?object $object): ?string
     {
         switch ($this->familyID) {
-            case AIModelFamily::CHAT_GPT_3_5:
-            case AIModelFamily::CHAT_GPT_4:
+            case AIModelFamily::CHAT_GPT:
+            case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::OPENAI_O1:
             case AIModelFamily::OPENAI_O1_MINI:
-                return ($object->usage->prompt_tokens * $this->sent_token_cost)
-                    + ($object->usage->completion_tokens * $this->received_token_cost);
+                return ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0))
+                    + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0));
             default:
                 return null;
         }
