@@ -4,7 +4,7 @@ class AIParameterType
 {
     public const
         JSON = 1,
-        MULTIPART_FORM_DATA = 2; // todo
+        MULTIPART_FORM_DATA = 2;
 }
 
 class AIModelType
@@ -36,7 +36,8 @@ class AIModelFamily
 
     // Text to Speech
     public const
-        OPENAI_TTS = 6;
+        OPENAI_TTS = 6,
+        OPENAI_TTS_HD = 11;
 
     // Speech to Text
     public const

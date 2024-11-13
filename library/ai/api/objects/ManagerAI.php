@@ -87,7 +87,7 @@ class ManagerAI
                 $contentType = "application/json";
                 break;
             case AIParameterType::MULTIPART_FORM_DATA:
-                $contentType = null; // todo
+                $contentType = "multipart/form-data";
                 break;
             default:
                 $contentType = null;

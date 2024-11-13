@@ -157,20 +157,62 @@ class AIModel
         }
     }
 
+    public function getTexts(?object $object): array
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::CHAT_GPT:
+            case AIModelFamily::CHAT_GPT_PRO:
+            case AIModelFamily::OPENAI_O1:
+            case AIModelFamily::OPENAI_O1_MINI:
+            case AIModelFamily::OPENAI_VISION:
+            case AIModelFamily::OPENAI_VISION_PRO:
+                $array = $object?->choices;
+                $texts = array();
+
+                if (!empty($array)) {
+                    foreach ($array as $item) {
+                        $texts[] = $item->message->content;
+                    }
+                }
+                return $texts;
+            default:
+                return array();
+        }
+    }
+
     public function getImage(?object $object): ?string
     {
         switch ($this->familyID) {
             case AIModelFamily::DALLE_3:
-                return null; // todo
+                return $object?->data[0]?->url;
             default:
                 return null;
+        }
+    }
+
+    public function getImages(?object $object): array
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::DALLE_3:
+                $array = $object?->data;
+                $images = array();
+
+                if (!empty($array)) {
+                    foreach ($array as $item) {
+                        $images[] = $item->url;
+                    }
+                }
+                return $images;
+            default:
+                return array();
         }
     }
 
     public function getSpeech(?object $object): ?string
     {
         switch ($this->familyID) {
-            case AIModelFamily::DALLE_3:
+            case AIModelFamily::OPENAI_TTS:
+            case AIModelFamily::OPENAI_TTS_HD:
                 return null; // todo
             default:
                 return null;
