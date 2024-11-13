@@ -3,7 +3,7 @@
 class AIModel
 {
     public int $familyID, $modelID, $context;
-    public string $code, $name;
+    public string $requestUrl, $codeKey, $code, $name;
     public ?string $description;
     public object $parameter, $currency;
     public float $received_token_cost, $sent_token_cost;
@@ -53,6 +53,8 @@ class AIModel
                     $this->modelID = $query->id;
                     $this->familyID = $query->family;
                     $this->context = $query->context;
+                    $this->requestUrl = $query->request_url;
+                    $this->codeKey = $query->code_key;
                     $this->code = $query->code;
                     $this->name = $query->name;
                     $this->description = $query->description;

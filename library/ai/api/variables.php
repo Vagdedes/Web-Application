@@ -34,7 +34,7 @@ class AIDatabaseTable
 {
     public const
         AI_MODELS = "artificial_intelligence.models",
-        AI_TEXT_HISTORY = "artificial_intelligence.textHistory",
+        AI_TEXT_HISTORY = "artificial_intelligence.history",
         AI_PARAMETERS = "artificial_intelligence.parameters",
         AI_CURRENCIES = "artificial_intelligence.currencies";
 }
@@ -42,6 +42,5 @@ class AIDatabaseTable
 class AIProperties
 {
 
-    public const
-        WORD_TO_TOKEN = 0.75;
+    public const WORD_TO_TOKEN = 0.75;
 }
