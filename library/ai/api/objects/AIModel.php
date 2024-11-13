@@ -69,4 +69,41 @@ class AIModel
         }
     }
 
+    public function getText(?object $object): ?string
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::CHAT_GPT_3_5:
+            case AIModelFamily::CHAT_GPT_4:
+            case AIModelFamily::OPENAI_O1:
+            case AIModelFamily::OPENAI_O1_MINI:
+                return $object?->choices[0]?->message->content;
+            default:
+                return null;
+        }
+    }
+
+    public function getImage(?object $object): ?string
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::DALLE_3:
+                return null; // todo
+            default:
+                return null;
+        }
+    }
+
+    public function getCost(?object $object): ?string
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::CHAT_GPT_3_5:
+            case AIModelFamily::CHAT_GPT_4:
+            case AIModelFamily::OPENAI_O1:
+            case AIModelFamily::OPENAI_O1_MINI:
+                return ($object->usage->prompt_tokens * $this->sent_token_cost)
+                    + ($object->usage->completion_tokens * $this->received_token_cost);
+            default:
+                return null;
+        }
+    }
+
 }

@@ -1,25 +1,17 @@
 <?php
 
-// $temperature: How precise or creative the reply will be. 0.0 is the most precise, 1.0 is the most creative.
-// $frequency_penalty: Increase or decrease the likelihood of token repetition. -2.0 to 2.0, with -2.0 being most likely to repeat tokens, 0.0 being equally likely, and 2.0 being least likely.
-
 class ManagerAI
 {
-    public array $models;
+    private array $models, $parameters;
     private string $apiKey;
-    private ?float $temperature, $top_p, $frequency_penalty, $presence_penalty;
-    private ?int $maxTokens, $completions;
-    public bool $exists;
 
-    public function __construct(int|string $modelFamily, string $apiKey,
-                                ?int       $maxReplyLength = null, ?float $temperature = null,
-                                ?float     $frequency_penalty = null, ?float $presence_penalty = null,
-                                ?int       $completions = null, ?float $top_p = null)
+    public function __construct(int|string $modelType, int|string $modelFamily, string $apiKey, array $parameters = [])
     {
         $query = get_sql_query(
             AIDatabaseTable::AI_MODELS,
             array("id"),
             array(
+                array("type", $modelType),
                 array("family", $modelFamily),
                 array("deletion_date", null),
             ),
@@ -38,28 +30,20 @@ class ManagerAI
             }
 
             if (!empty($this->models)) {
-                $this->exists = true;
                 $this->apiKey = $apiKey;
-                $this->temperature = $temperature;
-                $this->frequency_penalty = $frequency_penalty;
-                $this->completions = $completions;
-                $this->top_p = $top_p;
-                $this->presence_penalty = $presence_penalty;
-
-                if ($maxReplyLength === null) {
-                    $this->maxTokens = null;
-                } else {
-                    $maxReplyLength *= AIProperties::WORD_TO_TOKEN;
-                    $maxReplyLength /= 100.0;
-                    $maxReplyLength = floor($maxReplyLength);
-                    $this->maxTokens = $maxReplyLength * 100;
-                }
-            } else {
-                $this->exists = false;
+                $this->parameters = $parameters;
             }
-        } else {
-            $this->exists = false;
         }
+    }
+
+    public function exists(): bool
+    {
+        return !empty($this->models);
+    }
+
+    public function getParameters(): array
+    {
+        return $this->parameters;
     }
 
     public function getHistory(int|string $hash, ?bool $failure = null, ?int $limit = 0): array
@@ -110,23 +94,12 @@ class ManagerAI
                 $link = "https://api.openai.com/v1/chat/completions";
                 $parameters["model"] = $model->code;
 
-                if ($this->completions !== null) {
-                    $parameters["n"] = $this->completions;
-                }
-                if ($this->maxTokens !== null) {
-                    $parameters["max_tokens"] = $this->maxTokens;
-                }
-                if ($this->temperature !== null) {
-                    $parameters["temperature"] = $this->temperature;
-                }
-                if ($this->frequency_penalty !== null) {
-                    $parameters["frequency_penalty"] = $this->frequency_penalty;
-                }
-                if ($this->presence_penalty !== null) {
-                    $parameters["presence_penalty"] = $this->presence_penalty;
-                }
-                if ($this->top_p !== null) {
-                    $parameters["top_p"] = $this->top_p;
+                if (!empty($this->parameters)) {
+                    foreach ($this->parameters as $key => $value) {
+                        if ($value !== null) {
+                            $parameters[$key] = $value;
+                        }
+                    }
                 }
                 break;
             default:
@@ -214,30 +187,4 @@ class ManagerAI
         return array(false, $model, null);
     }
 
-    public function getText(object $model, ?object $object): ?string
-    {
-        switch ($model->familyID) {
-            case AIModelFamily::CHAT_GPT_3_5:
-            case AIModelFamily::CHAT_GPT_4:
-            case AIModelFamily::OPENAI_O1:
-            case AIModelFamily::OPENAI_O1_MINI:
-                return $object?->choices[0]?->message->content;
-            default:
-                return null;
-        }
-    }
-
-    public function getCost(object $model, ?object $object): ?string
-    {
-        switch ($model->familyID) {
-            case AIModelFamily::CHAT_GPT_3_5:
-            case AIModelFamily::CHAT_GPT_4:
-            case AIModelFamily::OPENAI_O1:
-            case AIModelFamily::OPENAI_O1_MINI:
-                return ($object->usage->prompt_tokens * $model->sent_token_cost)
-                    + ($object->usage->completion_tokens * $model->received_token_cost);
-            default:
-                return null;
-        }
-    }
 }

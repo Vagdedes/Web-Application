@@ -243,7 +243,7 @@ class AccountInstructions
                     }
                     if ($row->auto_contains !== null
                         && $this->managerAI !== null
-                        && $this->managerAI->exists) {
+                        && $this->managerAI->exists()) {
                         $result = $this->managerAI->getResult(
                             self::AI_HASH,
                             array(
@@ -264,7 +264,7 @@ class AccountInstructions
                         );
 
                         if ($result[0]) {
-                            $containsKeywords = $this->managerAI->getText($result[1], $result[2]);
+                            $containsKeywords = $result[1]->getText($result[2]);
                         }
                     }
                     $expiration = get_future_date($row->information_duration);
