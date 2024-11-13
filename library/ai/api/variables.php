@@ -3,7 +3,8 @@
 class AIParameterType
 {
     public const
-        JSON = 1;
+        JSON = 1,
+        MULTIPART_FORM_DATA = 2; // todo
 }
 
 class AIModelType
@@ -17,7 +18,7 @@ class AIModelType
         TEXT_TO_SPEECH = 3,
         SPEECH_TO_TEXT = 4,
 
-        SOUND_GENERATION = 6;
+        SPEECH_PROMPT_TO_TEXT = 6;
 }
 
 class AIModelFamily
@@ -35,20 +36,20 @@ class AIModelFamily
 
     // Text to Speech
     public const
-        TEXT_TO_SPEECH = 6;
+        OPENAI_TTS = 6;
 
     // Speech to Text
     public const
-        WHISPER = 7;
+        OPENAI_WHISPER = 7;
 
     // Image to Text
     public const
-        VISION_PRO = 8,
-        VISION = 9;
+        OPENAI_VISION_PRO = 8,
+        OPENAI_VISION = 9;
 
-    // Sound Generation
+    // Speech Prompt to Text
     public const
-        SOUND_GENERATION = 10;
+        OPENAI_SOUND = 10;
 }
 
 class AICurrency

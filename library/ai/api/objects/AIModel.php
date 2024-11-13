@@ -2,10 +2,10 @@
 
 class AIModel
 {
-    public int $typeID, $familyID, $modelID;
-    public ?int $context;
-    public string $requestUrl, $codeKey, $code;
-    public object $parameter, $currency;
+    private int $typeID, $familyID, $modelID;
+    private ?int $context;
+    private string $requestUrl, $codeKey, $code;
+    private object $parameter, $currency;
     private ?float $received_token_cost, $sent_token_cost;
     private bool $exists;
 
@@ -75,6 +75,73 @@ class AIModel
         return $this->exists;
     }
 
+    // Separator
+
+    public function getReceivedTokenCost(): float
+    {
+        return $this->received_token_cost;
+    }
+
+    public function getSentTokenCost(): float
+    {
+        return $this->sent_token_cost;
+    }
+
+    // Separator
+
+    public function getCurrency(): object
+    {
+        return $this->currency;
+    }
+
+    public function getParameter(): object
+    {
+        return $this->parameter;
+    }
+
+    // Separator
+
+    public function getFamilyID(): int
+    {
+        return $this->familyID;
+    }
+
+    public function getTypeID(): int
+    {
+        return $this->typeID;
+    }
+
+    public function getModelID(): int
+    {
+        return $this->modelID;
+    }
+
+    // Separator
+
+    public function getContext(): ?int
+    {
+        return $this->context;
+    }
+
+    // Separator
+
+    public function getRequestURL(): string
+    {
+        return $this->requestUrl;
+    }
+
+    public function getCodeKey(): string
+    {
+        return $this->codeKey;
+    }
+
+    public function getCode(): string
+    {
+        return $this->code;
+    }
+
+    // Separator
+
     public function getText(?object $object): ?string
     {
         switch ($this->familyID) {
@@ -82,6 +149,8 @@ class AIModel
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::OPENAI_O1:
             case AIModelFamily::OPENAI_O1_MINI:
+            case AIModelFamily::OPENAI_VISION:
+            case AIModelFamily::OPENAI_VISION_PRO:
                 return $object?->choices[0]?->message->content;
             default:
                 return null;
@@ -89,6 +158,16 @@ class AIModel
     }
 
     public function getImage(?object $object): ?string
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::DALLE_3:
+                return null; // todo
+            default:
+                return null;
+        }
+    }
+
+    public function getSpeech(?object $object): ?string
     {
         switch ($this->familyID) {
             case AIModelFamily::DALLE_3:
