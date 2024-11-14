@@ -80,7 +80,11 @@ if (!empty($path)) {
                         unset($contents[$key]);
                     }
                 }
-                $includedFiles[$file] = trim(implode("\n", $contents));
+                $contents = trim(implode("\n", $contents));
+
+                if (strlen($contents) > 0) {
+                    $includedFiles[$file] = $contents;
+                }
             }
         }
         echo json_encode($includedFiles);

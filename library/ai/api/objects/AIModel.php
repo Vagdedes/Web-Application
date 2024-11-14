@@ -152,7 +152,7 @@ class AIModel
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
                 return $object?->choices[0]?->message->content;
-            default:
+            default: // todo
                 return null;
         }
     }
@@ -175,7 +175,7 @@ class AIModel
                     }
                 }
                 return $texts;
-            default:
+            default: // todo
                 return array();
         }
     }
@@ -219,15 +219,27 @@ class AIModel
         }
     }
 
-    public function getCost(?object $object): ?string
-    {
+    public function getCost(?object $object): ?float
+    { // todo check if you can generalize through object returns
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::OPENAI_O1:
             case AIModelFamily::OPENAI_O1_MINI:
-                return ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0))
-                    + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0));
+                return ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0.0))
+                    + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0.0));
+            case AIModelFamily::DALLE_3:
+                return null; // todo
+            case AIModelFamily::OPENAI_TTS:
+            case AIModelFamily::OPENAI_TTS_HD:
+                return null; // todo
+            case AIModelFamily::OPENAI_VISION:
+            case AIModelFamily::OPENAI_VISION_PRO:
+                return null; // todo
+            case AIModelFamily::OPENAI_SOUND:
+                return null; // todo
+            case AIModelFamily::OPENAI_WHISPER:
+                return null; // todo
             default:
                 return null;
         }
