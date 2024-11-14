@@ -168,7 +168,7 @@ class AccountInstructions
             return str_replace(
                 InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
                 $objectValue,
-                $mix
+                $mix === null ? "" : $mix
             );
         }
     }
