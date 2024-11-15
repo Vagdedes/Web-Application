@@ -176,11 +176,10 @@ class AIModel
             case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
-                return $object?->choices[0]?->message->content;
             case AIModelFamily::OPENAI_SOUND:
-                return null; // todo
+                return $object?->choices[0]?->message?->content;
             case AIModelFamily::OPENAI_WHISPER:
-                return null; // todo
+                return $object?->text;
             default:
                 return null;
         }
@@ -195,19 +194,20 @@ class AIModel
             case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
-                $array = $object?->choices ?? null;
+            case AIModelFamily::OPENAI_SOUND:
+                $array = $object?->choices;
                 $texts = array();
 
                 if (!empty($array)) {
                     foreach ($array as $item) {
-                        $texts[] = $item->message->content;
+                        $texts[] = $item?->message?->content;
                     }
                 }
                 return $texts;
-            case AIModelFamily::OPENAI_SOUND:
-                return array(); // todo
             case AIModelFamily::OPENAI_WHISPER:
-                return array(); // todo
+                return array(
+                    $object?->text
+                );
             default:
                 return array();
         }
@@ -227,7 +227,7 @@ class AIModel
     {
         switch ($this->familyID) {
             case AIModelFamily::DALLE_3:
-                $array = $object?->data ?? null;
+                $array = $object?->data;
                 $images = array();
 
                 if (!empty($array)) {
@@ -259,6 +259,9 @@ class AIModel
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::OPENAI_O1:
             case AIModelFamily::OPENAI_O1_MINI:
+            case AIModelFamily::OPENAI_VISION:
+            case AIModelFamily::OPENAI_VISION_PRO:
+            case AIModelFamily::OPENAI_SOUND:
                 return ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0.0))
                     + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0.0));
             case AIModelFamily::DALLE_3:
@@ -297,14 +300,6 @@ class AIModel
                 } else {
                     return null;
                 }
-            case AIModelFamily::OPENAI_VISION:
-            case AIModelFamily::OPENAI_VISION_PRO:
-                $existing = ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0.0))
-                    + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0.0));
-                // todo
-                return $existing;
-            case AIModelFamily::OPENAI_SOUND:
-                return null; // todo
             case AIModelFamily::OPENAI_WHISPER:
                 return null; // todo
             default:
