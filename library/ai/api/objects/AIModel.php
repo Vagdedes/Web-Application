@@ -186,7 +186,7 @@ class AIModel
         }
     }
 
-    public function getTexts(?object $object): array
+    public function getTexts(mixed $object): array
     {
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
@@ -195,7 +195,7 @@ class AIModel
             case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
-                $array = $object?->choices;
+                $array = $object?->choices ?? null;
                 $texts = array();
 
                 if (!empty($array)) {
@@ -213,7 +213,7 @@ class AIModel
         }
     }
 
-    public function getImage(?object $object): ?string
+    public function getImage(mixed $object): ?string
     {
         switch ($this->familyID) {
             case AIModelFamily::DALLE_3:
@@ -223,11 +223,11 @@ class AIModel
         }
     }
 
-    public function getImages(?object $object): array
+    public function getImages(mixed $object): array
     {
         switch ($this->familyID) {
             case AIModelFamily::DALLE_3:
-                $array = $object?->data;
+                $array = $object?->data ?? null;
                 $images = array();
 
                 if (!empty($array)) {
@@ -241,12 +241,12 @@ class AIModel
         }
     }
 
-    public function getSpeech(?object $object): mixed
+    public function getSpeech(mixed $object): mixed
     {
         switch ($this->familyID) {
             case AIModelFamily::OPENAI_TTS:
             case AIModelFamily::OPENAI_TTS_HD:
-                return null; // todo
+                return $object;
             default:
                 return null;
         }
@@ -291,7 +291,12 @@ class AIModel
                 return null;
             case AIModelFamily::OPENAI_TTS:
             case AIModelFamily::OPENAI_TTS_HD:
-                return null; // todo
+                if ($object instanceof ManagerAI) {
+                    $parameters = $object->getAllParameters();
+                    return strlen($parameters["input"] ?? "") * ($this?->sent_token_cost ?? 0.0);
+                } else {
+                    return null;
+                }
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
                 $existing = ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0.0))

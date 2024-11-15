@@ -128,20 +128,21 @@ class ManagerAI
                 $received = $reply;
                 $reply = @json_decode($reply);
 
-                if (is_object($reply)) {
-                    sql_insert(
-                        AIDatabaseTable::AI_HISTORY,
-                        array(
-                            "model_id" => $model->getModelID(),
-                            "hash" => $hash,
-                            "sent_parameters" => $parameters,
-                            "received_parameters" => $received,
-                            "currency_id" => $model->getCurrency()?->id,
-                            "creation_date" => get_current_date()
-                        )
-                    );
-                    return array(true, $model, $reply);
+                if ($reply === null) {
+                    $reply = $received;
                 }
+                sql_insert(
+                    AIDatabaseTable::AI_HISTORY,
+                    array(
+                        "model_id" => $model->getModelID(),
+                        "hash" => $hash,
+                        "sent_parameters" => $parameters,
+                        "received_parameters" => $received,
+                        "currency_id" => $model->getCurrency()?->id,
+                        "creation_date" => get_current_date()
+                    )
+                );
+                return array(true, $model, $reply);
             }
 
             sql_insert(
