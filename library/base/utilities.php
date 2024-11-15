@@ -1417,17 +1417,3 @@ function get_object_depth_key(object $object, string $keys, string $separator = 
         }
     }
 }
-
-// Sound
-
-function getMp3SecondsDuration($filePath): ?int
-{
-    $getID3 = new getID3;
-    $fileInfo = $getID3->analyze($filePath);
-
-    if (isset($fileInfo['playtime_seconds'])) {
-        return round($fileInfo['playtime_seconds']);
-    } else {
-        return null;
-    }
-}
