@@ -295,8 +295,8 @@ class AIModel
             case AIModelFamily::OPENAI_TTS:
             case AIModelFamily::OPENAI_TTS_HD:
                 if ($object instanceof ManagerAI) {
-                    $parameters = $object->getAllParameters();
-                    return strlen($parameters["input"] ?? "") * ($this?->sent_token_cost ?? 0.0);
+                    return strlen($object->getAllParameters()["input"] ?? "") *
+                        ($this?->sent_token_cost ?? 0.0);
                 } else {
                     return null;
                 }
