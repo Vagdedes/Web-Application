@@ -2,7 +2,7 @@
 
 class ManagerAI
 {
-    private array $models, $parameters;
+    private array $models, $parameters, $lastParameters;
     private string $apiKey;
 
     public function __construct(int|string $modelFamily, string $apiKey, array $parameters = [])
@@ -31,6 +31,7 @@ class ManagerAI
             if (!empty($this->models)) {
                 $this->apiKey = $apiKey;
                 $this->parameters = $parameters;
+                $this->lastParameters = array();
             }
         }
     }
@@ -43,6 +44,16 @@ class ManagerAI
     public function getParameters(): array
     {
         return $this->parameters;
+    }
+
+    public function getLastParameters(): array
+    {
+        return $this->lastParameters;
+    }
+
+    public function getAllParameters(): array
+    {
+        return array_merge($this->parameters, $this->lastParameters);
     }
 
     public function getHistory(int|string $hash, ?int $limit = 0): array
@@ -95,6 +106,7 @@ class ManagerAI
         }
 
         if ($contentType !== null) {
+            $this->lastParameters = $parameters;
             $parameters[$model->getCodeKey()] = $model->getCode();
 
             if (!empty($this->parameters)) {

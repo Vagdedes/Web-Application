@@ -8,6 +8,7 @@ class AIModel
     private object $parameter, $currency;
     private ?float $received_token_cost, $sent_token_cost;
     private bool $exists;
+    private array $pricing;
 
     public function __construct(int|string $modelID)
     {
@@ -59,14 +60,38 @@ class AIModel
                     $this->code = $query->code;
                     $this->received_token_cost = $query->received_token_cost;
                     $this->sent_token_cost = $query->sent_token_cost;
+                    $pricing = get_sql_query(
+                        AIDatabaseTable::AI_PRICING,
+                        null,
+                        array(
+                            array("id", $modelID),
+                            array("deletion_date", null)
+                        )
+                    );
+
+                    if (!empty($pricing)) {
+                        foreach ($pricing as $item) {
+                            if (array_key_exists($item->parameter_family, $pricing)) {
+                                $pricing[$item->parameter_family][] = $item;
+                            } else {
+                                $pricing[$item->parameter_family] = array($item);
+                            }
+                        }
+                        $this->pricing = $pricing;
+                    } else {
+                        $this->pricing = array();
+                    }
                 } else {
                     $this->exists = false;
+                    $this->pricing = array();
                 }
             } else {
                 $this->exists = false;
+                $this->pricing = array();
             }
         } else {
             $this->exists = false;
+            $this->pricing = array();
         }
     }
 
@@ -219,8 +244,8 @@ class AIModel
         }
     }
 
-    public function getCost(?object $object): ?float
-    { // todo check if you can generalize through object returns
+    public function getCost(mixed $object): ?float
+    {
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
@@ -229,13 +254,42 @@ class AIModel
                 return ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0.0))
                     + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0.0));
             case AIModelFamily::DALLE_3:
-                return null; // todo
+                if ($object instanceof ManagerAI
+                    && !empty($this->pricing)) {
+                    $parameters = $object->getAllParameters();
+
+                    if (!empty($parameters)) {
+                        foreach ($this->pricing as $family) {
+                            $price = null;
+
+                            foreach ($family as $row) {
+                                foreach ($parameters as $key => $value) {
+                                    if ($row->parameter_name == $key
+                                        && $row->parameter_match == $value) {
+                                        $price = $row->price;
+                                    } else {
+                                        $price = null;
+                                        continue 2;
+                                    }
+                                }
+                            }
+
+                            if ($price !== null) {
+                                return $price;
+                            }
+                        }
+                    }
+                }
+                return null;
             case AIModelFamily::OPENAI_TTS:
             case AIModelFamily::OPENAI_TTS_HD:
                 return null; // todo
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
-                return null; // todo
+                $existing = ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0.0))
+                    + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0.0));
+                // todo
+                return $existing;
             case AIModelFamily::OPENAI_SOUND:
                 return null; // todo
             case AIModelFamily::OPENAI_WHISPER:

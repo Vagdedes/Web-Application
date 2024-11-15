@@ -43,7 +43,7 @@ class AIModelFamily
     public const
         OPENAI_WHISPER = 7;
 
-    // Image to Text
+    // Image And Text to Text
     public const
         OPENAI_VISION_PRO = 8,
         OPENAI_VISION = 9;
@@ -70,7 +70,8 @@ class AIDatabaseTable
         AI_MODELS = "artificial_intelligence.models",
         AI_HISTORY = "artificial_intelligence.history",
         AI_PARAMETERS = "artificial_intelligence.parameters",
-        AI_CURRENCIES = "artificial_intelligence.currencies";
+        AI_CURRENCIES = "artificial_intelligence.currencies",
+        AI_PRICING = "artificial_intelligence.pricing";
 }
 
 class AIProperties
