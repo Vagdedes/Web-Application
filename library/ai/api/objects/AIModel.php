@@ -177,7 +177,11 @@ class AIModel
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
                 return $object?->choices[0]?->message->content;
-            default: // todo
+            case AIModelFamily::OPENAI_SOUND:
+                return null; // todo
+            case AIModelFamily::OPENAI_WHISPER:
+                return null; // todo
+            default:
                 return null;
         }
     }
@@ -200,7 +204,11 @@ class AIModel
                     }
                 }
                 return $texts;
-            default: // todo
+            case AIModelFamily::OPENAI_SOUND:
+                return array(); // todo
+            case AIModelFamily::OPENAI_WHISPER:
+                return array(); // todo
+            default:
                 return array();
         }
     }
@@ -233,7 +241,7 @@ class AIModel
         }
     }
 
-    public function getSpeech(?object $object): ?string
+    public function getSpeech(?object $object): mixed
     {
         switch ($this->familyID) {
             case AIModelFamily::OPENAI_TTS:
