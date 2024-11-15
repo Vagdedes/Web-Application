@@ -58,6 +58,12 @@ class AICurrency
     public const USD = 1;
 }
 
+class AIAuthorization
+{
+    public const
+        OPENAI = "openai_credentials";
+}
+
 class AIDatabaseTable
 {
     public const

@@ -62,7 +62,7 @@ class ManagerAI
     }
 
     // 1: Success, 2: Model, 3: Reply
-    public function getResult(int|string $hash, array $parameters, int $length = 0, int $timeoutSeconds = 0): array
+    public function getResult(int|string $hash, array $parameters = [], int $length = 0, int $timeoutSeconds = 0): array
     {
         if (!empty($this->models)) {
             $model = null;
@@ -96,6 +96,10 @@ class ManagerAI
 
         if ($contentType !== null) {
             $parameters[$model->getCodeKey()] = $model->getCode();
+
+            if (!empty($this->parameters)) {
+                $parameters = array_merge($parameters, $this->parameters);
+            }
             $parameters = @json_encode($parameters);
             $reply = get_curl(
                 $model->getRequestURL(),
