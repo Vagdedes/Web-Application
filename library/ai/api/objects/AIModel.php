@@ -307,7 +307,7 @@ class AIModel
         }
     }
 
-    private static function getMp3SecondsDuration($filePath): ?int
+    private static function getMp3SecondsDuration(string $filePath): ?int
     {
         $getID3 = new getID3;
         $fileInfo = $getID3->analyze($filePath);
