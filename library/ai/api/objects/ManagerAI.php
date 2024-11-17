@@ -72,7 +72,7 @@ class ManagerAI
         );
     }
 
-    // 1: Success, 2: Model, 3: Reply
+    // 1: Success, 2: Model, 3: Reply, 4: Case
     public function getResult(int|string $hash, array $parameters = [], int $length = 0, int $timeoutSeconds = 0): array
     {
         if (!empty($this->models)) {
@@ -87,10 +87,10 @@ class ManagerAI
                 }
             }
             if ($model === null) {
-                return array(false, null, null);
+                return array(false, null, null, 0);
             }
         } else {
-            return array(false, null, null);
+            return array(false, null, null, 1);
         }
 
         switch ($model->getParameter()?->id) {
@@ -142,7 +142,7 @@ class ManagerAI
                         "creation_date" => get_current_date()
                     )
                 );
-                return array(true, $model, $reply);
+                return array(true, $model, $reply, 2);
             }
 
             sql_insert(
@@ -156,7 +156,7 @@ class ManagerAI
                 )
             );
         }
-        return array(false, $model, null);
+        return array(false, $model, null, 3);
     }
 
 }
