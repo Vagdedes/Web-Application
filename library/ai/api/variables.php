@@ -1,5 +1,18 @@
 <?php
 
+class AIField
+{
+    public const
+        INTEGER = array("type" => 1, "name" => "32-bit integer"),
+        STRING = array("type" => 2, "name" => "string"),
+        DECIMAL = array("type" => 3, "name" => "64-bit double"),
+        BOOLEAN = array("type" => 4, "name" => "boolean"),
+        ARRAY = array("type" => 5, "name" => "raw JSON format"),
+        OBJECT = array("type" => 6, "name" => "raw JSON format");
+
+    public const NULL_LENGTH = 64;
+}
+
 class AIParameterType
 {
     public const

@@ -5,7 +5,9 @@ class AIManager
     private array $models, $parameters, $lastParameters;
     private string $apiKey;
 
-    public function __construct(int|string $modelFamily, string $apiKey, array $parameters = [])
+    public function __construct(int|string $modelFamily,
+                                string     $apiKey,
+                                array      $parameters = [])
     {
         $query = get_sql_query(
             AIDatabaseTable::AI_MODELS,
@@ -73,7 +75,10 @@ class AIManager
     }
 
     // 1: Success, 2: Model, 3: Reply, 4: Case
-    public function getResult(int|string $hash, array $parameters = [], int $length = 0, int $timeoutSeconds = 0): array
+    public function getResult(int|string $hash,
+                              array      $parameters = [],
+                              int        $length = 0,
+                              int        $timeoutSeconds = 0): array
     {
         if (!empty($this->models)) {
             $model = null;
