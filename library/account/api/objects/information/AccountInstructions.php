@@ -14,7 +14,7 @@ class AccountInstructions
         $extra,
         $deleteExtra,
         $containsCache;
-    private ?ManagerAI $managerAI;
+    private ?AIManager $managerAI;
 
     public function __construct(Account $account)
     {
@@ -44,7 +44,7 @@ class AccountInstructions
         }
     }
 
-    public function setAI(?ManagerAI $chatAI): void
+    public function setAI(?AIManager $chatAI): void
     {
         $this->managerAI = $chatAI;
         $this->getPublic();

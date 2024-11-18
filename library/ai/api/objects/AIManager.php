@@ -1,6 +1,6 @@
 <?php
 
-class ManagerAI
+class AIManager
 {
     private array $models, $parameters, $lastParameters;
     private string $apiKey;

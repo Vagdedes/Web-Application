@@ -265,7 +265,7 @@ class AIModel
                 return ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0.0))
                     + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0.0));
             case AIModelFamily::DALLE_3:
-                if ($object instanceof ManagerAI
+                if ($object instanceof AIManager
                     && !empty($this->pricing)) {
                     $parameters = $object->getAllParameters();
 
@@ -294,7 +294,7 @@ class AIModel
                 return null;
             case AIModelFamily::OPENAI_TTS:
             case AIModelFamily::OPENAI_TTS_HD:
-                if ($object instanceof ManagerAI) {
+                if ($object instanceof AIManager) {
                     return strlen($object->getAllParameters()["input"] ?? "") *
                         ($this?->sent_token_cost ?? 0.0);
                 } else {
