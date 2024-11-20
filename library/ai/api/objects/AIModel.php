@@ -153,6 +153,38 @@ class AIModel
 
     // Separator
 
+    public function getRightAiInformation(mixed $object, bool $multiple = false): mixed
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::CHAT_GPT:
+            case AIModelFamily::CHAT_GPT_PRO:
+            case AIModelFamily::OPENAI_O1:
+            case AIModelFamily::OPENAI_O1_MINI:
+            case AIModelFamily::OPENAI_VISION:
+            case AIModelFamily::OPENAI_VISION_PRO:
+            case AIModelFamily::OPENAI_SOUND:
+                if ($multiple) {
+                    return $this->getTexts($object);
+                } else {
+                    return $this->getText($object);
+                }
+            case AIModelFamily::DALL_E_3:
+            case AIModelFamily::DALL_E_2:
+                if ($multiple) {
+                    return $this->getImages($object);
+                } else {
+                    return $this->getImage($object);
+                }
+            case AIModelFamily::OPENAI_TTS:
+            case AIModelFamily::OPENAI_TTS_HD:
+                return $this->getSpeech($object);
+            default:
+                return null;
+        }
+    }
+
+    // Separator
+
     public function getText(?object $object): ?string
     {
         switch ($this->familyID) {
@@ -238,6 +270,11 @@ class AIModel
             default:
                 return null;
         }
+    }
+
+    public function getSpeeches(mixed $object): mixed
+    {
+        return $this->getSpeech($object); // Not implemented by third-party company yet
     }
 
     public function getCost(mixed $object): ?float

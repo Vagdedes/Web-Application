@@ -26,7 +26,7 @@ class AIHelper
     // Separator
 
     private static function requestAIFieldString(string $type, string $null): string
-    {
+    { // todo (github)
         return "YOU MUST ONLY AND STRICTLY RETURN AN ANSWER CONSISTING OF A '" . $type
             . "' BASED ON THE USER'S CONTENT OR '" . $null . "' IF IMPOSSIBLE TO CALCULATE THE ANSWER.";
     }
