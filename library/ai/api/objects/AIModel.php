@@ -177,7 +177,11 @@ class AIModel
                 }
             case AIModelFamily::OPENAI_TTS:
             case AIModelFamily::OPENAI_TTS_HD:
-                return $this->getSpeech($object);
+                if ($multiple) {
+                    return $this->getSpeeches($object);
+                } else {
+                    return $this->getSpeech($object);
+                }
             default:
                 return null;
         }
