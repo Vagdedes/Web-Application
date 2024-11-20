@@ -191,11 +191,13 @@ class AccountInstructions
             }
             return $mix;
         } else {
-            return str_replace(
-                InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
-                $objectValue,
-                $mix === null ? "" : $mix
-            );
+            return $mix === null
+                ? ""
+                : str_replace(
+                    InformationPlaceholder::STARTER . $objectKey . InformationPlaceholder::ENDER,
+                    $objectValue,
+                    $mix
+                );
         }
     }
 
@@ -217,20 +219,16 @@ class AccountInstructions
         if (!empty($callables)) {
             foreach ($callables as $callableKey => $callable) {
                 try {
-                    try {
-                        $callable = $callable();
-                    } catch (Throwable $e) {
-                        $callable = false;
-                        var_dump($e->getTraceAsString());
-                    }
-                    $array = $this->deepReplace(
-                        $array,
-                        $callableKey,
-                        $callable
-                    );
+                    $callable = $callable();
                 } catch (Throwable $e) {
+                    $callable = false;
                     var_dump($e->getTraceAsString());
                 }
+                $array = $this->deepReplace(
+                    $array,
+                    $callableKey,
+                    $callable
+                );
             }
         }
         if (!empty($this->extra)) {
