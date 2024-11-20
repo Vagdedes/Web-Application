@@ -3,7 +3,13 @@
 class AccountInstructions
 {
 
-    private const AI_HASH = 596802337;
+    private const
+        AI_HASH = 596802337,
+        keepDatabaseKeys = [
+        "priority",
+        "information_value",
+        "creation_reason",
+    ];
 
     private Account $account;
     private ?array
@@ -85,30 +91,41 @@ class AccountInstructions
                 } else {
                     $value = clear_array_null_keys($value);
                 }
-                $json = @json_encode($value);
+                $object = new stdClass();
+                $object->{$key} = $value;
+                $json = @json_encode($object);
 
                 if ($json !== false) {
-                    return "Start of '$key':\n"
-                        . $json
-                        . "\nEnd of '$key'";
+                    return $json;
                 } else {
                     return null;
                 }
             } else {
-                return "Start of '$key':\n"
-                    . $value
-                    . "\nEnd of '$key'";
+                $object = new stdClass();
+                $object->{$key} = $value;
+                $json = @json_encode($object);
+
+                if ($json !== false) {
+                    return $json;
+                } else {
+                    return null;
+                }
             }
         } else {
             return null;
         }
     }
 
-    public function addExtra(string $key, mixed $value, bool $delete = false): void
+    public function addExtra(string $key, mixed $value, bool $delete = false, bool $checkValueForConcurrency = false): void
     {
         $extra = $this->buildExtra($key, $value);
 
         if ($extra !== null) {
+            if ($checkValueForConcurrency && !empty($this->extra)) {
+                if (in_array($extra, $this->extra)) {
+                    return;
+                }
+            }
             $this->extra[$key] = $extra;
 
             if ($delete) {
@@ -128,7 +145,7 @@ class AccountInstructions
         unset($this->deleteExtra[$key]);
     }
 
-    public function autoRemoveExtra(): void
+    private function autoRemoveExtra(): void
     {
         foreach (array_keys($this->deleteExtra) as $key) {
             $this->removeExtra($key);
@@ -208,6 +225,7 @@ class AccountInstructions
             }
         }
         if ($extra && !empty($this->extra)) {
+            $this->autoRemoveExtra();
             $array = array_merge($array, $this->extra);
         }
         return $array;
@@ -229,7 +247,7 @@ class AccountInstructions
                     $doc = $html;
                 }
 
-                if (is_string($doc) && !empty($doc)) {
+                if (!empty($doc)) {
                     $containsKeywords = null;
 
                     if (!empty($this->replacements)) {
@@ -242,8 +260,7 @@ class AccountInstructions
                         }
                     }
                     if ($row->auto_contains !== null
-                        && $this->managerAI !== null
-                        && $this->managerAI->exists()) {
+                        && $this?->managerAI->exists()) {
                         $result = $this->managerAI->getResult(
                             self::AI_HASH,
                             array(
@@ -406,11 +423,6 @@ class AccountInstructions
                     }
 
                     if ($doc !== null) {
-                        $doc = $this->buildExtra(
-                            $row->information_url
-                            . ($row->creation_reason !== null ? " (aka " . $row->creation_reason . ")" : ""),
-                            $doc
-                        );
                         if (false && $row->sub_directories !== null) {
                             $links = get_urls_from_string($url);
 
@@ -425,17 +437,25 @@ class AccountInstructions
                                         $url = $this->getRawURLData($link);
 
                                         if ($url !== null) {
-                                            $doc .= ($row->prefix ?? "")
-                                                . "Start of '" . $link . "':\n"
-                                                . @json_encode($url)
-                                                . "\nEnd of '" . $link . "'"
-                                                . ($row->suffix ?? "");
+                                            $object = new stdClass();
+                                            $object->{$link} = $url;
+                                            $json = @json_encode($object);
+
+                                            if ($json !== false) {
+                                                $doc .= $json;
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                         $row->information_value = $doc;
+
+                        foreach ($row as $key => $value) {
+                            if (!in_array($key, self::keepDatabaseKeys)) {
+                                unset($row->{$key});
+                            }
+                        }
                         $array[$arrayKey] = $row;
                     } else if ($row->information_value === null) {
                         unset($array[$arrayKey]);

@@ -28,7 +28,7 @@ class AIHelper
     private static function requestAIFieldString(string $type, string $null): string
     {
         return "YOU MUST ONLY AND STRICTLY RETURN AN ANSWER CONSISTING OF A '" . $type
-            . "' BASED ON THE USER'S CONTENT OR '" . $null . "'.";
+            . "' BASED ON THE USER'S CONTENT OR '" . $null . "' IF IMPOSSIBLE TO CALCULATE THE ANSWER.";
     }
 
     public static function requestAIField(array $fieldType): array
