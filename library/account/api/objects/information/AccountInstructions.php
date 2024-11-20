@@ -233,8 +233,10 @@ class AccountInstructions
                 }
             }
         }
-        if ($extra && !empty($this->extra)) {
-            $array = array_merge($array, $this->extra);
+        if (!empty($this->extra)) {
+            if ($extra) {
+                $array = array_merge($array, $this->extra);
+            }
             $this->autoRemoveExtra();
         }
         return $array;
