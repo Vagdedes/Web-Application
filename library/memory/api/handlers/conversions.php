@@ -5,6 +5,11 @@ function manipulate_memory_key(mixed $key): bool|string
     return $key === null ? false : serialize(is_object($key) ? get_object_vars($key) : $key);
 }
 
+function build_memory_key(string $parent, string $child): string
+{
+    return $parent . $child;
+}
+
 function manipulate_memory_date(mixed $cooldown, int $maxTime = 86400)
 {
     if ($cooldown === null) {

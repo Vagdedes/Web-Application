@@ -28,26 +28,24 @@ class AccountInstructions
         $this->extra = array();
         $this->deleteExtra = array();
         $this->containsCache = array();
+        $this->replacements = array();
         $this->localInstructions = null;
         $this->publicInstructions = null;
-        $this->replacements = null;
     }
 
     private function cacheReplacements(): void
     {
-        if ($this->replacements === null) {
-            $this->replacements = get_sql_query(
-                InstructionsTable::REPLACEMENTS,
+        $this->replacements = get_sql_query(
+            InstructionsTable::REPLACEMENTS,
+            null,
+            array(
+                array("deletion_date", null),
                 null,
-                array(
-                    array("deletion_date", null),
-                    null,
-                    array("expiration_date", "IS", null, 0),
-                    array("expiration_date", ">", get_current_date()),
-                    null
-                )
-            );
-        }
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
+            )
+        );
     }
 
     public function setAI(?AIManager $chatAI): void

@@ -123,7 +123,11 @@ class IndividualMemoryBlock
     {
         global $memory_reserved_keys;
         $this->originalKey = $key;
-        $this->key = is_integer($key) ? $key : string_to_integer($key);
+        $this->key = is_integer($key)
+            ? $key
+            : (is_object($key) || is_array($key)
+                ? array_to_integer($key)
+                : string_to_integer($key));
         $this->modify = !in_array($this->key, $memory_reserved_keys);
     }
 

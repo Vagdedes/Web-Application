@@ -9,7 +9,7 @@ function has_memory_limit(mixed $key, int|string $countLimit, int|string|null $f
 
         if ($futureTime !== null) {
             global $memory_reserved_names;
-            $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[1] . $key);
+            $memoryBlock = new IndividualMemoryBlock(build_memory_key($memory_reserved_names[1], $key));
             $object = $memoryBlock->get();
 
             if ($object !== null && isset($object->original_expiration) && isset($object->count)) {
@@ -40,7 +40,7 @@ function has_memory_cooldown(mixed $key, int|string|null $futureTime = null,
 
         if ($futureTime !== null) {
             global $memory_reserved_names;
-            $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[0] . $key);
+            $memoryBlock = new IndividualMemoryBlock(build_memory_key($memory_reserved_names[0], $key));
 
             if (!$force && $memoryBlock->exists()) {
                 return true;
@@ -62,7 +62,7 @@ function get_key_value_pair(mixed $key, mixed $temporaryRedundancyValue = null)
 
     if ($key !== false) {
         global $memory_reserved_names;
-        $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[2] . $key);
+        $memoryBlock = new IndividualMemoryBlock(build_memory_key($memory_reserved_names[2], $key));
         $object = $memoryBlock->get();
 
         if ($object !== null) {
@@ -84,7 +84,7 @@ function set_key_value_pair(mixed $key, mixed $value = null, int|string|null $fu
 
         if ($futureTime !== null) {
             global $memory_reserved_names;
-            $memoryBlock = new IndividualMemoryBlock($memory_reserved_names[2] . $key);
+            $memoryBlock = new IndividualMemoryBlock(build_memory_key($memory_reserved_names[2], $key));
             return $memoryBlock->set($value, $futureTime);
         }
     }
@@ -121,7 +121,6 @@ function clear_memory(?array     $keys = null,
                             if (is_array($key)) {
                                 foreach ($key as $subKey) {
                                     if (!str_contains($memoryKey, $subKey)) {
-                                        //var_dump($memoryKey);
                                         continue 2;
                                     }
                                 }
@@ -157,8 +156,7 @@ function clear_memory(?array     $keys = null,
 
             foreach ($memory_reserved_names as $name) {
                 foreach ($keys as $key) {
-                    $name .= $key;
-                    $memoryBlock = new IndividualMemoryBlock($name);
+                    $memoryBlock = new IndividualMemoryBlock(build_memory_key($name, $key));
                     $memoryBlock->delete();
                 }
             }
