@@ -215,13 +215,12 @@ class AccountInstructions
                 );
             }
         }
-
         if (!empty($callables)) {
             foreach ($callables as $callableKey => $callable) {
                 try {
                     $callable = $callable();
                 } catch (Throwable $e) {
-                    $callable = false;
+                    $callable = null;
                     var_dump($e->getTraceAsString());
                 }
                 $array = $this->deepReplace(
