@@ -10,10 +10,16 @@ class AIManager
                                 string $apiKey,
                                 array  $parameters = [])
     {
+        $this->typeID = -1;
         $this->familyID = $familyID;
+        $this->apiKey = $apiKey;
+        $this->parameters = $parameters;
+        $this->lastParameters = array();
+        $this->models = array();
+
         $query = get_sql_query(
             AIDatabaseTable::AI_MODELS,
-            array("id"),
+            null,
             array(
                 array("family", $familyID),
                 array("deletion_date", null),
@@ -22,24 +28,15 @@ class AIManager
         );
 
         if (!empty($query)) {
-            $this->typeID = -1;
-            $this->models = array();
-
             foreach ($query as $row) {
                 if ($this->typeID === -1) {
                     $this->typeID = $row->type;
                 }
-                $model = new AIModel($row->id);
+                $model = new AIModel($row);
 
                 if ($model->exists()) {
                     $this->models[$model->getContext()] = $model;
                 }
-            }
-
-            if (!empty($this->models)) {
-                $this->apiKey = $apiKey;
-                $this->parameters = $parameters;
-                $this->lastParameters = array();
             }
         }
     }

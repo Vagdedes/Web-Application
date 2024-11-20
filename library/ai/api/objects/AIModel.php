@@ -10,79 +10,65 @@ class AIModel
     private bool $exists;
     private array $pricing;
 
-    public function __construct(int|string $modelID)
+    public function __construct(object $row)
     {
-        $query = get_sql_query(
-            AIDatabaseTable::AI_MODELS,
+        $queryChild = get_sql_query(
+            AIDatabaseTable::AI_PARAMETERS,
             null,
             array(
-                array("id", $modelID),
+                array("id", $row->parameter_id),
+                array("deletion_date", null),
             ),
             null,
             1
         );
 
-        if (!empty($query)) {
-            $query = $query[0];
+        if (!empty($queryChild)) {
+            $this->parameter = $queryChild[0];
+
             $queryChild = get_sql_query(
-                AIDatabaseTable::AI_PARAMETERS,
+                AIDatabaseTable::AI_CURRENCIES,
                 null,
                 array(
-                    array("id", $query->parameter_id),
+                    array("id", $row->currency_id),
                     array("deletion_date", null),
                 ),
                 null,
                 1
             );
-
             if (!empty($queryChild)) {
-                $this->parameter = $queryChild[0];
-
-                $queryChild = get_sql_query(
-                    AIDatabaseTable::AI_CURRENCIES,
+                $this->exists = true;
+                $this->currency = $queryChild[0];
+                $this->modelID = $row->id;
+                $this->typeID = $row->type;
+                $this->familyID = $row->family;
+                $this->context = $row->context;
+                $this->requestUrl = $row->request_url;
+                $this->codeKey = $row->code_key;
+                $this->code = $row->code;
+                $this->received_token_cost = $row->received_token_cost;
+                $this->sent_token_cost = $row->sent_token_cost;
+                $pricing = get_sql_query(
+                    AIDatabaseTable::AI_PRICING,
                     null,
                     array(
-                        array("id", $query->currency_id),
-                        array("deletion_date", null),
-                    ),
-                    null,
-                    1
+                        array("model_id", $row->id),
+                        array("deletion_date", null)
+                    )
                 );
-                if (!empty($queryChild)) {
-                    $this->exists = true;
-                    $this->currency = $queryChild[0];
-                    $this->modelID = $query->id;
-                    $this->typeID = $query->type;
-                    $this->familyID = $query->family;
-                    $this->context = $query->context;
-                    $this->requestUrl = $query->request_url;
-                    $this->codeKey = $query->code_key;
-                    $this->code = $query->code;
-                    $this->received_token_cost = $query->received_token_cost;
-                    $this->sent_token_cost = $query->sent_token_cost;
-                    $pricing = get_sql_query(
-                        AIDatabaseTable::AI_PRICING,
-                        null,
-                        array(
-                            array("id", $modelID),
-                            array("deletion_date", null)
-                        )
-                    );
 
-                    if (!empty($pricing)) {
-                        foreach ($pricing as $item) {
-                            if (array_key_exists($item->parameter_family, $pricing)) {
-                                $pricing[$item->parameter_family][] = $item;
-                            } else {
-                                $pricing[$item->parameter_family] = array($item);
-                            }
+                if (!empty($pricing)) {
+                    $pricingArray = array();
+
+                    foreach ($pricing as $item) {
+                        if (array_key_exists($item->parameter_family, $pricingArray)) {
+                            $pricingArray[$item->parameter_family][] = $item;
+                        } else {
+                            $pricingArray[$item->parameter_family] = array($item);
                         }
-                        $this->pricing = $pricing;
-                    } else {
-                        $this->pricing = array();
                     }
+                    $this->pricing = $pricingArray;
                 } else {
-                    $this->exists = false;
                     $this->pricing = array();
                 }
             } else {
