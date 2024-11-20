@@ -6,9 +6,12 @@ class AccountInstructions
     private const
         AI_HASH = 596802337,
         keepDatabaseKeys = [
+        "id",
         "priority",
+        "information",
+        "information_url",
         "information_value",
-        "creation_reason",
+        "creation_reason"
     ];
 
     private Account $account;
