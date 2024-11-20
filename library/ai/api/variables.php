@@ -45,7 +45,8 @@ class AIModelFamily
 
     // Text to Image
     public const
-        DALLE_3 = 5;
+        DALL_E_3 = 5,
+        DALL_E_2 = 12;
 
     // Text to Speech
     public const

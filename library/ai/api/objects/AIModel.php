@@ -216,7 +216,8 @@ class AIModel
     public function getImage(mixed $object): ?string
     {
         switch ($this->familyID) {
-            case AIModelFamily::DALLE_3:
+            case AIModelFamily::DALL_E_3:
+            case AIModelFamily::DALL_E_2:
                 return $object?->data[0]?->url;
             default:
                 return null;
@@ -226,7 +227,8 @@ class AIModel
     public function getImages(mixed $object): array
     {
         switch ($this->familyID) {
-            case AIModelFamily::DALLE_3:
+            case AIModelFamily::DALL_E_3:
+            case AIModelFamily::DALL_E_2:
                 $array = $object?->data;
                 $images = array();
 
@@ -264,7 +266,8 @@ class AIModel
             case AIModelFamily::OPENAI_SOUND:
                 return ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0.0))
                     + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0.0));
-            case AIModelFamily::DALLE_3:
+            case AIModelFamily::DALL_E_3:
+            case AIModelFamily::DALL_E_2:
                 if ($object instanceof AIManager
                     && !empty($this->pricing)) {
                     $parameters = $object->getAllParameters();

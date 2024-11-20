@@ -2,27 +2,33 @@
 
 class AIManager
 {
+    private int $typeID, $familyID;
     private array $models, $parameters, $lastParameters;
     private string $apiKey;
 
-    public function __construct(int|string $modelFamily,
-                                string     $apiKey,
-                                array      $parameters = [])
+    public function __construct(int    $familyID,
+                                string $apiKey,
+                                array  $parameters = [])
     {
+        $this->familyID = $familyID;
         $query = get_sql_query(
             AIDatabaseTable::AI_MODELS,
             array("id"),
             array(
-                array("family", $modelFamily),
+                array("family", $familyID),
                 array("deletion_date", null),
             ),
             "sent_token_cost, received_token_cost DESC, context ASC"
         );
 
         if (!empty($query)) {
+            $this->typeID = -1;
             $this->models = array();
 
             foreach ($query as $row) {
+                if ($this->typeID === -1) {
+                    $this->typeID = $row->type;
+                }
                 $model = new AIModel($row->id);
 
                 if ($model->exists()) {
@@ -56,6 +62,21 @@ class AIManager
     public function getAllParameters(): array
     {
         return array_merge($this->parameters, $this->lastParameters);
+    }
+
+    public function getModels(): array
+    {
+        return $this->models;
+    }
+
+    public function getTypeID(): int
+    {
+        return $this->typeID;
+    }
+
+    public function getFamilyID(): int
+    {
+        return $this->familyID;
     }
 
     public function getHistory(int|string $hash, ?int $limit = 0): array
