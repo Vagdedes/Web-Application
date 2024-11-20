@@ -82,7 +82,7 @@ class AccountInstructions
 
     // Separator
 
-    public function buildExtra(string $key, mixed $value): ?string
+    public function buildExtra(?string $key, mixed $value): ?string
     {
         if (!empty($value)) {
             if (is_object($value) || is_array($value)) {
@@ -91,9 +91,13 @@ class AccountInstructions
                 } else {
                     $value = clear_array_null_keys($value);
                 }
-                $object = new stdClass();
-                $object->{$key} = $value;
-                $json = @json_encode($object);
+                if ($key === null) {
+                    $json = @json_encode($value);
+                } else {
+                    $object = new stdClass();
+                    $object->{$key} = $value;
+                    $json = @json_encode($object);
+                }
 
                 if ($json !== false) {
                     return $json;
@@ -101,9 +105,13 @@ class AccountInstructions
                     return null;
                 }
             } else {
-                $object = new stdClass();
-                $object->{$key} = $value;
-                $json = @json_encode($object);
+                if ($key === null) {
+                    $json = @json_encode($value);
+                } else {
+                    $object = new stdClass();
+                    $object->{$key} = $value;
+                    $json = @json_encode($object);
+                }
 
                 if ($json !== false) {
                     return $json;
@@ -118,7 +126,7 @@ class AccountInstructions
 
     public function addExtra(string $key, mixed $value, bool $delete = false, bool $checkValueForConcurrency = false): void
     {
-        $extra = $this->buildExtra($key, $value);
+        $extra = $this->buildExtra(null, $value);
 
         if ($extra !== null) {
             if ($checkValueForConcurrency && !empty($this->extra)) {
@@ -225,8 +233,8 @@ class AccountInstructions
             }
         }
         if ($extra && !empty($this->extra)) {
-            $this->autoRemoveExtra();
             $array = array_merge($array, $this->extra);
+            $this->autoRemoveExtra();
         }
         return $array;
     }
