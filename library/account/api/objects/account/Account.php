@@ -30,6 +30,7 @@ class Account
     private TwoFactorAuthentication $twoFactorAuthentication;
     private PaymentProcessor $paymentProcessor;
     private AccountInstructions $instructions;
+    private AccountTeam $team;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -52,6 +53,7 @@ class Account
         $this->notifications = new AccountNotifications($this);
         $this->phoneNumber = new AccountPhoneNumber($this);
         $this->patreon = new AccountPatreon($this);
+        $this->team = new AccountTeam($this);
 
         // Partial
         $this->email = new AccountEmail($this);
@@ -363,6 +365,11 @@ class Account
     public function getRegistry(): AccountRegistry
     {
         return $this->registry;
+    }
+
+    public function getTeam(): AccountTeam
+    {
+        return $this->team;
     }
 
     public function getPaymentProcessor(): PaymentProcessor

@@ -38,6 +38,7 @@ require_once '/var/www/.structure/library/account/api/objects/communication/Acco
 require_once '/var/www/.structure/library/account/api/objects/correlation/AcceptedAccount.php';
 require_once '/var/www/.structure/library/account/api/objects/correlation/AccountAccounts.php';
 require_once '/var/www/.structure/library/account/api/objects/correlation/AccountIdentification.php';
+require_once '/var/www/.structure/library/account/api/objects/correlation/AccountTeam.php';
 
 // Finance
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountTransactions.php';
