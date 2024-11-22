@@ -11,6 +11,7 @@ class AccountInstructions
         "information",
         "information_url",
         "information_value",
+        "information_expiration",
         "creation_reason"
     ];
 
