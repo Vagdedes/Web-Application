@@ -1,10 +1,15 @@
 <?php
-$license_management_table = "gameCloud.managedLicenses";
-$punished_players_table = "gameCloud.punishedPlayers";
-$configuration_changes_table = "gameCloud.automaticConfigurationChanges";
-$disabled_detections_table = "gameCloud.disabledDetections";
-$connection_count_table = "gameCloud.connectionCount";
-$accepted_purposes_table = "gameCloud.acceptedPurposes";
-$failed_discord_webhooks_table = "gameCloud.failedDiscordWebhooks";
-$accepted_platforms_table = "gameCloud.acceptedPlatforms";
-$staff_announcements_table = "gameCloud.staffAnnouncements";
+
+class GameCloudVariables
+{
+    public const
+        LICENSE_MANAGEMENT_TABLE = "gameCloud.managedLicenses",
+        PUNISHED_PLAYERS_TABLE = "gameCloud.punishedPlayers",
+        CONFIGURATION_CHANGES_TABLE = "gameCloud.automaticConfigurationChanges",
+        DISABLED_DETECTIONS_TABLE = "gameCloud.disabledDetections",
+        CONNECTION_COUNT_TABLE = "gameCloud.connectionCount",
+        ACCEPTED_PURPOSES_TABLE = "gameCloud.acceptedPurposes",
+        FAILED_DISCORD_WEBHOOKS_TABLE = "gameCloud.failedDiscordWebhooks",
+        ACCEPTED_PLATFORMS_TABLE = "gameCloud.acceptedPlatforms",
+        STAFF_ANNOUNCEMENTS_TABLE = "gameCloud.staffAnnouncements";
+}

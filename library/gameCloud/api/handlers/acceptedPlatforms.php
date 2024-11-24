@@ -3,11 +3,10 @@
 function get_accepted_platforms(?array     $select = null, int|string $id = null,
                                 int|string $acceptedAccountID = null): array
 {
-    global $accepted_platforms_table;
     $hasID = $id !== null;
     $hasAcceptedAccountID = $acceptedAccountID !== null;
     return get_sql_query(
-        $accepted_platforms_table,
+        GameCloudVariables::ACCEPTED_PLATFORMS_TABLE,
         $select,
         array(
             array("deletion_date", null),

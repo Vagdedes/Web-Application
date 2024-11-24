@@ -44,8 +44,6 @@ class AccountProduct
         $isEmpty = empty($array);
 
         if (!$isEmpty) {
-            global $website_domain;
-
             foreach ($array as $arrayKey => $object) {
                 if ($accountExists || $object->requires_account === null) {
                     $uniquePatreonTiers = array();
@@ -270,7 +268,6 @@ class AccountProduct
                         $object->minimum_supported_version = null;
                         $object->supported_versions = array();
                     } else {
-                        $object->download_placeholder = $website_domain . "/api/v1/product/downloadFile/";
                         $downloads = array();
                         $object->supported_versions = array();
 

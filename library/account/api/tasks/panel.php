@@ -168,7 +168,7 @@ if (is_private_connection()) {
                 );
 
                 switch ($table) {
-                    case $license_management_table:
+                    case GameCloudVariables::LICENSE_MANAGEMENT_TABLE:
                         $array[] = array("number", $licenseID);
                         break;
                     default:
@@ -904,7 +904,7 @@ if (is_private_connection()) {
 
         $disabledDetectionsArray = array();
         $disabledDetectionsQuery = get_sql_query(
-            $disabled_detections_table,
+            GameCloudVariables::DISABLED_DETECTIONS_TABLE,
             array("detections"),
             array(
                 array("license_id", $licenseID),

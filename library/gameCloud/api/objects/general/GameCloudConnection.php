@@ -6,9 +6,8 @@ class GameCloudConnection
 
     public function __construct(int|string $reason, string $key = "name")
     {
-        global $accepted_purposes_table;
         $query = get_sql_query(
-            $accepted_purposes_table,
+            GameCloudVariables::ACCEPTED_PURPOSES_TABLE,
             null,
             array(
                 array($key, $reason),

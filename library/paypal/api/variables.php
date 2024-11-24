@@ -1,13 +1,16 @@
 <?php
-$paypal_credentials_directory = "paypal_credentials";
 
-$paypal_transactions_search_keys = array("L_NAME0", "CUSTOM", "SUBJECT");
+class PayPalVariables
+{
+    public const
+        CREDENTIALS_DIRECTORY = "paypal_credentials",
 
-$paypal_successful_transactions_table = "paypal.successfulTransactions";
-$paypal_failed_transactions_table = "paypal.failedTransactions";
-$paypal_transactions_queue_table = "paypal.queue";
-$paypal_suspended_transactions_table = "paypal.suspendedTransactions";
+        SUCCESSFUL_TRANSACTIONS_TABLE = "paypal.successfulTransactions",
+        FAILED_TRANSACTIONS_TABLE = "paypal.failedTransactions",
+        TRANSACTIONS_QUEUE_TABLE = "paypal.queue",
+        SUSPENDED_TRANSACTIONS_TABLE = "paypal.suspendedTransactions",
 
-$paypal_me_url = "https://paypal.me/";
-$paypal_me_name_personal = "EvangelosBilling";
-$paypal_me_name_business = "IdealisticAI";
+        ME_URL = "https://paypal.me/",
+        ME_NAME_PERSONAL = "EvangelosBilling",
+        ME_NAME_BUSINESS = "IdealisticAI";
+}

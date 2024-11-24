@@ -8,9 +8,8 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
 
     // Verify pointer
     if (!is_phone_number($phonePointer)) {
-        global $phone_failed_executions_table;
         $code = 437892495;
-        sql_insert($phone_failed_executions_table, get_phone_execution_insert_details(
+        sql_insert(PhoneVariables::FAILED_EXECUTIONS_TABLE, get_phone_execution_insert_details(
             $planID,
             null,
             null,
@@ -25,18 +24,18 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
     $informationPlaceholder = new InformationPlaceholder();
 
     if (is_array($details)) {
-        global $phone_default_company_name, $phone_default_email_name;
+        global $phone_default_email_name;
         $informationPlaceholder->setAll($details);
         $informationPlaceholder->addAll(array(
             "defaultDomainName" => get_domain(),
-            "defaultCompanyName" => $phone_default_company_name,
+            "defaultCompanyName" => PhoneVariables::DEFAULT_COMPANY_NAME,
             "defaultEmailName" => $phone_default_email_name
         ));
     } else {
-        global $phone_default_company_name, $phone_default_email_name;
+        global $phone_default_email_name;
         $informationPlaceholder->setAll(array(
             "defaultDomainName" => get_domain(),
-            "defaultCompanyName" => $phone_default_company_name,
+            "defaultCompanyName" => PhoneVariables::DEFAULT_COMPANY_NAME,
             "defaultEmailName" => $phone_default_email_name
         ));
     }
@@ -62,11 +61,10 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
     if (has_memory_cooldown($cacheKey, "1 second")) {
         return 985064734;
     }
-    global $phone_plans_table;
 
     // Find plan
     $query = get_sql_query(
-        $phone_plans_table,
+        PhoneVariables::PLANS_TABLE,
         array("id", "test", "redundant", "comments", "contents", "default_cooldown"),
         array(
             array("name", $planID),
@@ -81,9 +79,8 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
     );
 
     if (empty($query)) {
-        global $phone_failed_executions_table;
         $code = 342432524;
-        sql_insert($phone_failed_executions_table, get_phone_execution_insert_details(
+        sql_insert(PhoneVariables::FAILED_EXECUTIONS_TABLE, get_phone_execution_insert_details(
             $planID,
             null,
             null,
@@ -93,7 +90,6 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
         ));
         return $code;
     }
-    global $phone_executions_table, $phone_storage_table, $phone_exemptions_table;
     $executed = array();
     $planObject = $query[0];
     $planID = $planObject->id;
@@ -102,7 +98,7 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
     // Load executions
     if (!$isTest && $planObject->redundant === null) {
         $query = get_sql_query(
-            $phone_executions_table,
+            PhoneVariables::EXECUTIONS_TABLE,
             array("phone_id", "cooldown_expiration_date"),
             array(
                 array("plan_id", $planID),
@@ -130,7 +126,7 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
 
     foreach (explode(",", $phonePointer) as $key => $individual) {
         $queryResults = get_sql_query(
-            $phone_storage_table,
+            PhoneVariables::STORAGE_TABLE,
             array("id", "test"),
             array(
                 array("phone_number", $individual),
@@ -142,7 +138,7 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
         if (empty($queryResults)) {
             insert_new_phone_number($phonePointer, $isTest);
             $queryResults = get_sql_query(
-                $phone_storage_table,
+                PhoneVariables::STORAGE_TABLE,
                 array("id", "phone_number"),
                 array(
                     array("phone_number", $individual),
@@ -171,7 +167,7 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
             }
         } else {
             $queryChild = get_sql_query(
-                $phone_exemptions_table,
+                PhoneVariables::EXEMPTIONS_TABLE,
                 array(),
                 array(
                     array("plan_id", $planID),
@@ -241,8 +237,8 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
     }
 
     // Load blacklisted phone numbers
-    global $phone_blacklist_table, $phone_failed_executions_table;
-    $query = get_sql_query($phone_blacklist_table,
+    $query = get_sql_query(
+        PhoneVariables::BLACKLIST_TABLE,
         array("phone_number", "identification_method"),
         array(
             array("deletion_date", null)
@@ -287,11 +283,11 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
                 has_memory_cooldown($cacheKey, $cooldown, true, true);
             }
             if (array_key_exists($credential, $databaseInsertions)) {
-                sql_insert($phone_executions_table, $databaseInsertions[$credential]);
+                sql_insert(PhoneVariables::EXECUTIONS_TABLE, $databaseInsertions[$credential]);
             }
         } else {
             $databaseInsertions[$credential]["error"] = $execution;
-            sql_insert($phone_failed_executions_table, $databaseInsertions[$credential]);
+            sql_insert(PhoneVariables::FAILED_EXECUTIONS_TABLE, $databaseInsertions[$credential]);
         }
     }
     return 1;
@@ -299,9 +295,8 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
 
 function insert_new_phone_number(int|string $number, bool $test): bool
 {
-    global $phone_storage_table;
     $array = get_sql_query(
-        $phone_storage_table,
+        PhoneVariables::STORAGE_TABLE,
         array("id"),
         array(
             array("phone_number", $number),
@@ -312,7 +307,7 @@ function insert_new_phone_number(int|string $number, bool $test): bool
 
     if (empty($array)) {
         return sql_insert(
-                $phone_storage_table,
+                PhoneVariables::STORAGE_TABLE,
                 array(
                     "phone_number" => $number,
                     "test" => $test,

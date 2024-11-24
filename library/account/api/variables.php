@@ -5,9 +5,6 @@ if (!isset($administrator_local_server_ip_addresses_table)) { // Already set by 
 }
 $administrator_public_server_ip_addresses_table = "administrator.publicServerIpAddresses";
 
-// E.T.C
-$website_domain = "https://" . get_domain();
-
 class AccountVariables
 {
 

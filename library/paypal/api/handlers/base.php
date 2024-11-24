@@ -7,8 +7,7 @@ $paypal_api_latest_version = 220;
 
 function access_personal_paypal_account(): bool
 {
-    global $paypal_credentials_directory;
-    $paypal_credentials = get_keys_from_file($paypal_credentials_directory, 9);
+    $paypal_credentials = get_keys_from_file(PayPalVariables::CREDENTIALS_DIRECTORY, 9);
 
     if ($paypal_credentials === null) {
         return false;
@@ -22,8 +21,7 @@ function access_personal_paypal_account(): bool
 
 function access_business_paypal_account(): bool
 {
-    global $paypal_credentials_directory;
-    $paypal_credentials = get_keys_from_file($paypal_credentials_directory, 9);
+    $paypal_credentials = get_keys_from_file(PayPalVariables::CREDENTIALS_DIRECTORY, 9);
 
     if ($paypal_credentials === null) {
         return false;
@@ -37,8 +35,7 @@ function access_business_paypal_account(): bool
 
 function access_deactivated_personal_paypal_account(): bool
 {
-    global $paypal_credentials_directory;
-    $paypal_credentials = get_keys_from_file($paypal_credentials_directory, 9);
+    $paypal_credentials = get_keys_from_file(PayPalVariables::CREDENTIALS_DIRECTORY, 9);
 
     if ($paypal_credentials === null) {
         return false;

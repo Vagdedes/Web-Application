@@ -4,9 +4,8 @@ function identify_paypal_suspended_transactions(object|array $transactions): arr
 {
     if (is_array($transactions)) {
         if (!empty($transactions)) {
-            global $paypal_suspended_transactions_table;
             $suspendedLicenses = get_sql_query(
-                $paypal_suspended_transactions_table,
+                PayPalVariables::SUSPENDED_TRANSACTIONS_TABLE,
                 array(
                     "id",
                     "transaction_key",
@@ -93,9 +92,8 @@ function identify_paypal_suspended_transactions(object|array $transactions): arr
 
 function suspend_paypal_transaction(object $transaction, string $reason, bool $coverFees): bool
 {
-    global $paypal_suspended_transactions_table;
     return sql_insert(
-        $paypal_suspended_transactions_table,
+        PayPalVariables::SUSPENDED_TRANSACTIONS_TABLE,
         array(
             "transaction_key" => "PAYERID",
             "identification_method" => "equals",

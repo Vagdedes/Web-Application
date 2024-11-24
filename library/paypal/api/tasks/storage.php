@@ -5,7 +5,6 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
     $processedData = false;
 
     if ($startDays >= 0 && $endDays > 0 && $endDays > $startDays) {
-        global $paypal_failed_transactions_table, $paypal_transactions_queue_table;
         $recentDate = date('Y-m-d', strtotime("-$startDays day")) . "T29:59:59Z";
         $pastDate = date('Y-m-d', strtotime("-$endDays day")) . "T00:00:00Z";
 
@@ -49,7 +48,7 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
                             if (in_array($transactionID, $existingFailedTransactions)) {
                                 if (is_successful_paypal_transaction($transactionID)
                                     && set_sql_query(
-                                        $paypal_failed_transactions_table,
+                                        PayPalVariables::FAILED_TRANSACTIONS_TABLE,
                                         array("deletion_date" => get_current_date()),
                                         array(
                                             array("transaction_id", $transactionID)
@@ -70,7 +69,7 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
 
             // Queue
             $query = get_sql_query(
-                $paypal_transactions_queue_table,
+                PayPalVariables::TRANSACTIONS_QUEUE_TABLE,
                 array(
                     "transaction_id",
                     "id"
@@ -86,7 +85,7 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
                         && !in_array($row->transaction_id, $existingFailedTransactions)
                         && process_successful_paypal_transaction($row->transaction_id)
                         && set_sql_query(
-                            $paypal_transactions_queue_table,
+                            PayPalVariables::TRANSACTIONS_QUEUE_TABLE,
                             array("completed" => true),
                             array(
                                 array("id", $row->id)
@@ -185,9 +184,8 @@ function process_successful_paypal_transaction(int|string $transactionID): bool
             case "Completed":
             case "Pending":
             case "Processing":
-                global $paypal_successful_transactions_table;
                 if (sql_insert(
-                    $paypal_successful_transactions_table,
+                    PayPalVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
                     array(
                         "transaction_id" => $transactionID,
                         "creation_date" => get_current_date(),

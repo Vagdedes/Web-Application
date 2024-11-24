@@ -18,8 +18,6 @@ class GameCloudActions
                                          bool             $avoidRedundantAnnouncements = true): bool
     {
         if (!$checkValidity || $this->user->isValid()) {
-            global $staff_announcements_table;
-
             if ((
                     !$avoidRedundantAnnouncements
                     || empty(get_sql_query(
@@ -35,7 +33,7 @@ class GameCloudActions
                         1
                     ))
                 ) && sql_insert(
-                    $staff_announcements_table,
+                    GameCloudVariables::STAFF_ANNOUNCEMENTS_TABLE,
                     array(
                         "license_id" => $this->user->getLicense(),
                         "platform_id" => $this->user->getPlatform(),
@@ -60,17 +58,16 @@ class GameCloudActions
 
     public function addAutomaticConfigurationChange(int|float|string|null $version,
                                                     string|null           $file,
-                                                    string                $option, int|float|string|bool $value,
+                                                    string                $option, int|float|string|bool|null $value,
                                                     int|string|null       $productID = null,
                                                     bool                  $email = false): bool
     {
-        global $configuration_changes_table;
         $file = str_replace(" ", "_", $file);
         $option = str_replace(" ", "_", $option);
         $licenseID = $this->user->getLicense();
         $platform = $this->user->getPlatform();
         $query = get_sql_query(
-            $configuration_changes_table,
+            GameCloudVariables::CONFIGURATION_CHANGES_TABLE,
             array("id"),
             array(
                 array("license_id", $licenseID),
@@ -87,7 +84,7 @@ class GameCloudActions
 
         if (!empty($query)) {
             if (!set_sql_query(
-                $configuration_changes_table,
+                GameCloudVariables::CONFIGURATION_CHANGES_TABLE,
                 array(
                     "value" => $value === null ? "" : $value,
                     "version" => $version
@@ -101,7 +98,7 @@ class GameCloudActions
                 return false;
             }
         } else if (!sql_insert(
-            $configuration_changes_table,
+            GameCloudVariables::CONFIGURATION_CHANGES_TABLE,
             array(
                 "platform_id" => $platform,
                 "license_id" => $licenseID,
@@ -128,13 +125,12 @@ class GameCloudActions
                                                        string                $option,
                                                        int|string|null       $productID = null): bool
     {
-        global $configuration_changes_table;
         $file = str_replace(" ", "_", $file);
         $option = str_replace(" ", "_", $option);
         $licenseID = $this->user->getLicense();
         $platform = $this->user->getPlatform();
         $query = get_sql_query(
-            $configuration_changes_table,
+            GameCloudVariables::CONFIGURATION_CHANGES_TABLE,
             array("id"),
             array(
                 array("license_id", $licenseID),
@@ -151,7 +147,7 @@ class GameCloudActions
 
         if (!empty($query)
             && !set_sql_query(
-                $configuration_changes_table,
+                GameCloudVariables::CONFIGURATION_CHANGES_TABLE,
                 array(
                     "deletion_date" => get_current_date()
                 ),
@@ -170,12 +166,11 @@ class GameCloudActions
                                          string                $check, int|float|string|bool $detection,
                                          bool                  $email = false): bool
     {
-        global $disabled_detections_table;
         $detection = str_replace(" ", "__", $detection);
         $licenseID = $this->user->getLicense();
         $platform = $this->user->getPlatform();
         $query = get_sql_query(
-            $disabled_detections_table,
+            GameCloudVariables::DISABLED_DETECTIONS_TABLE,
             array("id", "detections"),
             array(
                 array("license_id", $licenseID),
@@ -214,7 +209,7 @@ class GameCloudActions
 
             if (!empty($groupRebuild)) {
                 if (!set_sql_query(
-                    $disabled_detections_table,
+                    GameCloudVariables::DISABLED_DETECTIONS_TABLE,
                     array(
                         "detections" => $groupRebuild
                     ),
@@ -227,7 +222,7 @@ class GameCloudActions
                     return false;
                 }
             } else if (!set_sql_query(
-                $disabled_detections_table,
+                GameCloudVariables::DISABLED_DETECTIONS_TABLE,
                 array(
                     "deletion_date" => get_current_date()
                 ),
@@ -240,7 +235,7 @@ class GameCloudActions
                 return false;
             }
         } else if (!sql_insert(
-            $disabled_detections_table,
+            GameCloudVariables::DISABLED_DETECTIONS_TABLE,
             array(
                 "platform_id" => $platform,
                 "license_id" => $licenseID,
@@ -264,12 +259,11 @@ class GameCloudActions
     public function removeDisabledDetection(int|float|string $pluginVersion, int|float|string $serverVersion,
                                             string           $check, int|float|string|bool $detection): bool
     {
-        global $disabled_detections_table;
         $detection = str_replace(" ", "__", $detection);
         $licenseID = $this->user->getLicense();
         $platform = $this->user->getPlatform();
         $query = get_sql_query(
-            $disabled_detections_table,
+            GameCloudVariables::DISABLED_DETECTIONS_TABLE,
             array("id", "detections"),
             array(
                 array("license_id", $licenseID),
@@ -315,7 +309,7 @@ class GameCloudActions
 
             if (!empty($groupRebuild)) {
                 if (!set_sql_query(
-                    $disabled_detections_table,
+                    GameCloudVariables::DISABLED_DETECTIONS_TABLE,
                     array(
                         "detections" => $groupRebuild
                     ),
@@ -328,7 +322,7 @@ class GameCloudActions
                     return false;
                 }
             } else if (!set_sql_query(
-                $disabled_detections_table,
+                GameCloudVariables::DISABLED_DETECTIONS_TABLE,
                 array(
                     "deletion_date" => get_current_date()
                 ),

@@ -25,12 +25,11 @@ class GameCloudVerification
 
     public function isVerified(int|string $fileID, int|string $productID, string $ipAddress): int
     {
-        global $license_management_table;
         $result = $this::ordinary_verification_value;
         $licenseID = $this->user->getLicense();
 
         $query = get_sql_query(
-            $license_management_table,
+            GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
             array("type", "number", "expiration_date"),
             array(
                 array("platform_id", $this->user->getPlatform()),
@@ -80,8 +79,6 @@ class GameCloudVerification
         if (!in_array($type, $this::managed_license_types)) {
             return false;
         }
-        global $license_management_table;
-
         if ($duration !== null) {
             $duration = get_future_date($duration);
         }
@@ -89,7 +86,7 @@ class GameCloudVerification
         $platform = $this->user->getPlatform();
         $licenseID = $this->user->getLicense();
         $query = get_sql_query(
-            $license_management_table,
+            GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
             array("id"),
             array(
                 array("type", $type),
@@ -104,7 +101,7 @@ class GameCloudVerification
 
         if (empty($query)) {
             if (!sql_insert(
-                $license_management_table,
+                GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
                 array(
                     "type" => $type,
                     "number" => $licenseID,
@@ -119,7 +116,7 @@ class GameCloudVerification
                 return false;
             }
         } else if (!set_sql_query(
-            $license_management_table,
+            GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
             array(
                 "reason" => $reason,
                 "automated" => $automated,
@@ -142,11 +139,10 @@ class GameCloudVerification
         if (!in_array($type, $this::managed_license_types)) {
             return false;
         }
-        global $license_management_table;
         $platform = $this->user->getPlatform();
         $licenseID = $this->user->getLicense();
         $query = get_sql_query(
-            $license_management_table,
+            GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
             array("id"),
             array(
                 array("type", $type),
@@ -161,7 +157,7 @@ class GameCloudVerification
 
         if (!empty($query)
             && !set_sql_query(
-                $license_management_table,
+                GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
                 array(
                     "deletion_date" => get_current_date()
                 ),

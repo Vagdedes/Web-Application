@@ -197,7 +197,7 @@ if (true
             $hasAccessFailure ? $accessFailure : null
         ));
         $query = get_sql_query(
-            $connection_count_table,
+            GameCloudVariables::CONNECTION_COUNT_TABLE,
             array("id", "count"),
             array(
                 array("search_hash", $search_hash),
@@ -212,7 +212,7 @@ if (true
                 return; // Temporarily deny user when threshold is reached
             }
             set_sql_query(
-                $connection_count_table,
+                GameCloudVariables::CONNECTION_COUNT_TABLE,
                 array(
                     "count" => ($count + 1),
                     "token" => $token
@@ -227,16 +227,16 @@ if (true
             $remainingDaySeconds = strtotime("tomorrow") - time();
             $modifiedDate = date("Y-m-d") . " 00:00:00";
 
-            if ($remainingDaySeconds <= 1000 && !has_memory_cooldown($connection_count_table, "15 minutes")) {
+            if ($remainingDaySeconds <= 1000 && !has_memory_cooldown(GameCloudVariables::CONNECTION_COUNT_TABLE, "15 minutes")) {
                 delete_sql_query(
-                    $connection_count_table,
+                    GameCloudVariables::CONNECTION_COUNT_TABLE,
                     array(
                         array("date", "<", $modifiedDate)
                     )
                 );
             }
             sql_insert(
-                $connection_count_table,
+                GameCloudVariables::CONNECTION_COUNT_TABLE,
                 array(
                     "search_hash" => $search_hash,
                     "verification_requirement" => $verificationRequirement,
@@ -263,7 +263,7 @@ if (true
         if ($data == "disabledDetections") {
             $hasValue = is_numeric($value);
             $query = get_sql_query(
-                $disabled_detections_table,
+                GameCloudVariables::DISABLED_DETECTIONS_TABLE,
                 array("detections"),
                 array(
                     array("deletion_date", null),
@@ -327,7 +327,7 @@ if (true
             }
         } else if ($data == "userIdentification") {
             $query = get_sql_query(
-                $connection_count_table,
+                GameCloudVariables::CONNECTION_COUNT_TABLE,
                 array("license_id"),
                 array(
                     array("license_id", "IS NOT", null),
@@ -346,7 +346,7 @@ if (true
             }
         } else if ($data == "automaticConfigurationChanges") {
             $query = get_sql_query(
-                $configuration_changes_table,
+                GameCloudVariables::CONFIGURATION_CHANGES_TABLE,
                 array("id", "file_name", "abstract_option", "value", "if_value"),
                 array(
                     array("deletion_date", null),
@@ -386,7 +386,7 @@ if (true
         } else if ($data == "staffAnnouncements") {
             try {
                 $query = get_sql_query(
-                    $staff_announcements_table,
+                    GameCloudVariables::STAFF_ANNOUNCEMENTS_TABLE,
                     array("id", "announcement", "cooldown"),
                     array(
                         array("deletion_date", null),
@@ -526,17 +526,16 @@ if (true
                         if ($response === true) {
                             echo "true";
                         } else {
-                            global $failed_discord_webhooks_table;
-
-                            if (!has_memory_cooldown($failed_discord_webhooks_table, "15 minutes")) {
+                            if (!has_memory_cooldown(GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE, "15 minutes")) {
                                 delete_sql_query(
-                                    $failed_discord_webhooks_table,
+                                    GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE,
                                     array(
                                         array("date", "<", get_past_date("31 days"))
                                     )
                                 );
                             }
-                            sql_insert($failed_discord_webhooks_table,
+                            sql_insert(
+                                GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE,
                                 array(
                                     "creation_date" => $date,
                                     "version" => $version,

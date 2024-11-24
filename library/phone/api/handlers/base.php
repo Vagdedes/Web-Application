@@ -4,8 +4,7 @@ use Twilio\Rest\Client;
 
 function send_phone_message(int|string $phone, string|int|float $message): mixed
 {
-    global $twilio_credentials_directory;
-    $twilio_credentials = get_keys_from_file($twilio_credentials_directory, 4);
+    $twilio_credentials = get_keys_from_file(PhoneVariables::TWILIO_CREDENTIALS_DIRECTORY, 4);
 
     if ($twilio_credentials === null) {
         return false;
