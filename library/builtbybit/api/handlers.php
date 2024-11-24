@@ -1,8 +1,7 @@
 <?php
 function get_builtbybit_wrapper(): mixed
 {
-    global $builtbybit_credentials_directory;
-    $keys = get_keys_from_file($builtbybit_credentials_directory, 2);
+    $keys = get_keys_from_file(BuiltByBitVariables::CREDENTIALS_DIRECTORY, 2);
 
     if ($keys === null) {
         return null;

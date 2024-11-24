@@ -8,9 +8,8 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
 
     // Verify pointer
     if (!is_url($webhookPointer)) {
-        global $discord_webhook_failed_executions_table;
         $code = 437892495;
-        sql_insert($discord_webhook_failed_executions_table, get_discord_webhook_execution_insert_details(
+        sql_insert(DiscordWebhookVariables::WEBHOOK_FAILED_EXECUTIONS_TABLE, get_discord_webhook_execution_insert_details(
             $planID,
             null,
             null,
@@ -24,18 +23,18 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
 
     // Verify details
     if (is_array($details)) {
-        global $discord_webhook_default_company_name, $discord_webhook_default_email_name;
+        global $discord_webhook_default_email_name;
         $informationPlaceholder->setAll($details);
         $informationPlaceholder->addAll(array(
             "defaultDomainName" => get_domain(),
-            "defaultCompanyName" => $discord_webhook_default_company_name,
+            "defaultCompanyName" => DiscordWebhookVariables::DEFAULT_COMPANY_NAME,
             "defaultEmailName" => $discord_webhook_default_email_name
         ));
     } else {
-        global $discord_webhook_default_company_name, $discord_webhook_default_email_name;
+        global $discord_webhook_default_email_name;
         $informationPlaceholder->setAll(array(
             "defaultDomainName" => get_domain(),
-            "defaultCompanyName" => $discord_webhook_default_company_name,
+            "defaultCompanyName" => DiscordWebhookVariables::DEFAULT_COMPANY_NAME,
             "defaultEmailName" => $discord_webhook_default_email_name
         ));
     }
@@ -61,11 +60,10 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
     if (has_memory_cooldown($cacheKey, "1 second")) {
         return 985064734;
     }
-    global $discord_webhook_plans_table;
 
     // Find plan
     $query = get_sql_query(
-        $discord_webhook_plans_table,
+        DiscordWebhookVariables::WEBHOOK_PLANS_TABLE,
         null,
         array(
             array("name", $planID),
@@ -80,9 +78,8 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
     );
 
     if (empty($query)) {
-        global $discord_webhook_failed_executions_table;
         $code = 342432524;
-        sql_insert($discord_webhook_failed_executions_table, get_discord_webhook_execution_insert_details(
+        sql_insert(DiscordWebhookVariables::WEBHOOK_FAILED_EXECUTIONS_TABLE, get_discord_webhook_execution_insert_details(
             $planID,
             null,
             null,
@@ -92,7 +89,6 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         ));
         return $code;
     }
-    global $discord_webhook_executions_table, $discord_webhook_storage_table, $discord_webhook_exemptions_table;
     $executed = array();
     $planObject = $query[0];
     $planID = $planObject->id;
@@ -101,7 +97,7 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
     // Load executions
     if (!$isTest) {
         $query = get_sql_query(
-            $discord_webhook_executions_table,
+            DiscordWebhookVariables::WEBHOOK_EXECUTIONS_TABLE,
             array("webhook_id", "cooldown_expiration_date"),
             array(
                 array("plan_id", $planID),
@@ -129,7 +125,7 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
 
     foreach (explode(",", $webhookPointer) as $key => $individual) {
         $queryResults = get_sql_query(
-            $discord_webhook_storage_table,
+            DiscordWebhookVariables::WEBHOOK_PLANS_TABLE,
             array("id", "test"),
             array(
                 array("webhook_url", $individual),
@@ -141,7 +137,7 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         if (empty($queryResults)) {
             insert_new_webhook_url($webhookPointer, $isTest);
             $queryResults = get_sql_query(
-                $discord_webhook_storage_table,
+                DiscordWebhookVariables::WEBHOOK_STORAGE_TABLE,
                 array("id", "webhook_url"),
                 array(
                     array("webhook_url", $individual),
@@ -170,7 +166,7 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
             }
         } else {
             $queryChild = get_sql_query(
-                $discord_webhook_exemptions_table,
+                DiscordWebhookVariables::WEBHOOK_EXEMPTIONS_TABLE,
                 array(),
                 array(
                     array("plan_id", $planID),
@@ -222,9 +218,8 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
         $planObject->footer = $informationPlaceholder->replace($planObject->footer);
         $planObject->information = $informationPlaceholder->replace($planObject->information);
     } else {
-        global $discord_webhook_failed_executions_table;
         $code = 398054234;
-        sql_insert($discord_webhook_failed_executions_table, get_discord_webhook_execution_insert_details(
+        sql_insert(DiscordWebhookVariables::WEBHOOK_FAILED_EXECUTIONS_TABLE, get_discord_webhook_execution_insert_details(
             $planID,
             null,
             null,
@@ -278,8 +273,7 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
     }
 
     // Load blacklisted webhook URLs
-    global $discord_webhook_blacklist_table, $discord_webhook_failed_executions_table;
-    $query = get_sql_query($discord_webhook_blacklist_table,
+    $query = get_sql_query(DiscordWebhookVariables::WEBHOOK_BLACKLIST_TABLE,
         array("webhook_url", "identification_method"),
         array(
             array("deletion_date", null)
@@ -341,11 +335,11 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
                 has_memory_cooldown($cacheKey, $cooldown, true, true);
             }
             if (array_key_exists($originalCredential, $databaseInsertions)) {
-                sql_insert($discord_webhook_executions_table, $databaseInsertions[$originalCredential]);
+                sql_insert(DiscordWebhookVariables::WEBHOOK_EXECUTIONS_TABLE, $databaseInsertions[$originalCredential]);
             }
         } else {
             $databaseInsertions[$originalCredential]["error"] = $execution;
-            sql_insert($discord_webhook_failed_executions_table, $databaseInsertions[$originalCredential]);
+            sql_insert(DiscordWebhookVariables::WEBHOOK_FAILED_EXECUTIONS_TABLE, $databaseInsertions[$originalCredential]);
             return $execution;
         }
     }
@@ -354,9 +348,8 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
 
 function insert_new_webhook_url(string $webhookPointer, bool $test): bool
 {
-    global $discord_webhook_storage_table;
     $array = get_sql_query(
-        $discord_webhook_storage_table,
+        DiscordWebhookVariables::WEBHOOK_STORAGE_TABLE,
         array("id"),
         array(
             array("webhook_url", $webhookPointer),
@@ -367,7 +360,7 @@ function insert_new_webhook_url(string $webhookPointer, bool $test): bool
 
     if (empty($array)) {
         return sql_insert(
-                $discord_webhook_storage_table,
+                DiscordWebhookVariables::WEBHOOK_STORAGE_TABLE,
                 array(
                     "webhook_url" => $webhookPointer,
                     "test" => $test,

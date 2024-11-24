@@ -16,12 +16,8 @@ function send_discord_webhook(string                $webhookURL,
 {
     if (!is_url($webhookURL)) {
         return "Local: Failed webhook-url criteria";
-    } else {
-        global $discord_webhooks_accepted_domains;
-
-        if (!in_array(get_domain_from_url($webhookURL, true), $discord_webhooks_accepted_domains)) {
-            return "Local: Failed to find domain";
-        }
+    } else if (!in_array(get_domain_from_url($webhookURL, true), DiscordWebhookVariables::ACCEPTED_DOMAINS)) {
+        return "Local: Failed to find domain";
     }
     $hasColor = $color !== null;
 

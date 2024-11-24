@@ -1,2 +1,6 @@
 <?php
-$builtbybit_credentials_directory = "builtbybit_credentials";
+
+class BuiltByBitVariables
+{
+    public const CREDENTIALS_DIRECTORY = "builtbybit_credentials";
+}
