@@ -40,7 +40,7 @@ class AccountInstructions
     private function cacheReplacements(): void
     {
         $this->replacements = get_sql_query(
-            InstructionsTable::REPLACEMENTS,
+            AccountVariables::INSTRUCTIONS_REPLACEMENTS_TABLE,
             null,
             array(
                 array("deletion_date", null),
@@ -299,7 +299,7 @@ class AccountInstructions
                         : $row->information_url . "|" . strtolower($containsKeywords);
 
                     if (set_sql_query(
-                        InstructionsTable::PUBLIC,
+                        AccountVariables::INSTRUCTIONS_PUBLIC_TABLE,
                         array(
                             "information_value" => $doc,
                             "information_expiration" => $expiration,
@@ -332,7 +332,7 @@ class AccountInstructions
     {
         if ($this->localInstructions === null) {
             $this->localInstructions = $this->calculateContains(get_sql_query(
-                InstructionsTable::LOCAL,
+                AccountVariables::INSTRUCTIONS_LOCAL_TABLE,
                 null,
                 array(
                     array("deletion_date", null),
@@ -389,7 +389,7 @@ class AccountInstructions
     {
         if ($this->publicInstructions === null) {
             $this->publicInstructions = $this->calculateContains(get_sql_query(
-                InstructionsTable::PUBLIC,
+                AccountVariables::INSTRUCTIONS_PUBLIC_TABLE,
                 null,
                 array(
                     array("deletion_date", null),

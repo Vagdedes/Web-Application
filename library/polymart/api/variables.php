@@ -1,2 +1,6 @@
 <?php
-$polymart_credentials_directory = "polymart_credentials";
+
+class PolymartVariables
+{
+    public const CREDENTIALS_DIRECTORY = "polymart_credentials";
+}

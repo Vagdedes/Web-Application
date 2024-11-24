@@ -1,7 +1,4 @@
 <?php
-$patreon1_credentials_directory = "patreon_1_credentials";
-$patreon2_credentials_directory = "patreon_2_credentials";
-$patreon_cache_time = "5 minutes";
 
 function clear_patreon_subscription_cache(): void
 {
@@ -43,14 +40,12 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
     if (is_array($cache)) {
         return $cache;
     }
-    global $patreon1_credentials_directory;
-    $key = get_keys_from_file($patreon1_credentials_directory, 1);
+    $key = get_keys_from_file(PatreonVariables::CREDENTIALS_DIRECTORY_1, 1);
 
     if ($key !== null) {
-        global $patreon_campaign_id, $patreon_cache_time;
         $key = $key[0];
         $results = array();
-        $link = "https://www.patreon.com/api/oauth2/api/campaigns/" . $patreon_campaign_id . "/pledges";
+        $link = "https://www.patreon.com/api/oauth2/api/campaigns/" . PatreonVariables::CAMPAIGN_ID . "/pledges";
 
         while ($link !== null) {
             $cacheKey = array(
@@ -82,7 +77,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     set_key_value_pair($cacheKey, false, "15 seconds");
                     return array();
                 } else {
-                    set_key_value_pair($cacheKey, $reply, $patreon_cache_time);
+                    set_key_value_pair($cacheKey, $reply, PatreonVariables::CACHE_TIME);
                 }
             } else if ($reply === false) {
                 return array();
@@ -110,7 +105,7 @@ function get_patreon1_subscriptions(?array $ignoreTiers = null, ?array $targetTi
             }
             $link = $reply->links->next ?? null;
         }
-        set_key_value_pair($totalCacheKey, $results, $patreon_cache_time);
+        set_key_value_pair($totalCacheKey, $results, PatreonVariables::CACHE_TIME);
         return $results;
     } else {
         return array();
@@ -130,18 +125,16 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
     if (is_array($cache)) {
         return $cache;
     }
-    global $patreon2_credentials_directory;
-    $key = get_keys_from_file($patreon2_credentials_directory, 1);
+    $key = get_keys_from_file(PatreonVariables::CREDENTIALS_DIRECTORY_2, 1);
 
     if ($key !== null) {
-        global $patreon_campaign_id, $patreon_cache_time;
         $key = $key[0];
         $results = array();
         $arguments = "currently_entitled_tiers,address";
         $arguments .= "&fields[member]=full_name,last_charge_date,next_charge_date,last_charge_status,lifetime_support_cents,currently_entitled_amount_cents,patron_status";
         $arguments .= "&fields[tier]=amount_cents,created_at,description,discord_role_ids,edited_at,patron_count,published,published_at,requires_shipping,title,url";
         $arguments .= "&fields[address]=addressee,city,line_1,line_2,phone_number,postal_code,state";
-        $link = "https://www.patreon.com/api/oauth2/v2/campaigns/" . $patreon_campaign_id . "/members?include="
+        $link = "https://www.patreon.com/api/oauth2/v2/campaigns/" . PatreonVariables::CAMPAIGN_ID . "/members?include="
             . str_replace("[", "%5B", str_replace("]", "%5D", $arguments));
 
         while ($link !== null) {
@@ -173,7 +166,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
                     set_key_value_pair($cacheKey, false, "15 seconds");
                     return array();
                 } else {
-                    set_key_value_pair($cacheKey, $reply, $patreon_cache_time);
+                    set_key_value_pair($cacheKey, $reply, PatreonVariables::CACHE_TIME);
                 }
             } else if ($reply === false) {
                 return array();
@@ -194,7 +187,7 @@ function get_patreon2_subscriptions(?array $ignoreTiers = null, ?array $targetTi
             }
             $link = $reply->links->next ?? null;
         }
-        set_key_value_pair($totalCacheKey, $results, $patreon_cache_time);
+        set_key_value_pair($totalCacheKey, $results, PatreonVariables::CACHE_TIME);
         return $results;
     } else {
         return array();

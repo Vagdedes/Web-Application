@@ -2,9 +2,8 @@
 
 function get_all_stripe_transactions_count(int $limit = 0): int
 {
-    global $stripe_successful_transactions_table;
     return sizeof(get_sql_query(
-        $stripe_successful_transactions_table,
+        StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
         array("id"),
         null,
         array(
@@ -17,9 +16,8 @@ function get_all_stripe_transactions_count(int $limit = 0): int
 
 function get_all_stripe_transactions(int $limit = 0, bool $details = true, ?string $date = null): array
 {
-    global $stripe_successful_transactions_table;
     $query = get_sql_query(
-        $stripe_successful_transactions_table,
+        StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
         $details ? array("transaction_id", "details") : array("transaction_id"),
         $date !== null ? array(array("creation_date", ">=", $date)) : null,
         array(
@@ -43,9 +41,8 @@ function get_all_stripe_transactions(int $limit = 0, bool $details = true, ?stri
 
 function get_stripe_transaction(int|string $transactionID)
 {
-    global $stripe_successful_transactions_table;
     $query = get_sql_query(
-        $stripe_successful_transactions_table,
+        StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
         array("details"),
         array(
             array("transaction_id", $transactionID)
@@ -58,9 +55,8 @@ function get_stripe_transaction(int|string $transactionID)
 
 function get_failed_stripe_transactions(?array $findFromArray = null, int $limit = 0, ?string $date = null): array
 {
-    global $stripe_failed_transactions_table;
     $query = get_sql_query(
-        $stripe_failed_transactions_table,
+        StripeVariables::FAILED_TRANSACTIONS_TABLE,
         array("transaction_id"),
         $date !== null ? array(array("creation_date", ">=", $date)) : null,
         array(
@@ -95,9 +91,8 @@ function get_failed_stripe_transactions(?array $findFromArray = null, int $limit
 
 function find_stripe_transactions_by_id(int|string $transactionID): array
 {
-    global $stripe_successful_transactions_table;
     $query = get_sql_query(
-        $stripe_successful_transactions_table,
+        StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
         array("transaction_id", "details"),
         array(
             array("transaction_id", $transactionID)
@@ -118,7 +113,6 @@ function find_stripe_transactions_by_id(int|string $transactionID): array
 
 function find_stripe_transactions_by_data_pair(array $keyValueArray, int $limit = 0, bool $sqlOnly = false): array
 {
-    global $stripe_successful_transactions_table;
     $transactions = array();
 
     if ($sqlOnly) {
@@ -128,7 +122,7 @@ function find_stripe_transactions_by_data_pair(array $keyValueArray, int $limit 
             $querySearch[] = "details LIKE '%\"$key\":\"$value\"%'";
         }
         $query = get_sql_query(
-            $stripe_successful_transactions_table,
+            StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
             array("transaction_id", "details"),
             null,
             array(
@@ -146,7 +140,7 @@ function find_stripe_transactions_by_data_pair(array $keyValueArray, int $limit 
         }
     } else {
         $query = get_sql_query(
-            $stripe_successful_transactions_table,
+            StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
             array("transaction_id", "details"),
             null,
             array(
@@ -184,12 +178,11 @@ function find_stripe_transactions_by_data_pair(array $keyValueArray, int $limit 
 
 function mark_failed_stripe_transaction(int|string $transactionID, bool $checkExistence = true): bool
 {
-    global $stripe_failed_transactions_table;
     $process = !$checkExistence;
 
     if (!$process) {
         $query = get_sql_query(
-            $stripe_failed_transactions_table,
+            StripeVariables::FAILED_TRANSACTIONS_TABLE,
             array("transaction_id"),
             array(
                 array("transaction_id", $transactionID)
@@ -204,7 +197,7 @@ function mark_failed_stripe_transaction(int|string $transactionID, bool $checkEx
     }
     if ($process) {
         return sql_insert(
-                $stripe_failed_transactions_table,
+                StripeVariables::FAILED_TRANSACTIONS_TABLE,
                 array(
                     "transaction_id" => $transactionID,
                     "creation_date" => get_current_date()
@@ -217,12 +210,11 @@ function mark_failed_stripe_transaction(int|string $transactionID, bool $checkEx
 function mark_successful_stripe_transaction(int|string $transactionID, object $transaction,
                                             bool       $checkExistence = true): bool
 {
-    global $stripe_successful_transactions_table;
     $process = !$checkExistence;
 
     if (!$process) {
         $query = get_sql_query(
-            $stripe_successful_transactions_table,
+            StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
             array("transaction_id"),
             array(
                 array("transaction_id", $transactionID)
@@ -237,7 +229,7 @@ function mark_successful_stripe_transaction(int|string $transactionID, object $t
     }
     if ($process) {
         return sql_insert(
-                $stripe_successful_transactions_table,
+                StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
                 array(
                     "transaction_id" => $transactionID,
                     "creation_date" => get_current_date(),

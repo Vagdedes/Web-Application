@@ -1,7 +1,11 @@
 <?php
-$stripe_credentials_directory = "stripe_credentials";
 
-$stripe_transaction_search_keys = array("description");
-
-$stripe_successful_transactions_table = "stripe.successfulTransactions";
-$stripe_failed_transactions_table = "stripe.failedTransactions";
+class StripeVariables
+{
+    public const
+        CREDENTIALS_DIRECTORY = "stripe_credentials",
+        SUCCESSFUL_TRANSACTIONS_TABLE = "stripe.successfulTransactions",
+        FAILED_TRANSACTIONS_TABLE = "stripe.failedTransactions",
+        TRANSACTION_SEARCH_KEYS = array("description"),
+        ACCOUNT_AMOUNT = 2;
+}

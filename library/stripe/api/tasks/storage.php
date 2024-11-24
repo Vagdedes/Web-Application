@@ -2,10 +2,9 @@
 
 function update_stripe_storage(): bool
 {
-    global $stripe_account_amount;
     $processed = false;
 
-    for ($account = 0; $account < $stripe_account_amount; $account++) {
+    for ($account = 0; $account < StripeVariables::ACCOUNT_AMOUNT; $account++) {
         $stripe = get_stripe_object($account);
 
         if ($stripe !== null) {

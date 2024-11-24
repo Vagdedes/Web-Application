@@ -79,10 +79,69 @@ $statistic_boolean_table = "statistic.booleanStatistics";
 // E.T.C
 $website_domain = "https://" . get_domain();
 
-class InstructionsTable
+class AccountVariables
 {
+
     public const
-        LOCAL = "instructions.local",
-        PUBLIC = "instructions.public",
-        REPLACEMENTS = "instructions.replacements";
+        SESSIONS_TABLE = "session.sessions",
+        INSTANT_LOGINS_TABLE = "session.instantLogins",
+
+        ACCOUNTS_TABLE = "account.accounts",
+        ACCOUNT_IDENTIFICATION_TABLE = "account.identification",
+        ACCOUNT_HISTORY_TABLE = "account.history",
+
+        ACCOUNT_NOTIFICATIONS_TABLE = "notification.notifications",
+        ACCOUNT_NOTIFICATION_TYPES_TABLE = "notification.types",
+
+        ROLE_PERMISSIONS_TABLE = "management.permissions",
+        ROLES_TABLE = "management.roles",
+        FUNCTIONALITIES_TABLE = "management.functionalities",
+        BLOCKED_FUNCTIONALITIES_TABLE = "management.blockedFunctionalities",
+        ACCOUNT_PERMISSIONS_TABLE = "management.accountPermissions",
+        ACCOUNT_ROLES_TABLE = "management.accountRoles",
+        ACCOUNT_SETTINGS_TABLE = "management.settings",
+
+        MODERATIONS_TABLE = "moderation.moderations",
+        EXECUTED_MODERATIONS_TABLE = "moderation.executedModerations",
+
+        ACCOUNT_INSTANT_COOLDOWNS_TABLE = "cooldown.instantCooldowns",
+        ACCOUNT_BUFFER_COOLDOWNS_TABLE = "cooldown.bufferCooldowns",
+
+        PRODUCTS_TABLE = "product.products",
+        PRODUCT_COUPONS_TABLE = "product.coupons",
+        PRODUCT_DOWNLOADS_TABLE = "product.downloads",
+        PRODUCT_DIVISIONS_TABLE = "product.productDivisions",
+        PRODUCT_PURCHASES_TABLE = "product.purchases",
+        PRODUCT_COMPATIBILITIES_TABLE = "product.compatibilities",
+        PRODUCT_BUTTONS_TABLE = "product.buttons",
+        PRODUCT_CARDS_TABLE = "product.cards",
+        PRODUCT_IDENTIFICATION_TABLE = "product.identification",
+        PRODUCT_UPDATES_TABLE = "product.updates",
+        PRODUCT_TRANSACTION_SEARCH_TABLE = "product.transactionSearch",
+        PRODUCT_TRANSACTION_SEARCH_EXECUTIONS_TABLE = "product.transactionSearchExecutions",
+        PRODUCT_TIERS_TABLE = "product.tiers",
+
+        PRODUCT_GIVEAWAYS_TABLE = "giveaway.giveaways",
+        GIVEAWAY_WINNERS_TABLE = "giveaway.winners",
+
+        UNKNOWN_EMAIL_PROCESSING_TABLE = "transactions.unknownEmailProcessing",
+
+        ADDED_ACCOUNTS_TABLE = "correlation.addedAccounts",
+        ACCEPTED_ACCOUNTS_TABLE = "correlation.accounts",
+
+        TICKETS_EMAIL_TABLE = "tickets.email",
+
+        EMAIL_VERIFICATIONS_TABLE = "verification.emailVerifications",
+        CHANGE_PASSWORD_TABLE = "verification.changePassword",
+
+        STATISTIC_TYPES_TABLE = "statistic.types",
+        STATISTIC_INTEGERS_TABLE = "statistic.integerStatistics",
+        STATISTIC_LONG_TABLE = "statistic.longStatistics",
+        STATISTIC_DOUBLE_TABLE = "statistic.doubleStatistics",
+        STATISTIC_STRING_TABLE = "statistic.stringStatistics",
+        STATISTIC_BOOLEAN_TABLE = "statistic.booleanStatistics",
+
+        INSTRUCTIONS_LOCAL_TABLE = "instructions.local",
+        INSTRUCTIONS_PUBLIC_TABLE = "instructions.public",
+        INSTRUCTIONS_REPLACEMENTS_TABLE = "instructions.replacements";
 }

@@ -1,10 +1,8 @@
 <?php
-$stripe_account_amount = 2;
 
 function get_stripe_object(int $account = 0): ?object
 {
-    global $stripe_account_amount, $stripe_credentials_directory;
-    $stripe_credentials = get_keys_from_file($stripe_credentials_directory, $stripe_account_amount);
+    $stripe_credentials = get_keys_from_file(StripeVariables::CREDENTIALS_DIRECTORY, StripeVariables::ACCOUNT_AMOUNT);
     return $stripe_credentials === null ? null : new \Stripe\StripeClient($stripe_credentials[$account]);
 }
 
