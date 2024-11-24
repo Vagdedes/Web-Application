@@ -1,24 +1,25 @@
 <?php
-$email_executions_table = "email.executions";
-$email_failed_executions_table = "email.failedExecutions";
-$email_plans_table = "email.plans";
-$email_storage_table = "email.storage";
-$email_exemptions_table = "email.exemptions";
-$email_user_exemption_keys_table = "email.exemptionKeys";
-$email_blacklist_table = "email.blacklist";
 
-$email_default_company_name = "Idealistic AI";
-$email_default_email_name = "contact@" . get_domain(false);
-
-$email_exempt_token_length = 1024;
-
-$email_credentials_directory = "email_credentials";
-
-class EmailBase
+class EmailVariables
 {
     public const
-        email_credential_lines = 8,
-        VAGDEDES_CONTACT = 2,
-        IDEALISTIC_CONTACT = 4,
-        IDEALISTIC_NO_REPLY = 6;
+        EXECUTIONS_TABLE = "email.executions",
+        FAILED_EXECUTIONS_TABLE = "email.failedExecutions",
+        PLANS_TABLE = "email.plans",
+        STORAGE_TABLE = "email.storage",
+        EXEMPTIONS_TABLE = "email.exemptions",
+        USER_EXEMPTION_KEYS_TABLE = "email.exemptionKeys",
+        BLACKLIST_TABLE = "email.blacklist";
+
+    public const
+        DEFAULT_COMPANY_NAME = "Idealistic AI",
+        EXEMPT_TOKEN_LENGTH = 1024,
+        CREDENTIALS_DIRECTORY = "email_credentials";
+
+    public const
+        email_credential_lines = 6,
+        IDEALISTIC_CONTACT = 2,
+        IDEALISTIC_NO_REPLY = 4;
 }
+
+$email_default_email_name = "contact@" . get_domain(false);

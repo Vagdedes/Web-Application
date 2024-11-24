@@ -5,15 +5,14 @@ require_once '/var/www/.structure/library/base/communication.php';
 require_once '/var/www/.structure/library/email/init.php';
 $token = get_form_get("token");
 
-if (strlen($token) === $email_exempt_token_length) {
+if (strlen($token) === EmailVariables::EXEMPT_TOKEN_LENGTH) {
     require_once '/var/www/.structure/library/memory/init.php';
 
     if (has_memory_limit("email-exempt-via-token", 10, "60 seconds")) {
         echo "<b>Please wait before doing this again</b>";
     } else {
-        global $email_user_exemption_keys_table;
         $query = get_sql_query(
-            $email_user_exemption_keys_table,
+            EmailVariables::USER_EXEMPTION_KEYS_TABLE,
             array("plan_id", "email_id"),
             array(
                 array("token", $token),
@@ -45,9 +44,8 @@ if (strlen($token) === $email_exempt_token_length) {
         $email = get_form_get("email");
 
         if (is_numeric($email) && $email > 0) {
-            global $email_storage_table;
             $query = get_sql_query(
-                $email_storage_table,
+                EmailVariables::STORAGE_TABLE,
                 array("id"),
                 array(
                     array("id", $email),
@@ -57,9 +55,8 @@ if (strlen($token) === $email_exempt_token_length) {
             );
 
             if (!empty($query)) {
-                global $email_exemptions_table;
                 $query = get_sql_query(
-                    $email_exemptions_table,
+                    EmailVariables::EXEMPTIONS_TABLE,
                     array("id"),
                     array(
                         array("plan_id", $planID),
@@ -72,7 +69,7 @@ if (strlen($token) === $email_exempt_token_length) {
 
                 if (empty($query)
                     && sql_insert(
-                        $email_exemptions_table,
+                        EmailVariables::EXEMPTIONS_TABLE,
                         array(
                             "plan_id" => $planID,
                             "email_id" => $email,
@@ -87,9 +84,8 @@ if (strlen($token) === $email_exempt_token_length) {
                 echo "false";
             }
         } else if (is_email($email)) {
-            global $email_storage_table;
             $query = get_sql_query(
-                $email_storage_table,
+                EmailVariables::STORAGE_TABLE,
                 array("id"),
                 array(
                     array("email_address", properly_sql_encode($email)),
@@ -99,9 +95,8 @@ if (strlen($token) === $email_exempt_token_length) {
             );
 
             if (!empty($query)) {
-                global $email_exemptions_table;
                 $query = get_sql_query(
-                    $email_exemptions_table,
+                    EmailVariables::EXEMPTIONS_TABLE,
                     array("id"),
                     array(
                         array("plan_id", $planID),
@@ -114,7 +109,7 @@ if (strlen($token) === $email_exempt_token_length) {
 
                 if (empty($query)
                     && sql_insert(
-                        $email_exemptions_table,
+                        EmailVariables::EXEMPTIONS_TABLE,
                         array(
                             "plan_id" => $planID,
                             "email_id" => $email,

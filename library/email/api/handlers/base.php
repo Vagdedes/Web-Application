@@ -2,8 +2,7 @@
 
 function personal_self_email(string $from, int|string|float $subject, int|string|float $content): bool|string
 {
-    global $email_credentials_directory;
-    $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
+    $email_credentials = get_keys_from_file(EmailVariables::CREDENTIALS_DIRECTORY, EmailVariables::email_credential_lines);
 
     if ($email_credentials === null) {
         return false;
@@ -37,10 +36,9 @@ function personal_self_email(string $from, int|string|float $subject, int|string
 }
 
 function services_self_email(string $from, int|string|float $subject, int|string|float $content,
-                             int    $startingLinePosition = EmailBase::IDEALISTIC_CONTACT): bool|string
+                             int    $startingLinePosition = EmailVariables::IDEALISTIC_CONTACT): bool|string
 {
-    global $email_credentials_directory;
-    $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
+    $email_credentials = get_keys_from_file(EmailVariables::CREDENTIALS_DIRECTORY, EmailVariables::email_credential_lines);
 
     if ($email_credentials === null) {
         return false;
@@ -75,10 +73,9 @@ function services_self_email(string $from, int|string|float $subject, int|string
 
 function services_email(string           $to, ?string $from,
                         int|string|float $subject, int|string|float $content,
-                        int              $startingLinePosition = EmailBase::IDEALISTIC_NO_REPLY): bool|string
+                        int              $startingLinePosition = EmailVariables::IDEALISTIC_NO_REPLY): bool|string
 {
-    global $email_credentials_directory;
-    $email_credentials = get_keys_from_file($email_credentials_directory, EmailBase::email_credential_lines);
+    $email_credentials = get_keys_from_file(EmailVariables::CREDENTIALS_DIRECTORY, EmailVariables::email_credential_lines);
 
     if ($email_credentials === null) {
         return false;

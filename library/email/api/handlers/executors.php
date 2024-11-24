@@ -9,9 +9,8 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
 
     // Verify pointer
     if (!is_email($emailPointer)) {
-        global $email_failed_executions_table;
         $code = 437892495;
-        sql_insert($email_failed_executions_table, get_email_execution_insert_details(
+        sql_insert(EmailVariables::FAILED_EXECUTIONS_TABLE, get_email_execution_insert_details(
             $planID,
             null,
             null,
@@ -28,18 +27,18 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
     $informationPlaceholder = new InformationPlaceholder();
 
     if (is_array($details)) {
-        global $email_default_company_name, $email_default_email_name;
+        global $email_default_email_name;
         $informationPlaceholder->setAll($details);
         $informationPlaceholder->addAll(array(
             "defaultDomainName" => $domain,
-            "defaultCompanyName" => $email_default_company_name,
+            "defaultCompanyName" => EmailVariables::DEFAULT_COMPANY_NAME,
             "defaultEmailName" => $email_default_email_name
         ));
     } else {
-        global $email_default_company_name, $email_default_email_name;
+        global $email_default_email_name;
         $informationPlaceholder->setAll(array(
             "defaultDomainName" => $domain,
-            "defaultCompanyName" => $email_default_company_name,
+            "defaultCompanyName" => EmailVariables::DEFAULT_COMPANY_NAME,
             "defaultEmailName" => $email_default_email_name
         ));
     }
@@ -66,11 +65,10 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
     if (has_memory_cooldown($cacheKey, "1 second")) {
         return 985064734;
     }
-    global $email_plans_table;
 
     // Find plan
     $query = get_sql_query(
-        $email_plans_table,
+        EmailVariables::PLANS_TABLE,
         array("id", "test", "redundant", "title", "comments", "contents", "default_cooldown"),
         array(
             array("name", $planID),
@@ -85,9 +83,8 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
     );
 
     if (empty($query)) {
-        global $email_failed_executions_table;
         $code = 342432524;
-        sql_insert($email_failed_executions_table, get_email_execution_insert_details(
+        sql_insert(EmailVariables::FAILED_EXECUTIONS_TABLE, get_email_execution_insert_details(
             $planID,
             null,
             null,
@@ -98,7 +95,6 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
         ));
         return $code;
     }
-    global $email_executions_table, $email_storage_table, $email_exemptions_table;
     $executed = array();
     $planObject = $query[0];
     $planID = $planObject->id;
@@ -107,7 +103,7 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
     // Load executions
     if (!$isTest && $planObject->redundant === null) {
         $query = get_sql_query(
-            $email_executions_table,
+            EmailVariables::EXECUTIONS_TABLE,
             array("email_id", "cooldown_expiration_date"),
             array(
                 array("plan_id", $planID),
@@ -135,7 +131,7 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
 
     foreach (explode(",", $emailPointer) as $key => $individual) {
         $queryResults = get_sql_query(
-            $email_storage_table,
+            EmailVariables::STORAGE_TABLE,
             array("id", "test"),
             array(
                 array("email_address", $individual),
@@ -147,7 +143,7 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
         if (empty($queryResults)) {
             insert_new_email($emailPointer, $isTest);
             $queryResults = get_sql_query(
-                $email_storage_table,
+                EmailVariables::STORAGE_TABLE,
                 array("id", "email_address"),
                 array(
                     array("email_address", $individual),
@@ -176,7 +172,7 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
             }
         } else {
             $queryChild = get_sql_query(
-                $email_exemptions_table,
+                EmailVariables::EXEMPTIONS_TABLE,
                 array(),
                 array(
                     array("plan_id", $planID),
@@ -248,8 +244,8 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
     }
 
     // Load blacklisted emails
-    global $email_blacklist_table, $email_failed_executions_table;
-    $query = get_sql_query($email_blacklist_table,
+    $query = get_sql_query(
+        EmailVariables::BLACKLIST_TABLE,
         array("email_address", "ignore_case", "identification_method"),
         array(
             array("deletion_date", null)
@@ -306,11 +302,11 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
                 has_memory_cooldown($cacheKey, $cooldown, true, true);
             }
             if (array_key_exists($originalCredential, $databaseInsertions)) {
-                sql_insert($email_executions_table, $databaseInsertions[$originalCredential]);
+                sql_insert(EmailVariables::EXECUTIONS_TABLE, $databaseInsertions[$originalCredential]);
             }
         } else {
             $databaseInsertions[$originalCredential]["error"] = $execution;
-            sql_insert($email_failed_executions_table, $databaseInsertions[$originalCredential]);
+            sql_insert(EmailVariables::FAILED_EXECUTIONS_TABLE, $databaseInsertions[$originalCredential]);
         }
     }
     return 1;
@@ -318,9 +314,8 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
 
 function get_user_exemption_token(int|string|float $planID, int|string $emailID)
 {
-    global $email_user_exemption_keys_table, $email_exempt_token_length;
     $query = get_sql_query(
-        $email_user_exemption_keys_table,
+        EmailVariables::USER_EXEMPTION_KEYS_TABLE,
         array("id", "token"),
         array(
             array("plan_id", $planID),
@@ -333,9 +328,10 @@ function get_user_exemption_token(int|string|float $planID, int|string $emailID)
 
     // Create
     if (empty($query)) {
-        $token = random_string($email_exempt_token_length);
+        $token = random_string(EmailVariables::EXEMPT_TOKEN_LENGTH);
 
-        if (!sql_insert($email_user_exemption_keys_table,
+        if (!sql_insert(
+            EmailVariables::USER_EXEMPTION_KEYS_TABLE,
             array(
                 "plan_id" => $planID,
                 "email_id" => $emailID,
@@ -349,15 +345,15 @@ function get_user_exemption_token(int|string|float $planID, int|string $emailID)
     // Found
     $token = $query[0]->token;
 
-    if (strlen($token) === $email_exempt_token_length) {
+    if (strlen($token) === EmailVariables::EXEMPT_TOKEN_LENGTH) {
         return $token;
     }
 
     // Resize
-    $token = random_string($email_exempt_token_length);
+    $token = random_string(EmailVariables::EXEMPT_TOKEN_LENGTH);
 
     if (!set_sql_query(
-        $email_user_exemption_keys_table,
+        EmailVariables::USER_EXEMPTION_KEYS_TABLE,
         array(
             "token" => $token
         ),
@@ -375,9 +371,8 @@ function get_user_exemption_token(int|string|float $planID, int|string $emailID)
 
 function insert_new_email(string $email, bool $test): bool
 {
-    global $email_storage_table;
     $array = get_sql_query(
-        $email_storage_table,
+        EmailVariables::STORAGE_TABLE,
         array("id"),
         array(
             array("email_address", $email),
@@ -388,7 +383,7 @@ function insert_new_email(string $email, bool $test): bool
 
     if (empty($array)) {
         return sql_insert(
-                $email_storage_table,
+                EmailVariables::STORAGE_TABLE,
                 array(
                     "email_address" => $email,
                     "test" => $test,
