@@ -58,11 +58,9 @@ class AccountRegistry
         if ($this->account->transform(null, null, $name)->exists()) {
             return new MethodReply(false, "Account with this name already exists.");
         }
-        global $accounts_table;
-
         if ($this->account->getSession()->isCustom() // Protected by captcha when not custom
             && sizeof(get_sql_query(
-                $accounts_table,
+                AccountVariables::ACCOUNTS_TABLE,
                 array("id"),
                 array(
                     array("application_id", $applicationID),
@@ -77,7 +75,7 @@ class AccountRegistry
             return new MethodReply(false, "You cannot create more accounts for now, please try again later.");
         }
         if (!sql_insert(
-            $accounts_table,
+            AccountVariables::ACCOUNTS_TABLE,
             array(
                 "type" => $this->account->getSession()->getType(),
                 "custom_id" => $this->account->getSession()->getCustomKey(),
@@ -126,10 +124,9 @@ class AccountRegistry
 
     public function getAccountAmount(): int
     {
-        global $accounts_table;
         return sizeof(
             get_sql_query(
-                $accounts_table,
+                AccountVariables::ACCOUNTS_TABLE,
                 array("id"),
                 array(
                     array("application_id", $this->account->getDetail("application_id")),

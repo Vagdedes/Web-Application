@@ -14,9 +14,8 @@ class AccountSettings
         if (!$this->account->exists()) {
             return new MethodReply(false, "No account found.");
         }
-        global $account_settings_table;
         $query = get_sql_query(
-            $account_settings_table,
+            AccountVariables::ACCOUNT_SETTINGS_TABLE,
             array("option_value"),
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -50,13 +49,12 @@ class AccountSettings
         if (!$this->account->exists()) {
             return new MethodReply(false, "No account found.");
         }
-        global $account_settings_table;
         $date = get_current_date();
         $object = $this->get($option, null);
 
         if ($object->isPositiveOutcome()) {
             if (!set_sql_query(
-                $account_settings_table,
+                AccountVariables::ACCOUNT_SETTINGS_TABLE,
                 array(
                     "option_value" => $value,
                     "last_modification_date" => $date
@@ -70,7 +68,7 @@ class AccountSettings
             }
         } else {
             if (!sql_insert(
-                $account_settings_table,
+                AccountVariables::ACCOUNT_SETTINGS_TABLE,
                 array(
                     "account_id" => $this->account->getDetail("id"),
                     "option_key" => $option,
@@ -106,7 +104,6 @@ class AccountSettings
         if (!$this->account->exists()) {
             return new MethodReply(false, "No account found.");
         }
-        global $account_settings_table;
         $date = get_current_date();
         $object = $this->get($option, null);
 
@@ -116,7 +113,7 @@ class AccountSettings
             $value = $enabled ? 1 : null;
 
             if (!set_sql_query(
-                $account_settings_table,
+                AccountVariables::ACCOUNT_SETTINGS_TABLE,
                 array(
                     "option_value" => $value,
                     "last_modification_date" => $date
@@ -139,7 +136,7 @@ class AccountSettings
             $enabled = true;
 
             if (!sql_insert(
-                $account_settings_table,
+                AccountVariables::ACCOUNT_SETTINGS_TABLE,
                 array(
                     "account_id" => $this->account->getDetail("id"),
                     "option_key" => $option,

@@ -23,9 +23,8 @@ class AccountStatistics
 
     public function getType(int|string $id): MethodReply
     {
-        global $statistic_types_table;
         $query = get_sql_query(
-            $statistic_types_table,
+            AccountVariables::STATISTIC_TYPES_TABLE,
             array("id", "name", "description", "creation_date"),
             array(
                 array("id", $id),
@@ -44,20 +43,15 @@ class AccountStatistics
     {
         switch ($type) {
             case self::INTEGER:
-                global $statistic_integers_table;
-                return $statistic_integers_table;
+                return AccountVariables::STATISTIC_INTEGERS_TABLE;
             case self::LONG:
-                global $statistic_long_table;
-                return $statistic_long_table;
+                return AccountVariables::STATISTIC_LONG_TABLE;
             case self::DOUBLE:
-                global $statistic_double_table;
-                return $statistic_double_table;
+                return AccountVariables::STATISTIC_DOUBLE_TABLE;
             case self::STRING:
-                global $statistic_string_table;
-                return $statistic_string_table;
+                return AccountVariables::STATISTIC_STRING_TABLE;
             case self::BOOLEAN:
-                global $statistic_boolean_table;
-                return $statistic_boolean_table;
+                return AccountVariables::STATISTIC_BOOLEAN_TABLE;
             default:
                 return null;
         }

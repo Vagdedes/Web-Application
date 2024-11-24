@@ -13,7 +13,6 @@ class AccountModerations
 
     public function getAvailable(int $limit = 0): array
     {
-        global $moderations_table;
         $applicationID = $this->account->getDetail("application_id");
 
         if ($applicationID === null) {
@@ -31,7 +30,7 @@ class AccountModerations
             );
         }
         $array = get_sql_query(
-            $moderations_table,
+            AccountVariables::MODERATIONS_TABLE,
             array("id", "name"),
             $where,
             null,
@@ -47,7 +46,6 @@ class AccountModerations
 
     public function getResult(int|string $name, ?array $select = null): MethodReply
     {
-        global $moderations_table;
         $hasSelect = $select !== null;
         $key = is_numeric($name) ? "id" : "name";
         $applicationID = $this->account->getDetail("application_id");
@@ -69,7 +67,7 @@ class AccountModerations
             );
         }
         $query = get_sql_query(
-            $moderations_table,
+            AccountVariables::MODERATIONS_TABLE,
             $hasSelect ? $select : array("id"),
             $where,
             null,
@@ -125,10 +123,8 @@ class AccountModerations
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
         }
-        global $executed_moderations_table;
-
         if (sql_insert(
-            $executed_moderations_table,
+            AccountVariables::EXECUTED_MODERATIONS_TABLE,
             array(
                 "account_id" => $accountID,
                 "executed_by" => $this->account->getDetail("id"),
@@ -171,10 +167,8 @@ class AccountModerations
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
         }
-        global $executed_moderations_table;
-
         if (set_sql_query(
-            $executed_moderations_table,
+            AccountVariables::EXECUTED_MODERATIONS_TABLE,
             array(
                 "deleted_by" => $this->account->getDetail("id"),
                 "deletion_date" => get_current_date(),
@@ -204,9 +198,8 @@ class AccountModerations
                 $moderation = $moderationObject->getObject();
             }
         }
-        global $executed_moderations_table;
         $array = get_sql_query(
-            $executed_moderations_table,
+            AccountVariables::EXECUTED_MODERATIONS_TABLE,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -239,9 +232,8 @@ class AccountModerations
                 $moderation = $moderationObject->getObject();
             }
         }
-        global $executed_moderations_table;
         return !empty(get_sql_query(
-            $executed_moderations_table,
+            AccountVariables::EXECUTED_MODERATIONS_TABLE,
             array("id"),
             array(
                 array("executed_by", $this->account->getDetail("id")),
@@ -259,9 +251,8 @@ class AccountModerations
 
     public function listReceivedActions(bool $active = true): array
     {
-        global $executed_moderations_table;
         $array = get_sql_query(
-            $executed_moderations_table,
+            AccountVariables::EXECUTED_MODERATIONS_TABLE,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -294,9 +285,8 @@ class AccountModerations
 
     public function listExecutedActions(bool $active = true): array
     {
-        global $executed_moderations_table;
         $array = get_sql_query(
-            $executed_moderations_table,
+            AccountVariables::EXECUTED_MODERATIONS_TABLE,
             null,
             array(
                 array("executed_by", $this->account->getDetail("id")),

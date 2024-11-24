@@ -12,9 +12,8 @@ class AccountHistory
     public function add(string $action, mixed $oldData = null, mixed $newData = null): bool
     {
         if ($this->account->exists()) {
-            global $account_history_table;
-
-            if (sql_insert($account_history_table,
+            if (sql_insert(
+                AccountVariables::ACCOUNT_HISTORY_TABLE,
                 array(
                     "account_id" => $this->account->getDetail("id"),
                     "action_id" => $action,
@@ -52,11 +51,11 @@ class AccountHistory
         if (!$this->account->exists()) {
             return new MethodReply(false, "Account does not exist.");
         }
-        global $account_history_table;
         return new MethodReply(
             true,
             null,
-            get_sql_query($account_history_table,
+            get_sql_query(
+                AccountVariables::ACCOUNT_HISTORY_TABLE,
                 $columns,
                 array(
                     array("account_id", $this->account->getDetail("id"))

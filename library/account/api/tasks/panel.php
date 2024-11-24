@@ -848,7 +848,7 @@ if (is_private_connection()) {
             endForm();
 
             $acceptedAccounts = get_sql_query(
-                $accepted_accounts_table,
+                AccountVariables::ACCEPTED_ACCOUNTS_TABLE,
                 array("name"),
                 array(
                     array("application_id", $account->getDetail("application_id")),

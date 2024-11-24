@@ -15,8 +15,7 @@ class AccountCooldowns
             $action = string_to_integer($action);
 
             if (!$this->has($action, false)) {
-                global $account_instant_cooldowns_table;
-                sql_insert($account_instant_cooldowns_table,
+                sql_insert(AccountVariables::ACCOUNT_INSTANT_COOLDOWNS_TABLE,
                     array(
                         "account_id" => $this->account->getDetail("id"),
                         "action_id" => $action,
@@ -41,9 +40,8 @@ class AccountCooldowns
                 if ($object === null || $object->threshold == $threshold) {
                     return true;
                 }
-                global $account_buffer_cooldowns_table;
                 set_sql_query(
-                    $account_buffer_cooldowns_table,
+                    AccountVariables::ACCOUNT_BUFFER_COOLDOWNS_TABLE,
                     array("threshold" => ($threshold + 1)),
                     array(
                         array("id", $object->id),
@@ -52,8 +50,8 @@ class AccountCooldowns
                     1
                 );
             } else {
-                global $account_buffer_cooldowns_table;
-                sql_insert($account_buffer_cooldowns_table,
+                sql_insert(
+                    AccountVariables::ACCOUNT_BUFFER_COOLDOWNS_TABLE,
                     array(
                         "account_id" => $this->account->getDetail("id"),
                         "action_id" => $action,
@@ -72,13 +70,11 @@ class AccountCooldowns
         if (!$this->account->exists()) {
             return new MethodReply(false, "No account found.");
         }
-        global $account_instant_cooldowns_table, $account_buffer_cooldowns_table;
-
         if ($hash) {
             $action = string_to_integer($action);
         }
         if (!empty(get_sql_query(
-            $account_instant_cooldowns_table,
+            AccountVariables::ACCOUNT_INSTANT_COOLDOWNS_TABLE,
             array("id"),
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -91,7 +87,7 @@ class AccountCooldowns
             return new MethodReply(true);
         }
         $query = get_sql_query(
-            $account_buffer_cooldowns_table,
+            AccountVariables::ACCOUNT_BUFFER_COOLDOWNS_TABLE,
             array("id", "threshold"),
             array(
                 array("account_id", $this->account->getDetail("id")),

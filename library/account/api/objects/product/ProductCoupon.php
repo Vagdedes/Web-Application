@@ -6,9 +6,8 @@ class ProductCoupon
 
     public function __construct(int|float|string $name, int|string $accountID, int|string $productID)
     {
-        global $product_coupons_table;
         $query = get_sql_query(
-            $product_coupons_table,
+            AccountVariables::PRODUCT_COUPONS_TABLE,
             array("discount", "uses"),
             array(
                 array("name", $name),
@@ -34,12 +33,11 @@ class ProductCoupon
         if (empty($query)) {
             $this->discount = null;
         } else {
-            global $product_purchases_table;
             $query = $query[0];
             $uses = $query->uses;
             $discount = $query->discount;
             $query = get_sql_query(
-                $product_purchases_table,
+                AccountVariables::PRODUCT_PURCHASES_TABLE,
                 array("id"),
                 array(
                     array("coupon", $name)

@@ -47,10 +47,9 @@ class AccountSession
 
     public function getAlive(?array $select = null, int $limit = 0): array
     {
-        global $account_sessions_table;
         $date = get_current_date();
         return get_sql_query(
-            $account_sessions_table,
+            AccountVariables::SESSIONS_TABLE,
             $select,
             array(
                 array("expiration_date", ">", $date),
@@ -65,9 +64,8 @@ class AccountSession
 
     public function getAll(array $select = array("account_id"), int $limit = 0): array
     {
-        global $account_sessions_table;
         $query = get_sql_query(
-            $account_sessions_table,
+            AccountVariables::SESSIONS_TABLE,
             $select,
             null,
             array(
@@ -118,7 +116,6 @@ class AccountSession
 
     public function find(bool $checkIpAddress = true): MethodReply
     {
-        global $account_sessions_table;
         $key = $this->createKey();
         $hasCustomKey = $this->isCustom();
 
@@ -128,7 +125,7 @@ class AccountSession
                 ? $this->customKey
                 : string_to_integer($key, true);
             $array = get_sql_query(
-                $account_sessions_table,
+                AccountVariables::SESSIONS_TABLE,
                 array("id", "account_id", "ip_address", "creation_date"),
                 array(
                     array("type", $this->type),
@@ -150,7 +147,7 @@ class AccountSession
                 if ($account->exists()) { // Check if session account exists
                     $maxTime = strtotime($object->creation_date) + strtotime(self::session_account_total_expiration);
                     set_sql_query(
-                        $account_sessions_table,
+                        AccountVariables::SESSIONS_TABLE,
                         array(
                             "expiration_date" => min(
                                 get_future_date(self::session_account_refresh_expiration),
@@ -184,7 +181,6 @@ class AccountSession
             $this->delete();
             return new MethodReply(false, $punishment->getMessage());
         }
-        global $account_sessions_table;
         $date = get_current_date();
         $hasCustomKey = $this->isCustom();
 
@@ -200,7 +196,7 @@ class AccountSession
                 : string_to_integer($key, true);
             $array = $hasCustomKey ? null
                 : get_sql_query(
-                    $account_sessions_table,
+                    AccountVariables::SESSIONS_TABLE,
                     array("id"),
                     array(
                         array("token", $key),
@@ -212,7 +208,7 @@ class AccountSession
             if (empty($array)) { // Check if session does not exist
                 if (!$this->account->getSettings()->isEnabled("two_factor_authentication")) {
                     $array = get_sql_query(
-                        $account_sessions_table,
+                        AccountVariables::SESSIONS_TABLE,
                         array("id"),
                         array(
                             array("account_id", $this->account->getDetail("id")),
@@ -224,7 +220,7 @@ class AccountSession
                     if (!empty($array)) {
                         foreach ($array as $object) {
                             set_sql_query(
-                                $account_sessions_table,
+                                AccountVariables::SESSIONS_TABLE,
                                 array(
                                     "expiration_date" => $date
                                 ),
@@ -238,7 +234,7 @@ class AccountSession
                     }
                 }
                 if (sql_insert(
-                    $account_sessions_table,
+                    AccountVariables::SESSIONS_TABLE,
                     array(
                         "type" => $this->type,
                         "token" => $key,
@@ -268,13 +264,12 @@ class AccountSession
             $this->deleteKey();
 
             if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
-                global $account_sessions_table;
                 $key = $hasCustomKey
                     ? $this->customKey
                     : string_to_integer($key, true);
                 $date = get_current_date();
                 $array = get_sql_query(
-                    $account_sessions_table,
+                    AccountVariables::SESSIONS_TABLE,
                     array("id"),
                     array(
                         array("type", $this->type),
@@ -287,7 +282,7 @@ class AccountSession
 
                 if (!empty($array)) { // Check if session exists
                     set_sql_query(
-                        $account_sessions_table,
+                        AccountVariables::SESSIONS_TABLE,
                         array(
                             "expiration_date" => $date
                         ),
@@ -306,9 +301,8 @@ class AccountSession
 
     public function getLastKnown(): ?object
     {
-        global $account_sessions_table;
         $query = get_sql_query(
-            $account_sessions_table,
+            AccountVariables::SESSIONS_TABLE,
             null,
             array(
                 array("type", $this->type),

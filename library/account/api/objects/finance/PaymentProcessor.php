@@ -216,9 +216,8 @@ class PaymentProcessor
                                             );
                                         }
                                     } else {
-                                        global $added_accounts_table;
                                         $query = get_sql_query(
-                                            $added_accounts_table,
+                                            AccountVariables::ADDED_ACCOUNTS_TABLE,
                                             array("account_id"),
                                             array(
                                                 array("accepted_account_id", $transactionType),
@@ -308,11 +307,9 @@ class PaymentProcessor
                         );
 
                         if (!empty($ownerships)) {
-                            global $added_accounts_table;
-
                             foreach ($ownerships as $ownership) {
                                 $query = get_sql_query(
-                                    $added_accounts_table,
+                                    AccountVariables::ADDED_ACCOUNTS_TABLE,
                                     array("account_id"),
                                     array(
                                         array("credential", $ownership->user),
@@ -366,11 +363,9 @@ class PaymentProcessor
                         );
 
                         if (!empty($buyers)) {
-                            global $added_accounts_table;
-
                             foreach ($buyers as $buyer) {
                                 $query = get_sql_query(
-                                    $added_accounts_table,
+                                    AccountVariables::ADDED_ACCOUNTS_TABLE,
                                     array("account_id"),
                                     array(
                                         array("credential", $buyer->userID),
@@ -443,9 +438,8 @@ class PaymentProcessor
 
     private function getExecutions(int $accountID, int $lookupID): int
     {
-        global $product_transaction_search_executions_table;
         return sizeof(get_sql_query(
-            $product_transaction_search_executions_table,
+            AccountVariables::PRODUCT_TRANSACTION_SEARCH_EXECUTIONS_TABLE,
             array("account_id"),
             array(
                 array("account_id", $accountID),
@@ -458,10 +452,8 @@ class PaymentProcessor
                                   int|string $transactionID,
                                   int        $productID, int $tierID): bool
     {
-        global $product_transaction_search_executions_table;
-
         if (empty(get_sql_query(
-            $product_transaction_search_executions_table,
+            AccountVariables::PRODUCT_TRANSACTION_SEARCH_EXECUTIONS_TABLE,
             array("transaction_id"),
             array(
                 array("transaction_id", $transactionID)
@@ -470,7 +462,7 @@ class PaymentProcessor
             1
         ))) {
             sql_insert(
-                $product_transaction_search_executions_table,
+                AccountVariables::PRODUCT_TRANSACTION_SEARCH_EXECUTIONS_TABLE,
                 array(
                     "account_id" => $accountID,
                     "lookup_id" => $lookupID,
@@ -488,10 +480,9 @@ class PaymentProcessor
 
     private function sendGeneralPurchaseEmail(string $email, int|string $transactionID, string $date): void
     {
-        global $unknown_email_processing_table;
         $email = strtolower($email);
         $query = get_sql_query(
-            $unknown_email_processing_table,
+            AccountVariables::UNKNOWN_EMAIL_PROCESSING_TABLE,
             array("id"),
             array(
                 array("email_address", $email),
@@ -501,7 +492,7 @@ class PaymentProcessor
 
         if (empty($query)
             && sql_insert(
-                $unknown_email_processing_table,
+                AccountVariables::UNKNOWN_EMAIL_PROCESSING_TABLE,
                 array(
                     "email_address" => $email,
                     "transaction_id" => $transactionID,

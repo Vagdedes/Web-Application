@@ -26,9 +26,9 @@ class AccountProduct
                 return new MethodReply(false, $functionalityOutcome->getMessage());
             }
         }
-        global $products_table;
         $accountExists = $this->account->exists();
-        $array = get_sql_query($products_table,
+        $array = get_sql_query(
+            AccountVariables::PRODUCTS_TABLE,
             null,
             array(
                 $hasAccountPointer ? array("account_id", $accountID) : array("application_id", $applicationID),
@@ -44,23 +44,14 @@ class AccountProduct
         $isEmpty = empty($array);
 
         if (!$isEmpty) {
-            global $website_domain,
-                   $product_buttons_table,
-                   $product_compatibilities_table,
-                   $product_transaction_search_table,
-                   $product_updates_table,
-                   $product_identification_table,
-                   $product_divisions_table,
-                   $product_cards_table,
-                   $product_purchases_table,
-                   $product_tiers_table;
+            global $website_domain;
 
             foreach ($array as $arrayKey => $object) {
                 if ($accountExists || $object->requires_account === null) {
                     $uniquePatreonTiers = array();
                     $productID = $object->id;
                     $object->transaction_search = get_sql_query(
-                        $product_transaction_search_table,
+                        AccountVariables::PRODUCT_TRANSACTION_SEARCH_TABLE,
                         array(
                             "transaction_key",
                             "transaction_value",
@@ -94,7 +85,7 @@ class AccountProduct
                     $object->tiers->free = array();
                     $object->tiers->paid = array();
                     $object->tiers->all = get_sql_query(
-                        $product_tiers_table,
+                        AccountVariables::PRODUCT_TIERS_TABLE,
                         array(
                             "id",
                             "name",
@@ -159,7 +150,7 @@ class AccountProduct
                         $object->registered_buyers = 0;
                     } else {
                         $object->registered_buyers = sizeof(get_sql_query(
-                            $product_purchases_table,
+                            AccountVariables::PRODUCT_PURCHASES_TABLE,
                             array("id"),
                             array(
                                 array("product_id", $productID),
@@ -179,7 +170,7 @@ class AccountProduct
                                  "post_purchase" => 1,
                              ) as $key => $value) {
                         $query = get_sql_query(
-                            $product_divisions_table,
+                            AccountVariables::PRODUCT_DIVISIONS_TABLE,
                             array("family", "name", "description", "no_html"),
                             array(
                                 array("product_id", $productID),
@@ -206,7 +197,7 @@ class AccountProduct
                             $object->divisions->{$key} = $query;
                         }
                         $object->buttons->{$key} = get_sql_query(
-                            $product_buttons_table,
+                            AccountVariables::PRODUCT_BUTTONS_TABLE,
                             array("color", "name", "url", "requires_account"),
                             array(
                                 array("product_id", $productID),
@@ -218,7 +209,7 @@ class AccountProduct
                             )
                         );
                         $object->cards->{$key} = get_sql_query(
-                            $product_cards_table,
+                            AccountVariables::PRODUCT_CARDS_TABLE,
                             array("image", "name", "url", "requires_account"),
                             array(
                                 array("product_id", $productID),
@@ -231,7 +222,7 @@ class AccountProduct
                         );
                     }
                     $object->compatibilities = get_sql_query(
-                        $product_compatibilities_table,
+                        AccountVariables::PRODUCT_COMPATIBILITIES_TABLE,
                         array("compatible_product_id"),
                         array(
                             array("product_id", $productID),
@@ -245,7 +236,7 @@ class AccountProduct
                         }
                     }
                     $object->downloads = get_sql_query(
-                        $product_updates_table,
+                        AccountVariables::PRODUCT_UPDATES_TABLE,
                         array(
                             "identification_url",
                             "file_name",
@@ -312,7 +303,7 @@ class AccountProduct
                         $object->minimum_supported_version = $downloads[sizeof($downloads) - 1]->version;
                     }
                     $object->identification = get_sql_query(
-                        $product_identification_table,
+                        AccountVariables::PRODUCT_IDENTIFICATION_TABLE,
                         array(
                             "accepted_account_id",
                             "accepted_account_product_id",

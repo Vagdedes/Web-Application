@@ -51,10 +51,9 @@ class AccountProductDownloads
 
     private function checkAndUpdateDownloadCount(string|object $tokenOrQuery): MethodReply
     {
-        global $product_downloads_table;
         if (is_string($tokenOrQuery)) {
             $query = get_sql_query(
-                $product_downloads_table,
+                AccountVariables::PRODUCT_DOWNLOADS_TABLE,
                 array("id", "download_count", "max_downloads"),
                 array(
                     array("token", $tokenOrQuery),
@@ -80,7 +79,7 @@ class AccountProductDownloads
                 if ($downloadCount >= $query->max_downloads) {
                     return new MethodReply(false, "Download token has reached its max download limit.");
                 } else if (!set_sql_query(
-                    $product_downloads_table,
+                    AccountVariables::PRODUCT_DOWNLOADS_TABLE,
                     array(
                         "download_count" => ($downloadCount + 1),
                     ),
@@ -106,7 +105,6 @@ class AccountProductDownloads
                               int|string|null $maxDownloads = null,
                               int|string|null $customExpiration = null): MethodReply
     {
-        global $product_downloads_table;
         $originalFile = "/var/www/.structure/downloadable/" . $fileProperties->file_name . "." . $fileProperties->file_type;
 
         if (!file_exists($originalFile)) {
@@ -136,7 +134,7 @@ class AccountProductDownloads
             }
         } else {
             if (!sql_insert(
-                $product_downloads_table,
+                AccountVariables::PRODUCT_DOWNLOADS_TABLE,
                 array(
                     "account_id" => $this->account->getDetail("id"),
                     "product_id" => $productObject->id,
@@ -212,8 +210,6 @@ class AccountProductDownloads
         if (!$this->account->getEmail()->isVerified()) {
             return new MethodReply(false, "Verify your email before downloading.");
         }
-        global $product_downloads_table;
-
         if ($cooldown !== null) {
             $functionality->addInstantCooldown(AccountFunctionality::DOWNLOAD_PRODUCT, $cooldown);
         }
@@ -221,7 +217,7 @@ class AccountProductDownloads
 
         while (true) {
             if (empty(get_sql_query(
-                $product_downloads_table,
+                AccountVariables::PRODUCT_DOWNLOADS_TABLE,
                 array("id"),
                 array(
                     array("token", $newToken)
@@ -245,7 +241,7 @@ class AccountProductDownloads
                 $customExpiration
             );
         } else if (!sql_insert(
-            $product_downloads_table,
+            AccountVariables::PRODUCT_DOWNLOADS_TABLE,
             array(
                 "account_id" => $this->account->getDetail("id"),
                 "product_id" => $productID,
@@ -264,9 +260,8 @@ class AccountProductDownloads
                          bool            $sendFile = true,
                          int|string|null $cooldown = self::DEFAULT_COOLDOWN): MethodReply
     {
-        global $product_downloads_table;
         $query = get_sql_query(
-            $product_downloads_table,
+            AccountVariables::PRODUCT_DOWNLOADS_TABLE,
             null,
             array(
                 array("token", $token),
@@ -334,9 +329,8 @@ class AccountProductDownloads
 
     public function getList(bool $active = false, int $limit = 0): array
     {
-        global $product_downloads_table;
         return get_sql_query(
-            $product_downloads_table,
+            AccountVariables::PRODUCT_DOWNLOADS_TABLE,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -350,10 +344,9 @@ class AccountProductDownloads
     public
     function getCount(bool $active = false, int $limit = 0): int
     {
-        global $product_downloads_table;
         return sizeof(
             get_sql_query(
-                $product_downloads_table,
+                AccountVariables::PRODUCT_DOWNLOADS_TABLE,
                 array("id"),
                 array(
                     array("account_id", $this->account->getDetail("id")),

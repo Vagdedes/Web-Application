@@ -13,9 +13,8 @@ class AccountNotifications
 
     public function getType(int|string $id): MethodReply
     {
-        global $account_notification_types_table;
         $query = get_sql_query(
-            $account_notification_types_table,
+            AccountVariables::ACCOUNT_NOTIFICATION_TYPES_TABLE,
             array("id", "name", "description", "creation_date"),
             array(
                 array("application_id", $this->account->getDetail("application_id")),
@@ -42,9 +41,8 @@ class AccountNotifications
         if (!$this->account->exists()) {
             return false;
         }
-        global $account_notifications_table;
-
-        if (sql_insert($account_notifications_table,
+        if (sql_insert(
+            AccountVariables::ACCOUNT_NOTIFICATIONS_TABLE,
             array(
                 "account_id" => $this->account->getDetail("id"),
                 "type_id" => $type,
@@ -72,10 +70,9 @@ class AccountNotifications
         if (!$this->account->exists()) {
             return array();
         }
-        global $account_notifications_table;
         $date = get_current_date();
         $query = get_sql_query(
-            $account_notifications_table,
+            AccountVariables::ACCOUNT_NOTIFICATIONS_TABLE,
             array("id", "color", "type_id", "information", "creation_date", "expiration_date", "email", "phone"),
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -93,7 +90,7 @@ class AccountNotifications
         if ($complete && !empty($query)) {
             foreach ($query as $row) {
                 if (set_sql_query(
-                    $account_notifications_table,
+                    AccountVariables::ACCOUNT_NOTIFICATIONS_TABLE,
                     array(
                         "completion_date" => $date
                     ),

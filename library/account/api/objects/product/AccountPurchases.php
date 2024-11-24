@@ -14,11 +14,10 @@ class AccountPurchases
         if (!$this->account->exists()) {
             return array();
         }
-        global $product_purchases_table;
         $array = array();
         $date = get_current_date();
         $query = get_sql_query(
-            $product_purchases_table,
+            AccountVariables::PRODUCT_PURCHASES_TABLE,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -128,9 +127,8 @@ class AccountPurchases
         if (!$this->account->exists()) {
             return array();
         }
-        global $product_purchases_table;
         $query = get_sql_query(
-            $product_purchases_table,
+            AccountVariables::PRODUCT_PURCHASES_TABLE,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -165,9 +163,8 @@ class AccountPurchases
         if (!$this->account->exists()) {
             return array();
         }
-        global $product_purchases_table;
         return get_sql_query(
-            $product_purchases_table,
+            AccountVariables::PRODUCT_PURCHASES_TABLE,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -281,11 +278,9 @@ class AccountPurchases
                 return new MethodReply(false, "This product's tier is already owned (2).");
             }
         }
-        global $product_purchases_table;
-
         if ($transactionID !== null
             && !empty(get_sql_query(
-                $product_purchases_table,
+                AccountVariables::PRODUCT_PURCHASES_TABLE,
                 array("id"),
                 array(
                     array("account_id", $this->account->getDetail("id")),
@@ -339,7 +334,7 @@ class AccountPurchases
             $duration = get_future_date($duration);
         }
         if (!sql_insert(
-            $product_purchases_table,
+            AccountVariables::PRODUCT_PURCHASES_TABLE,
             array(
                 "account_id" => $this->account->getDetail("id"),
                 "product_id" => $productID,
@@ -413,14 +408,12 @@ class AccountPurchases
         if (!$purchase->isPositiveOutcome()) {
             return new MethodReply(false, "Cannot remove purchase that is not owned.");
         }
-        global $product_purchases_table;
-
         if ($transactionID !== null
             && $purchase->getObject()->transaction_id != $transactionID) {
             return new MethodReply(false, "Purchase found but transaction-id is not matched.");
         }
         if (!set_sql_query(
-            $product_purchases_table,
+            AccountVariables::PRODUCT_PURCHASES_TABLE,
             array("deletion_date" => get_current_date()),
             array(
                 array("id", $purchase->getObject()->id)
@@ -472,7 +465,6 @@ class AccountPurchases
         if ($purchase->isPositiveOutcome()) {
             return new MethodReply(false, "Cannot exchange purchase that's already owned.");
         }
-        global $product_purchases_table;
         $date = get_current_date();
         $purchase = $purchase->getObject();
         $purchaseID = $purchase->id;
@@ -482,13 +474,13 @@ class AccountPurchases
         $purchase->product_id = $newProductID;
 
         if (!sql_insert(
-            $product_purchases_table,
+            AccountVariables::PRODUCT_PURCHASES_TABLE,
             json_decode(json_encode($purchase), true) // Convert object to array
         )) {
             return new MethodReply(false, "Failed to interact with the database (1).");
         }
         $query = get_sql_query(
-            $product_purchases_table,
+            AccountVariables::PRODUCT_PURCHASES_TABLE,
             array(
                 array("account_id", $this->account->getDetail("id")),
                 array("product_id", $newProductID),
@@ -502,7 +494,7 @@ class AccountPurchases
             return new MethodReply(false, "Failed to interact with the database (2).");
         }
         if (!set_sql_query(
-            $product_purchases_table,
+            AccountVariables::PRODUCT_PURCHASES_TABLE,
             array(
                 "exchange_id" => $query[0]->id,
                 "deletion_date" => $date

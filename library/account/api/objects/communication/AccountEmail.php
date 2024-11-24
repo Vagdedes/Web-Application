@@ -27,10 +27,8 @@ class AccountEmail
         if ($email === strtolower($currentEmail)) {
             return new MethodReply(false, "This is already your email address.");
         }
-        global $accounts_table;
-
         if (!empty(get_sql_query(
-            $accounts_table,
+            AccountVariables::ACCOUNTS_TABLE,
             array("id"),
             array(
                 array("email_address", $email),
@@ -70,10 +68,9 @@ class AccountEmail
                 return new MethodReply(false, $functionalityOutcome->getMessage());
             }
         }
-        global $email_verifications_table;
         $date = get_current_date();
         $array = get_sql_query(
-            $email_verifications_table,
+            AccountVariables::EMAIL_VERIFICATIONS_TABLE,
             $exists ? array("id", "email_address") : array("id", "email_address", "account_id"),
             array(
                 array($code ? "code" : "token", $tokenOrCode),
@@ -87,7 +84,6 @@ class AccountEmail
         if (empty($array)) {
             return new MethodReply(false, "This email verification is invalid or has expired.");
         }
-        global $accounts_table;
         $object = $array[0];
         $applicationID = $account->getDetail("application_id");
 
@@ -108,7 +104,7 @@ class AccountEmail
 
         if ($account->getDetail("email_address") != $email
             && !empty(get_sql_query(
-                $accounts_table,
+                AccountVariables::ACCOUNTS_TABLE,
                 array("id"),
                 array(
                     array("email_address", $email),
@@ -123,7 +119,7 @@ class AccountEmail
         $verifiedEmail = $account->getEmail()->isVerified();
 
         if (!set_sql_query(
-            $email_verifications_table,
+            AccountVariables::EMAIL_VERIFICATIONS_TABLE,
             array("completion_date" => $date),
             array(
                 array("id", $object->id),
@@ -171,11 +167,10 @@ class AccountEmail
             }
             $email = strtolower($email);
         }
-        global $email_verifications_table;
         $accountID = $this->account->getDetail("id");
         $date = get_current_date();
         $array = get_sql_query(
-            $email_verifications_table,
+            AccountVariables::EMAIL_VERIFICATIONS_TABLE,
             array("token", "code"),
             array(
                 array("account_id", $accountID),
@@ -190,7 +185,7 @@ class AccountEmail
             $createdCode = $code ? random_string(32) : null;
 
             if (!sql_insert(
-                $email_verifications_table,
+                AccountVariables::EMAIL_VERIFICATIONS_TABLE,
                 array(
                     "token" => $token,
                     "code" => $createdCode,
@@ -219,9 +214,8 @@ class AccountEmail
 
     public function isVerified(): bool
     {
-        global $email_verifications_table;
         return !empty(get_sql_query(
-            $email_verifications_table,
+            AccountVariables::EMAIL_VERIFICATIONS_TABLE,
             array("id"),
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -259,7 +253,6 @@ class AccountEmail
     public function createTicket(string $subject, string $info, ?string $email = null,
                                  ?array $extra = null): array
     {
-        global $tickets_email_table;
         $hasEmail = $email !== null;
         $account = $hasEmail ? $this->account->getNew(null, $email) : $this->account;
         $found = $account->exists();
@@ -312,7 +305,7 @@ class AccountEmail
             $id = rand(0, 2147483647);
 
             if (empty(get_sql_query(
-                $tickets_email_table,
+                AccountVariables::TICKETS_EMAIL_TABLE,
                 array("identifier"),
                 array(
                     array("identifier", $id)
@@ -321,7 +314,7 @@ class AccountEmail
                 1
             ))) {
                 sql_insert(
-                    $tickets_email_table,
+                    AccountVariables::TICKETS_EMAIL_TABLE,
                     array(
                         "identifier" => $id,
                         "account_id" => $found ? $account->getDetail("id") : null,

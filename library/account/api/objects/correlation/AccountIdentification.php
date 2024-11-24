@@ -14,10 +14,9 @@ class AccountIdentification
 
     private function run($repeat = true): void
     {
-        global $account_identification_table;
         $accountID = $this->account->getDetail("id");
         $query = get_sql_query(
-            $account_identification_table,
+            AccountVariables::ACCOUNT_IDENTIFICATION_TABLE,
             array("id", "code", "expiration_date"),
             array(
                 array("account_id", $accountID),
@@ -31,7 +30,7 @@ class AccountIdentification
                 $code = $this->create();
 
                 if (empty(get_sql_query(
-                    $account_identification_table,
+                    AccountVariables::ACCOUNT_IDENTIFICATION_TABLE,
                     array("id"),
                     array(
                         array("code", $code),
@@ -40,7 +39,7 @@ class AccountIdentification
                     1
                 ))) {
                     if (sql_insert(
-                        $account_identification_table,
+                        AccountVariables::ACCOUNT_IDENTIFICATION_TABLE,
                         array(
                             "account_id" => $accountID,
                             "code" => $code,
@@ -66,7 +65,7 @@ class AccountIdentification
                     $code = $this->create();
 
                     if (empty(get_sql_query(
-                        $account_identification_table,
+                        AccountVariables::ACCOUNT_IDENTIFICATION_TABLE,
                         array("id"),
                         array(
                             array("code", $code),
@@ -75,7 +74,7 @@ class AccountIdentification
                         1
                     ))) {
                         if (set_sql_query(
-                            $account_identification_table,
+                            AccountVariables::ACCOUNT_IDENTIFICATION_TABLE,
                             array(
                                 "code" => $code,
                                 "expiration_date" => get_future_date(self::expiration_time)

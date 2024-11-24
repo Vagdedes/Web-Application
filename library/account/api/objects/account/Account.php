@@ -102,12 +102,9 @@ class Account
             && ($hasID ? $id <= 0 : !$hasUsername && !$hasEmail)) {
             $this->def($applicationID);
         } else {
-            global $accounts_table;
-
             if ($hasIdentification) {
-                global $account_identification_table;
                 $query = get_sql_query(
-                    $account_identification_table,
+                    AccountVariables::ACCOUNT_IDENTIFICATION_TABLE,
                     array("account_id"),
                     array(
                         array("code", $identification)
@@ -136,7 +133,7 @@ class Account
             }
             if ($runQuery) {
                 $query = get_sql_query(
-                    $accounts_table,
+                    AccountVariables::ACCOUNTS_TABLE,
                     null,
                     array(
                         $hasID ? array("id", $id) : "",
@@ -226,9 +223,8 @@ class Account
     public function setDetail($detail, $value): MethodReply
     {
         if ($this->object->{$detail} !== $value) {
-            global $accounts_table;
             if (!set_sql_query(
-                $accounts_table,
+                AccountVariables::ACCOUNTS_TABLE,
                 array($detail => $value),
                 array(
                     array("id", $this->object->id)

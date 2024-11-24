@@ -27,10 +27,9 @@ class AccountPermissions
         if (!$this->account->exists()) {
             return array();
         }
-        global $account_roles_table;
         $array = array();
         $query = get_sql_query(
-            $account_roles_table,
+            AccountVariables::ACCOUNT_ROLES_TABLE,
             array("role_id"),
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -71,9 +70,8 @@ class AccountPermissions
         if ($role == $this->defaultRoleID) {
             return true;
         } else {
-            global $account_roles_table;
             return !empty(get_sql_query(
-                $account_roles_table,
+                AccountVariables::ACCOUNT_ROLES_TABLE,
                 array("id"),
                 array(
                     array("account_id", $accountID),
@@ -128,10 +126,9 @@ class AccountPermissions
         if (!$this->account->exists()) {
             return array();
         }
-        global $account_permissions_table;
         $array = array();
         $query = get_sql_query(
-            $account_permissions_table,
+            AccountVariables::ACCOUNT_PERMISSIONS_TABLE,
             array("permission"),
             array(
                 array("account_id", $this->account->getDetail("id")),

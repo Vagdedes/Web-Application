@@ -111,17 +111,16 @@ class AccountActions
             $tables = get_sql_database_tables("account");
 
             if (!empty($tables)) {
-                global $accounts_table;
                 $accountID = $this->account->getDetail("id");
 
                 if (delete_sql_query(
-                    $accounts_table,
+                    AccountVariables::ACCOUNTS_TABLE,
                     array(
                         array("id", $accountID)
                     )
                 )) {
                     foreach ($tables as $table) {
-                        if ($table !== $accounts_table) {
+                        if ($table !== AccountVariables::ACCOUNTS_TABLE) {
                             delete_sql_query($table,
                                 array(
                                     array("account_id", $accountID)
@@ -135,9 +134,8 @@ class AccountActions
             }
             return new MethodReply(false, "Failed to find database tables.");
         } else {
-            global $accounts_table;
             if (!set_sql_query(
-                $accounts_table,
+                AccountVariables::ACCOUNTS_TABLE,
                 array("deletion_date" => get_current_date()),
                 array(
                     array("id", $this->account->getDetail("id"))
@@ -174,10 +172,8 @@ class AccountActions
         if ($name === $this->account->getDetail($type)) {
             return new MethodReply(false, "You already have this name.");
         }
-        global $accounts_table;
-
         if (!empty(get_sql_query(
-            $accounts_table,
+            AccountVariables::ACCOUNTS_TABLE,
             array("id"),
             array(
                 array($type, $name),

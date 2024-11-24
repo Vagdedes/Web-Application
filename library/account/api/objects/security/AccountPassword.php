@@ -19,11 +19,10 @@ class AccountPassword
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
-        global $change_password_table;
         $date = get_current_date();
         $accountID = $this->account->getDetail("id");
         $array = get_sql_query(
-            $change_password_table,
+            AccountVariables::CHANGE_PASSWORD_TABLE,
             null,
             array(
                 array("account_id", $accountID),
@@ -41,7 +40,7 @@ class AccountPassword
         $createdCode = $code ? random_string(32) : null;
 
         if (!sql_insert(
-            $change_password_table,
+            AccountVariables::CHANGE_PASSWORD_TABLE,
             array(
                 "account_id" => $accountID,
                 "token" => $token,
@@ -75,10 +74,9 @@ class AccountPassword
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
-        global $change_password_table;
         $loggedOut = !$this->account->exists();
         $array = get_sql_query(
-            $change_password_table,
+            AccountVariables::CHANGE_PASSWORD_TABLE,
             $loggedOut ? array("id", "account_id") : array("id"),
             array(
                 array($code ? "code" : "token", $tokenOrCode),
@@ -113,7 +111,7 @@ class AccountPassword
             return new MethodReply(false, $parameter->getOutcome()->getMessage());
         }
         $comparison = get_sql_query(
-            $change_password_table,
+            AccountVariables::CHANGE_PASSWORD_TABLE,
             array("new_password"),
             array(
                 array("account_id", $account->getDetail("id")),
@@ -141,7 +139,7 @@ class AccountPassword
             return new MethodReply("Password hashing failed.");
         }
         if (!set_sql_query(
-            $change_password_table,
+            AccountVariables::CHANGE_PASSWORD_TABLE,
             array(
                 "completion_date" => get_current_date(),
                 "new_password" => $password

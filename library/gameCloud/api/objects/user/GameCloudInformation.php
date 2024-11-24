@@ -21,9 +21,8 @@ class GameCloudInformation
                 $query = get_accepted_platforms(array("accepted_account_id"), $this->user->getPlatform());
 
                 if (!empty($query)) {
-                    global $added_accounts_table;
                     $query = get_sql_query(
-                        $added_accounts_table,
+                        AccountVariables::ADDED_ACCOUNTS_TABLE,
                         array("account_id"),
                         array(
                             array("accepted_account_id", $query[0]->accepted_account_id),

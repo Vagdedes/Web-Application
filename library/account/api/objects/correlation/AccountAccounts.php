@@ -18,9 +18,8 @@ class AccountAccounts
         if (!$this->account->exists()) {
             return array();
         }
-        global $accepted_accounts_table;
         return get_sql_query(
-            $accepted_accounts_table,
+            AccountVariables::ACCEPTED_ACCOUNTS_TABLE,
             $select,
             array(
                 array("manual", "IS NOT", null),
@@ -61,7 +60,6 @@ class AccountAccounts
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false, "This account type does not exist.");
         }
-        global $added_accounts_table;
         $acceptedAccount = $acceptedAccount->getObject();
 
         if (!$isNumeric) {
@@ -110,7 +108,7 @@ class AccountAccounts
         );
         $accountID = $this->account->getDetail("id");
         $query = get_sql_query(
-            $added_accounts_table,
+            AccountVariables::ADDED_ACCOUNTS_TABLE,
             array("account_id"),
             array(
                 array("credential", $credential),
@@ -141,7 +139,7 @@ class AccountAccounts
         $date = get_current_date();
 
         if (!sql_insert(
-            $added_accounts_table,
+            AccountVariables::ADDED_ACCOUNTS_TABLE,
             array(
                 "account_id" => $accountID,
                 "accepted_account_id" => $type,
@@ -161,7 +159,7 @@ class AccountAccounts
         if ($deletePreviousIfSurpassing > 0
             && sizeof($this->getAdded($type, $deletePreviousIfSurpassing + 1)) > $deletePreviousIfSurpassing
             && !set_sql_query(
-                $added_accounts_table,
+                AccountVariables::ADDED_ACCOUNTS_TABLE,
                 array("deletion_date" => $date),
                 array(
                     array("account_id", $accountID),
@@ -203,8 +201,6 @@ class AccountAccounts
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false, "This account type does not exist.");
         }
-        global $added_accounts_table;
-
         if (!$isNumeric) {
             $type = $acceptedAccount->getObject()->id;
         }
@@ -212,7 +208,7 @@ class AccountAccounts
         $isCredential = $hasID && !is_numeric($idOrCredential);
 
         if (!set_sql_query(
-            $added_accounts_table,
+            AccountVariables::ADDED_ACCOUNTS_TABLE,
             array("deletion_date" => get_current_date()),
             array(
                 $hasID ? array(($isCredential ? "credential" : "id"), $idOrCredential) : "",
@@ -244,9 +240,8 @@ class AccountAccounts
         if (!$this->account->exists()) {
             return array();
         }
-        global $added_accounts_table;
         $array = get_sql_query(
-            $added_accounts_table,
+            AccountVariables::ADDED_ACCOUNTS_TABLE,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -290,9 +285,8 @@ class AccountAccounts
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false);
         }
-        global $added_accounts_table;
         $array = get_sql_query(
-            $added_accounts_table,
+            AccountVariables::ADDED_ACCOUNTS_TABLE,
             array("credential"),
             array(
                 array("account_id", $this->account->getDetail("id")),

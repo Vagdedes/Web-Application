@@ -11,9 +11,8 @@ class AccountGiveaway
 
     public function hasWon(int|string $productID): bool
     {
-        global $giveaway_winners_table;
         $query = get_sql_query(
-            $giveaway_winners_table,
+            AccountVariables::GIVEAWAY_WINNERS_TABLE,
             array("giveaway_id"),
             array(
                 array("account_id", $this->account->getDetail("id"))
@@ -21,11 +20,9 @@ class AccountGiveaway
         );
 
         if (!empty($query)) {
-            global $product_giveaways_table;
-
             foreach ($query as $row) {
                 if (!empty(get_sql_query(
-                    $product_giveaways_table,
+                    AccountVariables::PRODUCT_GIVEAWAYS_TABLE,
                     array("id"),
                     array(
                         array("id", $row->giveaway_id),
@@ -43,8 +40,8 @@ class AccountGiveaway
 
     private function create(int|string|null $productID, int|string $amount, int|string $duration, ?array $exclude = null): bool
     {
-        global $product_giveaways_table;
-        $array = get_sql_query($product_giveaways_table,
+        $array = get_sql_query(
+            AccountVariables::PRODUCT_GIVEAWAYS_TABLE,
             array("id"),
             array(
                 array("application_id", $this->account->getDetail("application_id")),
@@ -62,7 +59,7 @@ class AccountGiveaway
 
                 if ($validProducts->isPositiveOutcome()) {
                     $array = get_sql_query(
-                        $product_giveaways_table,
+                        AccountVariables::PRODUCT_GIVEAWAYS_TABLE,
                         array("product_id"),
                         array(
                             array("application_id", $this->account->getDetail("application_id")),
@@ -108,9 +105,7 @@ class AccountGiveaway
 
             if ($nextProductID !== null) {
                 // Insert to the database
-                global $product_giveaways_table;
-
-                if (sql_insert($product_giveaways_table,
+                if (sql_insert(AccountVariables::PRODUCT_GIVEAWAYS_TABLE,
                     array(
                         "application_id" => $this->account->getDetail("application_id"),
                         "product_id" => $nextProductID,
@@ -130,9 +125,8 @@ class AccountGiveaway
                                int|string      $amount, int|string $duration,
                                ?array          $exclude = null): MethodReply
     {
-        global $product_giveaways_table;
         $array = get_sql_query(
-            $product_giveaways_table,
+            AccountVariables::PRODUCT_GIVEAWAYS_TABLE,
             array("id", "product_id", "expiration_date", "amount"),
             array(
                 array("application_id", $this->account->getDetail("application_id")),
@@ -162,7 +156,8 @@ class AccountGiveaway
                     $objectID = $object->id;
 
                     // Invalidate current giveaway
-                    set_sql_query($product_giveaways_table,
+                    set_sql_query(
+                        AccountVariables::PRODUCT_GIVEAWAYS_TABLE,
                         array(
                             "completion_date" => $date
                         ),
@@ -178,11 +173,9 @@ class AccountGiveaway
                         if (!$this->create($specifiedProductID, $amount, $duration, $exclude)) {
                             return new MethodReply(false, "Giveaway could not be created. (1)", $object);
                         }
-                        global $accounts_table;
-
                         // Search for available accounts for the giveaway
                         $accounts = get_sql_query(
-                            $accounts_table,
+                            AccountVariables::ACCOUNTS_TABLE,
                             array("id"),
                             array(
                                 array("deletion_date", null),
@@ -225,8 +218,8 @@ class AccountGiveaway
     public function getLast(int|string|null $productID = null): MethodReply
     {
         if ($this->account->getFunctionality()->getResult(AccountFunctionality::VIEW_PRODUCT_GIVEAWAY)->isPositiveOutcome()) {
-            global $product_giveaways_table;
-            $giveaways = get_sql_query($product_giveaways_table,
+            $giveaways = get_sql_query(
+                AccountVariables::PRODUCT_GIVEAWAYS_TABLE,
                 array("id", "product_id"),
                 array(
                     array("application_id", $this->account->getDetail("application_id")),
@@ -247,9 +240,8 @@ class AccountGiveaway
                 if (!$productWon->isPositiveOutcome()) {
                     return new MethodReply(false);
                 }
-                global $giveaway_winners_table;
                 $winners = get_sql_query(
-                    $giveaway_winners_table,
+                    AccountVariables::GIVEAWAY_WINNERS_TABLE,
                     array("account_id"),
                     array(
                         array("giveaway_id", $giveaway->id)
@@ -287,7 +279,6 @@ class AccountGiveaway
         $oneWinner = $limit == 1;
 
         if ($oneWinner || $limit > 0) {
-            global $giveaway_winners_table;
             $winnerCounter = 0;
             $loopCounter = 0;
 
@@ -306,7 +297,7 @@ class AccountGiveaway
                         $ordinalNumber = $oneWinner ? null : add_ordinal_number($winnerCounter);
 
                         sql_insert(
-                            $giveaway_winners_table,
+                            AccountVariables::GIVEAWAY_WINNERS_TABLE,
                             array(
                                 "giveaway_id" => $objectID,
                                 "account_id" => $account->getDetail("id")

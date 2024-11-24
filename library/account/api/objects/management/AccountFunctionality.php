@@ -24,7 +24,6 @@ class AccountFunctionality
 
     public function getAvailable(int $limit = 0): array
     {
-        global $functionalities_table;
         $applicationID = $this->account->getDetail("application_id");
 
         if ($applicationID === null) {
@@ -42,7 +41,7 @@ class AccountFunctionality
             );
         }
         $array = get_sql_query(
-            $functionalities_table,
+            AccountVariables::FUNCTIONALITIES_TABLE,
             array("id", "name"),
             $where,
             null,
@@ -58,7 +57,6 @@ class AccountFunctionality
 
     public function getResult(int|string $name, bool $checkCooldown = false, ?array $select = null): MethodReply
     {
-        global $functionalities_table;
         $hasSelect = $select !== null;
 
         if ($hasSelect && !in_array("id", $select)) {
@@ -84,7 +82,7 @@ class AccountFunctionality
             );
         }
         $query = get_sql_query(
-            $functionalities_table,
+            AccountVariables::FUNCTIONALITIES_TABLE,
             $hasSelect ? $select : array("id"),
             $where,
             null,
@@ -173,10 +171,8 @@ class AccountFunctionality
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
-        global $blocked_functionalities_table;
-
         if (sql_insert(
-            $blocked_functionalities_table,
+            AccountVariables::BLOCKED_FUNCTIONALITIES_TABLE,
             array(
                 "account_id" => $accountID,
                 "executed_by" => $this->account->getDetail("id"),
@@ -218,10 +214,8 @@ class AccountFunctionality
         if (!$functionalityResult->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityResult->getMessage());
         }
-        global $blocked_functionalities_table;
-
         if (set_sql_query(
-            $blocked_functionalities_table,
+            AccountVariables::BLOCKED_FUNCTIONALITIES_TABLE,
             array(
                 "deleted_by" => $this->account->getDetail("id"),
                 "deletion_date" => get_current_date(),
@@ -251,9 +245,8 @@ class AccountFunctionality
                 $functionality = $functionalityObject->getObject();
             }
         }
-        global $blocked_functionalities_table;
         $array = get_sql_query(
-            $blocked_functionalities_table,
+            AccountVariables::BLOCKED_FUNCTIONALITIES_TABLE,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -286,9 +279,8 @@ class AccountFunctionality
                 $functionality = $functionalityObject->getObject();
             }
         }
-        global $blocked_functionalities_table;
         return !empty(get_sql_query(
-            $blocked_functionalities_table,
+            AccountVariables::BLOCKED_FUNCTIONALITIES_TABLE,
             array("id"),
             array(
                 array("executed_by", $this->account->getDetail("id")),
@@ -306,9 +298,8 @@ class AccountFunctionality
 
     public function listReceivedActions(bool $active = true): array
     {
-        global $blocked_functionalities_table;
         $array = get_sql_query(
-            $blocked_functionalities_table,
+            AccountVariables::BLOCKED_FUNCTIONALITIES_TABLE,
             null,
             array(
                 array("account_id", $this->account->getDetail("id")),
@@ -341,9 +332,8 @@ class AccountFunctionality
 
     public function listExecutedActions(bool $active = true): array
     {
-        global $blocked_functionalities_table;
         $array = get_sql_query(
-            $blocked_functionalities_table,
+            AccountVariables::BLOCKED_FUNCTIONALITIES_TABLE,
             null,
             array(
                 array("executed_by", $this->account->getDetail("id")),
