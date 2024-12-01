@@ -331,22 +331,6 @@ class AccountProduct
         return new MethodReply(!$isEmpty, $isEmpty ? "Product not found." : null, $array);
     }
 
-    public function clearObjectDetails(object $productObject): object
-    {
-        $newObject = clone $productObject;
-        clear_object_null_keys($newObject);
-        unset($newObject->divisions);
-        unset($newObject->buttons);
-        unset($newObject->cards);
-        unset($newObject->transaction_search);
-        unset($newObject->download_placeholder);
-        unset($newObject->supported_versions);
-        unset($newObject->downloads);
-        unset($newObject->identification);
-        unset($newObject->tiers->all);
-        return $newObject;
-    }
-
     public function findIdentifications(object $productObject, ?array $backupIdentifications = null): array
     {
         if ($productObject->latest_version?->identification_url !== null) {

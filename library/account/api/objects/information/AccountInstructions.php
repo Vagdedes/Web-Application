@@ -144,6 +144,11 @@ class AccountInstructions
         }
     }
 
+    public function hasExtras(): bool
+    {
+        return !empty($this->extra);
+    }
+
     public function hasExtra(string $key): bool
     {
         return array_key_exists($key, $this->extra);
@@ -233,7 +238,18 @@ class AccountInstructions
         }
         if (!empty($this->extra)) {
             if ($extra) {
-                $array = array_merge($array, $this->extra);
+                foreach ($this->extra as $key => $value) {
+                    $value = $this->deepReplace(
+                        $value,
+                        $key,
+                        $value
+                    );
+                    if (array_key_exists($key, $array)) {
+                        $array[] = $value;
+                    } else {
+                        $array[$key] = $value;
+                    }
+                }
             }
             $this->autoRemoveExtra();
         }
