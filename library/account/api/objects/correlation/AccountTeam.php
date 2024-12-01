@@ -10,9 +10,11 @@ class AccountTeam
     public const
         PERMISSION_ADD_TEAM_MEMBERS = 1,
         PERMISSION_REMOVE_TEAM_MEMBERS = 2,
-        ADJUST_TEAM_MEMBER_POSITIONS = 3,
-        CHANGE_TEAM_NAME = 4,
-        CHANGE_TEAM_DESCRIPTION = 5;
+        PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS = 3,
+        PERMISSION_CHANGE_TEAM_NAME = 4,
+        PERMISSION_CHANGE_TEAM_DESCRIPTION = 5,
+        PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS = 6,
+        PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS = 7;
 
     private Account $account;
     private ?int $additionalID;
@@ -40,25 +42,25 @@ class AccountTeam
 
     public function getTeam(?Account $account = null): MethodReply
     {
+        if ($this->additionalID === null) {
+            return new MethodReply(false, "Team additional ID not set.");
+        }
         if ($account === null) {
             $account = $this->account;
         }
         if (!$account->exists()) {
             return new MethodReply(false, "Account not found.");
         }
-        $team = get_sql_query(
+        $teams = get_sql_query(
             AccountVariables::TEAM_TABLE,
             null,
             array(
-                array("account_id", $account->id),
                 array("additional_id", $this->additionalID),
                 array("deletion_date", null)
-            ),
-            null,
-            1
+            )
         );
 
-        if (empty($team)) {
+        if (empty($teams)) {
             return new MethodReply(false, "Team not found.");
         }
         $team = $team[0];
@@ -111,7 +113,7 @@ class AccountTeam
         if ($account->getDetail("id") == $this->account->getDetail("id")) {
             return new MethodReply(false, "You can't add yourself to a team.");
         }
-        $result = $this->getTeam($account);
+        $result = $this->getTeam($this->account);
         $team = $result->getObject();
 
         if ($team === null) {
@@ -125,7 +127,7 @@ class AccountTeam
         if ($account->getDetail("id") == $this->account->getDetail("id")) {
             return new MethodReply(false, "You can't remove yourself from a team.");
         }
-        $result = $this->getTeam($account);
+        $result = $this->getTeam($this->account);
         $team = $result->getObject();
 
         if ($team === null) {
@@ -156,6 +158,29 @@ class AccountTeam
 
     // Separator
 
+    public function getPosition(Account $account): ?int
+    {
+        $team = $this->getTeam($account)->getObject();
+
+        if ($team === null) {
+            return null;
+        }
+        return null;
+    }
+
+    public function adjustPosition(Account $account, int $position): MethodReply
+    {
+        $result = $this->getTeam($account);
+        $team = $result->getObject();
+
+        if ($team === null) {
+            return $result;
+        }
+        return new MethodReply(false);
+    }
+
+    // Separator
+
     private function getPermissionDefinition(int $id): ?object
     {
         $query = get_sql_query(
@@ -172,7 +197,7 @@ class AccountTeam
         return empty($query) ? null : $query[0];
     }
 
-    public function givePermission(Account $account, int $permissionID): MethodReply
+    public function addPermission(Account $account, int $permissionID): MethodReply
     {
         $result = $this->getTeam($account);
         $team = $result->getObject();
@@ -180,12 +205,35 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
-        $permissionDef = $this->getPermissionDefinition($permissionID);
+        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission not found.");
         }
-        return new MethodReply(false);
+        if (!$this->getPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to add others permissions.");
+        }
+        $memberID = $this->getMember($account)?->id;
+
+        if ($memberID === null) {
+            return new MethodReply(false, "Member not found.");
+        }
+        if ($this->getPermission($account, $permissionDef->id)->isPositiveOutcome()) {
+            return new MethodReply(false, "Permission already given.");
+        }
+        if (sql_insert(
+            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            array(
+                "team_id" => $team->id,
+                "member_id" => $memberID,
+                "permission_id" => $permissionDef,
+                "creation_date" => get_current_date(),
+                "created_by" => $this->account->getDetail("id")
+            ))) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to give permission.");
+        }
     }
 
     public function removePermission(Account $account, int $permissionID): MethodReply
@@ -201,13 +249,40 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission not found.");
         }
-        return new MethodReply(false);
+        if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to remove others permissions.");
+        }
+        if (!$this->getPermission($account, $permissionDef->id)->isPositiveOutcome()) {
+            return new MethodReply(false, "Permission not given.");
+        }
+        if (set_sql_query(
+            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            array(
+                array("deletion_date", get_current_date()),
+                array("deleted_by", $this->account->getDetail("id"))
+            ),
+            array(
+                array("team_id", $team->id),
+                array("member_id", $this->getMember($account)?->id),
+                array("permission_id", $permissionDef->id),
+                array("deletion_date", null)
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        )) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to remove permission.");
+        }
     }
 
     public function getPermission(Account $account, int $permissionID): MethodReply
     {
         $result = $this->getTeam($account);
-        $team = $result->getObject();
+        $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
@@ -226,25 +301,31 @@ class AccountTeam
             AccountVariables::TEAM_PERMISSIONS_TABLE,
             null,
             array(
-                array("team_id", $team->id),
+                array("team_id", $team),
                 array("member_id", $memberID),
                 array("permission_id", $permissionDef->id),
                 array("deletion_date", null)
             ),
-            null,
+            array(
+                "DESC",
+                "id"
+            ),
             1
         );
 
         if (empty($query)) {
             return new MethodReply(false, "Permission not given.");
         } else {
-            return new MethodReply(true, $query[0]);
+            $query = $query[0];
+            return $query->deletion_date === null
+                ? new MethodReply(true, $query)
+                : new MethodReply(false, "Permission given and removed.");
         }
     }
 
     public function getPermissions(Account $account): array
     {
-        $team = $this->getTeam($account)->getObject();
+        $team = $this->getTeam($account)->getObject()?->id;
 
         if ($team === null) {
             return array();
@@ -254,15 +335,35 @@ class AccountTeam
         if ($memberID === null) {
             return array();
         }
-        return get_sql_query(
+        $query = get_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
             null,
             array(
-                array("team_id", $team->id),
+                array("team_id", $team),
                 array("member_id", $memberID),
-                array("deletion_date", null)
+            ),
+            array(
+                "DESC",
+                "id"
             )
         );
+        if (empty($query)) {
+            return array();
+        } else {
+            $new = array();
+
+            foreach ($query as $key => $value) {
+                if (!array_key_exists($key, $new)) {
+                    $new[$key] = $value;
+                }
+            }
+            foreach ($new as $key => $value) {
+                if ($value->deletion_date !== null) {
+                    unset($new[$key]);
+                }
+            }
+            return $new;
+        }
     }
 
 }
