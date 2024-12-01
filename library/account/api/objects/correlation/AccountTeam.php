@@ -3,10 +3,6 @@
 class AccountTeam
 {
 
-    private const
-        NAME_TITLE = 1,
-        NAME_DESCRIPTION = 2;
-
     public const
         PERMISSION_ADD_TEAM_MEMBERS = 1,
         PERMISSION_REMOVE_TEAM_MEMBERS = 2,
@@ -124,9 +120,9 @@ class AccountTeam
 
     public function removeMember(Account $account): MethodReply
     {
-        if ($account->getDetail("id") == $this->account->getDetail("id")) {
+        /*if ($account->getDetail("id") == $this->account->getDetail("id")) {
             return new MethodReply(false, "You can't remove yourself from a team.");
-        }
+        }*/
         $result = $this->getTeam($this->account);
         $team = $result->getObject();
 
@@ -165,18 +161,85 @@ class AccountTeam
         if ($team === null) {
             return null;
         }
-        return null;
+        $query = get_sql_query(
+            AccountVariables::TEAM_POSITIONS_TABLE,
+            null,
+            array(
+                array("team_id", $team->id),
+                array("member_id", $this->getMember($account)?->id),
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        );
+        if (empty($query)) {
+            return null;
+        }
+        return $query[0]->position;
     }
 
     public function adjustPosition(Account $account, int $position): MethodReply
     {
         $result = $this->getTeam($account);
-        $team = $result->getObject();
+        $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
         }
-        return new MethodReply(false);
+        if ($account->getDetail("id") == $this->account->getDetail("id")) {
+            return new MethodReply(false, "You can't change your own team position.");
+        }
+        if (!$this->getPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to change others positions.");
+        }
+        if ($this->getPosition($this->account) <= $this->getPosition($account)) {
+            return new MethodReply(false, "Can't change position of someone with the same or higher position.");
+        }
+        $memberID = $this->getMember($account)?->id;
+
+        if ($memberID === null) {
+            return new MethodReply(false, "Member not found.");
+        }
+        if (sql_insert(
+            AccountVariables::TEAM_POSITIONS_TABLE,
+            array(
+                "team_id" => $team,
+                "member_id" => $memberID,
+                "position" => $position,
+                "creation_date" => get_current_date(),
+                "created_by" => $this->account->getDetail("id")
+            ))) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to change position.");
+        }
+    }
+
+    public function adjustPositionByComparison(Account $account, Account|array $accountAgainst): MethodReply
+    {
+        if (is_array($accountAgainst)) {
+            $max = 0;
+
+            foreach ($accountAgainst as $loopAccount) {
+                $position = $this->getPosition($loopAccount);
+
+                if ($position === null) {
+                    return new MethodReply(false, "Account position not found.");
+                }
+                if ($position > $max) {
+                    $max = $position;
+                }
+            }
+        } else {
+            $max = $this->getPosition($accountAgainst);
+
+            if ($max === null) {
+                return new MethodReply(false, "Account position not found.");
+            }
+        }
+        return $this->adjustPosition($account, $max + 1);
     }
 
     // Separator
@@ -212,6 +275,9 @@ class AccountTeam
         }
         if (!$this->getPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add others permissions.");
+        }
+        if ($this->getPosition($this->account) <= $this->getPosition($account)) {
+            return new MethodReply(false, "Can't give permission to someone with the same or higher position.");
         }
         $memberID = $this->getMember($account)?->id;
 
@@ -249,11 +315,19 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission not found.");
         }
+        if ($this->getPosition($this->account) <= $this->getPosition($account)) {
+            return new MethodReply(false, "Can't remove permission from someone with the same or higher position.");
+        }
         if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove others permissions.");
         }
         if (!$this->getPermission($account, $permissionDef->id)->isPositiveOutcome()) {
             return new MethodReply(false, "Permission not given.");
+        }
+        $memberID = $this->getMember($account)?->id;
+
+        if ($memberID === null) {
+            return new MethodReply(false, "Member not found.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
@@ -263,7 +337,7 @@ class AccountTeam
             ),
             array(
                 array("team_id", $team->id),
-                array("member_id", $this->getMember($account)?->id),
+                array("member_id", $memberID),
                 array("permission_id", $permissionDef->id),
                 array("deletion_date", null)
             ),
