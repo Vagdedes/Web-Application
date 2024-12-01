@@ -35,6 +35,7 @@ class AccountTeam
         if (!$this->account->exists()) {
             return new MethodReply(false, "Account not found.");
         }
+        // todo
         return new MethodReply(false);
     }
 
@@ -79,37 +80,8 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
+        // todo
         return new MethodReply(false);
-    }
-
-    public function leaveTeam(): MethodReply
-    {
-        $result = $this->getTeam($this->account);
-        $team = $result->getObject();
-
-        if ($team === null) {
-            return $result;
-        }
-        if (set_sql_query(
-            AccountVariables::TEAM_MEMBERS_TABLE,
-            array(
-                "deletion_date" => get_current_date(),
-            ),
-            array(
-                array("team_id", $team->id),
-                array("account_id", $this->account->getDetail("id")),
-                array("deletion_date", null)
-            ),
-            array(
-                "DESC",
-                "id"
-            ),
-            1
-        )) {
-            return new MethodReply(true);
-        } else {
-            return new MethodReply(false, "Failed to leave team.");
-        }
     }
 
     // Separator
@@ -189,32 +161,103 @@ class AccountTeam
 
     // Separator
 
-    public function addMember(Account $account): MethodReply
+    public function leaveTeam(): MethodReply
     {
-        /*if ($account->getDetail("id") == $this->account->getDetail("id")) {
-            return new MethodReply(false, "You can't add yourself to a team.");
-        }*/
         $result = $this->getTeam($this->account);
         $team = $result->getObject();
 
         if ($team === null) {
             return $result;
         }
+        if (set_sql_query(
+            AccountVariables::TEAM_MEMBERS_TABLE,
+            array(
+                "deletion_date" => get_current_date(),
+            ),
+            array(
+                array("team_id", $team->id),
+                array("account_id", $this->account->getDetail("id")),
+                array("deletion_date", null)
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        )) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to leave team.");
+        }
+    }
+
+    public function addMember(Account $account): MethodReply
+    {
+        $result = $this->getTeam($this->account);
+        $team = $result->getObject();
+
+        if ($team === null) {
+            return $result;
+        }
+        if (!$this->getPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBERS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to add members to the team.");
+        }
+        $otherResult = $this->getTeam($this->account);
+
+        if ($otherResult->isPositiveOutcome()) {
+            return new MethodReply(false, "User is already in a team.");
+        }
+        if ($account->getDetail("id") == $this->account->getDetail("id")) {
+            return new MethodReply(false, "You can't add yourself to a team.");
+        }
+        // todo
         return new MethodReply(false);
     }
 
     public function removeMember(Account $account): MethodReply
     {
-        /*if ($account->getDetail("id") == $this->account->getDetail("id")) {
-            return new MethodReply(false, "You can't remove yourself from a team.");
-        }*/
         $result = $this->getTeam($this->account);
         $team = $result->getObject();
 
         if ($team === null) {
             return $result;
         }
-        return new MethodReply(false);
+        $otherResult = $this->getTeam($this->account);
+        $otherTeam = $otherResult->getObject();
+
+        if ($otherTeam === null) {
+            return $otherResult;
+        }
+        if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBERS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to remove members from the team.");
+        }
+        if ($team->id !== $otherTeam->id) {
+            return new MethodReply(false, "Can't remove someone in another team.");
+        }
+        if ($account->getDetail("id") == $this->account->getDetail("id")) {
+            return new MethodReply(false, "You can't remove yourself from a team.");
+        }
+        if (set_sql_query(
+            AccountVariables::TEAM_MEMBERS_TABLE,
+            array(
+                "deletion_date" => get_current_date(),
+            ),
+            array(
+                array("team_id", $team->id),
+                array("account_id", $account->getDetail("id")),
+                array("deletion_date", null),
+                array("deleted_by", $this->account->getDetail("id"))
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        )) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to remove member from team.");
+        }
     }
 
     public function getMembers(): array
