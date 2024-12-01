@@ -78,6 +78,17 @@ class AccountTeam
         return new MethodReply(false);
     }
 
+    public function leaveTeam(Account $account): MethodReply
+    {
+        $result = $this->getTeam($account);
+        $team = $result->getObject();
+
+        if ($team === null) {
+            return $result;
+        }
+        return new MethodReply(false);
+    }
+
     // Separator
 
     public function updateTitle(Account $account, string $name): MethodReply
@@ -106,9 +117,9 @@ class AccountTeam
 
     public function addMember(Account $account): MethodReply
     {
-        if ($account->getDetail("id") == $this->account->getDetail("id")) {
+        /*if ($account->getDetail("id") == $this->account->getDetail("id")) {
             return new MethodReply(false, "You can't add yourself to a team.");
-        }
+        }*/
         $result = $this->getTeam($this->account);
         $team = $result->getObject();
 
@@ -139,7 +150,37 @@ class AccountTeam
         if ($team === null) {
             return array();
         }
-        return array();
+        $query = get_sql_query(
+            AccountVariables::TEAM_MEMBERS_TABLE,
+            null,
+            array(
+                array("team_id", $team->id),
+                array("deletion_date", null)
+            ),
+            array(
+                "DESC",
+                "id"
+            )
+        );
+
+        if (empty($query)) {
+            return array();
+        } else {
+            $new = array();
+
+            foreach ($query as $value) {
+                if (!array_key_exists($value->account_id, $new)) {
+                    $value->account = new Account($value->account_id);
+                    $new[$value->account_id] = $value;
+                }
+            }
+            foreach ($new as $key => $value) {
+                if (!$value->account->exists()) {
+                    unset($new[$key]);
+                }
+            }
+            return $new;
+        }
     }
 
     public function getMember(Account $account): ?object
@@ -149,7 +190,32 @@ class AccountTeam
         if ($team === null) {
             return null;
         }
-        return null;
+        $query = get_sql_query(
+            AccountVariables::TEAM_MEMBERS_TABLE,
+            null,
+            array(
+                array("team_id", $team->id),
+                array("account_id", $account->getDetail("id")),
+                array("deletion_date", null)
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        );
+
+        if (empty($query)) {
+            return null;
+        } else {
+            $query->account = new Account($query->account_id);
+
+            if ($query->account->exists()) {
+                return $query;
+            } else {
+                return null;
+            }
+        }
     }
 
     // Separator
@@ -426,9 +492,9 @@ class AccountTeam
         } else {
             $new = array();
 
-            foreach ($query as $key => $value) {
-                if (!array_key_exists($key, $new)) {
-                    $new[$key] = $value;
+            foreach ($query as $value) {
+                if (!array_key_exists($value->permission_id, $new)) {
+                    $new[$value->permission_id] = $value;
                 }
             }
             foreach ($new as $key => $value) {
