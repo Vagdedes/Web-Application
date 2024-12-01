@@ -30,10 +30,15 @@ class AccountTeam
 
     // Separator
 
-    public function createTeam(): MethodReply
+    public function createTeam(string $name, string $description): MethodReply
     {
         if (!$this->account->exists()) {
             return new MethodReply(false, "Account not found.");
+        }
+        $result = $this->getTeam($this->account);
+
+        if ($result->isPositiveOutcome()) {
+            return new MethodReply(false, "User is already in a team.");
         }
         // todo
         return new MethodReply(false);
@@ -50,38 +55,70 @@ class AccountTeam
         if (!$account->exists()) {
             return new MethodReply(false, "Account not found.");
         }
-        $teams = get_sql_query(
-            AccountVariables::TEAM_TABLE,
+        $query = get_sql_query(
+            AccountVariables::TEAM_MEMBERS_TABLE,
             null,
             array(
-                array("additional_id", $this->additionalID),
-                array("deletion_date", null)
+                array("account_id", $account->getDetail("id"))
+            ),
+            array(
+                "DESC",
+                "id"
             )
         );
 
-        if (empty($teams)) {
-            return new MethodReply(false, "Team not found.");
-        }
-        $accountID = $account->getDetail("id");
+        if (!empty($query)) {
+            foreach ($query as $value) {
+                $subQuery = get_sql_query(
+                    AccountVariables::TEAM_TABLE,
+                    null,
+                    array(
+                        array("id", $value->team_id),
+                        array("additional_id", $this->additionalID),
+                        array("deletion_date", null)
+                    ),
+                    null,
+                    1
+                );
 
-        foreach ($teams as $team) {
-            if ($team->account_id == $accountID) {
-                return new MethodReply(true, null, $team);
+                if (!empty($subQuery)) {
+                    return new MethodReply(true, null, $subQuery[0]);
+                }
             }
         }
-        return new MethodReply(false);
+        return new MethodReply(false, "Team not found.");
     }
 
-    public function deleteTeam(Account $account): MethodReply
+    public function deleteTeam(): MethodReply
     {
-        $result = $this->getTeam($account);
+        $result = $this->getTeam($this->account);
         $team = $result->getObject();
 
         if ($team === null) {
             return $result;
         }
-        // todo
-        return new MethodReply(false);
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "Owner not found.");
+        }
+        if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
+            return new MethodReply(false, "Must be the owner to delete this team.");
+        }
+        if (set_sql_query(
+            AccountVariables::TEAM_TABLE,
+            array(
+                "deletion_date" => get_current_date(),
+                "deleted_by" => $this->account->getDetail("id")
+            ),
+            array(
+                array("id", $team->id)
+            )
+        )) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to delete team.");
+        }
     }
 
     // Separator
@@ -300,6 +337,28 @@ class AccountTeam
         }
     }
 
+    public function getOwner(): ?object
+    {
+        $members = $this->getMembers();
+
+        if (empty($members)) {
+            return null;
+        } else {
+            $max = null;
+            $owner = null;
+
+            foreach ($members as $member) {
+                $position = $this->getPosition($member->account);
+
+                if ($max === null || $position > $max) {
+                    $max = $position;
+                    $owner = $member;
+                }
+            }
+            return $owner;
+        }
+    }
+
     public function getMember(Account $account): ?object
     {
         $team = $this->getTeam($account)->getObject()?->id;
@@ -419,7 +478,7 @@ class AccountTeam
     public function adjustPositionByComparison(Account $account, Account|array $accountAgainst): MethodReply
     {
         if (is_array($accountAgainst)) {
-            $max = 0;
+            $max = null;
 
             foreach ($accountAgainst as $loopAccount) {
                 $position = $this->getPosition($loopAccount);
@@ -427,7 +486,7 @@ class AccountTeam
                 if ($position === null) {
                     return new MethodReply(false, "Account position not found.");
                 }
-                if ($position > $max) {
+                if ($max === null || $position > $max) {
                     $max = $position;
                 }
             }
