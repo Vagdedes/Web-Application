@@ -12,6 +12,12 @@ class AccountVariables
         SESSIONS_TABLE = "session.sessions",
         INSTANT_LOGINS_TABLE = "session.instantLogins",
 
+        TEAM_MEMBERS_TABLE = "team.members",
+        TEAM_TABLE = "team.teams",
+        TEAM_PERMISSIONS_TABLE = "team.permissions",
+        TEAM_PERMISSION_DEFINITIONS_TABLE = "team.permissionDefinitions",
+        TEAM_NAME_CHANGES = "team.nameChanges",
+
         ACCOUNTS_TABLE = "account.accounts",
         ACCOUNT_IDENTIFICATION_TABLE = "account.identification",
         ACCOUNT_HISTORY_TABLE = "account.history",
