@@ -3,7 +3,7 @@
 class AccountTeam
 {
 
-    public const
+    private const
         PERMISSION_ADD_TEAM_MEMBERS = 1,
         PERMISSION_REMOVE_TEAM_MEMBERS = 2,
         PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS = 3,
@@ -91,26 +91,77 @@ class AccountTeam
 
     // Separator
 
-    public function updateTitle(Account $account, string $name): MethodReply
+    public function updateName(Account $account, string $name): MethodReply
     {
         $result = $this->getTeam($account);
-        $team = $result->getObject();
+        $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
         }
-        return new MethodReply(false);
+        if (!$this->getPermission($this->account, self::PERMISSION_CHANGE_TEAM_NAME)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to change team name.");
+        }
+        if (sql_insert(
+            AccountVariables::TEAM_NAME_CHANGES,
+            array(
+                "name" => $name,
+                "creation_date" => get_current_date(),
+                "created_by" => $this->account->getDetail("id"),
+            ))) {
+            if (set_sql_query(
+                AccountVariables::TEAM_TABLE,
+                array(
+                    "name" => $name
+                ),
+                array(
+                    array("id", $team)
+                )
+            )) {
+                return new MethodReply(true);
+            } else {
+                return new MethodReply(false, "Failed to fully update team name.");
+            }
+        } else {
+            return new MethodReply(false, "Failed to update team name.");
+        }
     }
 
     public function updateDescription(Account $account, string $name): MethodReply
     {
         $result = $this->getTeam($account);
-        $team = $result->getObject();
+        $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
         }
-        return new MethodReply(false);
+        if (!$this->getPermission($this->account, self::PERMISSION_CHANGE_TEAM_DESCRIPTION)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to change team description.");
+        }
+        if (sql_insert(
+            AccountVariables::TEAM_NAME_CHANGES,
+            array(
+                "name" => $name,
+                "creation_date" => get_current_date(),
+                "created_by" => $this->account->getDetail("id"),
+                "description" => true
+            ))) {
+            if (set_sql_query(
+                AccountVariables::TEAM_TABLE,
+                array(
+                    "description" => $name
+                ),
+                array(
+                    array("id", $team)
+                )
+            )) {
+                return new MethodReply(true);
+            } else {
+                return new MethodReply(false, "Failed to fully update team description.");
+            }
+        } else {
+            return new MethodReply(false, "Failed to update team description.");
+        }
     }
 
     // Separator
@@ -145,7 +196,7 @@ class AccountTeam
 
     public function getMembers(): array
     {
-        $team = $this->getTeam($this->account)->getObject();
+        $team = $this->getTeam($this->account)->getObject()?->id;
 
         if ($team === null) {
             return array();
@@ -154,7 +205,7 @@ class AccountTeam
             AccountVariables::TEAM_MEMBERS_TABLE,
             null,
             array(
-                array("team_id", $team->id),
+                array("team_id", $team),
                 array("deletion_date", null)
             ),
             array(
@@ -185,7 +236,7 @@ class AccountTeam
 
     public function getMember(Account $account): ?object
     {
-        $team = $this->getTeam($account)->getObject();
+        $team = $this->getTeam($account)->getObject()?->id;
 
         if ($team === null) {
             return null;
@@ -194,7 +245,7 @@ class AccountTeam
             AccountVariables::TEAM_MEMBERS_TABLE,
             null,
             array(
-                array("team_id", $team->id),
+                array("team_id", $team),
                 array("account_id", $account->getDetail("id")),
                 array("deletion_date", null)
             ),
@@ -208,6 +259,7 @@ class AccountTeam
         if (empty($query)) {
             return null;
         } else {
+            $query = $query[0];
             $query->account = new Account($query->account_id);
 
             if ($query->account->exists()) {
@@ -222,17 +274,22 @@ class AccountTeam
 
     public function getPosition(Account $account): ?int
     {
-        $team = $this->getTeam($account)->getObject();
+        $team = $this->getTeam($account)->getObject()?->id;
 
         if ($team === null) {
+            return null;
+        }
+        $memberID = $this->getMember($account)?->id;
+
+        if ($memberID === null) {
             return null;
         }
         $query = get_sql_query(
             AccountVariables::TEAM_POSITIONS_TABLE,
             null,
             array(
-                array("team_id", $team->id),
-                array("member_id", $this->getMember($account)?->id),
+                array("team_id", $team),
+                array("member_id", $memberID),
             ),
             array(
                 "DESC",
@@ -350,7 +407,7 @@ class AccountTeam
         if ($memberID === null) {
             return new MethodReply(false, "Member not found.");
         }
-        if ($this->getPermission($account, $permissionDef->id)->isPositiveOutcome()) {
+        if ($this->getPermission($account, $permissionDef)->isPositiveOutcome()) {
             return new MethodReply(false, "Permission already given.");
         }
         if (sql_insert(
@@ -371,12 +428,12 @@ class AccountTeam
     public function removePermission(Account $account, int $permissionID): MethodReply
     {
         $result = $this->getTeam($account);
-        $team = $result->getObject();
+        $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
         }
-        $permissionDef = $this->getPermissionDefinition($permissionID);
+        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission not found.");
@@ -387,7 +444,7 @@ class AccountTeam
         if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove others permissions.");
         }
-        if (!$this->getPermission($account, $permissionDef->id)->isPositiveOutcome()) {
+        if (!$this->getPermission($account, $permissionDef)->isPositiveOutcome()) {
             return new MethodReply(false, "Permission not given.");
         }
         $memberID = $this->getMember($account)?->id;
@@ -398,13 +455,13 @@ class AccountTeam
         if (set_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
             array(
-                array("deletion_date", get_current_date()),
-                array("deleted_by", $this->account->getDetail("id"))
+                "deletion_date" => get_current_date(),
+                "deleted_by" => $this->account->getDetail("id")
             ),
             array(
-                array("team_id", $team->id),
+                array("team_id", $team),
                 array("member_id", $memberID),
-                array("permission_id", $permissionDef->id),
+                array("permission_id", $permissionDef),
                 array("deletion_date", null)
             ),
             array(
@@ -432,7 +489,7 @@ class AccountTeam
         if ($memberID === null) {
             return new MethodReply(false, "Member not found.");
         }
-        $permissionDef = $this->getPermissionDefinition($permissionID);
+        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission not found.");
@@ -443,7 +500,7 @@ class AccountTeam
             array(
                 array("team_id", $team),
                 array("member_id", $memberID),
-                array("permission_id", $permissionDef->id),
+                array("permission_id", $permissionDef),
                 array("deletion_date", null)
             ),
             array(
