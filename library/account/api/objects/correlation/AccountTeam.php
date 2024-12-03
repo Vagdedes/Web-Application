@@ -125,9 +125,9 @@ class AccountTeam
 
     // Separator
 
-    public function updateName(Account $account, string $name): MethodReply
+    public function updateName(string $name): MethodReply
     {
-        $result = $this->getTeam($account);
+        $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -163,9 +163,9 @@ class AccountTeam
         }
     }
 
-    public function updateDescription(Account $account, string $name): MethodReply
+    public function updateDescription(string $name): MethodReply
     {
-        $result = $this->getTeam($account);
+        $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -274,18 +274,28 @@ class AccountTeam
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You can't add yourself to a team.");
         }
-        $otherResult = $this->getTeam($this->account);
+        $otherResult = $this->getTeam($account);
 
         if ($otherResult->isPositiveOutcome()) {
             return new MethodReply(false, "User is already in a team.");
         }
-        // todo
-        return new MethodReply(false);
+        if (sql_insert(
+            AccountVariables::TEAM_MEMBERS_TABLE,
+            array(
+                "team_id" => $team->id,
+                "account_id" => $account->getDetail("id"),
+                "creation_date" => get_current_date(),
+                "created_by" => $this->account->getDetail("id")
+            ))) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to add member to team.");
+        }
     }
 
     public function removeMember(Account $account): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->getTeam($account);
         $team = $result->getObject();
 
         if ($team === null) {
@@ -331,6 +341,9 @@ class AccountTeam
 
     public function getOwner(?Account $exclude = null): ?object
     {
+        if ($exclude !== null && !$exclude->exists()) {
+            return null;
+        }
         $members = $this->getMembers();
 
         if (empty($members)) {
