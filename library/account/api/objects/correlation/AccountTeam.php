@@ -113,7 +113,9 @@ class AccountTeam
             ),
             array(
                 array("id", $team->id)
-            )
+            ),
+            null,
+            1
         )) {
             return new MethodReply(true);
         } else {
@@ -148,7 +150,9 @@ class AccountTeam
                 ),
                 array(
                     array("id", $team)
-                )
+                ),
+                null,
+                1
             )) {
                 return new MethodReply(true);
             } else {
@@ -185,7 +189,9 @@ class AccountTeam
                 ),
                 array(
                     array("id", $team)
-                )
+                ),
+                null,
+                1
             )) {
                 return new MethodReply(true);
             } else {
@@ -206,25 +212,51 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
-        if (set_sql_query(
-            AccountVariables::TEAM_MEMBERS_TABLE,
-            array(
-                "deletion_date" => get_current_date(),
-            ),
-            array(
-                array("team_id", $team->id),
-                array("account_id", $this->account->getDetail("id")),
-                array("deletion_date", null)
-            ),
-            array(
-                "DESC",
-                "id"
-            ),
-            1
-        )) {
-            return new MethodReply(true);
+        $memberCount = sizeof($this->getMembers());
+
+        if ($memberCount === 1) {
+            return $this->deleteTeam();
         } else {
-            return new MethodReply(false, "Failed to leave team.");
+            $memberID = $this->getMember($this->account)?->id;
+
+            if ($memberID === null) {
+                return new MethodReply(false, "Member not found.");
+            }
+            $owner = $this->getOwner();
+
+            if ($owner === null) {
+                return new MethodReply(false, "Owner not found.");
+            }
+            if ($owner->account->getDetail("id") === $this->account->getDetail("id")) {
+                $newOwner = $this->getOwner($this->account);
+
+                if ($newOwner === null) {
+                    return new MethodReply(false, "New owner not found.");
+                }
+                $adjust = $this->adjustPositionByComparison(
+                    $newOwner->account,
+                    $owner->account
+                );
+
+                if (!$adjust->isPositiveOutcome()) {
+                    return $adjust;
+                }
+            }
+            if (set_sql_query(
+                AccountVariables::TEAM_MEMBERS_TABLE,
+                array(
+                    "deletion_date" => get_current_date(),
+                ),
+                array(
+                    array("id", $memberID)
+                ),
+                null,
+                1
+            )) {
+                return new MethodReply(true);
+            } else {
+                return new MethodReply(false, "Failed to leave team.");
+            }
         }
     }
 
@@ -239,13 +271,13 @@ class AccountTeam
         if (!$this->getPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBERS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add members to the team.");
         }
+        if ($account->getDetail("id") === $this->account->getDetail("id")) {
+            return new MethodReply(false, "You can't add yourself to a team.");
+        }
         $otherResult = $this->getTeam($this->account);
 
         if ($otherResult->isPositiveOutcome()) {
             return new MethodReply(false, "User is already in a team.");
-        }
-        if ($account->getDetail("id") == $this->account->getDetail("id")) {
-            return new MethodReply(false, "You can't add yourself to a team.");
         }
         // todo
         return new MethodReply(false);
@@ -271,29 +303,53 @@ class AccountTeam
         if ($team->id !== $otherTeam->id) {
             return new MethodReply(false, "Can't remove someone in another team.");
         }
-        if ($account->getDetail("id") == $this->account->getDetail("id")) {
+        if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You can't remove yourself from a team.");
+        }
+        $memberID = $this->getMember($account)?->id;
+
+        if ($memberID === null) {
+            return new MethodReply(false, "Member not found.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_MEMBERS_TABLE,
             array(
                 "deletion_date" => get_current_date(),
+                "deleted_by" => $this->account->getDetail("id")
             ),
             array(
-                array("team_id", $team->id),
-                array("account_id", $account->getDetail("id")),
-                array("deletion_date", null),
-                array("deleted_by", $this->account->getDetail("id"))
+                array("id", $memberID)
             ),
-            array(
-                "DESC",
-                "id"
-            ),
+            null,
             1
         )) {
             return new MethodReply(true);
         } else {
             return new MethodReply(false, "Failed to remove member from team.");
+        }
+    }
+
+    public function getOwner(?Account $exclude = null): ?object
+    {
+        $members = $this->getMembers();
+
+        if (empty($members)) {
+            return null;
+        } else {
+            $max = null;
+            $owner = null;
+
+            foreach ($members as $member) {
+                if ($exclude === null || $member->account->getDetail("id") !== $exclude->getDetail("id")) {
+                    $position = $this->getPosition($member->account);
+
+                    if ($max === null || $position > $max) {
+                        $max = $position;
+                        $owner = $member;
+                    }
+                }
+            }
+            return $owner;
         }
     }
 
@@ -310,10 +366,6 @@ class AccountTeam
             array(
                 array("team_id", $team),
                 array("deletion_date", null)
-            ),
-            array(
-                "DESC",
-                "id"
             )
         );
 
@@ -337,28 +389,6 @@ class AccountTeam
         }
     }
 
-    public function getOwner(): ?object
-    {
-        $members = $this->getMembers();
-
-        if (empty($members)) {
-            return null;
-        } else {
-            $max = null;
-            $owner = null;
-
-            foreach ($members as $member) {
-                $position = $this->getPosition($member->account);
-
-                if ($max === null || $position > $max) {
-                    $max = $position;
-                    $owner = $member;
-                }
-            }
-            return $owner;
-        }
-    }
-
     public function getMember(Account $account): ?object
     {
         $team = $this->getTeam($account)->getObject()?->id;
@@ -374,10 +404,7 @@ class AccountTeam
                 array("account_id", $account->getDetail("id")),
                 array("deletion_date", null)
             ),
-            array(
-                "DESC",
-                "id"
-            ),
+            null,
             1
         );
 
@@ -446,8 +473,8 @@ class AccountTeam
         if ($team->id !== $otherTeam->id) {
             return new MethodReply(false, "Can't adjust position of someone in another team.");
         }
-        if ($account->getDetail("id") == $this->account->getDetail("id")) {
-            return new MethodReply(false, "You can't change your own team position.");
+        if ($account->getDetail("id") === $this->account->getDetail("id")) {
+            return new MethodReply(false, "You can't change your own position in team.");
         }
         if (!$this->getPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change others positions.");
@@ -526,6 +553,9 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
+        if ($account->getDetail("id") === $this->account->getDetail("id")) {
+            return new MethodReply(false, "You can't add permissions to yourself.");
+        }
         $otherResult = $this->getTeam($this->account);
         $otherTeam = $otherResult->getObject();
 
@@ -577,6 +607,9 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
+        if ($account->getDetail("id") === $this->account->getDetail("id")) {
+            return new MethodReply(false, "You can't remove your own permissions.");
+        }
         $otherResult = $this->getTeam($this->account);
         $otherTeam = $otherResult->getObject();
 
@@ -597,13 +630,15 @@ class AccountTeam
         if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove others permissions.");
         }
-        if (!$this->getPermission($account, $permissionDef)->isPositiveOutcome()) {
+        $permissionResult = $this->getPermission($account, $permissionDef);
+
+        if (!$permissionResult->isPositiveOutcome()) {
             return new MethodReply(false, "Permission not given.");
         }
-        $memberID = $this->getMember($account)?->id;
+        $object = $permissionResult->getObject();
 
-        if ($memberID === null) {
-            return new MethodReply(false, "Member not found.");
+        if ($object === null) {
+            return new MethodReply(false, "Permission object not found.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
@@ -612,15 +647,9 @@ class AccountTeam
                 "deleted_by" => $this->account->getDetail("id")
             ),
             array(
-                array("team_id", $team),
-                array("member_id", $memberID),
-                array("permission_id", $permissionDef),
-                array("deletion_date", null)
+                array("id", $object->id),
             ),
-            array(
-                "DESC",
-                "id"
-            ),
+            null,
             1
         )) {
             return new MethodReply(true);
@@ -636,6 +665,14 @@ class AccountTeam
 
         if ($team === null) {
             return $result;
+        }
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "Owner not found.");
+        }
+        if ($owner->account->getDetail("id") === $account->getDetail("id")) {
+            return new MethodReply(true);
         }
         $memberID = $this->getMember($account);
 
@@ -654,7 +691,6 @@ class AccountTeam
                 array("team_id", $team),
                 array("member_id", $memberID->id),
                 array("permission_id", $permissionDef),
-                array("deletion_date", null),
                 array("creation_date", ">=", $memberID->creation_date)
             ),
             array(
@@ -669,7 +705,7 @@ class AccountTeam
         } else {
             $query = $query[0];
             return $query->deletion_date === null
-                ? new MethodReply(true, $query)
+                ? new MethodReply(true, null, $query)
                 : new MethodReply(false, "Permission given and removed.");
         }
     }
