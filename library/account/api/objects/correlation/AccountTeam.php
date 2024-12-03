@@ -10,7 +10,17 @@ class AccountTeam
         PERMISSION_CHANGE_TEAM_NAME = 4,
         PERMISSION_CHANGE_TEAM_DESCRIPTION = 5,
         PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS = 6,
-        PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS = 7;
+        PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS = 7,
+
+        PERMISSION_ALL = array(
+        self::PERMISSION_ADD_TEAM_MEMBERS,
+        self::PERMISSION_REMOVE_TEAM_MEMBERS,
+        self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS,
+        self::PERMISSION_CHANGE_TEAM_NAME,
+        self::PERMISSION_CHANGE_TEAM_DESCRIPTION,
+        self::PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS,
+        self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS
+    );
 
     private Account $account;
     private ?int $additionalID;
@@ -30,7 +40,7 @@ class AccountTeam
 
     // Separator
 
-    public function createTeam(string $name, string $description): MethodReply
+    public function createTeam(string $title, string $description): MethodReply
     {
         if (!$this->account->exists()) {
             return new MethodReply(false, "Account not found.");
@@ -40,8 +50,67 @@ class AccountTeam
         if ($result->isPositiveOutcome()) {
             return new MethodReply(false, "User is already in a team.");
         }
-        // todo
-        return new MethodReply(false);
+        $date = get_current_date();
+
+        if (sql_insert(
+            AccountVariables::TEAM_TABLE,
+            array(
+                "additional_id" => $this->additionalID,
+                "title" => $title,
+                "description" => $description,
+                "creation_date" => $date,
+                "created_by" => $this->account->getDetail("id")
+            ))) {
+            $query = get_sql_query(
+                AccountVariables::TEAM_TABLE,
+                null,
+                array(
+                    array("additional_id", $this->additionalID),
+                    array("deletion_date", null),
+                    array("title", $title),
+                    array("description", $description),
+                    array("creation_date", $date),
+                    array("created_by", $this->account->getDetail("id")),
+                    array("deletion_date", null)
+                ),
+                array(
+                    "DESC",
+                    "id"
+                ),
+                1
+            );
+
+            if (empty($query)) {
+                return new MethodReply(false, "Failed to find created team.");
+            } else {
+                $query = $query[0]->id;
+
+                if (sql_insert(
+                    AccountVariables::TEAM_MEMBERS_TABLE,
+                    array(
+                        "team_id" => $query,
+                        "account_id" => $this->account->getDetail("id"),
+                        "creation_date" => $date,
+                    ))) {
+                    if (sql_insert(
+                        AccountVariables::TEAM_POSITIONS_TABLE,
+                        array(
+                            "team_id" => $query,
+                            "account_id" => $this->account->getDetail("id"),
+                            "position" => 0,
+                            "creation_date" => $date,
+                        ))) {
+                        return new MethodReply(true);
+                    } else {
+                        return new MethodReply(false, "Failed to set member position in team.");
+                    }
+                } else {
+                    return new MethodReply(false, "Failed to add member to team.");
+                }
+            }
+        } else {
+            return new MethodReply(false, "Failed to create team.");
+        }
     }
 
     public function getTeam(?Account $account = null): MethodReply
@@ -125,7 +194,7 @@ class AccountTeam
 
     // Separator
 
-    public function updateName(string $name): MethodReply
+    public function updateTitle(string $name): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
@@ -279,15 +348,39 @@ class AccountTeam
         if ($otherResult->isPositiveOutcome()) {
             return new MethodReply(false, "User is already in a team.");
         }
+        $rookie = $this->getRookie();
+
+        if ($rookie === null) {
+            return new MethodReply(false, "Rookie not found.");
+        }
+        $rookiePosition = $this->getPosition($rookie->account);
+
+        if ($rookiePosition === null) {
+            return new MethodReply(false, "Rookie position not found.");
+        }
+        $date = get_current_date();
+
         if (sql_insert(
             AccountVariables::TEAM_MEMBERS_TABLE,
             array(
                 "team_id" => $team->id,
                 "account_id" => $account->getDetail("id"),
-                "creation_date" => get_current_date(),
+                "creation_date" => $date,
                 "created_by" => $this->account->getDetail("id")
             ))) {
-            return new MethodReply(true);
+            if (sql_insert(
+                AccountVariables::TEAM_POSITIONS_TABLE,
+                array(
+                    "team_id" => $team->id,
+                    "account_id" => $account->getDetail("id"),
+                    "position" => $rookiePosition,
+                    "creation_date" => $date,
+                    "created_by" => $this->account->getDetail("id")
+                ))) {
+                return new MethodReply(true);
+            } else {
+                return new MethodReply(false, "Failed to set member position in team.");
+            }
         } else {
             return new MethodReply(false, "Failed to add member to team.");
         }
@@ -336,33 +429,6 @@ class AccountTeam
             return new MethodReply(true);
         } else {
             return new MethodReply(false, "Failed to remove member from team.");
-        }
-    }
-
-    public function getOwner(?Account $exclude = null): ?object
-    {
-        if ($exclude !== null && !$exclude->exists()) {
-            return null;
-        }
-        $members = $this->getMembers();
-
-        if (empty($members)) {
-            return null;
-        } else {
-            $max = null;
-            $owner = null;
-
-            foreach ($members as $member) {
-                if ($exclude === null || $member->account->getDetail("id") !== $exclude->getDetail("id")) {
-                    $position = $this->getPosition($member->account);
-
-                    if ($max === null || $position > $max) {
-                        $max = $position;
-                        $owner = $member;
-                    }
-                }
-            }
-            return $owner;
         }
     }
 
@@ -432,6 +498,57 @@ class AccountTeam
             } else {
                 return null;
             }
+        }
+    }
+
+    // Separator
+
+    public function getOwner(?Account $exclude = null): ?object
+    {
+        if ($exclude !== null && !$exclude->exists()) {
+            return null;
+        }
+        $members = $this->getMembers();
+
+        if (empty($members)) {
+            return null;
+        } else {
+            $max = null;
+            $owner = null;
+
+            foreach ($members as $member) {
+                if ($exclude === null || $member->account->getDetail("id") !== $exclude->getDetail("id")) {
+                    $position = $this->getPosition($member->account);
+
+                    if ($max === null || $position > $max) {
+                        $max = $position;
+                        $owner = $member;
+                    }
+                }
+            }
+            return $owner;
+        }
+    }
+
+    public function getRookie(): ?object
+    {
+        $members = $this->getMembers();
+
+        if (empty($members)) {
+            return null;
+        } else {
+            $min = null;
+            $rookie = null;
+
+            foreach ($members as $member) {
+                $position = $this->getPosition($member->account);
+
+                if ($min === null || $position < $min) {
+                    $min = $position;
+                    $rookie = $member;
+                }
+            }
+            return $rookie;
         }
     }
 
@@ -515,7 +632,11 @@ class AccountTeam
         }
     }
 
-    public function adjustPositionByComparison(Account $account, Account|array $accountAgainst): MethodReply
+    public function adjustPositionByComparison(
+        Account       $account,
+        Account|array $accountAgainst,
+        bool          $above = true
+    ): MethodReply
     {
         if (is_array($accountAgainst)) {
             $max = null;
@@ -537,7 +658,7 @@ class AccountTeam
                 return new MethodReply(false, "Account position not found.");
             }
         }
-        return $this->adjustPosition($account, $max + 1);
+        return $this->adjustPosition($account, $max + ($above ? 1 : -1));
     }
 
     // Separator
@@ -729,6 +850,14 @@ class AccountTeam
 
         if ($team === null) {
             return array();
+        }
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return array();
+        }
+        if ($owner->account->getDetail("id") === $account->getDetail("id")) {
+            return self::PERMISSION_ALL;
         }
         $memberID = $this->getMember($account);
 
