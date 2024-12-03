@@ -161,7 +161,7 @@ class AccountTeam
     public function deleteTeam(): MethodReply
     {
         $result = $this->getTeam($this->account);
-        $team = $result->getObject();
+        $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
@@ -181,7 +181,7 @@ class AccountTeam
                 "deleted_by" => $this->account->getDetail("id")
             ),
             array(
-                array("id", $team->id)
+                array("id", $team)
             ),
             null,
             1
@@ -388,14 +388,14 @@ class AccountTeam
 
     public function removeMember(Account $account): MethodReply
     {
-        $result = $this->getTeam($account);
+        $result = $this->getTeam($account)?->id;
         $team = $result->getObject();
 
         if ($team === null) {
             return $result;
         }
         $otherResult = $this->getTeam($this->account);
-        $otherTeam = $otherResult->getObject();
+        $otherTeam = $otherResult->getObject()?->id;
 
         if ($otherTeam === null) {
             return $otherResult;
@@ -403,7 +403,7 @@ class AccountTeam
         if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBERS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove members from the team.");
         }
-        if ($team->id !== $otherTeam->id) {
+        if ($team !== $otherTeam) {
             return new MethodReply(false, "Can't remove someone in another team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
@@ -595,12 +595,12 @@ class AccountTeam
             return $result;
         }
         $otherResult = $this->getTeam($this->account);
-        $otherTeam = $otherResult->getObject();
+        $otherTeam = $otherResult->getObject()?->id;
 
         if ($otherTeam === null) {
             return $otherResult;
         }
-        if ($team->id !== $otherTeam->id) {
+        if ($team !== $otherTeam) {
             return new MethodReply(false, "Can't adjust position of someone in another team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
@@ -682,7 +682,7 @@ class AccountTeam
     public function addPermission(Account $account, int $permissionID): MethodReply
     {
         $result = $this->getTeam($account);
-        $team = $result->getObject();
+        $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
@@ -691,12 +691,12 @@ class AccountTeam
             return new MethodReply(false, "You can't add permissions to yourself.");
         }
         $otherResult = $this->getTeam($this->account);
-        $otherTeam = $otherResult->getObject();
+        $otherTeam = $otherResult->getObject()?->id;
 
         if ($otherTeam === null) {
             return $otherResult;
         }
-        if ($team->id !== $otherTeam->id) {
+        if ($team !== $otherTeam) {
             return new MethodReply(false, "Can't add permission to someone in another team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
@@ -721,7 +721,7 @@ class AccountTeam
         if (sql_insert(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
             array(
-                "team_id" => $team->id,
+                "team_id" => $team,
                 "member_id" => $memberID,
                 "permission_id" => $permissionDef,
                 "creation_date" => get_current_date(),
@@ -745,12 +745,12 @@ class AccountTeam
             return new MethodReply(false, "You can't remove your own permissions.");
         }
         $otherResult = $this->getTeam($this->account);
-        $otherTeam = $otherResult->getObject();
+        $otherTeam = $otherResult->getObject()?->id;
 
         if ($otherTeam === null) {
             return $otherResult;
         }
-        if ($team->id !== $otherTeam->id) {
+        if ($team !== $otherTeam) {
             return new MethodReply(false, "Can't remove permission from someone in another team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
@@ -856,13 +856,30 @@ class AccountTeam
         if ($owner === null) {
             return array();
         }
-        if ($owner->account->getDetail("id") === $account->getDetail("id")) {
-            return self::PERMISSION_ALL;
-        }
         $memberID = $this->getMember($account);
 
         if ($memberID === null) {
             return array();
+        }
+        if ($owner->account->getDetail("id") === $account->getDetail("id")) {
+            $array = array();
+            $date = get_current_date();
+
+            foreach (self::PERMISSION_ALL as $value) {
+                $object = new stdClass();
+                $object->id = -random_number(9);
+                $object->team_id = $team;
+                $object->member_id = $memberID->id;
+                $object->permission_id = $value;
+                $object->creation_date = $date;
+                $object->creation_reason = null;
+                $object->created_by = null;
+                $object->deletion_date = null;
+                $object->deletion_reason = null;
+                $object->deleted_by = null;
+                $array[] = $object;
+            }
+            return $array;
         }
         $query = get_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
