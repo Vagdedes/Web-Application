@@ -12,7 +12,10 @@ if (!empty($path)) {
         if ($session->getObject()->getPermissions()->hasPermission(
             "view.path." . str_replace("/", ".", $path)
         )) {
-            set_session_account_id($session->getObject()->getDetail("id"));
+            set_communication_key(
+                "session_account_id",
+                $session->getObject()->getDetail("id")
+            );
             unset($_GET["path"]);
             $domain = get_form_get("domain");
 
@@ -41,7 +44,7 @@ if (!empty($path)) {
     } else {
         include '/var/www/idealistic/account/profile/index.php';
     }
-} else if (is_private_connection(true)) {
+} else if (is_private_connection()) {
     header('Content-type: Application/JSON');
     $account = new Account(null);
     $session = $account->getSession()->find();

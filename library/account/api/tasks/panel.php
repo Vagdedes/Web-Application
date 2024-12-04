@@ -39,7 +39,7 @@ if (is_private_connection()) {
 
     // Separator
 
-    $session_account_id = get_session_account_id();
+    $session_account_id = get_communication_key("session_account_id");
 
     if (empty($session_account_id)) {
         return;
