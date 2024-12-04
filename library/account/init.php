@@ -49,6 +49,7 @@ require_once '/var/www/.structure/library/account/api/objects/finance/AccountPat
 require_once '/var/www/.structure/library/account/api/objects/information/AccountInstructions.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountStatistics.php';
 require_once '/var/www/.structure/library/account/api/objects/information/AccountHistory.php';
+require_once '/var/www/.structure/library/account/api/objects/information/AccountTranslation.php';
 
 // Security
 require_once '/var/www/.structure/library/account/api/objects/security/AccountSession.php';

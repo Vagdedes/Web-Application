@@ -31,6 +31,7 @@ class Account
     private PaymentProcessor $paymentProcessor;
     private AccountInstructions $instructions;
     private AccountTeam $team;
+    private AccountTranslation $translation;
 
     public const IGNORE_APPLICATION = -1;
 
@@ -54,6 +55,7 @@ class Account
         $this->phoneNumber = new AccountPhoneNumber($this);
         $this->patreon = new AccountPatreon($this);
         $this->team = new AccountTeam($this);
+        $this->translation = new AccountTranslation($this);
 
         // Partial
         $this->email = new AccountEmail($this);
@@ -304,6 +306,11 @@ class Account
     public function getEmail(): AccountEmail
     {
         return $this->email;
+    }
+
+    public function getTranslation(): AccountTranslation
+    {
+        return $this->translation;
     }
 
     public function getIdentification(): AccountIdentification
