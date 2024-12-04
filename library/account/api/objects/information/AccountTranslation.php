@@ -18,7 +18,7 @@ class AccountTranslation
         ?string $expiration = null,
         bool    $details = false,
         bool    $force = false,
-        bool    $save = false): MethodReply
+        bool    $save = true): MethodReply
     {
         $language = strtolower($language);
         $hash = array_to_integer(array($language, $text), true);
@@ -53,7 +53,10 @@ class AccountTranslation
                     "content" => $text
                 )
             );
-            $arguments = array("messages" => $arguments);
+            $arguments = array(
+                "messages" => $arguments,
+                "temperature" => 0.1,
+            );
 
             $managerAI = new AIManager(
                 AIModelFamily::CHAT_GPT_PRO,
@@ -71,12 +74,12 @@ class AccountTranslation
                     sql_insert(
                         AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
                         array(
-                            array("hash", $hash),
-                            array("language", $language),
-                            array("before", $text),
-                            array("after", $after),
-                            array("creation_date", $date),
-                            array("expiration_date", $expiration)
+                            "hash" => $hash,
+                            "language" => $language,
+                            "actual" => $text,
+                            "translation" => $after,
+                            "creation_date" => $date,
+                            "expiration_date" => $expiration === null ? null : get_future_date($expiration)
                         )
                     );
                 }
