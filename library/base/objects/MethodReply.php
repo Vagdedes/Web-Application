@@ -1,21 +1,18 @@
 <?php
 
-class MethodReply
+require_once '/var/www/.structure/library/base/objects/AbstractMethodReply.php';
+
+class MethodReply extends AbstractMethodReply
 {
 
-    private bool $success;
-    private $message, $object;
+    private ?string $message;
+    private mixed $object;
 
     public function __construct(bool $success, ?string $message = null, mixed $object = null)
     {
-        $this->success = $success;
+        parent::__construct($success);
         $this->message = $message;
         $this->object = $object;
-    }
-
-    public function isPositiveOutcome(): bool
-    {
-        return $this->success;
     }
 
     public function getMessage(): ?string
@@ -27,4 +24,5 @@ class MethodReply
     {
         return $this->object;
     }
+
 }
