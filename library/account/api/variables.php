@@ -19,6 +19,8 @@ class AccountVariables
         TEAM_NAME_CHANGES = "team.nameChanges",
         TEAM_POSITIONS_TABLE = "team.positions",
 
+        TRANSLATIONS_PROCESSED_TABLE = "translations.processed",
+
         ACCOUNTS_TABLE = "account.accounts",
         ACCOUNT_IDENTIFICATION_TABLE = "account.identification",
         ACCOUNT_HISTORY_TABLE = "account.history",
