@@ -50,7 +50,7 @@ class AccountTeam
 
     // Separator
 
-    public function createTeam(string $title, string $description): MethodReply
+    public function createTeam(string $title, string $description, ?string $reason = null): MethodReply
     {
         if (!$this->account->exists()) {
             return new MethodReply(false, "Account not found.");
@@ -69,7 +69,8 @@ class AccountTeam
                 "title" => $title,
                 "description" => $description,
                 "creation_date" => $date,
-                "created_by" => $this->account->getDetail("id")
+                "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason
             ))) {
             $query = get_sql_query(
                 AccountVariables::TEAM_TABLE,
@@ -168,7 +169,7 @@ class AccountTeam
         return new MethodReply(false, "Team not found.");
     }
 
-    public function deleteTeam(): MethodReply
+    public function deleteTeam(?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
@@ -188,7 +189,8 @@ class AccountTeam
             AccountVariables::TEAM_TABLE,
             array(
                 "deletion_date" => get_current_date(),
-                "deleted_by" => $this->account->getDetail("id")
+                "deleted_by" => $this->account->getDetail("id"),
+                "deletion_reason" => $reason
             ),
             array(
                 array("id", $team)
@@ -204,7 +206,7 @@ class AccountTeam
 
     // Separator
 
-    public function updateTitle(string $name): MethodReply
+    public function updateTitle(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
@@ -213,7 +215,7 @@ class AccountTeam
             return $result;
         }
         if (!$this->getPermission($this->account, self::PERMISSION_CHANGE_TEAM_NAME)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to change team name.");
+            return new MethodReply(false, "Missing permission to change team title.");
         }
         if (sql_insert(
             AccountVariables::TEAM_NAME_CHANGES,
@@ -221,6 +223,7 @@ class AccountTeam
                 "name" => $name,
                 "creation_date" => get_current_date(),
                 "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason
             ))) {
             if (set_sql_query(
                 AccountVariables::TEAM_TABLE,
@@ -235,14 +238,14 @@ class AccountTeam
             )) {
                 return new MethodReply(true);
             } else {
-                return new MethodReply(false, "Failed to fully update team name.");
+                return new MethodReply(false, "Failed to fully update team title.");
             }
         } else {
-            return new MethodReply(false, "Failed to update team name.");
+            return new MethodReply(false, "Failed to update team title.");
         }
     }
 
-    public function updateDescription(string $name): MethodReply
+    public function updateDescription(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
@@ -259,6 +262,7 @@ class AccountTeam
                 "name" => $name,
                 "creation_date" => get_current_date(),
                 "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason,
                 "description" => true
             ))) {
             if (set_sql_query(
@@ -283,7 +287,7 @@ class AccountTeam
 
     // Separator
 
-    public function leaveTeam(): MethodReply
+    public function leaveTeam(?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject();
@@ -325,6 +329,7 @@ class AccountTeam
                 AccountVariables::TEAM_MEMBERS_TABLE,
                 array(
                     "deletion_date" => get_current_date(),
+                    "deletion_reason" => $reason
                 ),
                 array(
                     array("id", $memberID)
@@ -339,7 +344,7 @@ class AccountTeam
         }
     }
 
-    public function addMember(Account $account): MethodReply
+    public function addMember(Account $account, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject();
@@ -376,13 +381,19 @@ class AccountTeam
                 "team_id" => $team->id,
                 "account_id" => $account->getDetail("id"),
                 "creation_date" => $date,
-                "created_by" => $this->account->getDetail("id")
+                "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason
             ))) {
+            $memberID = $this->getMember($account)?->id;
+
+            if ($memberID === null) {
+                return new MethodReply(false, "Member not found.");
+            }
             if (sql_insert(
                 AccountVariables::TEAM_POSITIONS_TABLE,
                 array(
                     "team_id" => $team->id,
-                    "account_id" => $account->getDetail("id"),
+                    "account_id" => $memberID,
                     "position" => $rookiePosition,
                     "creation_date" => $date,
                     "created_by" => $this->account->getDetail("id")
@@ -396,10 +407,10 @@ class AccountTeam
         }
     }
 
-    public function removeMember(Account $account): MethodReply
+    public function removeMember(Account $account, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($account)?->id;
-        $team = $result->getObject();
+        $result = $this->getTeam($account);
+        $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
@@ -428,7 +439,8 @@ class AccountTeam
             AccountVariables::TEAM_MEMBERS_TABLE,
             array(
                 "deletion_date" => get_current_date(),
-                "deleted_by" => $this->account->getDetail("id")
+                "deleted_by" => $this->account->getDetail("id"),
+                "deletion_reason" => $reason
             ),
             array(
                 array("id", $memberID)
@@ -604,7 +616,7 @@ class AccountTeam
             : max($query[0]->position, $rolePosition);
     }
 
-    public function adjustPosition(Account $account, int $position): MethodReply
+    public function adjustPosition(Account $account, int $position, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($account);
         $team = $result->getObject()?->id;
@@ -654,7 +666,8 @@ class AccountTeam
                 "member_id" => $memberID,
                 "position" => $position,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id")
+                "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason
             ))) {
             return new MethodReply(true);
         } else {
@@ -665,7 +678,8 @@ class AccountTeam
     public function adjustPositionByComparison(
         object       $reference,
         object|array $against,
-        bool         $above = true
+        bool         $above = true,
+        ?string      $reason = null
     ): MethodReply
     {
         if (is_array($against)) {
@@ -703,13 +717,13 @@ class AccountTeam
             }
         }
         return $reference instanceof Account
-            ? $this->adjustPosition($reference, $max + ($above ? 1 : -1))
-            : $this->adjustRolePosition($reference, $max + ($above ? 1 : -1));
+            ? $this->adjustPosition($reference, $max + ($above ? 1 : -1), $reason)
+            : $this->adjustRolePosition($reference, $max + ($above ? 1 : -1), $reason);
     }
 
     // Separator
 
-    private function createRole(string $name): MethodReply
+    private function createRole(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
@@ -722,13 +736,55 @@ class AccountTeam
         }
         $role = $this->getRole($name);
 
-        if ($role->isPositiveOutcome()) {
-            return new MethodReply(false, "Role already exists.");
+        if ($role !== null) {
+            return new MethodReply(false, "Role with this already exists.");
         }
-        return new MethodReply(false);
+        $rookie = $this->getRookieRole();
+
+        if ($rookie === null) {
+            $rookie = 0;
+        } else {
+            $rookie = $this->getRolePosition($rookie);
+
+            if ($rookie === null) {
+                return new MethodReply(false, "Rookie role position not found.");
+            }
+        }
+        $date = get_current_date();
+
+        if (sql_insert(
+            AccountVariables::TEAM_ROLES_TABLE,
+            array(
+                "team_id" => $team,
+                "title" => $name,
+                "creation_date" => $date,
+                "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason
+            ))) {
+            $role = $this->getRole($name);
+
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
+            }
+            if (sql_insert(
+                AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
+                array(
+                    "team_id" => $team,
+                    "role_id" => $role->id,
+                    "position" => $rookie,
+                    "creation_date" => $date,
+                    "created_by" => $this->account->getDetail("id")
+                ))) {
+                return new MethodReply(true);
+            } else {
+                return new MethodReply(false, "Failed to set role position in team.");
+            }
+        } else {
+            return new MethodReply(false, "Failed to create role.");
+        }
     }
 
-    private function deleteRole(string|object $role): MethodReply
+    private function deleteRole(string|object $role, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
@@ -737,33 +793,59 @@ class AccountTeam
             return $result;
         }
         if (!$this->getPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to create team roles.");
+            return new MethodReply(false, "Missing permission to delete team roles.");
         }
         if (is_string($role)) {
             $role = $this->getRole($role);
 
-            if (!$role->isPositiveOutcome()) {
-                return $role;
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
             }
-            $role = $role->getObject();
         }
-        return new MethodReply(false);
+        $position = $this->getPosition($this->account);
+        $message = "Cannot delete a role with the same or higher position.";
+
+        if ($position === null) {
+            return new MethodReply(false, $message);
+        }
+        $otherPosition = $this->getRolePosition($role);
+
+        if ($otherPosition === null
+            || $position <= $otherPosition) {
+            return new MethodReply(false, $message);
+        }
+        if (set_sql_query(
+            AccountVariables::TEAM_ROLES_TABLE,
+            array(
+                "deletion_date" => get_current_date(),
+                "deleted_by" => $this->account->getDetail("id"),
+                "deletion_reason" => $reason
+            ),
+            array(
+                array("id", $role->id)
+            ),
+            null,
+            1
+        )) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to delete role.");
+        }
     }
 
-    private function getRole(string|Account $reference): MethodReply
+    private function getRole(string|Account $reference): ?object
     {
         $isAccount = $reference instanceof Account;
-        $result = $this->getTeam($isAccount ? $reference : $this->account);
-        $team = $result->getObject()?->id;
+        $team = $this->getTeam($isAccount ? $reference : $this->account)->getObject()?->id;
 
         if ($team === null) {
-            return $result;
+            return null;
         }
         if ($isAccount) {
             $memberID = $this->getMember($reference)?->id;
 
             if ($memberID === null) {
-                return new MethodReply(false, "Member not found.");
+                return null;
             }
             $query = get_sql_query(
                 AccountVariables::TEAM_ROLE_MEMBERS_TABLE,
@@ -778,7 +860,7 @@ class AccountTeam
             );
 
             if (empty($query)) {
-                return new MethodReply(false, "Member does not have a team role.");
+                return null;
             } else {
                 $query = get_sql_query(
                     AccountVariables::TEAM_ROLES_TABLE,
@@ -793,10 +875,9 @@ class AccountTeam
                 );
 
                 if (empty($query)) {
-                    return new MethodReply(false, "Role of member not found.");
-                } else {
-                    return new MethodReply(true, null, $query[0]);
+                    return null;
                 }
+                return $query[0];
             }
         } else {
             $query = get_sql_query(
@@ -812,10 +893,48 @@ class AccountTeam
             );
 
             if (empty($query)) {
-                return new MethodReply(false, "Role not found.");
-            } else {
-                return new MethodReply(true, null, $query[0]);
+                return null;
             }
+            return $query[0];
+        }
+    }
+
+    public function getRoles(): array
+    {
+        $team = $this->getTeam($this->account)->getObject()?->id;
+
+        if ($team === null) {
+            return array();
+        }
+        return get_sql_query(
+            AccountVariables::TEAM_ROLES_TABLE,
+            null,
+            array(
+                array("team_id", $team),
+                array("deletion_date", null)
+            )
+        );
+    }
+
+    private function getRookieRole(): ?object
+    {
+        $roles = $this->getRoles();
+
+        if (empty($roles)) {
+            return null;
+        } else {
+            $min = null;
+            $rookie = null;
+
+            foreach ($roles as $role) {
+                $position = $this->getRolePosition($role);
+
+                if ($min === null || $position < $min) {
+                    $min = $position;
+                    $rookie = $role;
+                }
+            }
+            return $rookie;
         }
     }
 
@@ -824,10 +943,9 @@ class AccountTeam
         if (is_string($role)) {
             $role = $this->getRole($role);
 
-            if (!$role->isPositiveOutcome()) {
-                return $role;
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
             }
-            $role = $role->getObject();
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
@@ -863,10 +981,9 @@ class AccountTeam
         if (is_string($role)) {
             $role = $this->getRole($role);
 
-            if (!$role->isPositiveOutcome()) {
+            if ($role === null) {
                 return array();
             }
-            $role = $role->getObject();
         }
         $query = get_sql_query(
             AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
@@ -898,7 +1015,7 @@ class AccountTeam
         }
     }
 
-    public function addRolePermission(string|object $role, int $permissionID): MethodReply
+    public function addRolePermission(string|object $role, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
@@ -909,10 +1026,9 @@ class AccountTeam
         if (is_string($role)) {
             $role = $this->getRole($role);
 
-            if (!$role->isPositiveOutcome()) {
-                return $role;
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
             }
-            $role = $role->getObject();
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
@@ -944,7 +1060,8 @@ class AccountTeam
                 "role_id" => $role->id,
                 "permission_id" => $permissionDef,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id")
+                "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason
             ))) {
             return new MethodReply(true);
         } else {
@@ -952,7 +1069,7 @@ class AccountTeam
         }
     }
 
-    public function removeRolePermission(string|object $role, int $permissionID): MethodReply
+    public function removeRolePermission(string|object $role, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
@@ -963,10 +1080,9 @@ class AccountTeam
         if (is_string($role)) {
             $role = $this->getRole($role);
 
-            if (!$role->isPositiveOutcome()) {
-                return $role;
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
             }
-            $role = $role->getObject();
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
@@ -997,7 +1113,8 @@ class AccountTeam
             AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
             array(
                 "deletion_date" => get_current_date(),
-                "deleted_by" => $this->account->getDetail("id")
+                "deleted_by" => $this->account->getDetail("id"),
+                "deletion_reason" => $reason
             ),
             array(
                 array("id", $permissionResult->getObject()->id),
@@ -1022,10 +1139,9 @@ class AccountTeam
         if (is_string($role)) {
             $role = $this->getRole($role);
 
-            if (!$role->isPositiveOutcome()) {
+            if ($role === null) {
                 return null;
             }
-            $role = $role->getObject();
         }
         $query = get_sql_query(
             AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
@@ -1045,7 +1161,7 @@ class AccountTeam
         return $query[0]->position;
     }
 
-    public function adjustRolePosition(string|object $role, int $position): MethodReply
+    public function adjustRolePosition(string|object $role, int $position, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($this->account);
         $team = $result->getObject()?->id;
@@ -1056,10 +1172,9 @@ class AccountTeam
         if (is_string($role)) {
             $role = $this->getRole($role);
 
-            if (!$role->isPositiveOutcome()) {
-                return $role;
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
             }
-            $role = $role->getObject();
         }
         if (!$this->getPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_POSITIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change positions of roles.");
@@ -1086,7 +1201,8 @@ class AccountTeam
                 "role_id" => $role->id,
                 "position" => $position,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id")
+                "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason
             ))) {
             return new MethodReply(true);
         } else {
@@ -1112,7 +1228,7 @@ class AccountTeam
         return empty($query) ? null : $query[0];
     }
 
-    public function addPermission(Account $account, int $permissionID): MethodReply
+    public function addPermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($account);
         $team = $result->getObject()?->id;
@@ -1167,7 +1283,8 @@ class AccountTeam
                 "member_id" => $memberID,
                 "permission_id" => $permissionDef,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id")
+                "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason
             ))) {
             return new MethodReply(true);
         } else {
@@ -1175,7 +1292,7 @@ class AccountTeam
         }
     }
 
-    public function removePermission(Account $account, int $permissionID): MethodReply
+    public function removePermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->getTeam($account);
         $team = $result->getObject()?->id;
@@ -1229,7 +1346,8 @@ class AccountTeam
             AccountVariables::TEAM_PERMISSIONS_TABLE,
             array(
                 "deletion_date" => get_current_date(),
-                "deleted_by" => $this->account->getDetail("id")
+                "deleted_by" => $this->account->getDetail("id"),
+                "deletion_reason" => $reason
             ),
             array(
                 array("id", $object->id),
@@ -1349,8 +1467,8 @@ class AccountTeam
         if (empty($query)) {
             $role = $this->getRole($account);
 
-            if ($role->isPositiveOutcome()) {
-                return $this->getRolePermissions($role->getObject());
+            if ($role !== null) {
+                return $this->getRolePermissions($role);
             }
             return array();
         } else {
@@ -1368,8 +1486,8 @@ class AccountTeam
             }
             $role = $this->getRole($account);
 
-            if ($role->isPositiveOutcome()) {
-                $rolePermissions = $this->getRolePermissions($role->getObject());
+            if ($role !== null) {
+                $rolePermissions = $this->getRolePermissions($role);
 
                 if (!empty($rolePermissions)) {
                     foreach ($rolePermissions as $value) {
