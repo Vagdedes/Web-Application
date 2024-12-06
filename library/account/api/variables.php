@@ -18,6 +18,10 @@ class AccountVariables
         TEAM_PERMISSION_DEFINITIONS_TABLE = "team.permissionDefinitions",
         TEAM_NAME_CHANGES = "team.nameChanges",
         TEAM_POSITIONS_TABLE = "team.positions",
+        TEAM_ROLES_TABLE = "team.roles",
+        TEAM_ROLE_MEMBERS_TABLE = "team.roleMembers",
+        TEAM_ROLE_POSITIONS_TABLE = "team.rolePositions",
+        TEAM_ROLE_PERMISSIONS_TABLE = "team.rolePermissions",
 
         TRANSLATIONS_PROCESSED_TABLE = "translations.processed",
 
