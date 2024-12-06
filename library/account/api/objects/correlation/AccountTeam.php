@@ -58,7 +58,7 @@ class AccountTeam
         $result = $this->getTeam($this->account);
 
         if ($result->isPositiveOutcome()) {
-            return new MethodReply(false, "User is already in a team.");
+            return new MethodReply(false, "Account is already in a team.");
         }
         $date = get_current_date();
 
@@ -356,7 +356,7 @@ class AccountTeam
         $otherResult = $this->getTeam($account);
 
         if ($otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "User is already in a team.");
+            return new MethodReply(false, "Account is already in a team.");
         }
         $rookie = $this->getRookie();
 
@@ -691,43 +691,161 @@ class AccountTeam
 
     // Separator
 
-    private function createRole(string|object $name): MethodReply
+    private function createRole(string $name): MethodReply
     {
+        $result = $this->getTeam($this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return $result;
+        }
         return new MethodReply(false);
     }
 
-    private function deleteRole(string|object $name): MethodReply
+    private function deleteRole(string|object $role): MethodReply
     {
+        $result = $this->getTeam($this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return $result;
+        }
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+        }
         return new MethodReply(false);
     }
 
     private function getRole(string|Account $reference): MethodReply
     {
-        return new MethodReply(false);
+        $isAccount = $reference instanceof Account;
+        $result = $this->getTeam($isAccount ? $reference : $this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return $result;
+        }
+        if ($isAccount) {
+            $memberID = $this->getMember($reference)?->id;
+
+            if ($memberID === null) {
+                return new MethodReply(false, "Member not found.");
+            }
+            $query = get_sql_query(
+                AccountVariables::TEAM_ROLE_MEMBERS_TABLE,
+                null,
+                array(
+                    array("team_id", $team),
+                    array("member_id", $memberID),
+                    array("deletion_date", null)
+                ),
+                null,
+                1
+            );
+
+            if (empty($query)) {
+                return new MethodReply(false, "Member does not have a team role.");
+            } else {
+                $query = get_sql_query(
+                    AccountVariables::TEAM_ROLES_TABLE,
+                    null,
+                    array(
+                        array("team_id", $team),
+                        array("id", $query[0]->role_id),
+                        array("deletion_date", null)
+                    ),
+                    null,
+                    1
+                );
+
+                if (empty($query)) {
+                    return new MethodReply(false, "Role of member not found.");
+                } else {
+                    return new MethodReply(true, null, $query[0]);
+                }
+            }
+        } else {
+            $query = get_sql_query(
+                AccountVariables::TEAM_ROLES_TABLE,
+                null,
+                array(
+                    array("team_id", $team),
+                    array("title", $reference),
+                    array("deletion_date", null)
+                ),
+                null,
+                1
+            );
+
+            if (empty($query)) {
+                return new MethodReply(false, "Role not found.");
+            } else {
+                return new MethodReply(true, null, $query[0]);
+            }
+        }
     }
 
     private function getRolePermissions(string|object $role): array
     {
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+        }
         return array();
     }
 
     public function addRolePermission(string|object $role, int $permissionID): MethodReply
     {
+        $result = $this->getTeam($this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return $result;
+        }
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+        }
         return new MethodReply(false);
     }
 
-    public function removePermission(string|object $role, int $permissionID): MethodReply
+    public function removeRolePermission(string|object $role, int $permissionID): MethodReply
     {
+        $result = $this->getTeam($this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return $result;
+        }
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+        }
         return new MethodReply(false);
     }
 
     private function getRolePosition(string|object $role): ?int
     {
+        $result = $this->getTeam($this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return null;
+        }
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+        }
         return null;
     }
 
     public function adjustRolePosition(string|object $role, int $position): MethodReply
     {
+        $result = $this->getTeam($this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return $result;
+        }
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+        }
         return new MethodReply(false);
     }
 
