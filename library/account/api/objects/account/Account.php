@@ -3,6 +3,10 @@
 class Account
 {
 
+    private const
+        IGNORE_APPLICATION = -1,
+        BIGMANAGE_APPLICATION = 1;
+
     private object $object;
     private bool $exists;
     private AccountSettings $settings;
@@ -32,8 +36,6 @@ class Account
     private AccountInstructions $instructions;
     private AccountTeam $team;
     private AccountTranslation $translation;
-
-    public const IGNORE_APPLICATION = -1;
 
     public function __construct(?int    $applicationID = null,
                                 ?int    $id = null,
