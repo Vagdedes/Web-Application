@@ -997,7 +997,22 @@ class AccountTeam
             }
             $role = $role->getObject();
         }
-        return null;
+        $query = get_sql_query(
+            AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
+            null,
+            array(
+                array("role_id", $role->id),
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        );
+        if (empty($query)) {
+            return null;
+        }
+        return $query[0]->position;
     }
 
     public function adjustRolePosition(string|object $role, int $position): MethodReply
