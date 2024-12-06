@@ -724,12 +724,16 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
+        if (!$this->getPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to create team roles.");
+        }
         if (is_string($role)) {
             $role = $this->getRole($role);
 
             if (!$role->isPositiveOutcome()) {
                 return $role;
             }
+            $role = $role->getObject();
         }
         return new MethodReply(false);
     }
@@ -811,6 +815,7 @@ class AccountTeam
             if (!$role->isPositiveOutcome()) {
                 return $role;
             }
+            $role = $role->getObject();
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
@@ -849,6 +854,7 @@ class AccountTeam
             if (!$role->isPositiveOutcome()) {
                 return array();
             }
+            $role = $role->getObject();
         }
         $query = get_sql_query(
             AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
@@ -894,6 +900,7 @@ class AccountTeam
             if (!$role->isPositiveOutcome()) {
                 return $role;
             }
+            $role = $role->getObject();
         }
         return new MethodReply(false);
     }
@@ -912,8 +919,40 @@ class AccountTeam
             if (!$role->isPositiveOutcome()) {
                 return $role;
             }
+            $role = $role->getObject();
         }
-        return new MethodReply(false);
+        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
+
+        if ($permissionDef === null) {
+            return new MethodReply(false, "Permission not found.");
+        }
+        if ($this->getPosition($this->account) <= $this->getRolePosition($role)) {
+            return new MethodReply(false, "Can't remove permission from a role with the same or higher position.");
+        }
+        if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to remove permissions from roles.");
+        }
+        $permissionResult = $this->getRolePermission($role, $permissionDef);
+
+        if (!$permissionResult->isPositiveOutcome()) {
+            return new MethodReply(false, "Permission not given.");
+        }
+        if (set_sql_query(
+            AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
+            array(
+                "deletion_date" => get_current_date(),
+                "deleted_by" => $this->account->getDetail("id")
+            ),
+            array(
+                array("id", $permissionResult->getObject()->id),
+            ),
+            null,
+            1
+        )) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to remove permission.");
+        }
     }
 
     private function getRolePosition(string|object $role): ?int
@@ -930,24 +969,20 @@ class AccountTeam
             if (!$role->isPositiveOutcome()) {
                 return null;
             }
+            $role = $role->getObject();
         }
         return null;
     }
 
     public function adjustRolePosition(string|object $role, int $position): MethodReply
     {
-        $result = $this->getTeam($this->account);
-        $team = $result->getObject()?->id;
-
-        if ($team === null) {
-            return $result;
-        }
         if (is_string($role)) {
             $role = $this->getRole($role);
 
             if (!$role->isPositiveOutcome()) {
                 return $role;
             }
+            $role = $role->getObject();
         }
         return new MethodReply(false);
     }
