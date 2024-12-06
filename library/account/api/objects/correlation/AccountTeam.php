@@ -833,8 +833,11 @@ class AccountTeam
         }
     }
 
-    private function getRole(string|Account $reference): ?object
+    private function getRole(string|Account|null $reference = null): ?object
     {
+        if ($reference === null) {
+            $reference = $this->account;
+        }
         $isAccount = $reference instanceof Account;
         $team = $this->getTeam($isAccount ? $reference : $this->account)->getObject()?->id;
 
@@ -1130,8 +1133,7 @@ class AccountTeam
 
     private function getRolePosition(string|object $role): ?int
     {
-        $result = $this->getTeam($this->account);
-        $team = $result->getObject()?->id;
+        $team = $this->getTeam($this->account)->getObject()?->id;
 
         if ($team === null) {
             return null;
