@@ -803,6 +803,44 @@ class AccountTeam
         }
     }
 
+    public function getRolePermission(string|object $role, int $permissionID): MethodReply
+    {
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+
+            if (!$role->isPositiveOutcome()) {
+                return $role;
+            }
+        }
+        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
+
+        if ($permissionDef === null) {
+            return new MethodReply(false, "Permission not found.");
+        }
+        $query = get_sql_query(
+            AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
+            null,
+            array(
+                array("role_id", $role->id),
+                array("permission_id", $permissionDef),
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        );
+
+        if (empty($query)) {
+            return new MethodReply(false, "Permission not given.");
+        } else {
+            $query = $query[0];
+            return $query->deletion_date === null
+                ? new MethodReply(true, null, $query)
+                : new MethodReply(false, "Permission given and removed.");
+        }
+    }
+
     private function getRolePermissions(string|object $role): array
     {
         if (is_string($role)) {
@@ -813,11 +851,10 @@ class AccountTeam
             }
         }
         $query = get_sql_query(
-            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
             null,
             array(
                 array("role_id", $role->id),
-                array("deletion_date", null)
             ),
             array(
                 "DESC",
@@ -832,6 +869,11 @@ class AccountTeam
             foreach ($query as $value) {
                 if (!array_key_exists($value->permission_id, $new)) {
                     $new[$value->permission_id] = $value;
+                }
+            }
+            foreach ($new as $key => $value) {
+                if ($value->deletion_date !== null) {
+                    unset($new[$key]);
                 }
             }
             return $new;
