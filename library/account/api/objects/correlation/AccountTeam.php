@@ -591,9 +591,12 @@ class AccountTeam
             1
         );
         if (empty($query)) {
-            return null;
+            return $this->getRolePosition($account);
         }
-        return $query[0]->position;
+        $rolePosition = $this->getRolePosition($account);
+        return $rolePosition === null
+            ? $query[0]->position
+            : max($query[0]->position, $rolePosition);
     }
 
     public function adjustPosition(Account $account, int $position): MethodReply
@@ -643,32 +646,89 @@ class AccountTeam
     }
 
     public function adjustPositionByComparison(
-        Account       $account,
-        Account|array $accountAgainst,
-        bool          $above = true
+        Account      $account,
+        object|array $against,
+        bool         $above = true
     ): MethodReply
     {
-        if (is_array($accountAgainst)) {
+        if (is_array($against)) {
             $max = null;
 
-            foreach ($accountAgainst as $loopAccount) {
-                $position = $this->getPosition($loopAccount);
+            foreach ($against as $loopAccount) {
+                if ($against instanceof Account) {
+                    $position = $this->getPosition($loopAccount);
 
-                if ($position === null) {
-                    return new MethodReply(false, "Account position not found.");
+                    if ($position === null) {
+                        return new MethodReply(false, "Account position not found.");
+                    }
+                } else {
+                    $position = null;
+                    // todo
+
+                    if ($position === null) {
+                        return new MethodReply(false, "Role position not found.");
+                    }
                 }
                 if ($max === null || $position > $max) {
                     $max = $position;
                 }
             }
-        } else {
-            $max = $this->getPosition($accountAgainst);
+        } else if ($against instanceof Account) {
+            $max = $this->getPosition($against);
 
             if ($max === null) {
                 return new MethodReply(false, "Account position not found.");
             }
+        } else {
+            $max = $this->getRolePosition($against);
+
+            if ($max === null) {
+                return new MethodReply(false, "Role position not found.");
+            }
         }
         return $this->adjustPosition($account, $max + ($above ? 1 : -1));
+    }
+
+    // Separator
+
+    private function createRole(string|object $name): MethodReply
+    {
+        return new MethodReply(false);
+    }
+
+    private function deleteRole(string|object $name): MethodReply
+    {
+        return new MethodReply(false);
+    }
+
+    private function getRole(string|Account $reference): MethodReply
+    {
+        return new MethodReply(false);
+    }
+
+    private function getRolePermissions(string|object $role): array
+    {
+        return array();
+    }
+
+    public function addRolePermission(string|object $role, int $permissionID): MethodReply
+    {
+        return new MethodReply(false);
+    }
+
+    public function removePermission(string|object $role, int $permissionID): MethodReply
+    {
+        return new MethodReply(false);
+    }
+
+    private function getRolePosition(string|object $role): ?int
+    {
+        return null;
+    }
+
+    public function adjustRolePosition(string|object $role, int $position): MethodReply
+    {
+        return new MethodReply(false);
     }
 
     // Separator
