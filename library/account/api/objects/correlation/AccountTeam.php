@@ -351,7 +351,7 @@ class AccountTeam
             return new MethodReply(false, "Missing permission to add members to the team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You can't add yourself to a team.");
+            return new MethodReply(false, "You cannot add yourself to a team.");
         }
         $otherResult = $this->getTeam($account);
 
@@ -414,10 +414,10 @@ class AccountTeam
             return new MethodReply(false, "Missing permission to remove members from the team.");
         }
         if ($team !== $otherTeam) {
-            return new MethodReply(false, "Can't remove someone in another team.");
+            return new MethodReply(false, "Cannot remove someone in another team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You can't remove yourself from a team.");
+            return new MethodReply(false, "You cannot remove yourself from a team.");
         }
         $memberID = $this->getMember($account)?->id;
 
@@ -619,16 +619,16 @@ class AccountTeam
             return $otherResult;
         }
         if ($team !== $otherTeam) {
-            return new MethodReply(false, "Can't adjust position of someone in another team.");
+            return new MethodReply(false, "Cannot adjust position of someone in another team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You can't change your own position in team.");
+            return new MethodReply(false, "You cannot change your own position in team.");
         }
         if (!$this->getPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change others positions.");
         }
         if ($this->getPosition($this->account) <= $this->getPosition($account)) {
-            return new MethodReply(false, "Can't change position of someone with the same or higher position.");
+            return new MethodReply(false, "Cannot change position of someone with the same or higher position.");
         }
         $memberID = $this->getMember($account)?->id;
 
@@ -902,7 +902,33 @@ class AccountTeam
             }
             $role = $role->getObject();
         }
-        return new MethodReply(false);
+        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
+
+        if ($permissionDef === null) {
+            return new MethodReply(false, "Permission not found.");
+        }
+        if (!$this->getPermission($this->account, self::PERMISSION_ADD_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to add permissions to roles.");
+        }
+        if ($this->getPosition($this->account) <= $this->getRolePosition($role)) {
+            return new MethodReply(false, "Cannot add permission to a role with the same or higher position.");
+        }
+        if ($this->getRolePermission($role, $permissionDef)->isPositiveOutcome()) {
+            return new MethodReply(false, "Permission already given.");
+        }
+        if (sql_insert(
+            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            array(
+                "team_id" => $team,
+                "role_id" => $role->id,
+                "permission_id" => $permissionDef,
+                "creation_date" => get_current_date(),
+                "created_by" => $this->account->getDetail("id")
+            ))) {
+            return new MethodReply(true);
+        } else {
+            return new MethodReply(false, "Failed to add permission.");
+        }
     }
 
     public function removeRolePermission(string|object $role, int $permissionID): MethodReply
@@ -927,7 +953,7 @@ class AccountTeam
             return new MethodReply(false, "Permission not found.");
         }
         if ($this->getPosition($this->account) <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Can't remove permission from a role with the same or higher position.");
+            return new MethodReply(false, "Cannot remove permission from a role with the same or higher position.");
         }
         if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove permissions from roles.");
@@ -1014,7 +1040,7 @@ class AccountTeam
             return $result;
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You can't add permissions to yourself.");
+            return new MethodReply(false, "You cannot add permissions to yourself.");
         }
         $otherResult = $this->getTeam($this->account);
         $otherTeam = $otherResult->getObject()?->id;
@@ -1023,7 +1049,7 @@ class AccountTeam
             return $otherResult;
         }
         if ($team !== $otherTeam) {
-            return new MethodReply(false, "Can't add permission to someone in another team.");
+            return new MethodReply(false, "Cannot add permission to someone in another team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
@@ -1034,7 +1060,7 @@ class AccountTeam
             return new MethodReply(false, "Missing permission to add others permissions.");
         }
         if ($this->getPosition($this->account) <= $this->getPosition($account)) {
-            return new MethodReply(false, "Can't give permission to someone with the same or higher position.");
+            return new MethodReply(false, "Cannot add permission to someone with the same or higher position.");
         }
         $memberID = $this->getMember($account)?->id;
 
@@ -1055,7 +1081,7 @@ class AccountTeam
             ))) {
             return new MethodReply(true);
         } else {
-            return new MethodReply(false, "Failed to give permission.");
+            return new MethodReply(false, "Failed to add permission.");
         }
     }
 
@@ -1068,7 +1094,7 @@ class AccountTeam
             return $result;
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You can't remove your own permissions.");
+            return new MethodReply(false, "You cannot remove your own permissions.");
         }
         $otherResult = $this->getTeam($this->account);
         $otherTeam = $otherResult->getObject()?->id;
@@ -1077,7 +1103,7 @@ class AccountTeam
             return $otherResult;
         }
         if ($team !== $otherTeam) {
-            return new MethodReply(false, "Can't remove permission from someone in another team.");
+            return new MethodReply(false, "Cannot remove permission from someone in another team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
@@ -1085,7 +1111,7 @@ class AccountTeam
             return new MethodReply(false, "Permission not found.");
         }
         if ($this->getPosition($this->account) <= $this->getPosition($account)) {
-            return new MethodReply(false, "Can't remove permission from someone with the same or higher position.");
+            return new MethodReply(false, "Cannot remove permission from someone with the same or higher position.");
         }
         if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove others permissions.");
