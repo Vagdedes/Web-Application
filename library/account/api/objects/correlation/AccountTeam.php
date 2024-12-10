@@ -3,6 +3,10 @@
 class AccountTeam
 {
 
+    public const
+        DEFAULT_ADDITIONAL_ID = 0,
+        BIGMANAGE_ADDITIONAL_ID = 1;
+
     private const
         PERMISSION_ADD_TEAM_MEMBERS = 1,
         PERMISSION_REMOVE_TEAM_MEMBERS = 2,
