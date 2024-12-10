@@ -38,11 +38,13 @@ class AccountTeam
 
     private Account $account;
     private ?int $additionalID;
+    private ?object $forcedTeam;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
         $this->additionalID = null;
+        $this->forcedTeam = null;
     }
 
     // Separator
@@ -50,6 +52,11 @@ class AccountTeam
     public function setTeamAdditionalID(int $additionalID): void
     {
         $this->additionalID = $additionalID;
+    }
+
+    public function setForcedTeam(object $team): void
+    {
+        $this->forcedTeam = $team;
     }
 
     // Separator
@@ -128,7 +135,7 @@ class AccountTeam
         }
     }
 
-    public function getTeam(?Account $account = null): MethodReply
+    public function getTeams(Account $account = null): MethodReply
     {
         if ($this->additionalID === null) {
             return new MethodReply(false, "Team additional ID not set.");
@@ -136,39 +143,59 @@ class AccountTeam
         if ($account === null) {
             $account = $this->account;
         }
-        if (!$account->exists()) {
-            return new MethodReply(false, "Account not found.");
+        return new MethodReply(false); // todo
+    }
+
+    public function getTeam(Account|string|int|null $reference = null): MethodReply
+    {
+        if ($this->additionalID === null) {
+            return new MethodReply(false, "Team additional ID not set.");
         }
-        $query = get_sql_query(
-            AccountVariables::TEAM_MEMBERS_TABLE,
-            null,
-            array(
-                array("account_id", $account->getDetail("id"))
-            ),
-            array(
-                "DESC",
-                "id"
-            )
-        );
+        if ($this->forcedTeam !== null) {
+            // todo query
+        }
+        if ($reference === null) {
+            $reference = $this->account;
+        }
+        if ($reference instanceof Account) {
+            if (!$reference->exists()) {
+                return new MethodReply(false, "Account not found.");
+            }
+            $query = get_sql_query(
+                AccountVariables::TEAM_MEMBERS_TABLE,
+                null,
+                array(
+                    array("account_id", $reference->getDetail("id"))
+                ),
+                array(
+                    "DESC",
+                    "id"
+                )
+            );
 
-        if (!empty($query)) {
-            foreach ($query as $value) {
-                $subQuery = get_sql_query(
-                    AccountVariables::TEAM_TABLE,
-                    null,
-                    array(
-                        array("id", $value->team_id),
-                        array("additional_id", $this->additionalID),
-                        array("deletion_date", null)
-                    ),
-                    null,
-                    1
-                );
+            if (!empty($query)) {
+                foreach ($query as $value) {
+                    $subQuery = get_sql_query(
+                        AccountVariables::TEAM_TABLE,
+                        null,
+                        array(
+                            array("id", $value->team_id),
+                            array("additional_id", $this->additionalID),
+                            array("deletion_date", null)
+                        ),
+                        null,
+                        1
+                    );
 
-                if (!empty($subQuery)) {
-                    return new MethodReply(true, null, $subQuery[0]);
+                    if (!empty($subQuery)) {
+                        return new MethodReply(true, null, $subQuery[0]);
+                    }
                 }
             }
+        } else if (is_string($reference)) {
+            // todo
+        } else {
+            // todo
         }
         return new MethodReply(false, "Team not found.");
     }
