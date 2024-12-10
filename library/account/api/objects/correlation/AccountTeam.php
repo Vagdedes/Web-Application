@@ -59,6 +59,11 @@ class AccountTeam
         $this->forcedTeam = $team;
     }
 
+    public function setForcedOutOfTeam(): void
+    {
+        $this->forcedTeam = new stdClass();
+    }
+
     // Separator
 
     public function createTeam(string $title, string $description, ?string $reason = null): MethodReply
@@ -135,15 +140,58 @@ class AccountTeam
         }
     }
 
-    public function getTeams(Account $account = null): MethodReply
+    public function getTeams(Account $account = null): array
     {
-        if ($this->additionalID === null) {
-            return new MethodReply(false, "Team additional ID not set.");
+        if ($this->additionalID !== null) {
+            if ($account === null) {
+                $account = $this->account;
+            }
+            if ($account->exists()) {
+                $query = get_sql_query(
+                    AccountVariables::TEAM_MEMBERS_TABLE,
+                    null,
+                    array(
+                        array("account_id", $account->getDetail("id")),
+                        array("deletion_date", null)
+                    ),
+                    array(
+                        "DESC",
+                        "id"
+                    )
+                );
+
+                if (!empty($query)) {
+                    $new = array();
+
+                    foreach ($query as $value) {
+                        if (!in_array($value->team_id, $new)) {
+                            $new[] = $value->team_id;
+                        }
+                    }
+                    $result = array();
+
+                    foreach ($new as $value) {
+                        $subQuery = get_sql_query(
+                            AccountVariables::TEAM_TABLE,
+                            null,
+                            array(
+                                array("id", $value),
+                                array("additional_id", $this->additionalID),
+                                array("deletion_date", null)
+                            ),
+                            null,
+                            1
+                        );
+
+                        if (!empty($subQuery)) {
+                            $result[] = $subQuery[0];
+                        }
+                    }
+                    return $result;
+                }
+            }
         }
-        if ($account === null) {
-            $account = $this->account;
-        }
-        return new MethodReply(false); // todo
+        return array();
     }
 
     public function getTeam(Account|string|int|null $reference = null): MethodReply
@@ -152,7 +200,27 @@ class AccountTeam
             return new MethodReply(false, "Team additional ID not set.");
         }
         if ($this->forcedTeam !== null) {
-            // todo query
+            if (isset($this->forcedTeam->id)) {
+                $query = get_sql_query(
+                    AccountVariables::TEAM_TABLE,
+                    null,
+                    array(
+                        array("id", $this->forcedTeam->id),
+                        array("additional_id", $this->additionalID),
+                        array("deletion_date", null)
+                    ),
+                    null,
+                    1
+                );
+
+                if (empty($query)) {
+                    return new MethodReply(false, "Forced team not found.");
+                } else {
+                    return new MethodReply(true, null, $query[0]);
+                }
+            } else {
+                return new MethodReply(false, "Forced team ID not set.");
+            }
         }
         if ($reference === null) {
             $reference = $this->account;
@@ -165,7 +233,8 @@ class AccountTeam
                 AccountVariables::TEAM_MEMBERS_TABLE,
                 null,
                 array(
-                    array("account_id", $reference->getDetail("id"))
+                    array("account_id", $reference->getDetail("id")),
+                    array("deletion_date", null)
                 ),
                 array(
                     "DESC",
@@ -192,12 +261,44 @@ class AccountTeam
                     }
                 }
             }
+            return new MethodReply(false, "Team not found.");
         } else if (is_string($reference)) {
-            // todo
+            $query = get_sql_query(
+                AccountVariables::TEAM_TABLE,
+                null,
+                array(
+                    array("title", $reference),
+                    array("additional_id", $this->additionalID),
+                    array("deletion_date", null)
+                ),
+                null,
+                1
+            );
+
+            if (empty($query)) {
+                return new MethodReply(false, "Team not found.");
+            } else {
+                return new MethodReply(true, null, $query[0]);
+            }
         } else {
-            // todo
+            $query = get_sql_query(
+                AccountVariables::TEAM_TABLE,
+                null,
+                array(
+                    array("id", $reference),
+                    array("additional_id", $this->additionalID),
+                    array("deletion_date", null)
+                ),
+                null,
+                1
+            );
+
+            if (empty($query)) {
+                return new MethodReply(false, "Team not found.");
+            } else {
+                return new MethodReply(true, null, $query[0]);
+            }
         }
-        return new MethodReply(false, "Team not found.");
     }
 
     public function deleteTeam(?string $reason = null): MethodReply
