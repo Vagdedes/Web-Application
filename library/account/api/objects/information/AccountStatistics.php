@@ -57,7 +57,7 @@ class AccountStatistics
         }
     }
 
-    private function getWhereArguments(MethodReply $type, int|string $key): array
+    private function getWhereArguments(MethodReply $type, int|string|null $key): array
     {
         $account = $this->includeAccount
             ? ($this->account->exists() ? array("account_id", $this->account->getDetail("account_id")) : array("account_id", null))
