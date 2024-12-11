@@ -144,6 +144,23 @@ class AccountInstructions
         }
     }
 
+    public function mergeExtras(array $extra, bool $build = false): void
+    {
+        foreach ($extra as $key => $value) {
+            if (!array_key_exists($key, $this->extra)) {
+                if ($build) {
+                    $value = $this->buildExtra($key, $value);
+                }
+                $this->extra[$key] = $value;
+            }
+        }
+    }
+
+    public function getExtras(): array
+    {
+        return $this->extra;
+    }
+
     public function hasExtras(): bool
     {
         return !empty($this->extra);
