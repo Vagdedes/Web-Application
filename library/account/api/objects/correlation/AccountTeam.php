@@ -71,7 +71,7 @@ class AccountTeam
         if (!$this->account->exists()) {
             return new MethodReply(false, "Account not found.");
         }
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
 
         if ($result->isPositiveOutcome()) {
             return new MethodReply(false, "Account is already in a team.");
@@ -140,7 +140,7 @@ class AccountTeam
         }
     }
 
-    public function getTeams(Account $account = null): array
+    public function findTeams(Account $account = null): array
     {
         if ($this->additionalID !== null) {
             if ($account === null) {
@@ -194,7 +194,7 @@ class AccountTeam
         return array();
     }
 
-    public function getTeam(Account|string|int|null $reference = null): MethodReply
+    public function findTeam(Account|string|int|null $reference = null): MethodReply
     {
         if ($this->additionalID === null) {
             return new MethodReply(false, "Team additional ID not set.");
@@ -303,7 +303,7 @@ class AccountTeam
 
     public function deleteTeam(?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -340,7 +340,7 @@ class AccountTeam
 
     public function updateTitle(string $name, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -379,7 +379,7 @@ class AccountTeam
 
     public function updateDescription(string $name, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -421,7 +421,7 @@ class AccountTeam
 
     public function leaveTeam(?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject();
 
         if ($team === null) {
@@ -478,7 +478,7 @@ class AccountTeam
 
     public function addMember(Account $account, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject();
 
         if ($team === null) {
@@ -490,7 +490,7 @@ class AccountTeam
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You cannot add yourself to a team.");
         }
-        $otherResult = $this->getTeam($account);
+        $otherResult = $this->findTeam($account);
 
         if ($otherResult->isPositiveOutcome()) {
             return new MethodReply(false, "Account is already in a team.");
@@ -541,13 +541,13 @@ class AccountTeam
 
     public function removeMember(Account $account, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($account);
+        $result = $this->findTeam($account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
         }
-        $otherResult = $this->getTeam($this->account);
+        $otherResult = $this->findTeam($this->account);
         $otherTeam = $otherResult->getObject()?->id;
 
         if ($otherTeam === null) {
@@ -588,7 +588,7 @@ class AccountTeam
 
     public function getMembers(): array
     {
-        $team = $this->getTeam($this->account)->getObject()?->id;
+        $team = $this->findTeam($this->account)->getObject()?->id;
 
         if ($team === null) {
             return array();
@@ -627,7 +627,7 @@ class AccountTeam
         if ($account === null) {
             $account = $this->account;
         }
-        $team = $this->getTeam($account)->getObject()?->id;
+        $team = $this->findTeam($account)->getObject()?->id;
 
         if ($team === null) {
             return null;
@@ -716,7 +716,7 @@ class AccountTeam
         if ($account === null) {
             $account = $this->account;
         }
-        $team = $this->getTeam($account)->getObject()?->id;
+        $team = $this->findTeam($account)->getObject()?->id;
 
         if ($team === null) {
             return null;
@@ -750,13 +750,13 @@ class AccountTeam
 
     public function adjustPosition(Account $account, int $position, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($account);
+        $result = $this->findTeam($account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
             return $result;
         }
-        $otherResult = $this->getTeam($this->account);
+        $otherResult = $this->findTeam($this->account);
         $otherTeam = $otherResult->getObject()?->id;
 
         if ($otherTeam === null) {
@@ -857,7 +857,7 @@ class AccountTeam
 
     private function createRole(string $name, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -918,7 +918,7 @@ class AccountTeam
 
     private function deleteRole(string|object $role, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -971,7 +971,7 @@ class AccountTeam
             $reference = $this->account;
         }
         $isAccount = $reference instanceof Account;
-        $team = $this->getTeam($isAccount ? $reference : $this->account)->getObject()?->id;
+        $team = $this->findTeam($isAccount ? $reference : $this->account)->getObject()?->id;
 
         if ($team === null) {
             return null;
@@ -1036,7 +1036,7 @@ class AccountTeam
 
     public function getRoles(): array
     {
-        $team = $this->getTeam($this->account)->getObject()?->id;
+        $team = $this->findTeam($this->account)->getObject()?->id;
 
         if ($team === null) {
             return array();
@@ -1152,7 +1152,7 @@ class AccountTeam
 
     public function addRolePermission(string|object $role, int $permissionID, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -1206,7 +1206,7 @@ class AccountTeam
 
     public function removeRolePermission(string|object $role, int $permissionID, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -1265,7 +1265,7 @@ class AccountTeam
 
     private function getRolePosition(string|object $role): ?int
     {
-        $team = $this->getTeam($this->account)->getObject()?->id;
+        $team = $this->findTeam($this->account)->getObject()?->id;
 
         if ($team === null) {
             return null;
@@ -1297,7 +1297,7 @@ class AccountTeam
 
     public function adjustRolePosition(string|object $role, int $position, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($this->account);
+        $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -1364,7 +1364,7 @@ class AccountTeam
 
     public function addPermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($account);
+        $result = $this->findTeam($account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -1373,7 +1373,7 @@ class AccountTeam
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You cannot add permissions to yourself.");
         }
-        $otherResult = $this->getTeam($this->account);
+        $otherResult = $this->findTeam($this->account);
         $otherTeam = $otherResult->getObject()?->id;
 
         if ($otherTeam === null) {
@@ -1428,7 +1428,7 @@ class AccountTeam
 
     public function removePermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
     {
-        $result = $this->getTeam($account);
+        $result = $this->findTeam($account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -1437,7 +1437,7 @@ class AccountTeam
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You cannot remove your own permissions.");
         }
-        $otherResult = $this->getTeam($this->account);
+        $otherResult = $this->findTeam($this->account);
         $otherTeam = $otherResult->getObject()?->id;
 
         if ($otherTeam === null) {
@@ -1497,7 +1497,7 @@ class AccountTeam
 
     public function getPermission(Account $account, int $permissionID): MethodReply
     {
-        $result = $this->getTeam($account);
+        $result = $this->findTeam($account);
         $team = $result->getObject()?->id;
 
         if ($team === null) {
@@ -1551,7 +1551,7 @@ class AccountTeam
         if ($account === null) {
             $account = $this->account;
         }
-        $team = $this->getTeam($account)->getObject()?->id;
+        $team = $this->findTeam($account)->getObject()?->id;
 
         if ($team === null) {
             return array();
