@@ -2,38 +2,45 @@
 
 class AccountRole
 {
-    private int $id, $priority;
-    private ?string $name, $prefix, $suffix;
+    private ?string $name, $prefix, $suffix, $creationDate, $creationReason;
+    private ?int $id, $priority, $createdBy;
     private bool $public;
 
     public function __construct(?int $applicationID, int|string $id, bool $checkDeletion = true)
     {
         $query = get_sql_query(
             AccountVariables::ROLES_TABLE,
-            array("name", "prefix", "suffix", "public", "priority"),
+            array("id", "name", "prefix", "suffix", "public", "priority", "creation_date", "creation_reason", "created_by"),
             array(
-                array("id", $id),
+                (is_numeric($id) ? array("id", $id) : array("name", $id)),
                 array("application_id", $applicationID),
                 $checkDeletion ? array("deletion_date", null) : "",
             ),
             null,
             1
         );
-        $this->id = $id;
 
         if (!empty($query)) {
             $query = $query[0];
+            $this->id = $query->id;
             $this->name = $query->name;
             $this->prefix = $query->prefix;
             $this->suffix = $query->suffix;
             $this->public = $query->public !== null;
             $this->priority = $query->priority;
+            $this->creationDate = $query->creation_date;
+            $this->creationReason = $query->creation_reason;
+            $this->createdBy = $query->created_by;
         } else {
+            $this->id = null;
             $this->name = null;
             $this->prefix = null;
             $this->suffix = null;
             $this->public = false;
-            $this->priority = 0;
+            $this->priority = null;
+            $this->creationDate = null;
+            $this->creationReason = null;
+            $this->createdBy = null;
         }
     }
 
@@ -42,7 +49,12 @@ class AccountRole
         return $this->name !== null;
     }
 
-    public function getName(): string
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
     {
         return $this->name;
     }
@@ -62,24 +74,49 @@ class AccountRole
         return $this->public;
     }
 
-    public function getPriority(): int
+    public function getPriority(): ?int
     {
         return $this->priority;
     }
 
-    public function hasPermission(string $permission): bool
+    public function getCreatedBy(): ?int
     {
-        return !empty(get_sql_query(
+        return $this->createdBy;
+    }
+
+    public function getCreationDate(): ?string
+    {
+        return $this->creationDate;
+    }
+
+    public function getCreationReason(): ?string
+    {
+        return $this->creationReason;
+    }
+
+    public function getPermission(string $permission): MethodReply
+    {
+        $query = get_sql_query(
             AccountVariables::ROLE_PERMISSIONS_TABLE,
-            array("id"),
+            array("id", "creation_date", "creation_reason", "created_by"),
             array(
                 array("role_id", $this->id),
                 array("permission", $permission),
                 array("deletion_date", null),
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
             ),
             null,
             1
-        ));
+        );
+
+        if (empty($query)) {
+            return new MethodReply(false);
+        } else {
+            return new MethodReply(true, null, $query[0]);
+        }
     }
 
     public function getPermissions(): array
@@ -87,10 +124,14 @@ class AccountRole
         $array = array();
         $query = get_sql_query(
             AccountVariables::ROLE_PERMISSIONS_TABLE,
-            array("permission"),
+            array("permission", "creation_date", "creation_reason", "created_by"),
             array(
                 array("role_id", $this->id),
                 array("deletion_date", null),
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null
             )
         );
 

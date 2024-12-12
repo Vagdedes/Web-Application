@@ -262,26 +262,77 @@ class AccountPermissions
         }
     }
 
-    public function addRolePermission(Account $account, string $role, string|array $permission): MethodReply
+    public function addRolePermission(int|string $idOrName, string|array $permission): MethodReply
     {
         if (!$this->account->exists()) {
-            return new MethodReply(false, "Executor account not found.");
-        }
-        if (!$account->exists()) {
             return new MethodReply(false, "Account not found.");
         }
-        return new MethodReply(false);
+        $role = new AccountRole(
+            $this->account->getDetail("application_id"),
+            $idOrName
+        );
+
+        if (!$role->exists()) {
+            return new MethodReply(false, "Role not found.");
+        }
+        $outcome = $role->getPermission($permission);
+
+        if ($outcome->isPositiveOutcome()) {
+            return new MethodReply(false, "Permission already given.");
+        } else {
+            if (sql_insert(
+                AccountVariables::ROLE_PERMISSIONS_TABLE,
+                array(
+                    "role_id" => $role->getID(),
+                    "permission" => $permission,
+                    "creation_date" => get_current_date(),
+                    "created_by" => $this->account->getDetail("id")
+                )
+            )) {
+                return new MethodReply(true, "Permission given.");
+            } else {
+                return new MethodReply(false, "Failed to give permission.");
+            }
+        }
     }
 
-    public function removeRolePermission(Account $account, string $role, string|array $permission): MethodReply
+    public function removeRolePermission(int|string $idOrName, string|array $permission): MethodReply
     {
         if (!$this->account->exists()) {
-            return new MethodReply(false, "Executor account not found.");
-        }
-        if (!$account->exists()) {
             return new MethodReply(false, "Account not found.");
         }
-        return new MethodReply(false);
+        $role = new AccountRole(
+            $this->account->getDetail("application_id"),
+            $idOrName
+        );
+
+        if (!$role->exists()) {
+            return new MethodReply(false, "Role not found.");
+        }
+        $outcome = $role->getPermission($permission);
+
+        if ($outcome->isPositiveOutcome()) {
+            $date = get_current_date();
+
+            if (set_sql_query(
+                AccountVariables::ROLE_PERMISSIONS_TABLE,
+                array(
+                    "deletion_date" => $date,
+                    "deleted_by" => $this->account->getDetail("id")
+                ),
+                array(
+                    array("id", $outcome->getObject()->id)
+                ),
+                null,
+                1
+            )) {
+                return new MethodReply(true, "Permission removed.");
+            } else {
+                return new MethodReply(false, "Failed to remove permission.");
+            }
+        } else {
+            return new MethodReply(false, "Permission not found.");
+        }
     }
 
     public function hasPermission(string|array $permission, bool $store = false, ?Account $accountAgainst = null): bool
