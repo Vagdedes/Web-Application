@@ -728,6 +728,15 @@ class AccountTeam
         if ($memberID === null) {
             return null;
         }
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return null;
+        }
+        if ($owner->account->getDetail("id") === $account->getDetail("id")) {
+            global $max_32bit_Integer;
+            return $max_32bit_Integer;
+        }
         $query = get_sql_query(
             AccountVariables::TEAM_POSITIONS_TABLE,
             null,
@@ -822,6 +831,11 @@ class AccountTeam
         }
         if ($userPosition <= $position) {
             return new MethodReply(false, "Cannot change the position to the your or a higher position level.");
+        }
+        global $max_32bit_Integer;
+
+        if ($position === $max_32bit_Integer) {
+            return new MethodReply(false, "Cannot change the position to the highest possible level.");
         }
         $memberID = $this->getMember($account)?->id;
 
