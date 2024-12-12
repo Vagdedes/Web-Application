@@ -60,14 +60,24 @@ class InformationPlaceholder
         }
     }
 
-    public function add(string $key, mixed $value): void
+    public function add(string $key, mixed $value, bool $defaults = true): void
     {
-        if (!array_key_exists($key, $this->replacements)) {
+        $this->addLocal($key, $value);
+
+        if ($defaults) {
+            $this->addDefaults();
+        }
+    }
+
+    private function addLocal(string $key, mixed $value): void
+    {
+        if (is_string($value)
+            && !array_key_exists($key, $this->replacements)) {
             $this->replacements[$key] = $value;
         }
     }
 
-    public function addAll(array|object $array): void
+    public function addAll(array|object $array, bool $defaults = true): void
     {
         if (is_object($array)) {
             $array = json_decode(json_encode($array), true);
@@ -75,7 +85,9 @@ class InformationPlaceholder
         foreach ($array as $key => $value) {
             $this->add($key, $value);
         }
-        $this->addDefaults();
+        if ($defaults) {
+            $this->addDefaults();
+        }
     }
 
     public function getReplacements(): array
@@ -85,12 +97,12 @@ class InformationPlaceholder
 
     private function addDefaults(): void
     {
-        $this->add("year", date("Y"));
-        $this->add("month", date("m"));
-        $this->add("day", date("d"));
-        $this->add("hour", date("H"));
-        $this->add("minute", date("i"));
-        $this->add("second", date("s"));
+        $this->addLocal("year", date("Y"));
+        $this->addLocal("month", date("m"));
+        $this->addLocal("day", date("d"));
+        $this->addLocal("hour", date("H"));
+        $this->addLocal("minute", date("i"));
+        $this->addLocal("second", date("s"));
     }
 
     private function build(mixed $input): mixed

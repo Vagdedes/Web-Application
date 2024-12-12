@@ -124,7 +124,7 @@ class Throttler
             }
         }
 
-        return $stall_for;
+        return (int)floor($stall_for);
     }
 }
 

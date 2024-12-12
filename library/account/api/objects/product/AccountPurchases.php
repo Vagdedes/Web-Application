@@ -252,6 +252,9 @@ class AccountPurchases
         if ($product->is_free) {
             return new MethodReply(false, "This product is free and cannot be purchased.");
         }
+        $price = null;
+        $currency = null;
+
         if ($tierID === null) {
             $purchase = $this->owns($productID, null, true);
 
@@ -266,10 +269,10 @@ class AccountPurchases
                     break;
                 }
             }
-            if (!isset($price)) {
+            if ($price === null) {
                 return new MethodReply(false, "This product does not have a price (2).");
             }
-            if (!isset($currency)) {
+            if ($currency === null) {
                 return new MethodReply(false, "This product does not have a currency (2).");
             }
             $purchase = $this->owns($productID, $tierID, true);
