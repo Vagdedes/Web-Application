@@ -101,4 +101,5 @@ class AccountRole
         }
         return $array;
     }
+
 }

@@ -4,8 +4,9 @@ class Account
 {
 
     public const
-        IGNORE_APPLICATION = -1,
-        BIGMANAGE_APPLICATION = 1;
+        IGNORE_APPLICATION_ID = -1,
+        DEFAULT_APPLICATION_ID = null,
+        BIGMANAGE_APPLICATION_ID = 1;
 
     private object $object;
     private bool $exists;
@@ -144,7 +145,7 @@ class Account
                         $hasEmail ? array("email_address", strtolower($email)) : "",
                         $hasUsername ? array("name", $username) : "",
                         $checkDeletion ? array("deletion_date", null) : "",
-                        $applicationID !== self::IGNORE_APPLICATION ? array("application_id", $applicationID) : ""
+                        $applicationID !== self::IGNORE_APPLICATION_ID ? array("application_id", $applicationID) : ""
                     ),
                     null,
                     1

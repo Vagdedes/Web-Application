@@ -4,18 +4,35 @@ class AccountFunctionality
 {
     private Account $account;
 
-    public const LOG_IN = "log_in", LOG_OUT = "log_out", REGISTER_ACCOUNT = "register_account",
-        ADD_ACCOUNT = "add_account", REMOVE_ACCOUNT = "remove_account", BUY_PRODUCT = "buy_product",
-        CHANGE_EMAIL = "change_email", CHANGE_PASSWORD = "change_password", DOWNLOAD_PRODUCT = "download_product",
-        MODERATE_USER = "moderate_user", MODIFY_OPTION = "modify_option", VIEW_PRODUCT = "view_product",
-        RUN_PRODUCT_GIVEAWAY = "run_product_giveaway", VIEW_PRODUCT_GIVEAWAY = "view_product_giveaway",
-        USE_COUPON = "use_coupon", VIEW_HISTORY = "view_history",
-        DELETE_ACCOUNT = "delete_account", BLOCK_FUNCTIONALITY = "block_functionality",
-        CHANGE_NAME = "change_name", CANCEL_BLOCKED_FUNCTIONALITY = "cancel_blocked_functionality",
-        CANCEL_USER_MODERATION = "cancel_user_moderation", COMPLETE_EMAIL_VERIFICATION = "complete_email_verification",
-        REMOVE_PRODUCT = "remove_product", EXCHANGE_PRODUCT = "exchange_product",
-        ADD_NOTIFICATION = "add_notification", GET_NOTIFICATION = "get_notification",
-        VIEW_ACCOUNTS = "view_accounts", COMPLETE_CHANGE_PASSWORD = "complete_change_password";
+    public const
+        LOG_IN = "log_in",
+        LOG_OUT = "log_out",
+        REGISTER_ACCOUNT = "register_account",
+        ADD_ACCOUNT = "add_account",
+        REMOVE_ACCOUNT = "remove_account",
+        BUY_PRODUCT = "buy_product",
+        CHANGE_EMAIL = "change_email",
+        CHANGE_PASSWORD = "change_password",
+        DOWNLOAD_PRODUCT = "download_product",
+        MODERATE_USER = "moderate_user",
+        MODIFY_OPTION = "modify_option",
+        VIEW_PRODUCT = "view_product",
+        RUN_PRODUCT_GIVEAWAY = "run_product_giveaway",
+        VIEW_PRODUCT_GIVEAWAY = "view_product_giveaway",
+        USE_COUPON = "use_coupon",
+        VIEW_HISTORY = "view_history",
+        DELETE_ACCOUNT = "delete_account",
+        BLOCK_FUNCTIONALITY = "block_functionality",
+        CHANGE_NAME = "change_name",
+        CANCEL_BLOCKED_FUNCTIONALITY = "cancel_blocked_functionality",
+        CANCEL_USER_MODERATION = "cancel_user_moderation",
+        COMPLETE_EMAIL_VERIFICATION = "complete_email_verification",
+        REMOVE_PRODUCT = "remove_product",
+        EXCHANGE_PRODUCT = "exchange_product",
+        ADD_NOTIFICATION = "add_notification",
+        GET_NOTIFICATION = "get_notification",
+        VIEW_ACCOUNTS = "view_accounts",
+        COMPLETE_CHANGE_PASSWORD = "complete_change_password";
 
     public function __construct(Account $account)
     {

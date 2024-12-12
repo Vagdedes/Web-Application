@@ -317,7 +317,7 @@ class AccountProductDownloads
                     null
                 );
             } else {
-                $query->account = new Account(Account::IGNORE_APPLICATION, $query->account_id);
+                $query->account = new Account(Account::IGNORE_APPLICATION_ID, $query->account_id);
                 return new MethodReply(true, null, $query);
             }
         } else {

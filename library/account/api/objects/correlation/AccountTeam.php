@@ -5,9 +5,8 @@ class AccountTeam
 
     public const
         DEFAULT_ADDITIONAL_ID = 0,
-        BIGMANAGE_ADDITIONAL_ID = 1;
+        BIGMANAGE_ADDITIONAL_ID = 1,
 
-    private const
         PERMISSION_ADD_TEAM_MEMBERS = 1,
         PERMISSION_REMOVE_TEAM_MEMBERS = 2,
         PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS = 3,
@@ -39,13 +38,13 @@ class AccountTeam
     );
 
     private Account $account;
-    private ?int $additionalID;
+    private int $additionalID;
     private ?object $forcedTeam;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
-        $this->additionalID = null;
+        $this->additionalID = self::DEFAULT_ADDITIONAL_ID;
         $this->forcedTeam = null;
     }
 
@@ -144,53 +143,51 @@ class AccountTeam
 
     public function findTeams(Account $account = null): array
     {
-        if ($this->additionalID !== null) {
-            if ($account === null) {
-                $account = $this->account;
-            }
-            if ($account->exists()) {
-                $query = get_sql_query(
-                    AccountVariables::TEAM_MEMBERS_TABLE,
-                    null,
-                    array(
-                        array("account_id", $account->getDetail("id")),
-                        array("deletion_date", null)
-                    ),
-                    array(
-                        "DESC",
-                        "id"
-                    )
-                );
+        if ($account === null) {
+            $account = $this->account;
+        }
+        if ($account->exists()) {
+            $query = get_sql_query(
+                AccountVariables::TEAM_MEMBERS_TABLE,
+                null,
+                array(
+                    array("account_id", $account->getDetail("id")),
+                    array("deletion_date", null)
+                ),
+                array(
+                    "DESC",
+                    "id"
+                )
+            );
 
-                if (!empty($query)) {
-                    $new = array();
+            if (!empty($query)) {
+                $new = array();
 
-                    foreach ($query as $value) {
-                        if (!in_array($value->team_id, $new)) {
-                            $new[] = $value->team_id;
-                        }
+                foreach ($query as $value) {
+                    if (!in_array($value->team_id, $new)) {
+                        $new[] = $value->team_id;
                     }
-                    $result = array();
-
-                    foreach ($new as $value) {
-                        $subQuery = get_sql_query(
-                            AccountVariables::TEAM_TABLE,
-                            null,
-                            array(
-                                array("id", $value),
-                                array("additional_id", $this->additionalID),
-                                array("deletion_date", null)
-                            ),
-                            null,
-                            1
-                        );
-
-                        if (!empty($subQuery)) {
-                            $result[] = $subQuery[0];
-                        }
-                    }
-                    return $result;
                 }
+                $result = array();
+
+                foreach ($new as $value) {
+                    $subQuery = get_sql_query(
+                        AccountVariables::TEAM_TABLE,
+                        null,
+                        array(
+                            array("id", $value),
+                            array("additional_id", $this->additionalID),
+                            array("deletion_date", null)
+                        ),
+                        null,
+                        1
+                    );
+
+                    if (!empty($subQuery)) {
+                        $result[] = $subQuery[0];
+                    }
+                }
+                return $result;
             }
         }
         return array();
@@ -198,9 +195,6 @@ class AccountTeam
 
     public function findTeam(Account|string|int|null $reference = null): MethodReply
     {
-        if ($this->additionalID === null) {
-            return new MethodReply(false, "Team additional ID not set.");
-        }
         if ($this->forcedTeam !== null) {
             if (isset($this->forcedTeam->id)) {
                 $query = get_sql_query(
