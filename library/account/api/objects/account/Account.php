@@ -3,7 +3,7 @@
 class Account
 {
 
-    private const
+    public const
         IGNORE_APPLICATION = -1,
         BIGMANAGE_APPLICATION = 1;
 
