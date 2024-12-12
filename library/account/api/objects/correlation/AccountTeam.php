@@ -20,6 +20,7 @@ class AccountTeam
         PERMISSION_ADJUST_TEAM_ROLE_POSITIONS = 10,
         PERMISSION_ADD_TEAM_ROLE_PERMISSIONS = 11,
         PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS = 12,
+        PERMISSION_ADJUST_TEAM_MEMBER_ROLES = 13,
 
         PERMISSION_ALL = array(
         self::PERMISSION_ADD_TEAM_MEMBERS,
@@ -33,7 +34,8 @@ class AccountTeam
         self::PERMISSION_DELETE_TEAM_ROLES,
         self::PERMISSION_ADJUST_TEAM_ROLE_POSITIONS,
         self::PERMISSION_ADD_TEAM_ROLE_PERMISSIONS,
-        self::PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS
+        self::PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS,
+        self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES
     );
 
     private Account $account;
@@ -791,16 +793,23 @@ class AccountTeam
             return $otherResult;
         }
         if ($team !== $otherTeam) {
-            return new MethodReply(false, "Cannot adjust position of someone in another team.");
+            return new MethodReply(false, "Cannot adjust position of someone in no or another team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You cannot change your own position in team.");
+            $owner = $this->getOwner();
+
+            if ($owner === null) {
+                return new MethodReply(false, "Owner not found.");
+            }
+            if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
+                return new MethodReply(false, "You cannot change your own position in team.");
+            }
         }
         if (!$this->getPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change others positions.");
         }
         $userPosition = $this->getPosition($this->account);
-        $message = "Cannot change position of someone with the same or higher position.";
+        $message = "Cannot change the position of a member with the same or higher position.";
 
         if ($userPosition === null) {
             return new MethodReply(false, $message);
@@ -812,7 +821,7 @@ class AccountTeam
             return new MethodReply(false, $message);
         }
         if ($userPosition <= $position) {
-            return new MethodReply(false, "Cannot change position to the your position or a higher position.");
+            return new MethodReply(false, "Cannot change the position to the your or a higher position level.");
         }
         $memberID = $this->getMember($account)?->id;
 
@@ -883,7 +892,7 @@ class AccountTeam
 
     // Separator
 
-    private function createRole(string $name, ?string $reason = null): MethodReply
+    public function createRole(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
@@ -944,7 +953,7 @@ class AccountTeam
         }
     }
 
-    private function deleteRole(string|object $role, ?string $reason = null): MethodReply
+    public function deleteRole(string|object $role, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
@@ -993,7 +1002,7 @@ class AccountTeam
         }
     }
 
-    private function getMemberRoles(?Account $account = null): array
+    public function getMemberRoles(?Account $account = null): array
     {
         if ($account === null) {
             $account = $this->account;
@@ -1037,14 +1046,16 @@ class AccountTeam
                 );
 
                 if (!empty($childQuery)) {
-                    $new[] = $childQuery[0];
+                    $childQuery = $childQuery[0];
+                    $childQuery->query = $value;
+                    $new[] = $childQuery;
                 }
             }
             return $new;
         }
     }
 
-    private function getRole(string $name): ?object
+    public function getRole(string $name): ?object
     {
         $team = $this->findTeam($this->account)->getObject()?->id;
 
@@ -1084,6 +1095,99 @@ class AccountTeam
                 array("deletion_date", null)
             )
         );
+    }
+
+    public function setRole(Account $account, string|object $role, bool $trueFalse, ?string $reason = null): MethodReply
+    {
+        $result = $this->findTeam($this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return $result;
+        }
+        if (!$this->getPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to change roles of members.");
+        }
+        $userPosition = $this->getPosition($this->account);
+        $message = "Cannot change the role of a member with the same or higher position.";
+
+        if ($userPosition === null) {
+            return new MethodReply(false, $message);
+        }
+        $otherPosition = $this->getPosition($account);
+
+        if ($otherPosition === null
+            || $userPosition <= $otherPosition) {
+            return new MethodReply(false, $message);
+        }
+        $otherResult = $this->findTeam($account);
+        $otherTeam = $otherResult->getObject()?->id;
+
+        if ($otherTeam === null) {
+            return $otherResult;
+        }
+        if ($team !== $otherTeam) {
+            return new MethodReply(false, "Cannot manage the role of someone in no or another team.");
+        }
+        $memberID = $this->getMember($account)?->id;
+
+        if ($memberID === null) {
+            return new MethodReply(false, "Member not found.");
+        }
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
+            }
+        }
+        $roles = $this->getMemberRoles($account);
+
+        if ($trueFalse) {
+            foreach ($roles as $value) {
+                if ($value->id === $role->id) {
+                    return new MethodReply(false, "Role already given to member.");
+                }
+            }
+            if (sql_insert(
+                AccountVariables::TEAM_ROLE_MEMBERS_TABLE,
+                array(
+                    "team_id" => $team,
+                    "role_id" => $role->id,
+                    "member_id" => $memberID,
+                    "creation_date" => get_current_date(),
+                    "created_by" => $this->account->getDetail("id"),
+                    "creation_reason" => $reason
+                ))) {
+                return new MethodReply(true, "Role given to member.");
+            } else {
+                return new MethodReply(false, "Failed to give role to member.");
+            }
+        } else {
+            if (!empty($roles)) {
+                foreach ($roles as $value) {
+                    if ($value->id === $role->id) {
+                        if (set_sql_query(
+                            AccountVariables::TEAM_ROLE_MEMBERS_TABLE,
+                            array(
+                                "deletion_date" => get_current_date(),
+                                "deleted_by" => $this->account->getDetail("id")
+                            ),
+                            array(
+                                array("id", $value->query->id),
+                            ),
+                            null,
+                            1
+                        )) {
+                            return new MethodReply(true, "Role removed from member.");
+                        } else {
+                            return new MethodReply(false, "Failed to remove role from member.");
+                        }
+                    }
+                }
+            }
+            return new MethodReply(false, "Role not given to member.");
+        }
     }
 
     private function getRookieRole(): ?object
@@ -1146,7 +1250,7 @@ class AccountTeam
         }
     }
 
-    private function getRolePermissions(string|object $role): array
+    public function getRolePermissions(string|object $role): array
     {
         if (is_string($role)) {
             $role = $this->getRole($role);
@@ -1298,7 +1402,7 @@ class AccountTeam
         }
     }
 
-    private function getRolePosition(string|object $role): ?int
+    public function getRolePosition(string|object $role): ?int
     {
         $team = $this->findTeam($this->account)->getObject()?->id;
 
@@ -1349,7 +1453,7 @@ class AccountTeam
             return new MethodReply(false, "Missing permission to change positions of roles.");
         }
         $userPosition = $this->getPosition($this->account);
-        $message = "Cannot change position of a role with the same or higher position.";
+        $message = "Cannot change the position of a role with the same or higher position.";
 
         if ($userPosition === null) {
             return new MethodReply(false, $message);
@@ -1361,7 +1465,7 @@ class AccountTeam
             return new MethodReply(false, $message);
         }
         if ($userPosition <= $position) {
-            return new MethodReply(false, "Cannot change position of a role to the your position or a higher position.");
+            return new MethodReply(false, "Cannot change the position of a role to the your position or a higher position.");
         }
         if (sql_insert(
             AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
@@ -1666,7 +1770,7 @@ class AccountTeam
                     unset($new[$key]);
                 }
             }
-            $roles = $this->getRoles($account);
+            $roles = $this->getMemberRoles($account);
 
             if (!empty($roles)) {
                 foreach ($roles as $role) {
