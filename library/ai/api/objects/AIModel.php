@@ -199,7 +199,7 @@ class AIModel
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
-                return $object?->choices[0]?->message?->content;
+                return ($object?->choices[0] ?? null)?->message?->content;
             case AIModelFamily::OPENAI_WHISPER:
                 return $object?->text;
             default:
@@ -240,7 +240,7 @@ class AIModel
         switch ($this->familyID) {
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
-                return $object?->data[0]?->url;
+                return ($object?->data[0] ?? null)?->url;
             default:
                 return null;
         }
