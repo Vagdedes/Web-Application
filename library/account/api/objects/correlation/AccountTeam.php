@@ -740,12 +740,40 @@ class AccountTeam
             1
         );
         if (empty($query)) {
-            return $this->getRolePosition($account);
+            $roles = $this->getMemberRoles($account);
+
+            if (empty($roles)) {
+                return null;
+            } else {
+                $max = null;
+
+                foreach ($roles as $role) {
+                    $position = $this->getRolePosition($role);
+
+                    if ($max === null || $position > $max) {
+                        $max = $position;
+                    }
+                }
+                return $max;
+            }
+        } else {
+            $roles = $this->getMemberRoles($account);
+
+            if (empty($roles)) {
+                return $query[0]->position;
+            } else {
+                $max = null;
+
+                foreach ($roles as $role) {
+                    $position = $this->getRolePosition($role);
+
+                    if ($max === null || $position > $max) {
+                        $max = $position;
+                    }
+                }
+                return max($query[0]->position, $max);
+            }
         }
-        $rolePosition = $this->getRolePosition($account);
-        return $rolePosition === null
-            ? $query[0]->position
-            : max($query[0]->position, $rolePosition);
     }
 
     public function adjustPosition(Account $account, int $position, ?string $reason = null): MethodReply
@@ -817,15 +845,15 @@ class AccountTeam
         if (is_array($against)) {
             $max = null;
 
-            foreach ($against as $loopAccount) {
+            foreach ($against as $loopObject) {
                 if ($against instanceof Account) {
-                    $position = $this->getPosition($loopAccount);
+                    $position = $this->getPosition($loopObject);
 
                     if ($position === null) {
                         return new MethodReply(false, "Account position not found.");
                     }
                 } else {
-                    $position = $this->getRolePosition($loopAccount);
+                    $position = $this->getRolePosition($loopObject);
 
                     if ($position === null) {
                         return new MethodReply(false, "Role position not found.");
@@ -965,76 +993,83 @@ class AccountTeam
         }
     }
 
-    private function getRole(string|Account|null $reference = null): ?object
+    private function getMemberRoles(?Account $account = null): array
     {
-        if ($reference === null) {
-            $reference = $this->account;
+        if ($account === null) {
+            $account = $this->account;
         }
-        $isAccount = $reference instanceof Account;
-        $team = $this->findTeam($isAccount ? $reference : $this->account)->getObject()?->id;
+        $team = $this->findTeam($account)->getObject()?->id;
 
         if ($team === null) {
-            return null;
+            return array();
         }
-        if ($isAccount) {
-            $memberID = $this->getMember($reference)?->id;
+        $memberID = $this->getMember($account)?->id;
 
-            if ($memberID === null) {
-                return null;
-            }
-            $query = get_sql_query(
-                AccountVariables::TEAM_ROLE_MEMBERS_TABLE,
-                null,
-                array(
-                    array("team_id", $team),
-                    array("member_id", $memberID),
-                    array("deletion_date", null)
-                ),
-                null,
-                1
-            );
+        if ($memberID === null) {
+            return array();
+        }
+        $query = get_sql_query(
+            AccountVariables::TEAM_ROLE_MEMBERS_TABLE,
+            null,
+            array(
+                array("team_id", $team),
+                array("member_id", $memberID),
+                array("deletion_date", null)
+            )
+        );
 
-            if (empty($query)) {
-                return null;
-            } else {
-                $query = get_sql_query(
+        if (empty($query)) {
+            return array();
+        } else {
+            $new = array();
+
+            foreach ($query as $value) {
+                $childQuery = get_sql_query(
                     AccountVariables::TEAM_ROLES_TABLE,
                     null,
                     array(
                         array("team_id", $team),
-                        array("id", $query[0]->role_id),
+                        array("id", $value->role_id),
                         array("deletion_date", null)
                     ),
                     null,
                     1
                 );
 
-                if (empty($query)) {
-                    return null;
+                if (!empty($childQuery)) {
+                    $new[] = $childQuery[0];
                 }
-                return $query[0];
             }
-        } else {
-            $query = get_sql_query(
-                AccountVariables::TEAM_ROLES_TABLE,
-                null,
-                array(
-                    array("team_id", $team),
-                    array("title", $reference),
-                    array("deletion_date", null)
-                ),
-                null,
-                1
-            );
-
-            if (empty($query)) {
-                return null;
-            }
-            return $query[0];
+            return $new;
         }
     }
 
-    public function getRoles(): array
+    private function getRole(string $name): ?object
+    {
+        $team = $this->findTeam($this->account)->getObject()?->id;
+
+        if ($team === null) {
+            return null;
+        }
+        $query = get_sql_query(
+            AccountVariables::TEAM_ROLES_TABLE,
+            null,
+            array(
+                array("team_id", $team),
+                array("title", $name),
+                array("deletion_date", null)
+            ),
+            null,
+            1
+        );
+
+        if (empty($query)) {
+            return null;
+        }
+        return $query[0];
+    }
+
+    public function getTeamRoles(): array
     {
         $team = $this->findTeam($this->account)->getObject()?->id;
 
@@ -1053,7 +1088,7 @@ class AccountTeam
 
     private function getRookieRole(): ?object
     {
-        $roles = $this->getRoles();
+        $roles = $this->getTeamRoles();
 
         if (empty($roles)) {
             return null;
@@ -1599,10 +1634,23 @@ class AccountTeam
             )
         );
         if (empty($query)) {
-            $role = $this->getRole($account);
+            $roles = $this->getMemberRoles($account);
 
-            if ($role !== null) {
-                return $this->getRolePermissions($role);
+            if (!empty($roles)) {
+                $new = array();
+
+                foreach ($roles as $role) {
+                    $rolePermissions = $this->getRolePermissions($role);
+
+                    if (!empty($rolePermissions)) {
+                        foreach ($rolePermissions as $value) {
+                            if (!array_key_exists($value->permission_id, $new)) {
+                                $new[$value->permission_id] = $value;
+                            }
+                        }
+                    }
+                }
+                return $new;
             }
             return array();
         } else {
@@ -1618,15 +1666,17 @@ class AccountTeam
                     unset($new[$key]);
                 }
             }
-            $role = $this->getRole($account);
+            $roles = $this->getRoles($account);
 
-            if ($role !== null) {
-                $rolePermissions = $this->getRolePermissions($role);
+            if (!empty($roles)) {
+                foreach ($roles as $role) {
+                    $rolePermissions = $this->getRolePermissions($role);
 
-                if (!empty($rolePermissions)) {
-                    foreach ($rolePermissions as $value) {
-                        if (!array_key_exists($value->permission_id, $new)) {
-                            $new[$value->permission_id] = $value;
+                    if (!empty($rolePermissions)) {
+                        foreach ($rolePermissions as $value) {
+                            if (!array_key_exists($value->permission_id, $new)) {
+                                $new[$value->permission_id] = $value;
+                            }
                         }
                     }
                 }
