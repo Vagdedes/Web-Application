@@ -5,19 +5,17 @@ class AccountPermissions
     private Account $account;
     private array $systemPermissions;
     private int $defaultRoleID;
-    private $allPermissions, $rolePermissions, $lastUsed;
+    private string|array|null $lastUsed;
 
     public function __construct(Account $account, int $defaultRoleID = 10)
     {
         $this->account = $account;
-        $this->allPermissions = null;
-        $this->rolePermissions = null;
         $this->systemPermissions = array();
         $this->lastUsed = null;
         $this->defaultRoleID = $defaultRoleID;
     }
 
-    public function getLastUsedPermission()
+    public function getLastUsedPermission(): string|array|null
     {
         return $this->lastUsed;
     }
@@ -91,34 +89,26 @@ class AccountPermissions
 
     public function getAllPermissions(): array
     {
-        if ($this->allPermissions === null) {
-            $this->allPermissions = array_merge(
-                $this->getRolePermissions(),
-                $this->getGivenPermissions()
-            );
-            $this->allPermissions = array_merge(
-                $this->allPermissions,
-                $this->getSystemPermissions()
-            );
-        }
-        return $this->allPermissions;
+        return array_merge(
+            $this->getRolePermissions(),
+            $this->getGivenPermissions(),
+            $this->getSystemPermissions()
+        );
     }
 
     public function getRolePermissions(): array
     {
-        if ($this->rolePermissions === null) {
-            $roles = $this->getRoles();
-            $this->rolePermissions = array();
+        $array = array();
+        $roles = $this->getRoles();
 
-            if (!empty($roles)) {
-                foreach ($roles as $role) {
-                    foreach ($role->getPermissions() as $permission) {
-                        $this->rolePermissions[] = $permission;
-                    }
+        if (!empty($roles)) {
+            foreach ($roles as $role) {
+                foreach ($role->getPermissions() as $permission) {
+                    $array[] = $permission;
                 }
             }
         }
-        return $this->rolePermissions;
+        return $array;
     }
 
     public function getGivenPermissions(): array
