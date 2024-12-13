@@ -12,6 +12,8 @@ class AccountInstructions
         "information_url",
         "information_value",
         "information_expiration",
+        "information_duration",
+        "auto_contains",
         "creation_reason"
     ];
 
