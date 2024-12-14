@@ -6,14 +6,10 @@ class AccountInstructions
     private const
         AI_HASH = 596802337,
         keepDatabaseKeys = [
-        "id",
         "priority",
         "information",
         "information_url",
         "information_value",
-        "information_expiration",
-        "information_duration",
-        "auto_contains",
         "creation_reason"
     ];
 
@@ -60,28 +56,22 @@ class AccountInstructions
         $this->getPublic();
     }
 
+    private function calculateRawContains(?string $text): array
+    {
+        return $text === null
+            ? array()
+            : explode("|", $text);
+    }
+
     private function calculateContains(array $array): array
     {
-        $final = array();
-        $merge = array();
-
         if (!empty($array)) {
-            foreach ($array as $row) {
-                if ($row->contains === null) {
-                    $row->contains = array();
-                } else {
-                    $row->contains = explode("|", $row->contains);
-                }
-                if ($row->priority === null
-                    || array_key_exists($row->priority, $final)) {
-                    $merge[] = $row;
-                } else {
-                    $final[$row->priority] = $row;
-                }
+            foreach ($array as $arrayKey => $row) {
+                $row->contains = $this->calculateRawContains($row->contains);
+                $array[$arrayKey] = $row;
             }
         }
-        krsort($final);
-        return array_merge($final, $merge);
+        return $array;
     }
 
     // Separator
@@ -348,7 +338,7 @@ class AccountInstructions
                     )) {
                         $row->information_value = $doc;
                         $row->information_expiration = $expiration;
-                        $row->contains = $containsKeywords === null ? array() : $containsKeywords;
+                        $row->contains = $this->calculateRawContains($containsKeywords);
                         $this->publicInstructions[$arrayKey] = $row;
                         unset($this->containsCache[$arrayKey]);
                     }
@@ -385,7 +375,9 @@ class AccountInstructions
         }
         $array = $this->localInstructions;
 
-        if (!empty($array)) {
+        if (empty($array)) {
+            return array();
+        } else {
             $isArray = is_array($allow);
 
             foreach ($array as $arrayKey => $row) {
@@ -413,10 +405,24 @@ class AccountInstructions
                     unset($array[$arrayKey]);
                 }
             }
-            krsort($array);
-            return $array;
-        } else {
-            return array();
+
+            if (empty($array)) {
+                return array();
+            } else {
+                $new = array();
+
+                foreach ($array as $arrayKey => $row) {
+                    $newObject = new stdClass();
+
+                    foreach ($row as $objectKey => $value) {
+                        if (in_array($objectKey, self::keepDatabaseKeys)) {
+                            $newObject->{$objectKey} = $value;
+                        }
+                    }
+                    $new[$arrayKey] = $newObject;
+                }
+                return $new;
+            }
         }
     }
 
@@ -442,7 +448,9 @@ class AccountInstructions
         }
         $array = $this->publicInstructions;
 
-        if (!empty($array)) {
+        if (empty($array)) {
+            return array();
+        } else {
             $isArray = is_array($allow);
             $hasUserInput = $userInput !== null;
 
@@ -494,12 +502,6 @@ class AccountInstructions
                             }
                         }
                         $row->information_value = $doc;
-
-                        foreach ($row as $key => $value) {
-                            if (!in_array($key, self::keepDatabaseKeys)) {
-                                unset($row->{$key});
-                            }
-                        }
                         $array[$arrayKey] = $row;
                     } else if ($row->information_value === null) {
                         unset($array[$arrayKey]);
@@ -508,9 +510,25 @@ class AccountInstructions
                     unset($array[$arrayKey]);
                 }
             }
+
+            if (empty($array)) {
+                return array();
+            } else {
+                $new = array();
+
+                foreach ($array as $arrayKey => $row) {
+                    $newObject = new stdClass();
+
+                    foreach ($row as $objectKey => $value) {
+                        if (in_array($objectKey, self::keepDatabaseKeys)) {
+                            $newObject->{$objectKey} = $value;
+                        }
+                    }
+                    $new[$arrayKey] = $newObject;
+                }
+                return $new;
+            }
         }
-        krsort($array);
-        return $array;
     }
 
     private function equals(mixed $arrayKey, object $row, string $word): bool
