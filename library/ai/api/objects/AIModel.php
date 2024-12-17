@@ -291,8 +291,10 @@ class AIModel
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
-                return ($object->usage->prompt_tokens * ($this->sent_token_cost ?? 0.0))
-                    + ($object->usage->completion_tokens * ($this->received_token_cost ?? 0.0));
+                return (($object?->usage?->prompt_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0))
+                    + (($object?->usage?->completion_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
+                    + (($object?->usage?->prompt_tokens_details?->reasoning_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
+                    + (($object?->usage?->completion_tokens_details?->reasoning_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0));
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
                 if ($object instanceof AIManager
