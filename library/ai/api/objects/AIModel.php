@@ -291,8 +291,8 @@ class AIModel
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
-                return ($object->usage->prompt_tokens * ($this?->sent_token_cost ?? 0.0))
-                    + ($object->usage->completion_tokens * ($this?->received_token_cost ?? 0.0));
+                return ($object->usage->prompt_tokens * ($this->sent_token_cost ?? 0.0))
+                    + ($object->usage->completion_tokens * ($this->received_token_cost ?? 0.0));
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
                 if ($object instanceof AIManager
@@ -326,7 +326,7 @@ class AIModel
             case AIModelFamily::OPENAI_TTS_HD:
                 if ($object instanceof AIManager) {
                     return strlen($object->getAllParameters()["input"] ?? "") *
-                        ($this?->sent_token_cost ?? 0.0);
+                        ($this->sent_token_cost ?? 0.0);
                 } else {
                     return null;
                 }
