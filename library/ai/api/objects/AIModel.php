@@ -6,7 +6,7 @@ class AIModel
     private ?int $context;
     private string $requestUrl, $codeKey, $code;
     private object $parameter, $currency;
-    private ?float $received_token_cost, $sent_token_cost;
+    private ?float $received_token_cost, $received_token_audio_cost, $sent_token_cost, $sent_token_audio_cost;
     private bool $exists;
     private array $pricing;
 
@@ -48,6 +48,8 @@ class AIModel
                 $this->code = $row->code;
                 $this->received_token_cost = $row->received_token_cost;
                 $this->sent_token_cost = $row->sent_token_cost;
+                $this->received_token_audio_cost = $row->received_token_audio_cost;
+                $this->sent_token_audio_cost = $row->sent_token_audio_cost;
                 $pricing = get_sql_query(
                     AIDatabaseTable::AI_PRICING,
                     null,
@@ -293,8 +295,12 @@ class AIModel
             case AIModelFamily::OPENAI_SOUND:
                 return (($object?->usage?->prompt_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0))
                     + (($object?->usage?->completion_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
-                    + (($object?->usage?->prompt_tokens_details?->reasoning_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
-                    + (($object?->usage?->completion_tokens_details?->reasoning_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0));
+
+                    + (($object?->usage?->prompt_tokens_details?->reasoning_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0))
+                    + (($object?->usage?->completion_tokens_details?->reasoning_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
+
+                    + (($object?->usage?->prompt_tokens_details?->audio_tokens ?? 0.0) * ($this->sent_token_audio_cost ?? 0.0))
+                    + (($object?->usage?->completion_tokens_details?->audio_tokens ?? 0.0) * ($this->received_token_audio_cost ?? 0.0));
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
                 if ($object instanceof AIManager
