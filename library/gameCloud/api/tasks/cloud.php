@@ -2,12 +2,10 @@
 // Arguments
 
 require_once '/var/www/.structure/library/base/form.php';
-$version = get_form("version");
 $action = get_form("action");
 
-if (true
-    && in_array($action, array("get", "add"))
-    && is_numeric($version) && $version > 0) { // Toggle database insertions
+if (true && in_array($action, array("get", "add"))) { // Toggle database insertions
+    $version = get_form("version");
     $data = get_form("data");
 
     if (empty($data)) {
@@ -391,12 +389,8 @@ if (true
                     array(
                         array("deletion_date", null),
                         null,
-                        array("minimum_version", "IS", null, 0),
-                        array("minimum_version", "<=", $version),
-                        null,
-                        null,
-                        array("maximum_version", "IS", null, 0),
-                        array("maximum_version", ">=", $version),
+                        array("version", "IS", null, 0),
+                        array("version", $version),
                         null,
                         null,
                         array("platform_id", "IS", null, 0),
