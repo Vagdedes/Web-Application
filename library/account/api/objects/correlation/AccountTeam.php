@@ -1063,7 +1063,7 @@ class AccountTeam
         }
     }
 
-    public function getRole(string $name): ?object
+    public function getRole(string|int $reference): ?object
     {
         $team = $this->findTeam($this->account)->getObject()?->id;
 
@@ -1075,7 +1075,7 @@ class AccountTeam
             null,
             array(
                 array("team_id", $team),
-                array("title", $name),
+                is_numeric($reference) ? array("id", $reference) : array("title", $reference),
                 array("deletion_date", null)
             ),
             null,
