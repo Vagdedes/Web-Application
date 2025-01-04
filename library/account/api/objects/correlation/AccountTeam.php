@@ -111,7 +111,7 @@ class AccountTeam
                     array("title", $title),
                     array("description", $description),
                     array("creation_date", $date),
-                    array("created_by", $this->account->getDetail("id")),
+                    array("created_by_account", $this->account->getDetail("id")),
                     array("deletion_date", null)
                 ),
                 array(
@@ -133,11 +133,16 @@ class AccountTeam
                         "account_id" => $this->account->getDetail("id"),
                         "creation_date" => $date,
                     ))) {
+                    $selfMemberID = $this->getMember($this->account)?->id;
+
+                    if ($selfMemberID === null) {
+                        return new MethodReply(false, "Executor member not found.");
+                    }
                     if (sql_insert(
                         AccountVariables::TEAM_POSITIONS_TABLE,
                         array(
                             "team_id" => $query,
-                            "account_id" => $this->account->getDetail("id"),
+                            "member_id" => $selfMemberID,
                             "position" => 0,
                             "creation_date" => $date,
                         ))) {
@@ -330,7 +335,7 @@ class AccountTeam
             AccountVariables::TEAM_TABLE,
             array(
                 "deletion_date" => get_current_date(),
-                "deleted_by" => $this->account->getDetail("id"),
+                "deleted_by" => $owner->id,
                 "deletion_reason" => $reason
             ),
             array(
@@ -358,12 +363,17 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_NAME)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team title.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         if (sql_insert(
             AccountVariables::TEAM_NAME_CHANGES,
             array(
                 "name" => $name,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
             if (set_sql_query(
@@ -397,12 +407,17 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_DESCRIPTION)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team description.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         if (sql_insert(
             AccountVariables::TEAM_NAME_CHANGES,
             array(
                 "name" => $name,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason,
                 "description" => true
             ))) {
@@ -514,6 +529,11 @@ class AccountTeam
         if ($rookiePosition === null) {
             return new MethodReply(false, "Rookie position not found.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         $date = get_current_date();
 
         if (sql_insert(
@@ -522,7 +542,7 @@ class AccountTeam
                 "team_id" => $team->id,
                 "account_id" => $account->getDetail("id"),
                 "creation_date" => $date,
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
             $memberID = $this->getMember($account)?->id;
@@ -537,7 +557,7 @@ class AccountTeam
                     "account_id" => $memberID,
                     "position" => $rookiePosition,
                     "creation_date" => $date,
-                    "created_by" => $this->account->getDetail("id")
+                    "created_by" => $selfMemberID
                 ))) {
                 return new MethodReply(true);
             } else {
@@ -571,6 +591,11 @@ class AccountTeam
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You cannot remove yourself from a team.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
@@ -580,7 +605,7 @@ class AccountTeam
             AccountVariables::TEAM_MEMBERS_TABLE,
             array(
                 "deletion_date" => get_current_date(),
-                "deleted_by" => $this->account->getDetail("id"),
+                "deleted_by" => $selfMemberID,
                 "deletion_reason" => $reason
             ),
             array(
@@ -844,6 +869,11 @@ class AccountTeam
         if ($position === $max_32bit_Integer) {
             return new MethodReply(false, "Cannot change the position to the highest possible level.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
@@ -856,7 +886,7 @@ class AccountTeam
                 "member_id" => $memberID,
                 "position" => $position,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
             return new MethodReply(true);
@@ -943,12 +973,17 @@ class AccountTeam
             || $position <= $otherPosition) {
             return new MethodReply(false, $message);
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         if (sql_insert(
             AccountVariables::TEAM_ROLE_NAME_CHANGES,
             array(
                 "name" => $name,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
             if (set_sql_query(
@@ -1001,12 +1036,17 @@ class AccountTeam
             || $position <= $otherPosition) {
             return new MethodReply(false, $message);
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         if (sql_insert(
             AccountVariables::TEAM_ROLE_NAME_CHANGES,
             array(
                 "name" => $description,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason,
                 "description" => true
             ))) {
@@ -1057,6 +1097,11 @@ class AccountTeam
                 return new MethodReply(false, "Rookie role position not found.");
             }
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         $date = get_current_date();
 
         if (sql_insert(
@@ -1065,7 +1110,7 @@ class AccountTeam
                 "team_id" => $team,
                 "title" => $name,
                 "creation_date" => $date,
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
             $role = $this->getRole($name);
@@ -1080,7 +1125,7 @@ class AccountTeam
                     "role_id" => $role->id,
                     "position" => $rookie,
                     "creation_date" => $date,
-                    "created_by" => $this->account->getDetail("id")
+                    "created_by" => $selfMemberID
                 ))) {
                 return new MethodReply(true);
             } else {
@@ -1121,11 +1166,16 @@ class AccountTeam
             || $position <= $otherPosition) {
             return new MethodReply(false, $message);
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         if (set_sql_query(
             AccountVariables::TEAM_ROLES_TABLE,
             array(
                 "deletion_date" => get_current_date(),
-                "deleted_by" => $this->account->getDetail("id"),
+                "deleted_by" => $selfMemberID,
                 "deletion_reason" => $reason
             ),
             array(
@@ -1267,6 +1317,11 @@ class AccountTeam
         if ($team !== $otherTeam) {
             return new MethodReply(false, "Cannot manage the role of someone in no or another team.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
@@ -1294,7 +1349,7 @@ class AccountTeam
                     "role_id" => $role->id,
                     "member_id" => $memberID,
                     "creation_date" => get_current_date(),
-                    "created_by" => $this->account->getDetail("id"),
+                    "created_by" => $selfMemberID,
                     "creation_reason" => $reason
                 ))) {
                 return new MethodReply(true, "Role given to member.");
@@ -1309,7 +1364,7 @@ class AccountTeam
                             AccountVariables::TEAM_ROLE_MEMBERS_TABLE,
                             array(
                                 "deletion_date" => get_current_date(),
-                                "deleted_by" => $this->account->getDetail("id")
+                                "deleted_by" => $selfMemberID
                             ),
                             array(
                                 array("id", $value->query->id),
@@ -1465,6 +1520,11 @@ class AccountTeam
         if ($this->getRolePermission($role, $permissionDef)->isPositiveOutcome()) {
             return new MethodReply(false, "Permission already given.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         if (sql_insert(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
             array(
@@ -1472,7 +1532,7 @@ class AccountTeam
                 "role_id" => $role->id,
                 "permission_id" => $permissionDef,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
             return new MethodReply(true);
@@ -1521,11 +1581,16 @@ class AccountTeam
         if (!$permissionResult->isPositiveOutcome()) {
             return new MethodReply(false, "Permission not given.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         if (set_sql_query(
             AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
             array(
                 "deletion_date" => get_current_date(),
-                "deleted_by" => $this->account->getDetail("id"),
+                "deleted_by" => $selfMemberID,
                 "deletion_reason" => $reason
             ),
             array(
@@ -1605,6 +1670,11 @@ class AccountTeam
         if ($userPosition <= $position) {
             return new MethodReply(false, "Cannot change the position of a role to the your position or a higher position.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         if (sql_insert(
             AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
             array(
@@ -1612,7 +1682,7 @@ class AccountTeam
                 "role_id" => $role->id,
                 "position" => $position,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
             return new MethodReply(true);
@@ -1679,6 +1749,11 @@ class AccountTeam
             || $position <= $otherPosition) {
             return new MethodReply(false, $message);
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
@@ -1694,7 +1769,7 @@ class AccountTeam
                 "member_id" => $memberID,
                 "permission_id" => $permissionDef,
                 "creation_date" => get_current_date(),
-                "created_by" => $this->account->getDetail("id"),
+                "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
             return new MethodReply(true);
@@ -1753,11 +1828,16 @@ class AccountTeam
         if ($object === null) {
             return new MethodReply(false, "Permission object not found.");
         }
+        $selfMemberID = $this->getMember($this->account)?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
         if (set_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
             array(
                 "deletion_date" => get_current_date(),
-                "deleted_by" => $this->account->getDetail("id"),
+                "deleted_by" => $selfMemberID,
                 "deletion_reason" => $reason
             ),
             array(
