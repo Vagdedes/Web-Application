@@ -342,7 +342,7 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_CHANGE_TEAM_NAME)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_NAME)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team title.");
         }
         if (sql_insert(
@@ -381,7 +381,7 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_CHANGE_TEAM_DESCRIPTION)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_DESCRIPTION)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team description.");
         }
         if (sql_insert(
@@ -480,7 +480,7 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBERS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBERS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add members to the team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
@@ -549,7 +549,7 @@ class AccountTeam
         if ($otherTeam === null) {
             return $otherResult;
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBERS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBERS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove members from the team.");
         }
         if ($team !== $otherTeam) {
@@ -808,7 +808,7 @@ class AccountTeam
                 return new MethodReply(false, "You cannot change your own position in team.");
             }
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change others positions.");
         }
         $userPosition = $this->getPosition($this->account);
@@ -908,7 +908,7 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_CREATE_TEAM_ROLES)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_CREATE_TEAM_ROLES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to create team roles.");
         }
         $role = $this->getRole($name);
@@ -969,7 +969,7 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to delete team roles.");
         }
         if (is_string($role)) {
@@ -1113,7 +1113,7 @@ class AccountTeam
         if ($team === null) {
             return $result;
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change roles of members.");
         }
         $userPosition = $this->getPosition($this->account);
@@ -1317,7 +1317,7 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission not found.");
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_ADD_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADD_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add permissions to roles.");
         }
         $position = $this->getPosition($this->account);
@@ -1383,7 +1383,7 @@ class AccountTeam
             || $position <= $otherPosition) {
             return new MethodReply(false, $message);
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove permissions from roles.");
         }
         $permissionResult = $this->getRolePermission($role, $permissionDef);
@@ -1457,7 +1457,7 @@ class AccountTeam
                 return new MethodReply(false, "Role not found.");
             }
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_POSITIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_POSITIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change positions of roles.");
         }
         $userPosition = $this->getPosition($this->account);
@@ -1534,7 +1534,7 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission not found.");
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add others permissions.");
         }
         $position = $this->getPosition($this->account);
@@ -1554,7 +1554,7 @@ class AccountTeam
         if ($memberID === null) {
             return new MethodReply(false, "Member not found.");
         }
-        if ($this->getPermission($account, $permissionDef)->isPositiveOutcome()) {
+        if ($this->getMemberPermission($account, $permissionDef)->isPositiveOutcome()) {
             return new MethodReply(false, "Permission already given.");
         }
         if (sql_insert(
@@ -1610,10 +1610,10 @@ class AccountTeam
             || $position <= $otherPosition) {
             return new MethodReply(false, $message);
         }
-        if (!$this->getPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove others permissions.");
         }
-        $permissionResult = $this->getPermission($account, $permissionDef);
+        $permissionResult = $this->getMemberPermission($account, $permissionDef);
 
         if (!$permissionResult->isPositiveOutcome()) {
             return new MethodReply(false, "Permission not given.");
@@ -1642,7 +1642,7 @@ class AccountTeam
         }
     }
 
-    public function getPermission(Account $account, int $permissionID): MethodReply
+    public function getMemberPermission(Account $account, int $permissionID): MethodReply
     {
         $result = $this->findTeam($account);
         $team = $result->getObject()?->id;
@@ -1693,7 +1693,7 @@ class AccountTeam
         }
     }
 
-    public function getPermissions(?Account $account = null): array
+    public function getMemberPermissions(?Account $account = null): array
     {
         if ($account === null) {
             $account = $this->account;
