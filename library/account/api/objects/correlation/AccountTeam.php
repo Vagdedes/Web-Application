@@ -913,6 +913,16 @@ class AccountTeam
 
     // Separator
 
+    public function updateRoleTitle(string|object $role, string $name, ?string $reason = null): MethodReply
+    {
+        return new MethodReply(false);
+    }
+
+    public function updateRoleDescription(string|object $role, string $name, ?string $reason = null): MethodReply
+    {
+        return new MethodReply(false);
+    }
+
     public function createRole(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
