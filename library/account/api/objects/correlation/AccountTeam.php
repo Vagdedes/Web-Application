@@ -12,8 +12,7 @@ class AccountTeam
         PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS = 3,
         PERMISSION_CHANGE_TEAM_NAME = 4,
         PERMISSION_CHANGE_TEAM_DESCRIPTION = 5,
-        PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS = 6,
-        PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS = 7,
+        PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS = 14,
         PERMISSION_CREATE_TEAM_ROLES = 8,
         PERMISSION_DELETE_TEAM_ROLES = 9,
         PERMISSION_ADJUST_TEAM_ROLE_POSITIONS = 10,
@@ -27,8 +26,7 @@ class AccountTeam
         self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS,
         self::PERMISSION_CHANGE_TEAM_NAME,
         self::PERMISSION_CHANGE_TEAM_DESCRIPTION,
-        self::PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS,
-        self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS,
+        self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS,
         self::PERMISSION_CREATE_TEAM_ROLES,
         self::PERMISSION_DELETE_TEAM_ROLES,
         self::PERMISSION_ADJUST_TEAM_ROLE_POSITIONS,
@@ -1534,7 +1532,7 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission not found.");
         }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add others permissions.");
         }
         $position = $this->getPosition($this->account);
@@ -1610,7 +1608,7 @@ class AccountTeam
             || $position <= $otherPosition) {
             return new MethodReply(false, $message);
         }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove others permissions.");
         }
         $permissionResult = $this->getMemberPermission($account, $permissionDef);
