@@ -7,17 +7,31 @@ class AccountTeam
         DEFAULT_ADDITIONAL_ID = 0,
         BIGMANAGE_ADDITIONAL_ID = 1,
 
+        // Members
         PERMISSION_ADD_TEAM_MEMBERS = 1,
         PERMISSION_REMOVE_TEAM_MEMBERS = 2,
-        PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS = 3,
-        PERMISSION_CHANGE_TEAM_NAME = 4,
-        PERMISSION_CHANGE_TEAM_DESCRIPTION = 5,
-        PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS = 14,
+
+        // Roles
         PERMISSION_CREATE_TEAM_ROLES = 8,
         PERMISSION_DELETE_TEAM_ROLES = 9,
+
+        // Positions
+        PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS = 3,
         PERMISSION_ADJUST_TEAM_ROLE_POSITIONS = 10,
-        PERMISSION_ADD_TEAM_ROLE_PERMISSIONS = 11,
-        PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS = 12,
+
+        // Names
+        PERMISSION_CHANGE_TEAM_NAME = 4,
+        PERMISSION_CHANGE_TEAM_ROLE_NAMES = 16,
+
+        // Descriptions
+        PERMISSION_CHANGE_TEAM_DESCRIPTION = 5,
+        PERMISSION_CHANGE_TEAM_ROLE_DESCRIPTIONS = 17,
+
+        // Permissions
+        PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS = 14,
+        PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS = 15,
+
+        // Grouping
         PERMISSION_ADJUST_TEAM_MEMBER_ROLES = 13,
 
         PERMISSION_ALL = array(
@@ -30,9 +44,10 @@ class AccountTeam
         self::PERMISSION_CREATE_TEAM_ROLES,
         self::PERMISSION_DELETE_TEAM_ROLES,
         self::PERMISSION_ADJUST_TEAM_ROLE_POSITIONS,
-        self::PERMISSION_ADD_TEAM_ROLE_PERMISSIONS,
-        self::PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS,
-        self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES
+        self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES,
+        self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS,
+        self::PERMISSION_CHANGE_TEAM_ROLE_NAMES,
+        self::PERMISSION_CHANGE_TEAM_ROLE_DESCRIPTIONS
     );
 
     private Account $account;
@@ -332,7 +347,7 @@ class AccountTeam
 
     // Separator
 
-    public function updateTitle(string $name, ?string $reason = null): MethodReply
+    public function updateTeamTitle(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
@@ -371,7 +386,7 @@ class AccountTeam
         }
     }
 
-    public function updateDescription(string $name, ?string $reason = null): MethodReply
+    public function updateTeamDescription(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
         $team = $result->getObject()?->id;
@@ -1315,7 +1330,7 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission not found.");
         }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADD_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add permissions to roles.");
         }
         $position = $this->getPosition($this->account);
@@ -1381,7 +1396,7 @@ class AccountTeam
             || $position <= $otherPosition) {
             return new MethodReply(false, $message);
         }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_REMOVE_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove permissions from roles.");
         }
         $permissionResult = $this->getRolePermission($role, $permissionDef);
