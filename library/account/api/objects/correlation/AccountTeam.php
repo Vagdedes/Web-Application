@@ -369,7 +369,7 @@ class AccountTeam
             if (set_sql_query(
                 AccountVariables::TEAM_TABLE,
                 array(
-                    "name" => $name
+                    "title" => $name
                 ),
                 array(
                     array("id", $team)
@@ -915,12 +915,119 @@ class AccountTeam
 
     public function updateRoleTitle(string|object $role, string $name, ?string $reason = null): MethodReply
     {
-        return new MethodReply(false);
+        $result = $this->findTeam($this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return $result;
+        }
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_ROLE_NAMES)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to change team names.");
+        }
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
+            }
+        }
+        $position = $this->getPosition($this->account);
+        $message = "Cannot change a role's name with the same or higher position.";
+
+        if ($position === null) {
+            return new MethodReply(false, $message);
+        }
+        $otherPosition = $this->getRolePosition($role);
+
+        if ($otherPosition === null
+            || $position <= $otherPosition) {
+            return new MethodReply(false, $message);
+        }
+        if (sql_insert(
+            AccountVariables::TEAM_ROLE_NAME_CHANGES,
+            array(
+                "name" => $name,
+                "creation_date" => get_current_date(),
+                "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason
+            ))) {
+            if (set_sql_query(
+                AccountVariables::TEAM_ROLES_TABLE,
+                array(
+                    "title" => $name
+                ),
+                array(
+                    array("id", $role->id)
+                ),
+                null,
+                1
+            )) {
+                return new MethodReply(true);
+            } else {
+                return new MethodReply(false, "Failed to fully update the team role's title.");
+            }
+        } else {
+            return new MethodReply(false, "Failed to update the team role's title.");
+        }
     }
 
-    public function updateRoleDescription(string|object $role, string $name, ?string $reason = null): MethodReply
+    public function updateRoleDescription(string|object $role, string $description, ?string $reason = null): MethodReply
     {
-        return new MethodReply(false);
+        $result = $this->findTeam($this->account);
+        $team = $result->getObject()?->id;
+
+        if ($team === null) {
+            return $result;
+        }
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_ROLE_DESCRIPTIONS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to change team names.");
+        }
+        if (is_string($role)) {
+            $role = $this->getRole($role);
+
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
+            }
+        }
+        $position = $this->getPosition($this->account);
+        $message = "Cannot change a role's name with the same or higher position.";
+
+        if ($position === null) {
+            return new MethodReply(false, $message);
+        }
+        $otherPosition = $this->getRolePosition($role);
+
+        if ($otherPosition === null
+            || $position <= $otherPosition) {
+            return new MethodReply(false, $message);
+        }
+        if (sql_insert(
+            AccountVariables::TEAM_ROLE_NAME_CHANGES,
+            array(
+                "name" => $description,
+                "creation_date" => get_current_date(),
+                "created_by" => $this->account->getDetail("id"),
+                "creation_reason" => $reason,
+                "description" => true
+            ))) {
+            if (set_sql_query(
+                AccountVariables::TEAM_ROLES_TABLE,
+                array(
+                    "description" => $description
+                ),
+                array(
+                    array("id", $role->id)
+                ),
+                null,
+                1
+            )) {
+                return new MethodReply(true);
+            } else {
+                return new MethodReply(false, "Failed to fully update the team role's description.");
+            }
+        } else {
+            return new MethodReply(false, "Failed to update the team role's description.");
+        }
     }
 
     public function createRole(string $name, ?string $reason = null): MethodReply
