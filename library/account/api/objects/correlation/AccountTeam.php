@@ -781,7 +781,7 @@ class AccountTeam
         }
     }
 
-    public function adjustPosition(Account $account, int $position, ?string $reason = null): MethodReply
+    public function adjustMemberPosition(Account $account, int $position, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($account);
         $team = $result->getObject()?->id;
@@ -894,7 +894,7 @@ class AccountTeam
             }
         }
         return $reference instanceof Account
-            ? $this->adjustPosition($reference, $max + ($above ? 1 : -1), $reason)
+            ? $this->adjustMemberPosition($reference, $max + ($above ? 1 : -1), $reason)
             : $this->adjustRolePosition($reference, $max + ($above ? 1 : -1), $reason);
     }
 
@@ -1509,7 +1509,7 @@ class AccountTeam
         return empty($query) ? null : $query[0];
     }
 
-    public function addPermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
+    public function addMemberPermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($account);
         $team = $result->getObject()?->id;
@@ -1573,7 +1573,7 @@ class AccountTeam
         }
     }
 
-    public function removePermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
+    public function removeMemberPermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($account);
         $team = $result->getObject()?->id;
