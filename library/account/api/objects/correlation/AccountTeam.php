@@ -99,7 +99,7 @@ class AccountTeam
                 "title" => $title,
                 "description" => $description,
                 "creation_date" => $date,
-                "created_by" => $this->account->getDetail("id"),
+                "created_by_account" => $this->account->getDetail("id"),
                 "creation_reason" => $reason
             ))) {
             $query = get_sql_query(
