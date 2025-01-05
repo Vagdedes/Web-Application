@@ -236,7 +236,6 @@ class AccountProduct
                     $object->downloads = get_sql_query(
                         AccountVariables::PRODUCT_UPDATES_TABLE,
                         array(
-                            "identification_url",
                             "file_name",
                             "file_rename",
                             "file_type",
@@ -299,83 +298,12 @@ class AccountProduct
                         $object->latest_version = $downloads[0];
                         $object->minimum_supported_version = $downloads[sizeof($downloads) - 1]->version;
                     }
-                    $object->identification = get_sql_query(
-                        AccountVariables::PRODUCT_IDENTIFICATION_TABLE,
-                        array(
-                            "accepted_account_id",
-                            "accepted_account_product_id",
-                            "product_url",
-                            "default_use",
-                            "requires_purchase",
-                            "requires_account"
-                        ),
-                        array(
-                            array("product_id", $productID),
-                            array("deletion_date", null)
-                        )
-                    );
-
-                    if (!empty($object->identification)) {
-                        $identifications = array();
-
-                        foreach ($object->identification as $identification) {
-                            $identifications[$identification->accepted_account_id] = $identification;
-                        }
-                        $object->identification = $identifications;
-                    }
                 } else {
                     unset($array[$arrayKey]);
                 }
             }
         }
         return new MethodReply(!$isEmpty, $isEmpty ? "Product not found." : null, $array);
-    }
-
-    public function findIdentifications(object $productObject, ?array $backupIdentifications = null): array
-    {
-        if ($productObject->latest_version?->identification_url !== null) {
-            $hasAccount = $this->account->exists();
-            $potentialAccounts = $this->account->getAccounts()->getAdded();
-
-            if (empty($potentialAccounts)) {
-                $potentialAccounts = $backupIdentifications;
-            }
-            $array = array();
-            $default = array();
-            $applicationID = $this->account->getDetail("application_id");
-
-            foreach ($potentialAccounts as $potentialAccount) {
-                if (is_object($potentialAccount)) {
-                    $potentialAccount = $potentialAccount->accepted_account_id;
-                }
-                $identification = $productObject->identification[$potentialAccount] ?? null;
-
-                if ($identification !== null
-                    && $identification->product_url !== null) {
-                    $acceptedAccount = new AcceptedAccount($applicationID, $identification->accepted_account_id, null,);
-
-                    if (!$acceptedAccount->exists()) {
-                        continue;
-                    }
-                    if ($hasAccount) {
-                        if ($identification->requires_purchase !== null
-                            && !$this->account->getPurchases()->owns($productObject->id)) {
-                            continue;
-                        }
-                    } else if ($identification->requires_account !== null) {
-                        continue;
-                    }
-                    $identification->accepted_account = $acceptedAccount->getObject();
-
-                    if ($identification->default_use !== null) {
-                        $default[] = $identification;
-                    }
-                    $array[] = $identification;
-                }
-            }
-            return empty($array) ? $default : $array;
-        }
-        return array();
     }
 
 }

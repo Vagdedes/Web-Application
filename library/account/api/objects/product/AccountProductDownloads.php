@@ -191,10 +191,6 @@ class AccountProductDownloads
             return new MethodReply(false, $product->getMessage());
         }
         $product = $product->getObject()[0];
-
-        if ($product->latest_version?->identification_url !== null) {
-            return new MethodReply(false, "This product is meant to be downloaded outside of this system.");
-        }
         $purchase = $this->account->getPurchases()->owns($productID);
 
         if (!$purchase->isPositiveOutcome()) {

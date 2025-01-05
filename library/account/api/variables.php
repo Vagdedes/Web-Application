@@ -55,7 +55,6 @@ class AccountVariables
         PRODUCT_COMPATIBILITIES_TABLE = "product.compatibilities",
         PRODUCT_BUTTONS_TABLE = "product.buttons",
         PRODUCT_CARDS_TABLE = "product.cards",
-        PRODUCT_IDENTIFICATION_TABLE = "product.identification",
         PRODUCT_UPDATES_TABLE = "product.updates",
         PRODUCT_TRANSACTION_SEARCH_TABLE = "product.transactionSearch",
         PRODUCT_TRANSACTION_SEARCH_EXECUTIONS_TABLE = "product.transactionSearchExecutions",
