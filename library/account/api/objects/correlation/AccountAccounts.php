@@ -3,9 +3,13 @@
 class AccountAccounts
 {
     private Account $account;
-    public const PAYPAL_EMAIL = 1, STRIPE_EMAIL = 8,
-        SPIGOTMC_URL = 5, BUILTBYBIT_URL = 6, POLYMART_URL = 7,
-        PATREON_FULL_NAME = 4, PLATFORM_USERNAME = 3,
+    public const
+        PAYPAL_EMAIL = 1,
+        STRIPE_EMAIL = 8,
+        SPIGOTMC_URL = 5,
+        BUILTBYBIT_URL = 6,
+        POLYMART_URL = 7,
+        PATREON_FULL_NAME = 4,
         PHONE_NUMBER = 9;
 
     public function __construct(Account $account)
@@ -13,21 +17,16 @@ class AccountAccounts
         $this->account = $account;
     }
 
-    public function getAvailable(?array $select = null, int|string $id = null): array
+    public function getAvailable(?array $select = null, ?int $id = null, bool $manual = true): array
     {
-        if (!$this->account->exists()) {
-            return array();
-        }
-        return get_sql_query(
-            AccountVariables::ACCEPTED_ACCOUNTS_TABLE,
-            $select,
-            array(
-                array("manual", "IS NOT", null),
-                array("deletion_date", null),
-                array("application_id", $this->account->getDetail("application_id")),
-                $id !== null ? array("id", $id) : ""
-            )
+        $acceptedAccount = new AcceptedAccount(
+            $this->account->getDetail("application_id"),
+            $id,
+            null,
+            $manual,
+            $select
         );
+        return $acceptedAccount->getObjects();
     }
 
     public function add(int|string $type, int|float|string $credential, int $deletePreviousIfSurpassing = 0,
@@ -60,7 +59,7 @@ class AccountAccounts
         if (!$acceptedAccount->exists()) {
             return new MethodReply(false, "This account type does not exist.");
         }
-        $acceptedAccount = $acceptedAccount->getObject();
+        $acceptedAccount = $acceptedAccount->getObjects()[0];
 
         if (!$isNumeric) {
             $type = $acceptedAccount->id;
@@ -76,11 +75,6 @@ class AccountAccounts
                         return new MethodReply(false, "This is not a valid Minecraft platform.");
                     }
                     $credential = $minecraftPlatform->getID();
-                    $username = $minecraftPlatform->getUsername();
-
-                    if ($username !== null) {
-                        $this->add($this::PLATFORM_USERNAME, $username);
-                    }
                 }
                 break;
             case self::STRIPE_EMAIL:
@@ -202,7 +196,7 @@ class AccountAccounts
             return new MethodReply(false, "This account type does not exist.");
         }
         if (!$isNumeric) {
-            $type = $acceptedAccount->getObject()->id;
+            $type = $acceptedAccount->getObjects()[0]->id;
         }
         $hasID = $idOrCredential !== null;
         $isCredential = $hasID && !is_numeric($idOrCredential);
@@ -262,7 +256,7 @@ class AccountAccounts
                 $acceptedAccount = new AcceptedAccount($applicationID, $value->accepted_account_id, null, $manual);
 
                 if ($acceptedAccount->exists()) {
-                    $value->accepted_account = $acceptedAccount->getObject();
+                    $value->accepted_account = $acceptedAccount->getObjects()[0];
                     $array[$key] = $value;
                 } else {
                     unset($array[$key]);

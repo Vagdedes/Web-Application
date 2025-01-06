@@ -2,38 +2,46 @@
 
 class AcceptedAccount
 {
-    private ?object $object;
+    private array $objects;
 
-    public function __construct(?int $applicationID, int|string|null $id, string $name = null, bool $manual = true)
+    public function __construct(
+        ?int    $applicationID,
+        ?int    $id,
+        ?string $name = null,
+        bool    $manual = true,
+        ?array  $select = null
+    )
     {
-        $query = get_sql_query(
+        $where = array(
+            $id !== null ? array("id", $id) : "",
+            $name !== null ? array("name", $name) : "",
+            $manual ? array("manual", "IS NOT", null) : "",
+            array("deletion_date", null),
+        );
+        if ($applicationID === null) {
+            $where[] = array("application_id", null);
+        } else {
+            $where[] = null;
+            $where[] = array("application_id", "IS", null, 0);
+            $where[] = array("application_id", $applicationID);
+            $where[] = null;
+        }
+        $this->objects = get_sql_query(
             AccountVariables::ACCEPTED_ACCOUNTS_TABLE,
-            null,
-            array(
-                $id !== null ? array("id", $id) : "",
-                $name !== null ? array("name", $name) : "",
-                $manual ? array("manual", "IS NOT", null) : "",
-                array("deletion_date", null),
-                array("application_id", $applicationID)
-            ),
+            $select,
+            $where,
             null,
             1
         );
-
-        if (empty($query)) {
-            $this->object = null;
-        } else {
-            $this->object = $query[0];
-        }
     }
 
     public function exists(): bool
     {
-        return $this->object !== null;
+        return !empty($this->objects);
     }
 
-    public function getObject(): ?object
+    public function getObjects(): array
     {
-        return $this->object;
+        return $this->objects;
     }
 }

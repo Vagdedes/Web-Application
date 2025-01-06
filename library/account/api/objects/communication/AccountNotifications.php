@@ -17,7 +17,6 @@ class AccountNotifications
             AccountVariables::ACCOUNT_NOTIFICATION_TYPES_TABLE,
             array("id", "name", "description", "creation_date"),
             array(
-                array("application_id", $this->account->getDetail("application_id")),
                 array("id", $id),
                 array("deletion_date", null)
             ),

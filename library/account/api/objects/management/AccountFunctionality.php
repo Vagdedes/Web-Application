@@ -41,26 +41,12 @@ class AccountFunctionality
 
     public function getAvailable(int $limit = 0): array
     {
-        $applicationID = $this->account->getDetail("application_id");
-
-        if ($applicationID === null) {
-            $where = array(
-                array("deletion_date", null),
-                array("application_id", null),
-            );
-        } else {
-            $where = array(
-                array("deletion_date", null),
-                null,
-                array("application_id", "IS", null, 0), // Support default moderations for all applications
-                array("application_id", $applicationID),
-                null,
-            );
-        }
         $array = get_sql_query(
             AccountVariables::FUNCTIONALITIES_TABLE,
             array("id", "name"),
-            $where,
+            array(
+                array("deletion_date", null),
+            ),
             null,
             $limit
         );
@@ -80,28 +66,13 @@ class AccountFunctionality
             $select[] = "id";
         }
         $key = is_numeric($name) ? "id" : "name";
-        $applicationID = $this->account->getDetail("application_id");
-
-        if ($applicationID === null) {
-            $where = array(
-                array($key, $name),
-                array("deletion_date", null),
-                array("application_id", null),
-            );
-        } else {
-            $where = array(
-                array($key, $name),
-                array("deletion_date", null),
-                null,
-                array("application_id", "IS", null, 0), // Support default functionalities for all applications
-                array("application_id", $applicationID),
-                null,
-            );
-        }
         $query = get_sql_query(
             AccountVariables::FUNCTIONALITIES_TABLE,
             $hasSelect ? $select : array("id"),
-            $where,
+            array(
+                array($key, $name),
+                array("deletion_date", null),
+            ),
             null,
             1
         );

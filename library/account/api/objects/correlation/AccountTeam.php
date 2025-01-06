@@ -4,8 +4,8 @@ class AccountTeam
 {
 
     public const
-        DEFAULT_ADDITIONAL_ID = 0,
-        BIGMANAGE_ADDITIONAL_ID = 1,
+        DEFAULT_ADDITIONAL_ID = null,
+        BIGMANAGE_ADDITIONAL_ID = 0,
 
         // Members
         PERMISSION_ADD_TEAM_MEMBERS = 1,
@@ -51,7 +51,7 @@ class AccountTeam
     );
 
     private Account $account;
-    private int $additionalID;
+    private ?int $additionalID;
     private ?object $forcedTeam;
 
     public function __construct(Account $account)
@@ -73,9 +73,9 @@ class AccountTeam
         $this->forcedTeam = $team;
     }
 
-    public function setForcedOutOfTeam(): void
+    public function removeForcedTeam(): void
     {
-        $this->forcedTeam = new stdClass();
+        $this->forcedTeam = null;
     }
 
     // Separator
@@ -1700,7 +1700,7 @@ class AccountTeam
             null,
             array(
                 array("id", $id),
-                array("application_id", $this->account->getDetail("application_id")),
+                array("additional_id", $this->additionalID),
                 array("deletion_date", null)
             ),
             null,

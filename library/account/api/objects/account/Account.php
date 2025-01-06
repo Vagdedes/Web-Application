@@ -3,10 +3,11 @@
 class Account
 {
 
+    // Application IDs required in: accounts, accepted-accounts, products, roles, moderations, statistics
     public const
         IGNORE_APPLICATION_ID = -1,
         DEFAULT_APPLICATION_ID = null,
-        BIGMANAGE_APPLICATION_ID = 1;
+        BIGMANAGE_APPLICATION_ID = 0;
 
     private object $object;
     private bool $exists;
