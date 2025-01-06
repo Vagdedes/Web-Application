@@ -37,6 +37,23 @@ class AIHelper
 
     // Separator
 
+    public static function getCurrency(int $id): ?object
+    {
+        $query = get_sql_query(
+            AIDatabaseTable::AI_CURRENCIES,
+            null,
+            array(
+                array("id", $id),
+                array("deletion_date", null),
+            ),
+            null,
+            1
+        );
+        return empty($query) ? null : $query[0];
+    }
+
+    // Separator
+
     public static function getAuthorization(string $key): ?string
     {
         switch ($key) {

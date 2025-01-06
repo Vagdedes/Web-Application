@@ -26,20 +26,11 @@ class AIModel
 
         if (!empty($queryChild)) {
             $this->parameter = $queryChild[0];
+            $currency = AIHelper::getCurrency($row->currency_id);
 
-            $queryChild = get_sql_query(
-                AIDatabaseTable::AI_CURRENCIES,
-                null,
-                array(
-                    array("id", $row->currency_id),
-                    array("deletion_date", null),
-                ),
-                null,
-                1
-            );
-            if (!empty($queryChild)) {
+            if ($currency !== null) {
                 $this->exists = true;
-                $this->currency = $queryChild[0];
+                $this->currency = $currency;
                 $this->modelID = $row->id;
                 $this->typeID = $row->type;
                 $this->familyID = $row->family;
