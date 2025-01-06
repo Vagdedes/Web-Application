@@ -1695,14 +1695,23 @@ class AccountTeam
 
     private function getPermissionDefinition(int $id): ?object
     {
+        $where = array(
+            array("id", $id),
+            array("deletion_date", null)
+        );
+
+        if ($this->additionalID === null) {
+            $where[] = array("additional_id", null);
+        } else {
+            $where[] = null;
+            $where[] = array("additional_id", "IS", null, 0);
+            $where[] = array("additional_id", $this->additionalID);
+            $where[] = null;
+        }
         $query = get_sql_query(
             AccountVariables::TEAM_PERMISSION_DEFINITIONS_TABLE,
             null,
-            array(
-                array("id", $id),
-                array("additional_id", $this->additionalID),
-                array("deletion_date", null)
-            ),
+            $where,
             null,
             1
         );
