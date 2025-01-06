@@ -3,7 +3,7 @@
 class Account
 {
 
-    // Application IDs required in: accounts, accepted-accounts, products, roles, moderations, statistics
+    // Application IDs required in: accounts, accepted-accounts, products, product-giveaways, roles, moderations, statistics
     public const
         IGNORE_APPLICATION_ID = -1,
         DEFAULT_APPLICATION_ID = null,
