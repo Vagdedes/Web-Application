@@ -3,12 +3,13 @@
 class AIHelper
 {
 
-    public static function wordToToken(int $count): int
+    public static function getTokens(string $model, string $context): int
     {
-        $count *= AIProperties::WORD_TO_TOKEN;
-        $count /= 100.0;
-        $count = floor($count);
-        return $count * 100;
+        return sizeof(TokenizerEncodingFactory::createByModelName(
+            $model
+        )->encode(
+            $context
+        ));
     }
 
     // Separator
