@@ -226,7 +226,7 @@ class Account
         return $this->object->{$detail} ?? null;
     }
 
-    public function setDetail($detail, $value): MethodReply
+    public function setDetail(string $detail, mixed $value): MethodReply
     {
         if ($this->object->{$detail} !== $value) {
             if (!set_sql_query(
