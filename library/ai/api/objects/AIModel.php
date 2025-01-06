@@ -4,7 +4,8 @@ class AIModel
 {
     private int $typeID, $familyID, $modelID;
     private ?int $context;
-    private string $requestUrl, $codeKey, $code, $tokenizer;
+    private string $requestUrl, $codeKey, $code;
+    private ?string $tokenizer;
     private object $parameter, $currency;
     private ?float $received_token_cost, $received_token_audio_cost, $sent_token_cost, $sent_token_audio_cost;
     private bool $exists;
@@ -154,7 +155,7 @@ class AIModel
         return $this->code;
     }
 
-    public function getTokenizer(): string
+    public function getTokenizer(): ?string
     {
         return $this->tokenizer;
     }

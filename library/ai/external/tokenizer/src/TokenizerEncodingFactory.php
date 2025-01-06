@@ -1,9 +1,5 @@
 <?php
 
-use Closure;
-use InvalidArgumentException;
-use SplFileObject;
-
 class TokenizerEncodingFactory
 {
     protected const ENDOFTEXT = "<|endoftext|>";

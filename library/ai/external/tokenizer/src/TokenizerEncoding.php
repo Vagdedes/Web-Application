@@ -1,9 +1,5 @@
 <?php
 
-use Exception;
-use InvalidArgumentException;
-use ValueError;
-
 class TokenizerEncoding
 {
     protected $name;
