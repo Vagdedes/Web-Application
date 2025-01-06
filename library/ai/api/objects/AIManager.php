@@ -93,18 +93,19 @@ class AIManager
     }
 
     // 1: Success, 2: Model, 3: Reply, 4: Case
-    public function getResult(int|string $hash,
-                              array      $parameters = [],
-                              int        $length = 0,
-                              int        $timeoutSeconds = 0): array
+    public function getResult(int|string        $hash,
+                              array             $parameters = [],
+                              string|array|null $input = null,
+                              int               $timeoutSeconds = 0): array
     {
         if (!empty($this->models)) {
             $model = null;
 
             foreach ($this->models as $rowModel) {
-                if ($length <= 0
+                if (empty($input)
                     || $rowModel->getContext() === null
-                    || $length <= $rowModel->getContext()) {
+                    || $rowModel->getTokenizer() === null
+                    || AIHelper::getTokens($rowModel->getTokenizer(), $input) <= $rowModel->getContext()) {
                     $model = $rowModel;
                     break;
                 }

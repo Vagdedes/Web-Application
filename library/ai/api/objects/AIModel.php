@@ -4,7 +4,7 @@ class AIModel
 {
     private int $typeID, $familyID, $modelID;
     private ?int $context;
-    private string $requestUrl, $codeKey, $code;
+    private string $requestUrl, $codeKey, $code, $tokenizer;
     private object $parameter, $currency;
     private ?float $received_token_cost, $received_token_audio_cost, $sent_token_cost, $sent_token_audio_cost;
     private bool $exists;
@@ -46,6 +46,7 @@ class AIModel
                 $this->requestUrl = $row->request_url;
                 $this->codeKey = $row->code_key;
                 $this->code = $row->code;
+                $this->tokenizer = $row->tokenizer;
                 $this->received_token_cost = $row->received_token_cost;
                 $this->sent_token_cost = $row->sent_token_cost;
                 $this->received_token_audio_cost = $row->received_token_audio_cost;
@@ -151,6 +152,11 @@ class AIModel
     public function getCode(): string
     {
         return $this->code;
+    }
+
+    public function getTokenizer(): string
+    {
+        return $this->tokenizer;
     }
 
     // Separator

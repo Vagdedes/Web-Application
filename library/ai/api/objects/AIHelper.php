@@ -3,13 +3,36 @@
 class AIHelper
 {
 
-    public static function getTokens(string $model, string $context): int
+    public static function getTokens(string $reference, string|array $context, bool $model = false): int
     {
-        return sizeof(TokenizerEncodingFactory::createByModelName(
-            $model
-        )->encode(
-            $context
-        ));
+        if (is_array($context)) {
+            $count = 0;
+
+            foreach ($context as $value) {
+                $count += self::getTokens(
+                    $reference,
+                    $value,
+                    $model
+                );
+            }
+            return $count;
+        } else if ($model) {
+            return sizeof(
+                TokenizerEncodingFactory::createByModelName(
+                    $reference
+                )->encode(
+                    $context
+                )
+            );
+        } else {
+            return sizeof(
+                TokenizerEncodingFactory::createByEncodingName(
+                    $reference
+                )->encode(
+                    $context
+                )
+            );
+        }
     }
 
     // Separator
