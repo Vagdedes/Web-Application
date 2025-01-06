@@ -62,7 +62,7 @@ class AccountEmail
 
         if ($exists) {
             $functionality = $account->getFunctionality();
-            $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_EMAIL_VERIFICATION);
+            $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_EMAIL);
 
             if (!$functionalityOutcome->isPositiveOutcome()) {
                 return new MethodReply(false, $functionalityOutcome->getMessage());
@@ -94,7 +94,7 @@ class AccountEmail
                 return new MethodReply(false, "Failed to find account related to email.");
             }
             $functionality = $account->getFunctionality();
-            $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_EMAIL_VERIFICATION);
+            $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_EMAIL);
 
             if (!$functionalityOutcome->isPositiveOutcome()) {
                 return new MethodReply(false, $functionalityOutcome->getMessage());

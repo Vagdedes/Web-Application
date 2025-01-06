@@ -69,7 +69,7 @@ class AccountPassword
                                    bool   $code = false, int|string $cooldown = "1 hour"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
-        $functionalityOutcome = $functionality->getResult(AccountFunctionality::COMPLETE_CHANGE_PASSWORD);
+        $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_PASSWORD);
 
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
