@@ -8,7 +8,7 @@ class GaussianWaveStatistics
     private array $data;
     private float $mean, $stdDev;
 
-    public function __construct(array $data)
+    public function __construct(array $data = [])
     {
         $this->data = $data;
         $mean = 0.0;
