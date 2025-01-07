@@ -29,9 +29,7 @@ class AcceptedAccount
         $this->objects = get_sql_query(
             AccountVariables::ACCEPTED_ACCOUNTS_TABLE,
             $select,
-            $where,
-            null,
-            1
+            $where
         );
     }
 
