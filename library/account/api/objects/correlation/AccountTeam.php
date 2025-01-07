@@ -350,6 +350,12 @@ class AccountTeam
         }
     }
 
+    public function transferTeam(Account $account, ?string $reason = null): MethodReply
+    {
+        // todo
+        return new MethodReply(false);
+    }
+
     // Separator
 
     public function updateTeamTitle(string $name, ?string $reason = null): MethodReply
@@ -745,7 +751,7 @@ class AccountTeam
 
     // Separator
 
-    public function getPosition(?Account $account = null): ?int
+    public function getPosition(?Account $account = null, bool $setOwnerToMax = true): ?int
     {
         if ($account === null) {
             $account = $this->account;
@@ -765,7 +771,8 @@ class AccountTeam
         if ($owner === null) {
             return null;
         }
-        if ($owner->account->getDetail("id") === $account->getDetail("id")) {
+        if ($setOwnerToMax
+            && $owner->account->getDetail("id") === $account->getDetail("id")) {
             global $max_32bit_Integer;
             return $max_32bit_Integer;
         }
