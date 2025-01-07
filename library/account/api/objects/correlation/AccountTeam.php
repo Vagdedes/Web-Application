@@ -352,8 +352,20 @@ class AccountTeam
 
     public function transferTeam(Account $account, ?string $reason = null): MethodReply
     {
-        // todo
-        return new MethodReply(false);
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "Owner not found.");
+        }
+        if ($owner->account->getDetail("id") === $account->getDetail("id")) {
+            return new MethodReply(false, "Cannot transfer team to the same account.");
+        }
+        return $this->adjustPositionByComparison(
+            $account,
+            $owner->account,
+            true,
+            $reason
+        );
     }
 
     // Separator

@@ -4,7 +4,6 @@ class AccountRegistry
 {
 
     private Account $account;
-    public const DEFAULT_WEBHOOK = "https://discord.com/api/webhooks/1165260206951911524/BmTptuNVPRxpvCaCBZcXCc5r846i-amc38zIWZpF94YZxszlE8VWj_X2NL3unsbIWPlz";
 
     public function __construct(Account $account)
     {
@@ -13,7 +12,7 @@ class AccountRegistry
 
     public function create(?string $email, ?string $password = null, ?string $name = null,
                            ?string $firstName = null, ?string $middleName = null, ?string $lastName = null,
-                           ?string $discordWebhook = self::DEFAULT_WEBHOOK): MethodReply
+                           ?string $discordWebhook = null): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);

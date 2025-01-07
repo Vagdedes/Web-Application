@@ -5,6 +5,8 @@ class Account
 
     // Application IDs required in: accounts, accepted-accounts, products, product-giveaways, roles, moderations, statistics
     public const
+        EMPTY_PASSWORD = "",
+
         IGNORE_APPLICATION_ID = -1,
         DEFAULT_APPLICATION_ID = null,
         BIGMANAGE_APPLICATION_ID = 0;
@@ -132,7 +134,7 @@ class Account
                 if ($attemptCreation !== null && $hasEmail) {
                     $this->getRegistry()->create(
                         $email,
-                        isset($attemptCreation[0]) ? $attemptCreation : null,
+                        $attemptCreation === self::EMPTY_PASSWORD ? null : $attemptCreation,
                         $hasUsername ? $username : null
                     );
                 }
@@ -196,9 +198,11 @@ class Account
         $this->object->application_id = $applicationID;
     }
 
-    public function getNew(?int $id = null, ?string $email = null, $username = null,
-                                $identification = null,
-                           bool $checkDeletion = true): self
+    public function getNew(?int    $id = null,
+                           ?string $email = null,
+                           ?string $username = null,
+                           ?string $identification = null,
+                           bool    $checkDeletion = true): self
     {
         $account = new self(
             $this->getDetail("application_id"),
