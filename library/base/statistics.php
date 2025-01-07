@@ -52,4 +52,9 @@ class GaussianWaveStatistics
         return 0.5 * (1 + self::erf($zScore / self::SQUARE_ROOT_2));
     }
 
+    public function getComplementaryCumulativeProbability(float $zScore): float
+    {
+        return 1.0 - $this->getCumulativeProbability($zScore);
+    }
+
 }
