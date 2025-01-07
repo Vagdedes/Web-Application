@@ -355,16 +355,23 @@ class AccountTeam
         $owner = $this->getOwner();
 
         if ($owner === null) {
-            return new MethodReply(false, "Owner not found.");
+            return new MethodReply(false, "Owner not found or user not in a team.");
+        }
+        if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
+            return new MethodReply(false, "Must be the owner of this team to transfer it.");
         }
         if ($owner->account->getDetail("id") === $account->getDetail("id")) {
-            return new MethodReply(false, "Cannot transfer team to the same account.");
+            return new MethodReply(false, "You already own this team.");
         }
-        return $this->adjustPositionByComparison(
+        $position = $this->getPosition($this->account, false);
+
+        if ($position === null) {
+            return new MethodReply(false, "Position not found.");
+        }
+        return $this->adjustMemberPosition(
             $account,
-            $owner->account,
-            true,
-            $reason
+            $position + 1,
+            $reason,
         );
     }
 
