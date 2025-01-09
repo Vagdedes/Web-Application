@@ -18,6 +18,7 @@ class AIManager
         $this->parameters = $parameters;
         $this->lastParameters = array();
         $this->models = array();
+        $this->randomID = null;
 
         $query = get_sql_query(
             AIDatabaseTable::AI_MODELS,
