@@ -2,6 +2,8 @@
 
 class AIManager
 {
+
+    private ?int $randomID;
     private int $typeID, $familyID;
     private array $models, $parameters, $lastParameters;
     private string $apiKey;
@@ -44,6 +46,11 @@ class AIManager
     public function exists(): bool
     {
         return !empty($this->models);
+    }
+
+    public function setRandomID(int $randomID): void
+    {
+        $this->randomID = $randomID;
     }
 
     public function getParameters(): array
@@ -160,6 +167,7 @@ class AIManager
                     array(
                         "model_id" => $model->getModelID(),
                         "hash" => $hash,
+                        "random_id" => $this->randomID,
                         "sent_parameters" => $parameters,
                         "received_parameters" => $received,
                         "currency_id" => $model->getCurrency()?->id,
