@@ -1502,6 +1502,15 @@ class AccountTeam
             foreach ($new as $key => $value) {
                 if ($value->deletion_date !== null) {
                     unset($new[$key]);
+                } else {
+                    $definition = $this->getPermissionDefinition($value->permission_id);
+
+                    if ($definition === null) {
+                        unset($new[$key]);
+                    } else {
+                        $value->definition = $definition;
+                        $new[$key] = $value;
+                    }
                 }
             }
             return $new;
@@ -2021,6 +2030,15 @@ class AccountTeam
             foreach ($new as $key => $value) {
                 if ($value->deletion_date !== null) {
                     unset($new[$key]);
+                } else {
+                    $definition = $this->getPermissionDefinition($value->permission_id);
+
+                    if ($definition === null) {
+                        unset($new[$key]);
+                    } else {
+                        $value->definition = $definition;
+                        $new[$key] = $value;
+                    }
                 }
             }
             $roles = $this->getMemberRoles($account);
