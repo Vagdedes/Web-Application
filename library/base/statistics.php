@@ -22,14 +22,56 @@ class GaussianWaveStatistics
         $this->stdDev = sqrt($meanSquared / sizeof($data));
     }
 
-    public function getMean(): float
+    public function getMean(): float|int
     {
         return $this->mean;
     }
 
-    public function getStdDev(): float
+    public function getMedian()
+    {
+        $data = $this->data;
+        sort($data);
+        $count = count($data);
+        $middle = floor(($count + 1) / 2);
+
+        if ($count % 2) {
+            return $data[$middle];
+        } else {
+            return ($data[$middle] + $data[$middle + 1]) / 2;
+        }
+    }
+
+    public function getMode(): float|int
+    {
+        $data = $this->data;
+        $count = array_count_values($data);
+        arsort($count);
+        return key($count);
+    }
+
+    public function getStdDev(): float|int
     {
         return $this->stdDev;
+    }
+
+    public function getSkewness(): float|int
+    {
+        $skewness = 0;
+
+        foreach ($this->data as $value) {
+            $skewness += pow($value - $this->mean, 3);
+        }
+        return $skewness / (sizeof($this->data) * pow($this->stdDev, 3));
+    }
+
+    public function getKurtosis(): float|int
+    {
+        $kurtosis = 0;
+
+        foreach ($this->data as $value) {
+            $kurtosis += pow($value - $this->mean, 4);
+        }
+        return $kurtosis / (sizeof($this->data) * pow($this->stdDev, 4));
     }
 
     public function getZScore(mixed $value, bool $key = false): float
