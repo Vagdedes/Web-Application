@@ -17,6 +17,40 @@ class AccountAccounts
         $this->account = $account;
     }
 
+    public function getAccountFromType(int|string $type, int|float|string $credential): ?Account
+    {
+        $isNumeric = is_numeric($type);
+        $acceptedAccount = new AcceptedAccount(
+            $this->account->getDetail("application_id"),
+            $isNumeric ? $type : null,
+            $isNumeric ? null : $type,
+            false,
+            array("id")
+        );
+
+        if (!$acceptedAccount->exists()) {
+            return null;
+        }
+        $acceptedAccount = $acceptedAccount->getObjects()[0];
+        $array = get_sql_query(
+            AccountVariables::ADDED_ACCOUNTS_TABLE,
+            array("account_id"),
+            array(
+                array("deletion_date", null),
+                array("accepted_account_id", $acceptedAccount->id),
+                array("credential", $credential)
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        );
+        return empty($array)
+            ? null
+            : $this->account->getNew($array[0]->account_id);
+    }
+
     public function getAvailable(?array $select = null, ?int $id = null, bool $manual = true): array
     {
         $acceptedAccount = new AcceptedAccount(
