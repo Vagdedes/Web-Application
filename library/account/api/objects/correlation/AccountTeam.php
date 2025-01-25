@@ -85,10 +85,10 @@ class AccountTeam
         if (!$this->account->exists()) {
             return new MethodReply(false, "Account not found.");
         }
-        $result = $this->findTeam($this->account);
+        $result = $this->findTeam($title);
 
         if ($result->isPositiveOutcome()) {
-            return new MethodReply(false, "Account is already in a team.");
+            return new MethodReply(false, "Team with this title already exists.");
         }
         $date = get_current_date();
 
@@ -133,21 +133,7 @@ class AccountTeam
                         "account_id" => $this->account->getDetail("id"),
                         "creation_date" => $date,
                     ))) {
-                    $selfMemberID = $this->getMember($this->account)?->id;
-
-                    if ($selfMemberID === null) {
-                        delete_sql_query(
-                            AccountVariables::TEAM_TABLE,
-                            array(
-                                array("id", $query)
-                            ),
-                            null,
-                            1
-                        );
-                        return new MethodReply(false, "Executor member not found.");
-                    } else {
-                        return new MethodReply(true, "Team created.");
-                    }
+                    return new MethodReply(true, "Team created.");
                 } else {
                     return new MethodReply(false, "Failed to add member to team.");
                 }
@@ -209,7 +195,9 @@ class AccountTeam
         return array();
     }
 
-    public function findTeam(Account|string|int|null $reference = null): MethodReply
+    public function findTeam(
+        Account|string|int|null $reference = null,
+        int|object|null         $checkAgainst = null): MethodReply
     {
         if ($this->forcedTeam !== null) {
             if (isset($this->forcedTeam->id)) {
@@ -246,7 +234,10 @@ class AccountTeam
                 null,
                 array(
                     array("account_id", $reference->getDetail("id")),
-                    array("deletion_date", null)
+                    array("deletion_date", null),
+                    ($checkAgainst !== null
+                        ? array("team_id", is_numeric($checkAgainst) ? $checkAgainst : $checkAgainst->id)
+                        : null)
                 ),
                 array(
                     "DESC",
@@ -316,9 +307,8 @@ class AccountTeam
     public function deleteTeam(?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         $owner = $this->getOwner();
@@ -337,7 +327,7 @@ class AccountTeam
                 "deletion_reason" => $reason
             ),
             array(
-                array("id", $team)
+                array("id", $result->getObject()?->id)
             ),
             null,
             1
@@ -374,9 +364,8 @@ class AccountTeam
     public function updateTeamTitle(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_NAME)->isPositiveOutcome()) {
@@ -401,7 +390,7 @@ class AccountTeam
                     "title" => $name
                 ),
                 array(
-                    array("id", $team)
+                    array("id", $result->getObject()?->id)
                 ),
                 null,
                 1
@@ -418,9 +407,8 @@ class AccountTeam
     public function updateTeamDescription(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_DESCRIPTION)->isPositiveOutcome()) {
@@ -446,7 +434,7 @@ class AccountTeam
                     "description" => $name
                 ),
                 array(
-                    array("id", $team)
+                    array("id", $result->getObject()?->id)
                 ),
                 null,
                 1
@@ -465,9 +453,8 @@ class AccountTeam
     public function leaveTeam(?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject();
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         $memberCount = sizeof($this->getMembers());
@@ -519,12 +506,11 @@ class AccountTeam
         }
     }
 
-    public function addMember(Account $account, ?string $reason = null): MethodReply
+    public function addMember(Account $account, ?string $reason = null, bool $multiple = true): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject();
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBERS)->isPositiveOutcome()) {
@@ -533,10 +519,20 @@ class AccountTeam
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You cannot add yourself to a team.");
         }
-        $otherResult = $this->findTeam($account);
+        $team = $result->getObject()?->id;
 
-        if ($otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "Account is already in a team.");
+        if ($multiple) {
+            $otherResult = $this->findTeam($account, $team);
+
+            if ($otherResult->isPositiveOutcome()) {
+                return new MethodReply(false, "Account is already in this team.");
+            }
+        } else {
+            $otherResult = $this->findTeam($account);
+
+            if ($otherResult->isPositiveOutcome()) {
+                return new MethodReply(false, "Account is already in a team.");
+            }
         }
         $rookie = $this->getRookie();
 
@@ -553,7 +549,7 @@ class AccountTeam
         if (sql_insert(
             AccountVariables::TEAM_MEMBERS_TABLE,
             array(
-                "team_id" => $team->id,
+                "team_id" => $team,
                 "account_id" => $account->getDetail("id"),
                 "creation_date" => $date,
                 "created_by" => $selfMemberID,
@@ -572,23 +568,18 @@ class AccountTeam
 
     public function removeMember(Account $account, ?string $reason = null): MethodReply
     {
-        $result = $this->findTeam($account);
-        $team = $result->getObject()?->id;
+        $result = $this->findTeam($this->account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        $otherResult = $this->findTeam($this->account);
-        $otherTeam = $otherResult->getObject()?->id;
+        $otherResult = $this->findTeam($account, $result->getObject()?->id);
 
-        if ($otherTeam === null) {
-            return $otherResult;
+        if (!$otherResult->isPositiveOutcome()) {
+            return new MethodReply(false, "The other user is not in this team.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBERS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove members from the team.");
-        }
-        if ($team !== $otherTeam) {
-            return new MethodReply(false, "Cannot remove someone in another team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You cannot remove yourself from a team.");
@@ -624,16 +615,16 @@ class AccountTeam
 
     public function getMembers(): array
     {
-        $team = $this->findTeam($this->account)->getObject()?->id;
+        $result = $this->findTeam($this->account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return array();
         }
         $query = get_sql_query(
             AccountVariables::TEAM_MEMBERS_TABLE,
             null,
             array(
-                array("team_id", $team),
+                array("team_id", $result->getObject()?->id),
                 array("deletion_date", null)
             )
         );
@@ -663,16 +654,16 @@ class AccountTeam
         if ($account === null) {
             $account = $this->account;
         }
-        $team = $this->findTeam($account)->getObject()?->id;
+        $result = $this->findTeam($account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return null;
         }
         $query = get_sql_query(
             AccountVariables::TEAM_MEMBERS_TABLE,
             null,
             array(
-                array("team_id", $team),
+                array("team_id", $result->getObject()?->id),
                 array("account_id", $account->getDetail("id")),
                 array("deletion_date", null)
             ),
@@ -752,9 +743,9 @@ class AccountTeam
         if ($account === null) {
             $account = $this->account;
         }
-        $team = $this->findTeam($account)->getObject()?->id;
+        $result = $this->findTeam($account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             global $min_32bit_Integer;
             return $min_32bit_Integer;
         }
@@ -779,7 +770,7 @@ class AccountTeam
             AccountVariables::TEAM_POSITIONS_TABLE,
             null,
             array(
-                array("team_id", $team),
+                array("team_id", $result->getObject()?->id),
                 array("member_id", $memberID),
             ),
             array(
@@ -828,20 +819,16 @@ class AccountTeam
 
     public function adjustMemberPosition(Account $account, int $position, ?string $reason = null): MethodReply
     {
-        $result = $this->findTeam($account);
-        $team = $result->getObject()?->id;
+        $result = $this->findTeam($this->account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        $otherResult = $this->findTeam($this->account);
-        $otherTeam = $otherResult->getObject()?->id;
+        $team = $result->getObject()?->id;
+        $otherResult = $this->findTeam($account, $team);
 
-        if ($otherTeam === null) {
-            return $otherResult;
-        }
-        if ($team !== $otherTeam) {
-            return new MethodReply(false, "Cannot adjust position of someone in no or another team.");
+        if (!$otherResult->isPositiveOutcome()) {
+            return new MethodReply(false, "The other user is not in this team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             $owner = $this->getOwner();
@@ -930,9 +917,8 @@ class AccountTeam
     public function updateRoleTitle(string|object $role, string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_ROLE_NAMES)->isPositiveOutcome()) {
@@ -984,9 +970,8 @@ class AccountTeam
     public function updateRoleDescription(string|object $role, string $description, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_ROLE_DESCRIPTIONS)->isPositiveOutcome()) {
@@ -1039,9 +1024,8 @@ class AccountTeam
     public function createRole(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CREATE_TEAM_ROLES)->isPositiveOutcome()) {
@@ -1066,6 +1050,7 @@ class AccountTeam
             return new MethodReply(false, "Executor member not found.");
         }
         $date = get_current_date();
+        $team = $result->getObject()?->id;
 
         if (sql_insert(
             AccountVariables::TEAM_ROLES_TABLE,
@@ -1102,9 +1087,8 @@ class AccountTeam
     public function deleteRole(string|object $role, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
@@ -1149,9 +1133,9 @@ class AccountTeam
         if ($account === null) {
             $account = $this->account;
         }
-        $team = $this->findTeam($account)->getObject()?->id;
+        $result = $this->findTeam($account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return array();
         }
         $memberID = $this->getMember($account)?->id;
@@ -1159,6 +1143,7 @@ class AccountTeam
         if ($memberID === null) {
             return array();
         }
+        $team = $result->getObject()?->id;
         $query = get_sql_query(
             AccountVariables::TEAM_ROLE_MEMBERS_TABLE,
             null,
@@ -1199,16 +1184,16 @@ class AccountTeam
 
     public function getRole(string|int $reference): ?object
     {
-        $team = $this->findTeam($this->account)->getObject()?->id;
+        $result = $this->findTeam($this->account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return null;
         }
         $query = get_sql_query(
             AccountVariables::TEAM_ROLES_TABLE,
             null,
             array(
-                array("team_id", $team),
+                array("team_id", $result->getObject()?->id),
                 is_numeric($reference) ? array("id", $reference) : array("title", $reference),
                 array("deletion_date", null)
             ),
@@ -1224,16 +1209,16 @@ class AccountTeam
 
     public function getTeamRoles(): array
     {
-        $team = $this->findTeam($this->account)->getObject()?->id;
+        $result = $this->findTeam($this->account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return array();
         }
         return get_sql_query(
             AccountVariables::TEAM_ROLES_TABLE,
             null,
             array(
-                array("team_id", $team),
+                array("team_id", $result->getObject()?->id),
                 array("deletion_date", null)
             )
         );
@@ -1242,9 +1227,8 @@ class AccountTeam
     public function setRole(Account $account, string|object $role, bool $trueFalse, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES)->isPositiveOutcome()) {
@@ -1253,14 +1237,11 @@ class AccountTeam
         if ($this->getPosition($this->account) <= $this->getPosition($account)) {
             return new MethodReply(false, "Cannot change the role of a member with the same or higher position.");
         }
-        $otherResult = $this->findTeam($account);
-        $otherTeam = $otherResult->getObject()?->id;
+        $team = $result->getObject()?->id;
+        $otherResult = $this->findTeam($account, $team);
 
-        if ($otherTeam === null) {
-            return $otherResult;
-        }
-        if ($team !== $otherTeam) {
-            return new MethodReply(false, "Cannot manage the role of someone in no or another team.");
+        if (!$otherResult->isPositiveOutcome()) {
+            return new MethodReply(false, "");
         }
         $selfMemberID = $this->getMember($this->account)?->id;
 
@@ -1439,9 +1420,8 @@ class AccountTeam
     public function addRolePermission(string|object $role, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (is_string($role)) {
@@ -1489,9 +1469,8 @@ class AccountTeam
     public function removeRolePermission(string|object $role, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (is_string($role)) {
@@ -1543,9 +1522,9 @@ class AccountTeam
 
     public function getRolePosition(string|object $role): int
     {
-        $team = $this->findTeam($this->account)->getObject()?->id;
+        $result = $this->findTeam($this->account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             global $min_32bit_Integer;
             return $min_32bit_Integer;
         }
@@ -1579,9 +1558,8 @@ class AccountTeam
     public function adjustRolePosition(string|object $role, int $position, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam($this->account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if (is_string($role)) {
@@ -1652,23 +1630,19 @@ class AccountTeam
 
     public function addMemberPermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
     {
-        $result = $this->findTeam($account);
-        $team = $result->getObject()?->id;
+        $result = $this->findTeam($this->account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You cannot add permissions to yourself.");
         }
-        $otherResult = $this->findTeam($this->account);
-        $otherTeam = $otherResult->getObject()?->id;
+        $team = $result->getObject()?->id;
+        $otherResult = $this->findTeam($account, $team);
 
-        if ($otherTeam === null) {
-            return $otherResult;
-        }
-        if ($team !== $otherTeam) {
-            return new MethodReply(false, "Cannot add permission to someone in another team.");
+        if (!$otherResult->isPositiveOutcome()) {
+            return new MethodReply(false, "The other user is not in this team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
@@ -1712,23 +1686,18 @@ class AccountTeam
 
     public function removeMemberPermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
     {
-        $result = $this->findTeam($account);
-        $team = $result->getObject()?->id;
+        $result = $this->findTeam($this->account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You cannot remove your own permissions.");
         }
-        $otherResult = $this->findTeam($this->account);
-        $otherTeam = $otherResult->getObject()?->id;
+        $otherResult = $this->findTeam($account, $result->getObject()?->id);
 
-        if ($otherTeam === null) {
-            return $otherResult;
-        }
-        if ($team !== $otherTeam) {
-            return new MethodReply(false, "Cannot remove permission from someone in another team.");
+        if (!$otherResult->isPositiveOutcome()) {
+            return new MethodReply(false, "The other user is not in this team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
@@ -1778,9 +1747,8 @@ class AccountTeam
     public function getMemberPermission(Account $account, int $permissionID): MethodReply
     {
         $result = $this->findTeam($account);
-        $team = $result->getObject()?->id;
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return $result;
         }
         $owner = $this->getOwner();
@@ -1805,7 +1773,7 @@ class AccountTeam
             AccountVariables::TEAM_PERMISSIONS_TABLE,
             null,
             array(
-                array("team_id", $team),
+                array("team_id", $result->getObject()?->id),
                 array("member_id", $memberID),
                 array("permission_id", $permissionDef),
             ),
@@ -1831,9 +1799,9 @@ class AccountTeam
         if ($account === null) {
             $account = $this->account;
         }
-        $team = $this->findTeam($account)->getObject()?->id;
+        $result = $this->findTeam($account);
 
-        if ($team === null) {
+        if (!$result->isPositiveOutcome()) {
             return array();
         }
         $owner = $this->getOwner();
@@ -1846,6 +1814,8 @@ class AccountTeam
         if ($memberID === null) {
             return array();
         }
+        $team = $result->getObject()?->id;
+
         if ($owner->account->getDetail("id") === $account->getDetail("id")) {
             $array = array();
             $date = get_current_date();
