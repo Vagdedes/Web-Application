@@ -96,8 +96,6 @@ class AccountTeam
             AccountVariables::TEAM_TABLE,
             array(
                 "additional_id" => $this->additionalID,
-                "title" => $title,
-                "description" => $description,
                 "creation_date" => $date,
                 "created_by_account" => $this->account->getDetail("id"),
                 "creation_reason" => $reason
@@ -108,8 +106,6 @@ class AccountTeam
                 array(
                     array("additional_id", $this->additionalID),
                     array("deletion_date", null),
-                    array("title", $title),
-                    array("description", $description),
                     array("creation_date", $date),
                     array("created_by_account", $this->account->getDetail("id")),
                     array("deletion_date", null)
@@ -133,6 +129,27 @@ class AccountTeam
                         "account_id" => $this->account->getDetail("id"),
                         "creation_date" => $date,
                     ))) {
+                    if (!sql_insert(
+                        AccountVariables::TEAM_NAME_CHANGES,
+                        array(
+                            "team_id" => $query,
+                            "name" => $title,
+                            "creation_date" => $date,
+                        )
+                    )) {
+                        return new MethodReply(false, "Failed to add team title.");
+                    }
+                    if (!sql_insert(
+                        AccountVariables::TEAM_NAME_CHANGES,
+                        array(
+                            "team_id" => $query,
+                            "name" => $description,
+                            "creation_date" => $date,
+                            "description" => true
+                        )
+                    )) {
+                        return new MethodReply(false, "Failed to add team description.");
+                    }
                     return new MethodReply(true, "Team created.");
                 } else {
                     return new MethodReply(false, "Failed to add member to team.");
@@ -269,10 +286,27 @@ class AccountTeam
             return new MethodReply(false, "Team not found.");
         } else if (is_string($reference)) {
             $query = get_sql_query(
+                AccountVariables::TEAM_NAME_CHANGES,
+                array("team_id"),
+                array(
+                    array("name", $reference),
+                    array("description", false)
+                ),
+                array(
+                    "DESC",
+                    "id"
+                ),
+                1
+            );
+
+            if (empty($query)) {
+                return new MethodReply(false, "Team not found.");
+            }
+            $subQuery = get_sql_query(
                 AccountVariables::TEAM_TABLE,
                 null,
                 array(
-                    array("title", $reference),
+                    array("id", $query[0]->team_id),
                     array("additional_id", $this->additionalID),
                     array("deletion_date", null)
                 ),
@@ -280,7 +314,7 @@ class AccountTeam
                 1
             );
 
-            if (empty($query)) {
+            if (empty($subQuery)) {
                 return new MethodReply(false, "Team not found.");
             } else {
                 return new MethodReply(true, null, $query[0]);
@@ -389,6 +423,41 @@ class AccountTeam
 
     // Separator
 
+    private function getTeamName(bool $description): ?string
+    {
+        $result = $this->findTeam();
+
+        if (!$result->isPositiveOutcome()) {
+            return null;
+        }
+        $query = get_sql_query(
+            AccountVariables::TEAM_NAME_CHANGES,
+            array("name"),
+            array(
+                array("team_id", $result->getObject()->id),
+                array("description", $description),
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        );
+        return empty($query)
+            ? null
+            : $query[0]->name;
+    }
+
+    public function getTeamTitle(): ?string
+    {
+        return $this->getTeamName(false);
+    }
+
+    public function getTeamDescription(): ?string
+    {
+        return $this->getTeamName(true);
+    }
+
     public function updateTeamTitle(string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
@@ -404,34 +473,19 @@ class AccountTeam
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
         }
-        $team = $result->getObject();
-
-        if ($team->title === $name) {
+        if ($this->getTeamTitle() === $name) {
             return new MethodReply(false, "Team title is already set to this value.");
         }
         if (sql_insert(
             AccountVariables::TEAM_NAME_CHANGES,
             array(
+                "team_id" => $result->getObject()->id,
                 "name" => $name,
                 "creation_date" => get_current_date(),
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            if (set_sql_query(
-                AccountVariables::TEAM_TABLE,
-                array(
-                    "title" => $name
-                ),
-                array(
-                    array("id", $team->id)
-                ),
-                null,
-                1
-            )) {
-                return new MethodReply(true, "Team title updated.");
-            } else {
-                return new MethodReply(false, "Failed to fully update team title.");
-            }
+            return new MethodReply(true, "Team title updated.");
         } else {
             return new MethodReply(false, "Failed to update team title.");
         }
@@ -452,35 +506,20 @@ class AccountTeam
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
         }
-        $team = $result->getObject();
-
-        if ($team->description === $name) {
+        if ($this->getTeamDescription() === $name) {
             return new MethodReply(false, "Team description is already set to this value.");
         }
         if (sql_insert(
             AccountVariables::TEAM_NAME_CHANGES,
             array(
+                "team_id" => $result->getObject()->id,
                 "name" => $name,
                 "creation_date" => get_current_date(),
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason,
                 "description" => true
             ))) {
-            if (set_sql_query(
-                AccountVariables::TEAM_TABLE,
-                array(
-                    "description" => $name
-                ),
-                array(
-                    array("id", $team->id)
-                ),
-                null,
-                1
-            )) {
-                return new MethodReply(true, "Team description updated.");
-            } else {
-                return new MethodReply(false, "Failed to fully update team description.");
-            }
+            return new MethodReply(true, "Team description updated.");
         } else {
             return new MethodReply(false, "Failed to update team description.");
         }
