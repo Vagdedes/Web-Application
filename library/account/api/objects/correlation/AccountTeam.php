@@ -73,7 +73,7 @@ class AccountTeam
         $this->forcedTeam = $team;
     }
 
-    public function removeForcedTeam(): void
+    public function clearCache(): void
     {
         $this->forcedTeam = null;
     }
@@ -100,12 +100,11 @@ class AccountTeam
                 "description" => $description,
                 "creation_date" => $date,
                 "created_by_account" => $this->account->getDetail("id"),
-                "owned_by_account" => $this->account->getDetail("id"),
                 "creation_reason" => $reason
             ))) {
             $query = get_sql_query(
                 AccountVariables::TEAM_TABLE,
-                null,
+                array("id"),
                 array(
                     array("additional_id", $this->additionalID),
                     array("deletion_date", null),
@@ -113,7 +112,6 @@ class AccountTeam
                     array("description", $description),
                     array("creation_date", $date),
                     array("created_by_account", $this->account->getDetail("id")),
-                    array("owned_by_account", $this->account->getDetail("id")),
                     array("deletion_date", null)
                 ),
                 array(
@@ -153,7 +151,7 @@ class AccountTeam
         if ($account->exists()) {
             $query = get_sql_query(
                 AccountVariables::TEAM_MEMBERS_TABLE,
-                null,
+                array("team_id"),
                 array(
                     array("account_id", $account->getDetail("id")),
                     array("deletion_date", null)
@@ -233,7 +231,7 @@ class AccountTeam
             }
             $query = get_sql_query(
                 AccountVariables::TEAM_MEMBERS_TABLE,
-                null,
+                array("team_id"),
                 array(
                     array("account_id", $reference->getDetail("id")),
                     array("deletion_date", null),
@@ -380,19 +378,6 @@ class AccountTeam
                 "creation_reason" => $reason,
                 "automatic" => $automatic
             )
-        )) {
-            return new MethodReply(false, "Failed to transfer team when creating history records.");
-        }
-        if (!set_sql_query(
-            AccountVariables::TEAM_TABLE,
-            array(
-                "owned_by_account" => $account->getDetail("id")
-            ),
-            array(
-                array("id", $team)
-            ),
-            null,
-            1
         )) {
             return new MethodReply(false, "Failed to transfer team.");
         }
@@ -693,7 +678,7 @@ class AccountTeam
         }
     }
 
-    public function getMember(?Account $account = null): ?object
+    public function getMember(Account|int|null $account = null): ?object
     {
         if ($account === null) {
             $account = $this->account;
@@ -738,12 +723,44 @@ class AccountTeam
         if (!$result->isPositiveOutcome()) {
             return null;
         }
-        $owner = $this->account->getNew(
-            $result->getObject()?->owned_by_account
+        $query = get_sql_query(
+            AccountVariables::TEAM_OWNERS_TABLE,
+            array("member_id"),
+            array(
+                array("team_id", $result->getObject()?->id),
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
         );
-        return $owner->exists()
-            ? $this->getMember($owner)
-            : null;
+
+        if (empty($query)) {
+            $owner = $this->account->getNew(
+                $result->getObject()?->created_by_account
+            );
+            return $owner->exists()
+                ? $this->getMember($owner)
+                : null;
+        } else {
+            $query = get_sql_query(
+                AccountVariables::TEAM_MEMBERS_TABLE,
+                null,
+                array(
+                    array("id", $query[0]->member_id)
+                ),
+                null,
+                1
+            );
+
+            if (empty($query)) {
+                return null;
+            }
+            $query = $query[0];
+            $query->account = $this->account->getNew($query->account_id);
+            return $query;
+        }
     }
 
     private function getCoOwner(object $owner): ?object
@@ -824,7 +841,7 @@ class AccountTeam
         }
         $query = get_sql_query(
             AccountVariables::TEAM_POSITIONS_TABLE,
-            null,
+            array("position"),
             array(
                 array("team_id", $result->getObject()?->id),
                 array("member_id", $memberID),
@@ -1592,7 +1609,7 @@ class AccountTeam
         }
         $query = get_sql_query(
             AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
-            null,
+            array("position"),
             array(
                 array("role_id", $role->id),
             ),
