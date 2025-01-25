@@ -340,7 +340,7 @@ class AccountTeam
         }
     }
 
-    public function transferTeam(Account $account, ?string $reason = null): MethodReply
+    public function transferTeam(Account $account, ?string $reason = null, bool $automatic = false): MethodReply
     {
         $result = $this->findTeam();
 
@@ -377,22 +377,25 @@ class AccountTeam
                 "member_id" => $memberID,
                 "creation_date" => get_current_date(),
                 "created_by" => $owner->id,
-                "creation_reason" => $reason
+                "creation_reason" => $reason,
+                "automatic" => $automatic
             )
-        ))
-            if (!set_sql_query(
-                AccountVariables::TEAM_TABLE,
-                array(
-                    "owned_by_account" => $account->getDetail("id")
-                ),
-                array(
-                    array("id", $team)
-                ),
-                null,
-                1
-            )) {
-                return new MethodReply(false, "Failed to transfer team.");
-            }
+        )) {
+            return new MethodReply(false, "Failed to transfer team when creating history records.");
+        }
+        if (!set_sql_query(
+            AccountVariables::TEAM_TABLE,
+            array(
+                "owned_by_account" => $account->getDetail("id")
+            ),
+            array(
+                array("id", $team)
+            ),
+            null,
+            1
+        )) {
+            return new MethodReply(false, "Failed to transfer team.");
+        }
         return new MethodReply(true, "Team transferred.");
     }
 
@@ -516,7 +519,9 @@ class AccountTeam
                     return new MethodReply(false, "New owner not found.");
                 }
                 $adjust = $this->transferTeam(
-                    $newOwner->account
+                    $newOwner->account,
+                    null,
+                    true
                 );
 
                 if (!$adjust->isPositiveOutcome()) {
