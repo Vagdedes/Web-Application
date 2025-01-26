@@ -1752,8 +1752,11 @@ class AccountTeam
         return empty($query) ? null : $query[0];
     }
 
-    public function addMemberPermission(Account $account, int $permissionID, ?string $reason = null): MethodReply
+    public function addMemberPermission(?Account $account, int $permissionID, ?string $reason = null): MethodReply
     {
+        if ($account === null) {
+            $account = $this->account;
+        }
         $result = $this->findTeam();
 
         if (!$result->isPositiveOutcome()) {
