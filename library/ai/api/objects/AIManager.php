@@ -8,10 +8,13 @@ class AIManager
     private array $models, $parameters, $lastParameters;
     private string $apiKey;
 
-    public function __construct(int    $familyID,
-                                string $apiKey,
-                                array  $parameters = [])
+    public function __construct(int|AIModel $familyID,
+                                string      $apiKey,
+                                array       $parameters = [])
     {
+        if ($familyID instanceof AIModel) {
+            $familyID = $familyID->getFamilyID();
+        }
         $this->typeID = -1;
         $this->familyID = $familyID;
         $this->apiKey = $apiKey;

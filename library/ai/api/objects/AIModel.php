@@ -18,10 +18,10 @@ class AIModel
                 AIDatabaseTable::AI_MODELS,
                 null,
                 array(
-                    array("id", $row),
+                    array("family", $row),
                     array("deletion_date", null),
                 ),
-                null,
+                "sent_token_cost, received_token_cost DESC, context ASC",
                 1
             );
 
