@@ -1,7 +1,5 @@
 <?php
 
-require_once '/var/www/.structure/library/base/objects/AbstractMethodReply.php';
-
 class MethodReply extends AbstractMethodReply
 {
 

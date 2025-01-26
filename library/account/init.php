@@ -2,6 +2,7 @@
 
 // External
 require_once '/var/www/.structure/library/base/minecraft.php';
+require_once '/var/www/.structure/library/base/objects/AbstractMethodReply.php';
 require_once '/var/www/.structure/library/base/objects/MethodReply.php';
 require_once '/var/www/.structure/library/base/objects/ParameterVerification.php';
 

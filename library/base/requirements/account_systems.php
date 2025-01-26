@@ -5,7 +5,6 @@ require_once '/var/www/.structure/library/base/encrypt.php';
 require_once '/var/www/.structure/library/base/placeholder.php';
 require_once '/var/www/.structure/library/base/minecraft.php';
 
-require_once '/var/www/.structure/library/base/objects/MethodReply.php';
 require_once '/var/www/.structure/library/base/objects/ParameterVerification.php';
 
 require_once '/var/www/.structure/library/email/init.php';

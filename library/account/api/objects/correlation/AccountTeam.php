@@ -1158,7 +1158,7 @@ class AccountTeam
         $role = $this->getRole($name);
 
         if ($role !== null) {
-            return new MethodReply(false, "Role with this already exists.");
+            return new MethodReply(false, "Role with this name already exists.");
         }
         $rookie = $this->getRookieRole();
 
@@ -1575,7 +1575,7 @@ class AccountTeam
             return new MethodReply(false, "Executor member not found.");
         }
         if (sql_insert(
-            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
             array(
                 "team_id" => $role->team_id,
                 "role_id" => $role->id,
