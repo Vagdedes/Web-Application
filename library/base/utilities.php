@@ -812,17 +812,20 @@ function manipulate_date(string $date, int|string $time): string
 
 function get_future_date(int|string $time): string
 {
-    return date('Y-m-d H:i:s', strtotime("+" . $time));
+    $dateTime = new DateTime("@" . strtotime("+" . $time), new DateTimeZone("UTC"));
+    return $dateTime->format("Y-m-d H:i:s");
 }
 
 function get_past_date(int|string $time): string
 {
-    return date('Y-m-d H:i:s', strtotime("-" . $time));
+    $dateTime = new DateTime("@" . strtotime("-" . $time), new DateTimeZone("UTC"));
+    return $dateTime->format("Y-m-d H:i:s");
 }
 
 function time_to_date(int $time): string
 {
-    return date('Y-m-d H:i:s', $time);
+    $dateTime = new DateTime("@" . $time, new DateTimeZone("UTC"));
+    return $dateTime->format("Y-m-d H:i:s");
 }
 
 function get_date_days_difference(string $date): float
@@ -932,7 +935,8 @@ function get_full_date(string $date): string
 
 function get_current_date(): string
 {
-    return date("Y-m-d H:i:s");
+    $dateTime = new DateTime("now", new DateTimeZone("UTC"));
+    return $dateTime->format("Y-m-d H:i:s");
 }
 
 // Lists
