@@ -11,8 +11,41 @@ class AIModel
     private bool $exists;
     private array $pricing;
 
-    public function __construct(object $row)
+    public function __construct(int|object $row)
     {
+        if (is_numeric($row)) {
+            $query = get_sql_query(
+                AIDatabaseTable::AI_MODELS,
+                null,
+                array(
+                    array("id", $row),
+                    array("deletion_date", null),
+                ),
+                null,
+                1
+            );
+
+            if (empty($query)) {
+                $this->exists = false;
+                $this->currency = new stdClass();
+                $this->parameter = new stdClass();
+                $this->modelID = -1;
+                $this->typeID = -1;
+                $this->familyID = -1;
+                $this->context = null;
+                $this->requestUrl = "";
+                $this->codeKey = "";
+                $this->code = "";
+                $this->tokenizer = null;
+                $this->received_token_cost = null;
+                $this->sent_token_cost = null;
+                $this->received_token_audio_cost = null;
+                $this->sent_token_audio_cost = null;
+                return;
+            } else {
+                $row = $query[0];
+            }
+        }
         $queryChild = get_sql_query(
             AIDatabaseTable::AI_PARAMETERS,
             null,
