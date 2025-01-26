@@ -1474,7 +1474,7 @@ class AccountTeam
             null,
             array(
                 array("role_id", $role->id),
-                array("permission_id", $permissionDef),
+                array("permission_id", $permissionDef)
             ),
             array(
                 "DESC",
@@ -1633,7 +1633,7 @@ class AccountTeam
                 "deletion_reason" => $reason
             ),
             array(
-                array("id", $permissionResult->getObject()->id),
+                array("id", $permissionResult->getObject()->id)
             ),
             null,
             1
