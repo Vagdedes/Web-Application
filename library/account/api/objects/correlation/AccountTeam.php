@@ -32,23 +32,7 @@ class AccountTeam
         PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS = 15,
 
         // Grouping
-        PERMISSION_ADJUST_TEAM_MEMBER_ROLES = 13,
-
-        PERMISSION_ALL = array(
-        self::PERMISSION_ADD_TEAM_MEMBERS,
-        self::PERMISSION_REMOVE_TEAM_MEMBERS,
-        self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS,
-        self::PERMISSION_CHANGE_TEAM_NAME,
-        self::PERMISSION_CHANGE_TEAM_DESCRIPTION,
-        self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS,
-        self::PERMISSION_CREATE_TEAM_ROLES,
-        self::PERMISSION_DELETE_TEAM_ROLES,
-        self::PERMISSION_ADJUST_TEAM_ROLE_POSITIONS,
-        self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES,
-        self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS,
-        self::PERMISSION_CHANGE_TEAM_ROLE_NAMES,
-        self::PERMISSION_CHANGE_TEAM_ROLE_DESCRIPTIONS
-    );
+        PERMISSION_ADJUST_TEAM_MEMBER_ROLES = 13;
 
     private Account $account;
     private ?int $additionalID;
@@ -1727,7 +1711,28 @@ class AccountTeam
 
     // Separator
 
-    private function getPermissionDefinition(int $id): ?object
+    public function getPermissionDefinitions(): array
+    {
+        $where = array(
+            array("deletion_date", null)
+        );
+
+        if ($this->additionalID === null) {
+            $where[] = array("additional_id", null);
+        } else {
+            $where[] = null;
+            $where[] = array("additional_id", "IS", null, 0);
+            $where[] = array("additional_id", $this->additionalID);
+            $where[] = null;
+        }
+        return get_sql_query(
+            AccountVariables::TEAM_PERMISSION_DEFINITIONS_TABLE,
+            null,
+            $where
+        );
+    }
+
+    public function getPermissionDefinition(int $id): ?object
     {
         $where = array(
             array("id", $id),
@@ -1949,16 +1954,15 @@ class AccountTeam
         if ($owner->account->getDetail("id") === $account->getDetail("id")) {
             $array = array();
             $date = get_current_date();
+            $definitions = $this->getPermissionDefinitions();
 
-            foreach (self::PERMISSION_ALL as $value) {
-                $definition = $this->getPermissionDefinition($value);
-
-                if ($definition !== null) {
+            if (!empty($definitions)) {
+                foreach ($definitions as $definition) {
                     $object = new stdClass();
                     $object->id = -random_number(9);
                     $object->team_id = $team;
                     $object->member_id = $memberID;
-                    $object->permission_id = $value;
+                    $object->permission_id = $definition->id;
                     $object->creation_date = $date;
                     $object->creation_reason = null;
                     $object->created_by = null;
