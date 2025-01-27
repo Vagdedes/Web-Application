@@ -1951,18 +1951,23 @@ class AccountTeam
             $date = get_current_date();
 
             foreach (self::PERMISSION_ALL as $value) {
-                $object = new stdClass();
-                $object->id = -random_number(9);
-                $object->team_id = $team;
-                $object->member_id = $memberID;
-                $object->permission_id = $value;
-                $object->creation_date = $date;
-                $object->creation_reason = null;
-                $object->created_by = null;
-                $object->deletion_date = null;
-                $object->deletion_reason = null;
-                $object->deleted_by = null;
-                $array[] = $object;
+                $definition = $this->getPermissionDefinition($value);
+
+                if ($definition !== null) {
+                    $object = new stdClass();
+                    $object->id = -random_number(9);
+                    $object->team_id = $team;
+                    $object->member_id = $memberID;
+                    $object->permission_id = $value;
+                    $object->creation_date = $date;
+                    $object->creation_reason = null;
+                    $object->created_by = null;
+                    $object->deletion_date = null;
+                    $object->deletion_reason = null;
+                    $object->deleted_by = null;
+                    $object->definition = $definition;
+                    $array[] = $object;
+                }
             }
             return $array;
         }
