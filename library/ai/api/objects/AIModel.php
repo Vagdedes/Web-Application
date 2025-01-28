@@ -196,6 +196,7 @@ class AIModel
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
+            case AIModelFamily::OPENAI_SOUND_PRO:
                 if ($multiple) {
                     return $this->getTexts($object);
                 } else {
@@ -232,6 +233,7 @@ class AIModel
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
+            case AIModelFamily::OPENAI_SOUND_PRO:
                 return ($object?->choices[0] ?? null)?->message?->content;
             case AIModelFamily::OPENAI_WHISPER:
                 return $object?->text;
@@ -250,6 +252,7 @@ class AIModel
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
+            case AIModelFamily::OPENAI_SOUND_PRO:
                 $array = $object?->choices;
                 $texts = array();
 
@@ -324,6 +327,7 @@ class AIModel
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
+            case AIModelFamily::OPENAI_SOUND_PRO:
                 return (($object?->usage?->prompt_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0))
                     + (($object?->usage?->completion_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
 

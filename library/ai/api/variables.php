@@ -29,7 +29,7 @@ class AIModelType
         TEXT_TO_SPEECH = 3,
         SPEECH_TO_TEXT = 4,
 
-        SPEECH_PROMPT_TO_TEXT = 6;
+        SPEECH_PROMPT_TO_TEXT_OR_AUDIO = 6;
 }
 
 class AIModelFamily
@@ -62,7 +62,8 @@ class AIModelFamily
 
     // Speech Prompt to Text
     public const
-        OPENAI_SOUND = 10;
+        OPENAI_SOUND_PRO = 10,
+        OPENAI_SOUND = 13;
 }
 
 class AICurrency
