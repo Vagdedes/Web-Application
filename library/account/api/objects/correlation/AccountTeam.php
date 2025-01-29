@@ -268,7 +268,25 @@ class AccountTeam
                 }
             }
             return new MethodReply(false, "Team not found.");
-        } else if (is_string($reference)) {
+        } else if (is_numeric($reference)) {
+            $query = get_sql_query(
+                AccountVariables::TEAM_TABLE,
+                null,
+                array(
+                    array("id", $reference),
+                    array("additional_id", $this->additionalID),
+                    array("deletion_date", null)
+                ),
+                null,
+                1
+            );
+
+            if (empty($query)) {
+                return new MethodReply(false, "Team not found.");
+            } else {
+                return new MethodReply(true, null, $query[0]);
+            }
+        } else {
             $query = get_sql_query(
                 AccountVariables::TEAM_NAME_CHANGES,
                 array("team_id"),
@@ -299,24 +317,6 @@ class AccountTeam
             );
 
             if (empty($subQuery)) {
-                return new MethodReply(false, "Team not found.");
-            } else {
-                return new MethodReply(true, null, $query[0]);
-            }
-        } else {
-            $query = get_sql_query(
-                AccountVariables::TEAM_TABLE,
-                null,
-                array(
-                    array("id", $reference),
-                    array("additional_id", $this->additionalID),
-                    array("deletion_date", null)
-                ),
-                null,
-                1
-            );
-
-            if (empty($query)) {
                 return new MethodReply(false, "Team not found.");
             } else {
                 return new MethodReply(true, null, $query[0]);
