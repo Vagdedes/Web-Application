@@ -39,13 +39,13 @@ function convert_base64_ogg_to_base64_wav(string $base64): ?string
     }
     // 2.
     $oldFile = tempnam(sys_get_temp_dir(), 'ogg');
-    file_put_contents($oldFile, $oldData);
+    @file_put_contents($oldFile, $oldData);
     // 3.
     $newFile = tempnam(sys_get_temp_dir(), 'wav');
     // 4.
     shell_exec("ffmpeg -y -i " . escapeshellarg($oldFile) . " -acodec pcm_s16le -ac 2 -ar 44100 " . escapeshellarg($newFile));
     // 5.
-    $newData = file_get_contents($newFile);
+    $newData = @file_get_contents($newFile);
 
     if ($newData === false) {
         return null;
