@@ -3,6 +3,18 @@
 class AIHelper
 {
 
+    public static function isReasoningModel(int $modelFamily): bool
+    {
+        switch ($modelFamily) {
+            case AIModelFamily::OPENAI_O1:
+            case AIModelFamily::OPENAI_O1_MINI:
+            case AIModelFamily::OPENAI_O3_MINI:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public static function getTokens(string $reference, string|array $context, bool $model = false): int
     {
         if (is_array($context)) {
