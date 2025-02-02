@@ -59,7 +59,9 @@ class AccountTranslation
             );
 
             $managerAI = new AIManager(
-                AIModelFamily::CHAT_GPT_PRO,
+                $save && $expiration === null
+                    ? AITextCreationModelFamily::MOST_POWERFUL
+                    : AITextCreationModelFamily::BEST_PRICE_TO_PERFORMANCE,
                 AIHelper::getAuthorization(AIAuthorization::OPENAI),
                 $arguments
             );

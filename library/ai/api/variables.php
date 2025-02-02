@@ -88,6 +88,20 @@ class AIImageCreationModelFamily
         BEST_PRICE_TO_PERFORMANCE = AIModelFamily::DALL_E_3;
 }
 
+class AISoundReadingModelFamily
+{
+    public const
+        MOST_POWERFUL = AIModelFamily::OPENAI_SOUND_PRO,
+        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::OPENAI_SOUND;
+}
+
+class AISoundCreationModelFamily
+{
+    public const
+        MOST_POWERFUL = AIModelFamily::OPENAI_SOUND_PRO,
+        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::OPENAI_SOUND;
+}
+
 class AICurrency
 {
     public const USD = 1;
