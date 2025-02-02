@@ -43,25 +43,27 @@ class AccountTranslation
         );
 
         if ($force || empty($query)) {
+            $modelFamily = $save && $expiration === null
+                ? AITextCreationModelFamily::MOST_POWERFUL
+                : AITextCreationModelFamily::BEST_PRICE_TO_PERFORMANCE;
             $arguments = array(
-                array(
-                    "role" => "system",
-                    "content" => "Translate the text to '" . $language . "' and return only the result."
-                ),
-                array(
-                    "role" => "user",
-                    "content" => $text
+                "messages" => array(
+                    array(
+                        "role" => "system",
+                        "content" => "Translate the text to '" . $language . "' and return only the result."
+                    ),
+                    array(
+                        "role" => "user",
+                        "content" => $text
+                    )
                 )
             );
-            $arguments = array(
-                "messages" => $arguments,
-                "temperature" => 0.1,
-            );
 
+            if (!AIHelper::isReasoningModel($modelFamily)) {
+                $arguments["temperature"] = 0.1;
+            }
             $managerAI = new AIManager(
-                $save && $expiration === null
-                    ? AITextCreationModelFamily::MOST_POWERFUL
-                    : AITextCreationModelFamily::BEST_PRICE_TO_PERFORMANCE,
+                $modelFamily,
                 AIHelper::getAuthorization(AIAuthorization::OPENAI),
                 $arguments
             );
@@ -72,6 +74,13 @@ class AccountTranslation
             if (array_shift($outcome)) {
                 $after = $outcome[0]->getText($outcome[1]);
 
+                if ($after === null) {
+                    return new MethodReply(
+                        false,
+                        null,
+                        null
+                    );
+                }
                 if ($save) {
                     sql_insert(
                         AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
