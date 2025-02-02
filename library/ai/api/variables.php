@@ -39,7 +39,8 @@ class AIModelFamily
         CHAT_GPT = 1,
         CHAT_GPT_PRO = 2,
         OPENAI_O1 = 3,
-        OPENAI_O1_MINI = 4;
+        OPENAI_O1_MINI = 4,
+        OPENAI_O3_MINI = 14;
 
     // Text to Image
     public const
@@ -64,6 +65,27 @@ class AIModelFamily
     public const
         OPENAI_SOUND_PRO = 10,
         OPENAI_SOUND = 13;
+}
+
+class AITextCreationModelFamily
+{
+    public const
+        MOST_POWERFUL = AIModelFamily::OPENAI_O3_MINI,
+        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::OPENAI_O3_MINI;
+}
+
+class AIImageReadingModelFamily
+{
+    public const
+        MOST_POWERFUL = AIModelFamily::OPENAI_O1,
+        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::OPENAI_VISION_PRO;
+}
+
+class AIImageCreationModelFamily
+{
+    public const
+        MOST_POWERFUL = AIModelFamily::DALL_E_3,
+        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::DALL_E_3;
 }
 
 class AICurrency
