@@ -3,8 +3,11 @@
 class AIHelper
 {
 
-    public static function isReasoningModel(int $modelFamily): bool
+    public static function isReasoningModel(int|AIModel $modelFamily): bool
     {
+        if ($modelFamily instanceof AIModel) {
+            $modelFamily = $modelFamily->getFamilyID();
+        }
         switch ($modelFamily) {
             case AIModelFamily::OPENAI_O1:
             case AIModelFamily::OPENAI_O1_MINI:
