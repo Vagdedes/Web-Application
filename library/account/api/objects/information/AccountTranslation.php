@@ -13,6 +13,7 @@ class AccountTranslation
     }
 
     public function translate(
+        string  $defaultLanguage,
         string  $language,
         string  $text,
         ?string $expiration = null,
@@ -20,14 +21,24 @@ class AccountTranslation
         bool    $force = false,
         bool    $save = true): MethodReply
     {
-        $language = strtolower($language);
+        $defaultLanguage = strtolower(trim($defaultLanguage));
+        $language = strtolower(trim($language));
+
+        if ($defaultLanguage === $language) {
+            return new MethodReply(
+                false,
+                null,
+                null
+            );
+        }
+        $text = trim($text);
         $hash = array_to_integer(array($language, $text), true);
         $date = get_current_date();
         $query = get_sql_query(
             AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
             $details ? null : array("after"),
             array(
-                array("hash", $hash),
+                array("translation_hash", $hash),
                 array("language", $language),
                 array("deletion_date", null),
                 null,
@@ -59,7 +70,9 @@ class AccountTranslation
                 )
             );
 
-            if (!AIHelper::isReasoningModel($modelFamily)) {
+            if (AIHelper::isReasoningModel($modelFamily)) {
+                $arguments["reasoning_effort"] = "low";
+            } else {
                 $arguments["temperature"] = 0.1;
             }
             $managerAI = new AIManager(
@@ -85,7 +98,7 @@ class AccountTranslation
                     sql_insert(
                         AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
                         array(
-                            "hash" => $hash,
+                            "translation_hash" => $hash,
                             "language" => $language,
                             "actual" => $text,
                             "translation" => $after,
