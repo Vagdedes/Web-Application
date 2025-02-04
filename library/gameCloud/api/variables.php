@@ -5,8 +5,6 @@ class GameCloudVariables
     public const
         LICENSE_MANAGEMENT_TABLE = "gameCloud.managedLicenses",
         PUNISHED_PLAYERS_TABLE = "gameCloud.punishedPlayers",
-        CONFIGURATION_CHANGES_TABLE = "gameCloud.automaticConfigurationChanges",
-        DISABLED_DETECTIONS_TABLE = "gameCloud.disabledDetections",
         CONNECTION_COUNT_TABLE = "gameCloud.connectionCount",
         ACCEPTED_PURPOSES_TABLE = "gameCloud.acceptedPurposes",
         FAILED_DISCORD_WEBHOOKS_TABLE = "gameCloud.failedDiscordWebhooks",

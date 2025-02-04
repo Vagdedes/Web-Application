@@ -258,72 +258,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
 
     // Processing
     if ($action == "get") {
-        if ($data == "disabledDetections") {
-            $hasValue = is_numeric($value);
-            $query = get_sql_query(
-                GameCloudVariables::DISABLED_DETECTIONS_TABLE,
-                array("detections"),
-                array(
-                    array("deletion_date", null),
-                    $hasValue ? array("server_version", ">=", $value) : array("server_version", null),
-                    null,
-                    array("plugin_version", "IS", null, 0),
-                    array("plugin_version", $version),
-                    null,
-                    null,
-                    array("platform_id", "IS", null, 0),
-                    array("platform_id", $gameCloudUser->getPlatform()),
-                    null,
-                    null,
-                    array("license_id", "IS", null, 0),
-                    array("license_id", $gameCloudUser->getLicense()),
-                    null,
-                ),
-                null,
-                25
-            );
-            $result = "";
-
-            if (!empty($query)) {
-                $array = array();
-
-                foreach ($query as $row) {
-                    $blocks = explode(" ", $row->detections);
-
-                    foreach ($blocks as $block) {
-                        $detections = explode("|", $block);
-
-                        if (sizeof($detections) >= 2) {
-                            $check = $detections[0];
-                            unset($detections[0]);
-
-                            if (array_key_exists($check, $array)) {
-                                $storedDetections = $array[$check];
-
-                                foreach ($detections as $detection) {
-                                    if (!in_array($detection, $storedDetections)) {
-                                        $array[$check][] = $detection;
-                                    }
-                                }
-                            } else {
-                                $array[$check] = $detections;
-                            }
-                        }
-                    }
-                }
-                $result = implode(
-                    $line,
-                    array_map(
-                        function ($key, $value) {
-                            return $key . "|" . implode("|", $value);
-                        },
-                        array_keys($array),
-                        $array
-                    )
-                );
-                echo $result;
-            }
-        } else if ($data == "userIdentification") {
+        if ($data == "userIdentification") {
             $query = get_sql_query(
                 GameCloudVariables::CONNECTION_COUNT_TABLE,
                 array("license_id"),
@@ -341,36 +276,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
 
             if (!empty($query)) {
                 echo $query[0]->license_id;
-            }
-        } else if ($data == "automaticConfigurationChanges") {
-            $query = get_sql_query(
-                GameCloudVariables::CONFIGURATION_CHANGES_TABLE,
-                array("id", "file_name", "abstract_option", "value", "if_value"),
-                array(
-                    array("deletion_date", null),
-                    array("product_id", $productObject->id),
-                    null,
-                    array("version", "IS", null, 0),
-                    array("version", $version),
-                    null,
-                    null,
-                    array("license_id", "IS", null, 0),
-                    array("platform_id", $gameCloudUser->getPlatform()),
-                    array("license_id", $gameCloudUser->getLicense()),
-                    null,
-                ),
-                array(
-                    "DESC",
-                    "id"
-                ),
-                100
-            );
-
-            if (!empty($query)) {
-                foreach ($query as $row) {
-                    $ifValue = $row->if_value;
-                    echo $row->file_name . "|" . $row->abstract_option . ":" . $row->value . ($ifValue !== null ? ("|" . $ifValue) : "") . $line;
-                }
             }
         } else if ($data == "ownsProduct") {
             $value = is_numeric($value) ? $value : $productObject->id;
