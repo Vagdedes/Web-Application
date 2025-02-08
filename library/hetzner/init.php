@@ -23,3 +23,6 @@ require_once '/var/www/.structure/library/hetzner/api/variables.php';
 require_once '/var/www/.structure/library/hetzner/api/handlers/comparisons.php';
 require_once '/var/www/.structure/library/hetzner/api/handlers/actions.php';
 require_once '/var/www/.structure/library/hetzner/api/handlers/connection.php';
+
+// Tasks
+require_once '/var/www/.structure/library/hetzner/api/tasks/maintain.php';
