@@ -330,6 +330,24 @@ class AIModel
         }
     }
 
+    public function getRevisedPrompts(mixed $object): array
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::DALL_E_3:
+                $array = $object?->data;
+                $prompts = array();
+
+                if (!empty($array)) {
+                    foreach ($array as $item) {
+                        $prompts[] = $item->revised_prompt;
+                    }
+                }
+                return $prompts;
+            default:
+                return array();
+        }
+    }
+
     public function getCost(mixed $object): ?float
     {
         switch ($this->familyID) {
