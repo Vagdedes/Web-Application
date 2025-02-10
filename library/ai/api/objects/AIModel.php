@@ -320,6 +320,16 @@ class AIModel
         return $this->getSpeech($object); // Not implemented by third-party company yet
     }
 
+    public function getRevisedPrompt(mixed $object): ?string
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::DALL_E_3:
+                return ($object?->data[0] ?? null)?->revised_prompt;
+            default:
+                return null;
+        }
+    }
+
     public function getCost(mixed $object): ?float
     {
         switch ($this->familyID) {
