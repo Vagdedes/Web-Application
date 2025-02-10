@@ -38,7 +38,7 @@ class AIManager
                 if ($this->typeID === -1) {
                     $this->typeID = $row->type;
                 }
-                $model = new AIModel($row);
+                $model = new AIModel($this, $row);
 
                 if ($model->exists()) {
                     $this->models[$model->getContext()] = $model;

@@ -10,9 +10,12 @@ class AIModel
     private ?float $received_token_cost, $received_token_audio_cost, $sent_token_cost, $sent_token_audio_cost;
     private bool $exists;
     private array $pricing;
+    private ?AIManager $manager;
 
-    public function __construct(int|object $row)
+    public function __construct(?AIManager $manager, int|object $row)
     {
+        $this->manager = $manager;
+
         if (is_numeric($row)) {
             $query = get_sql_query(
                 AIDatabaseTable::AI_MODELS,
@@ -107,6 +110,13 @@ class AIModel
             $this->exists = false;
             $this->pricing = array();
         }
+    }
+
+    // Separator
+
+    public function getManager(): ?AIManager
+    {
+        return $this->manager;
     }
 
     public function exists(): bool
@@ -370,8 +380,13 @@ class AIModel
                     + (($object?->usage?->completion_tokens_details?->audio_tokens ?? 0.0) * ($this->received_token_audio_cost ?? 0.0));
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
-                if ($object instanceof AIManager
-                    && !empty($this->pricing)) {
+                if (!($object instanceof AIManager)) {
+                    if ($this->manager === null) {
+                        return null;
+                    }
+                    $object = $this->manager;
+                }
+                if (!empty($this->pricing)) {
                     $parameters = $object->getAllParameters();
 
                     if (!empty($parameters)) {
