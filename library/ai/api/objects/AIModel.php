@@ -21,7 +21,7 @@ class AIModel
                     array("family", $row),
                     array("deletion_date", null),
                 ),
-                "sent_token_cost, received_token_cost DESC, context ASC",
+                "sent_token_cost, sent_token_audio_cost, received_token_cost, received_token_audio_cost DESC, context ASC",
                 1
             );
 
