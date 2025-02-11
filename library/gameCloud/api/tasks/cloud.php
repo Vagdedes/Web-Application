@@ -2,11 +2,11 @@
 // Arguments
 
 require_once '/var/www/.structure/library/base/form.php';
-$action = get_form("action");
+$action = get_form("action", false);
 
 if (true && in_array($action, array("get", "add"))) { // Toggle database insertions
-    $version = get_form("version");
-    $data = get_form("data");
+    $version = get_form("version", false);
+    $data = get_form("data", false);
 
     if (empty($data)) {
         return;
@@ -63,7 +63,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     $allProductsAreAllowed = $purposeAllowedProducts === null;
 
     $gameCloudUser = new GameCloudUser(null, null);
-    $identification = get_form("identification");
+    $identification = get_form("identification", false);
 
     // Account Finder
     if (!empty($identification)) {
@@ -254,7 +254,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     if ($hasAccessFailure) {
         return;
     }
-    $value = properly_sql_encode(get_form("value"), true);
+    $value = properly_sql_encode(get_form("value", false), true);
 
     // Processing
     if ($action == "get") {

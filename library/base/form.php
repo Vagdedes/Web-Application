@@ -1,7 +1,7 @@
 <?php
-function get_form(int|string $str): mixed
+function get_form(int|string $str, bool $null = true): mixed
 {
-    return $_POST[$str] ?? ($_GET[$str] ?? "");
+    return $_POST[$str] ?? ($_GET[$str] ?? ($null ? null : ""));
 }
 
 function get_form_post(int|string $str): mixed
