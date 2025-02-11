@@ -1733,10 +1733,10 @@ class AccountTeam
         );
     }
 
-    public function getPermissionDefinition(int $id): ?object
+    public function getPermissionDefinition(int|string $id): ?object
     {
         $where = array(
-            array("id", $id),
+            is_numeric($id) ? array("id", $id) : array("name", $id),
             array("deletion_date", null)
         );
 
