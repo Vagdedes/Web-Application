@@ -28,6 +28,7 @@ class AccountTeam
         PERMISSION_CHANGE_TEAM_ROLE_DESCRIPTIONS = 17,
 
         // Permissions
+        PERMISSION_ADJUST_TEAM_PERMISSIONS = 34,
         PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS = 14,
         PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS = 15,
 
@@ -452,7 +453,7 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_NAME)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team title.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -485,7 +486,7 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_DESCRIPTION)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team description.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -523,7 +524,7 @@ class AccountTeam
         if ($memberCount === 1) {
             return $this->deleteTeam();
         } else {
-            $memberID = $this->getMember($this->account)?->id;
+            $memberID = $this->getMember()?->id;
 
             if ($memberID === null) {
                 return new MethodReply(false, "Member not found.");
@@ -605,7 +606,7 @@ class AccountTeam
         if ($rookie === null) {
             return new MethodReply(false, "Rookie not found.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -650,7 +651,7 @@ class AccountTeam
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You cannot remove yourself from a team.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -964,7 +965,7 @@ class AccountTeam
         if ($position >= $max_32bit_Integer) {
             return new MethodReply(false, "Cannot change the position to the highest possible level.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1042,7 +1043,7 @@ class AccountTeam
         if ($this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "Cannot change a role's name with the same or higher position.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1095,7 +1096,7 @@ class AccountTeam
         if ($this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "Cannot change a role's name with the same or higher position.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1152,7 +1153,7 @@ class AccountTeam
         } else {
             $rookie = $this->getRolePosition($rookie);
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1212,7 +1213,7 @@ class AccountTeam
         if ($this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "Cannot delete a role with the same or higher position.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1351,7 +1352,7 @@ class AccountTeam
         if (!$otherResult->isPositiveOutcome()) {
             return new MethodReply(false, "");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1553,7 +1554,7 @@ class AccountTeam
         if ($this->getRolePermission($role, $permissionDef)->isPositiveOutcome()) {
             return new MethodReply(false, "Permission already given.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1604,7 +1605,7 @@ class AccountTeam
         if (!$permissionResult->isPositiveOutcome()) {
             return new MethodReply(false, "Permission not given.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1688,7 +1689,7 @@ class AccountTeam
         if ($userPosition <= $position) {
             return new MethodReply(false, "Cannot change the position of a role to the your position or a higher position.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1787,7 +1788,7 @@ class AccountTeam
         if ($this->getPosition() <= $this->getPosition($account)) {
             return new MethodReply(false, "Cannot add permission to someone with the same or higher position.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -1852,7 +1853,7 @@ class AccountTeam
         if ($object === null) {
             return new MethodReply(false, "Permission object not found.");
         }
-        $selfMemberID = $this->getMember($this->account)?->id;
+        $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
@@ -2041,6 +2042,179 @@ class AccountTeam
                                 $new[$value->permission_id] = $value;
                             }
                         }
+                    }
+                }
+            }
+            return $new;
+        }
+    }
+
+    // Separator
+
+    public function addTeamPermission(int $permissionID, ?string $reason = null): MethodReply
+    {
+        $result = $this->findTeam();
+
+        if (!$result->isPositiveOutcome()) {
+            return $result;
+        }
+        $team = $result->getObject()->id;
+        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
+
+        if ($permissionDef === null) {
+            return new MethodReply(false, "Permission not found.");
+        }
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to add default team permissions.");
+        }
+        $memberID = $this->getMember()?->id;
+
+        if ($memberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
+        if ($this->getTeamPermission($permissionDef)->isPositiveOutcome()) {
+            return new MethodReply(false, "Permission already given.");
+        }
+        if (sql_insert(
+            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            array(
+                "team_id" => $team,
+                "permission_id" => $permissionDef,
+                "creation_date" => get_current_date(),
+                "created_by" => $memberID,
+                "creation_reason" => $reason
+            ))) {
+            return new MethodReply(true, "Permission added.");
+        } else {
+            return new MethodReply(false, "Failed to add permission.");
+        }
+    }
+
+    public function removeTeamPermission(int $permissionID, ?string $reason = null): MethodReply
+    {
+        $result = $this->findTeam();
+
+        if (!$result->isPositiveOutcome()) {
+            return $result;
+        }
+        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
+
+        if ($permissionDef === null) {
+            return new MethodReply(false, "Permission not found.");
+        }
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to remove default team permissions.");
+        }
+        $permissionResult = $this->getTeamPermission($permissionDef);
+
+        if (!$permissionResult->isPositiveOutcome()) {
+            return new MethodReply(false, "Permission not given.");
+        }
+        $object = $permissionResult->getObject();
+
+        if ($object === null) {
+            return new MethodReply(false, "Permission object not found.");
+        }
+        $memberID = $this->getMember()?->id;
+
+        if ($memberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
+        if (set_sql_query(
+            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            array(
+                "deletion_date" => get_current_date(),
+                "deleted_by" => $memberID,
+                "deletion_reason" => $reason
+            ),
+            array(
+                array("id", $object->id),
+            ),
+            null,
+            1
+        )) {
+            return new MethodReply(true, "Permission removed.");
+        } else {
+            return new MethodReply(false, "Failed to remove permission.");
+        }
+    }
+
+    public function getTeamPermission(int $permissionID): MethodReply
+    {
+        $result = $this->findTeam();
+
+        if (!$result->isPositiveOutcome()) {
+            return $result;
+        }
+        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
+
+        if ($permissionDef === null) {
+            return new MethodReply(false, "Permission not found.");
+        }
+        $query = get_sql_query(
+            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            null,
+            array(
+                array("team_id", $result->getObject()->id),
+                array("permission_id", $permissionDef),
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
+        );
+
+        if (empty($query)) {
+            return new MethodReply(false, "Permission not given.");
+        } else {
+            $query = $query[0];
+            return $query->deletion_date === null
+                ? new MethodReply(true, "Permission given.", $query)
+                : new MethodReply(false, "Permission given and removed.");
+        }
+    }
+
+    public function getTeamPermissions(): array
+    {
+        $result = $this->findTeam();
+
+        if (!$result->isPositiveOutcome()) {
+            return array();
+        }
+        $query = get_sql_query(
+            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            null,
+            array(
+                array("team_id", $result->getObject()?->id),
+            ),
+            array(
+                "DESC",
+                "id"
+            )
+        );
+
+        if (empty($query)) {
+            return array();
+        } else {
+            $new = array();
+
+            foreach ($query as $value) {
+                if (!array_key_exists($value->permission_id, $new)) {
+                    $new[$value->permission_id] = $value;
+                }
+            }
+            foreach ($new as $key => $value) {
+                if ($value->deletion_date !== null) {
+                    unset($new[$key]);
+                } else {
+                    $definition = $this->getPermissionDefinition($value->permission_id);
+
+                    if ($definition === null) {
+                        unset($new[$key]);
+                    } else {
+                        $value->definition = $definition;
+                        $new[$key] = $value;
                     }
                 }
             }

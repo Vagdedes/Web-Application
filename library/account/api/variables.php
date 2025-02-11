@@ -15,6 +15,7 @@ class AccountVariables
         TEAM_MEMBERS_TABLE = "team.members",
         TEAM_TABLE = "team.teams",
         TEAM_OWNERS_TABLE = "team.owners",
+        TEAM_PERMISSIONS_TABLE = "team.teamPermissions",
         TEAM_MEMBER_PERMISSIONS_TABLE = "team.memberPermissions",
         TEAM_PERMISSION_DEFINITIONS_TABLE = "team.permissionDefinitions",
         TEAM_NAME_CHANGES = "team.nameChanges",
