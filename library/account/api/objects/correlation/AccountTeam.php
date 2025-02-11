@@ -1023,7 +1023,7 @@ class AccountTeam
 
     // Separator
 
-    public function updateRoleTitle(string|object $role, string $name, ?string $reason = null): MethodReply
+    public function updateRoleTitle(string|int|object $role, string $name, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
 
@@ -1033,7 +1033,7 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_ROLE_NAMES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team names.");
         }
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1076,7 +1076,7 @@ class AccountTeam
         }
     }
 
-    public function updateRoleDescription(string|object $role, string $description, ?string $reason = null): MethodReply
+    public function updateRoleDescription(string|int|object $role, string $description, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
 
@@ -1086,7 +1086,7 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_ROLE_DESCRIPTIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team names.");
         }
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1193,7 +1193,7 @@ class AccountTeam
         }
     }
 
-    public function deleteRole(string|object $role, ?string $reason = null): MethodReply
+    public function deleteRole(string|int|object $role, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
 
@@ -1203,7 +1203,7 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to delete team roles.");
         }
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1333,7 +1333,7 @@ class AccountTeam
         );
     }
 
-    public function setRole(Account $account, string|object $role, bool $trueFalse, ?string $reason = null): MethodReply
+    public function setRole(Account $account, string|int|object $role, bool $trueFalse, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
 
@@ -1362,7 +1362,7 @@ class AccountTeam
         if ($memberID === null) {
             return new MethodReply(false, "Member not found.");
         }
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1440,9 +1440,9 @@ class AccountTeam
         }
     }
 
-    public function getRolePermission(string|object $role, int $permissionID): MethodReply
+    public function getRolePermission(string|int|object $role, int $permissionID): MethodReply
     {
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1478,9 +1478,9 @@ class AccountTeam
         }
     }
 
-    public function getRolePermissions(string|object $role): array
+    public function getRolePermissions(string|int|object $role): array
     {
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1526,14 +1526,14 @@ class AccountTeam
         }
     }
 
-    public function addRolePermission(string|object $role, int $permissionID, ?string $reason = null): MethodReply
+    public function addRolePermission(string|int|object $role, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
 
         if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1575,14 +1575,14 @@ class AccountTeam
         }
     }
 
-    public function removeRolePermission(string|object $role, int $permissionID, ?string $reason = null): MethodReply
+    public function removeRolePermission(string|int|object $role, int $permissionID, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
 
         if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1629,7 +1629,7 @@ class AccountTeam
         }
     }
 
-    public function getRolePosition(string|object $role): int
+    public function getRolePosition(string|int|object $role): int
     {
         $result = $this->findTeam();
 
@@ -1637,7 +1637,7 @@ class AccountTeam
             global $min_32bit_Integer;
             return $min_32bit_Integer;
         }
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1664,14 +1664,14 @@ class AccountTeam
         return $query[0]->position;
     }
 
-    public function adjustRolePosition(string|object $role, int $position, ?string $reason = null): MethodReply
+    public function adjustRolePosition(string|int|object $role, int $position, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
 
         if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        if (is_string($role)) {
+        if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1798,7 +1798,7 @@ class AccountTeam
         if ($memberID === null) {
             return new MethodReply(false, "Member not found.");
         }
-        if ($this->getMemberPermission($account, $permissionDef)->isPositiveOutcome()) {
+        if ($this->getMemberPermission($account, $permissionDef, false, false)->isPositiveOutcome()) {
             return new MethodReply(false, "Permission already given.");
         }
         if (sql_insert(
@@ -1843,7 +1843,7 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove others permissions.");
         }
-        $permissionResult = $this->getMemberPermission($account, $permissionDef);
+        $permissionResult = $this->getMemberPermission($account, $permissionDef, false, false);
 
         if (!$permissionResult->isPositiveOutcome()) {
             return new MethodReply(false, "Permission not given.");
@@ -1877,7 +1877,12 @@ class AccountTeam
         }
     }
 
-    public function getMemberPermission(?Account $account, int $permissionID): MethodReply
+    public function getMemberPermission(
+        ?Account $account,
+        int      $permissionID,
+        bool     $checkTeam = true,
+        bool     $checkRoles = true
+    ): MethodReply
     {
         if ($account === null) {
             $account = $this->account;
@@ -1894,6 +1899,22 @@ class AccountTeam
         }
         if ($owner->account->getDetail("id") === $account->getDetail("id")) {
             return new MethodReply(true, "Owner has all permissions.");
+        }
+        if ($checkTeam && $this->getTeamPermission($permissionID)->isPositiveOutcome()) {
+            return new MethodReply(true, "Permission given to all members.");
+        }
+        if ($checkRoles) {
+            $roles = $this->getMemberRoles($account);
+
+            if (!empty($roles)) {
+                foreach ($roles as $role) {
+                    $rolePermission = $this->getRolePermission($role, $permissionID);
+
+                    if ($rolePermission->isPositiveOutcome()) {
+                        return new MethodReply(true, "Permission given to one of user's roles.");
+                    }
+                }
+            }
         }
         $memberID = $this->getMember($account)?->id;
 
@@ -1988,29 +2009,9 @@ class AccountTeam
                 "id"
             )
         );
-        if (empty($query)) {
-            $roles = $this->getMemberRoles($account);
+        $new = array();
 
-            if (!empty($roles)) {
-                $new = array();
-
-                foreach ($roles as $role) {
-                    $rolePermissions = $this->getRolePermissions($role);
-
-                    if (!empty($rolePermissions)) {
-                        foreach ($rolePermissions as $value) {
-                            if (!array_key_exists($value->permission_id, $new)) {
-                                $new[$value->permission_id] = $value;
-                            }
-                        }
-                    }
-                }
-                return $new;
-            }
-            return array();
-        } else {
-            $new = array();
-
+        if (!empty($query)) {
             foreach ($query as $value) {
                 if (!array_key_exists($value->permission_id, $new)) {
                     $new[$value->permission_id] = $value;
@@ -2030,23 +2031,32 @@ class AccountTeam
                     }
                 }
             }
-            $roles = $this->getMemberRoles($account);
+        }
+        $teamPermissions = $this->getTeamPermissions();
 
-            if (!empty($roles)) {
-                foreach ($roles as $role) {
-                    $rolePermissions = $this->getRolePermissions($role);
+        if (!empty($teamPermissions)) {
+            foreach ($teamPermissions as $value) {
+                if (!array_key_exists($value->permission_id, $new)) {
+                    $new[$value->permission_id] = $value;
+                }
+            }
+        }
+        $roles = $this->getMemberRoles($account);
 
-                    if (!empty($rolePermissions)) {
-                        foreach ($rolePermissions as $value) {
-                            if (!array_key_exists($value->permission_id, $new)) {
-                                $new[$value->permission_id] = $value;
-                            }
+        if (!empty($roles)) {
+            foreach ($roles as $role) {
+                $rolePermissions = $this->getRolePermissions($role);
+
+                if (!empty($rolePermissions)) {
+                    foreach ($rolePermissions as $value) {
+                        if (!array_key_exists($value->permission_id, $new)) {
+                            $new[$value->permission_id] = $value;
                         }
                     }
                 }
             }
-            return $new;
         }
+        return $new;
     }
 
     // Separator
