@@ -877,7 +877,7 @@ class AccountTeam
             return $max_32bit_Integer;
         }
         $query = get_sql_query(
-            AccountVariables::TEAM_POSITIONS_TABLE,
+            AccountVariables::TEAM_MEMBER_POSITIONS_TABLE,
             array("position"),
             array(
                 array("team_id", $result->getObject()->id),
@@ -975,7 +975,7 @@ class AccountTeam
             return new MethodReply(false, "Member not found.");
         }
         if (sql_insert(
-            AccountVariables::TEAM_POSITIONS_TABLE,
+            AccountVariables::TEAM_MEMBER_POSITIONS_TABLE,
             array(
                 "team_id" => $team,
                 "member_id" => $memberID,
@@ -1801,7 +1801,7 @@ class AccountTeam
             return new MethodReply(false, "Permission already given.");
         }
         if (sql_insert(
-            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            AccountVariables::TEAM_MEMBER_PERMISSIONS_TABLE,
             array(
                 "team_id" => $team,
                 "member_id" => $memberID,
@@ -1858,7 +1858,7 @@ class AccountTeam
             return new MethodReply(false, "Executor member not found.");
         }
         if (set_sql_query(
-            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            AccountVariables::TEAM_MEMBER_PERMISSIONS_TABLE,
             array(
                 "deletion_date" => get_current_date(),
                 "deleted_by" => $selfMemberID,
@@ -1905,7 +1905,7 @@ class AccountTeam
             return new MethodReply(false, "Permission not found.");
         }
         $query = get_sql_query(
-            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            AccountVariables::TEAM_MEMBER_PERMISSIONS_TABLE,
             null,
             array(
                 array("team_id", $result->getObject()->id),
@@ -1976,7 +1976,7 @@ class AccountTeam
             return $array;
         }
         $query = get_sql_query(
-            AccountVariables::TEAM_PERMISSIONS_TABLE,
+            AccountVariables::TEAM_MEMBER_PERMISSIONS_TABLE,
             null,
             array(
                 array("team_id", $team),
