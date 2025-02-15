@@ -394,14 +394,10 @@ class AIModel
                             $price = null;
 
                             foreach ($family as $row) {
-                                foreach ($parameters as $key => $value) {
-                                    if ($row->parameter_name == $key
-                                        && $row->parameter_match == $value) {
-                                        $price = $row->price;
-                                    } else {
-                                        $price = null;
-                                        continue 2;
-                                    }
+                                if (($parameters[$row->parameter_name] ?? null) == $row->parameter_match) {
+                                    $price = $row->price;
+                                } else {
+                                    continue 2;
                                 }
                             }
 
