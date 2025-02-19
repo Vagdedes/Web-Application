@@ -3,12 +3,15 @@
 class AIField
 {
     public const
-        INTEGER = array("type" => 1, "name" => "32-bit integer (nullable)"),
-        STRING = array("type" => 2, "name" => "string (nullable)"),
-        DECIMAL = array("type" => 3, "name" => "64-bit double (nullable)"),
-        BOOLEAN = array("type" => 4, "name" => "boolean (nullable)"),
-        ARRAY = array("type" => 5, "name" => "raw JSON format (nullable)"),
-        OBJECT = array("type" => 6, "name" => "raw JSON format (nullable)");
+        INTEGER = "INTEGER",
+        INTEGER_INTEGER = "INTEGER ARRAY",
+        STRING = "STRING",
+        STRING_ARRAY = "STRING ARRAY",
+        DECIMAL = "DOUBLE-PRECISION FLOATING-POINT",
+        DECIMAL_ARRAY = "DOUBLE-PRECISION FLOATING-POINT ARRAY",
+        BOOLEAN = "BOOLEAN",
+        BOOLEAN_ARRAY = "BOOLEAN ARRAY",
+        ABSTRACT_ARRAY = "ARRAY";
 }
 
 class AIParameterType
