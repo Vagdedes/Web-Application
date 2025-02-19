@@ -4,6 +4,7 @@ class AccountTranslation
 {
 
     private const AI_HASH = 532598406;
+    public const AUTO_DETECT = "auto-detect";
 
     private Account $account;
 

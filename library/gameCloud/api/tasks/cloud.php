@@ -387,10 +387,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                         && is_numeric($coordinateZ)
                         && !empty($information)) {
                         $details = array(
-                            array("name" => "Player",
-                                "value" => "``$player``",
-                                "inline" => true),
-                            array("name" => "UUID",
+                            array("name" => $player,
                                 "value" => "``$uuid``",
                                 "inline" => true),
                             array("name" => "X, Y, Z",
