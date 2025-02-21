@@ -1,36 +1,29 @@
 <?php
 
-class AIFieldObject {
+class AIFieldObject
+{
 
     private string $type;
-    private ?int $byteSize;
     private ?int $length;
     private bool $isNullable;
-    private bool $failIfNotFound;
+    private bool $canFail;
 
     public function __construct(
         string $type,
-        ?int $byteSize,
-        ?int $length,
-        bool $isNullable,
-        bool $failIfNotFound
+        ?int   $length,
+        bool   $isNullable,
+        bool   $canFail
     )
     {
         $this->type = $type;
-        $this->byteSize = $byteSize;
         $this->length = $length;
         $this->isNullable = $isNullable;
-        $this->failIfNotFound = $failIfNotFound;
+        $this->canFail = $canFail;
     }
 
     public function getType(): string
     {
         return $this->type;
-    }
-
-    public function getByteSize(): ?int
-    {
-        return $this->byteSize;
     }
 
     public function getLength(): ?int
@@ -43,9 +36,9 @@ class AIFieldObject {
         return $this->isNullable;
     }
 
-    public function failIfNotFound(): bool
+    public function canFail(): bool
     {
-        return $this->failIfNotFound;
+        return $this->canFail;
     }
 
 }

@@ -4,7 +4,7 @@ class AIField
 {
     public const
         INTEGER = "INTEGER",
-        INTEGER_INTEGER = "INTEGER ARRAY",
+        INTEGER_ARRAY = "INTEGER ARRAY",
         STRING = "STRING",
         STRING_ARRAY = "STRING ARRAY",
         DECIMAL = "DOUBLE-PRECISION FLOATING-POINT",
