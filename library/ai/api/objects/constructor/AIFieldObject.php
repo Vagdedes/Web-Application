@@ -4,21 +4,26 @@ class AIFieldObject
 {
 
     private string $type;
-    private ?int $length;
+    private ?int $maxLength;
     private bool $isNullable;
     private bool $canFail;
+    private string $definition;
+    private array $parents;
 
     public function __construct(
         string $type,
-        ?int   $length,
+        ?int   $maxLength,
         bool   $isNullable,
-        bool   $canFail
+        bool   $canFail,
+        string $definition,
     )
     {
         $this->type = $type;
-        $this->length = $length;
+        $this->maxLength = $maxLength;
         $this->isNullable = $isNullable;
         $this->canFail = $canFail;
+        $this->definition = $definition;
+        $this->parents = [];
     }
 
     public function getType(): string
@@ -26,9 +31,9 @@ class AIFieldObject
         return $this->type;
     }
 
-    public function getLength(): ?int
+    public function getMaxLength(): int|string
     {
-        return $this->length;
+        return $this->maxLength ?? "Infinity";
     }
 
     public function isNullable(): bool
@@ -39,6 +44,28 @@ class AIFieldObject
     public function canFail(): bool
     {
         return $this->canFail;
+    }
+
+    public function getDefinition(): string
+    {
+        return $this->definition;
+    }
+
+    public function getParents(): array
+    {
+        return $this->parents;
+    }
+
+    public function addParent(string $parent): void
+    {
+        $this->parents[] = $parent;
+    }
+
+    public function addParents(array $parents): void
+    {
+        foreach ($parents as $parent) {
+            $this->addParent($parent);
+        }
     }
 
 }
