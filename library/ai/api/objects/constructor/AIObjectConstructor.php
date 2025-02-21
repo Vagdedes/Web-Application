@@ -28,12 +28,18 @@ class AIObjectConstructor
         return @json_encode($object) ?? null;
     }
 
-    public function get(string $information, ?array $initiators = null): ?object
+    public function get(string|array|object $information, ?array $initiators = null): ?object
     {
         if ($initiators === null) {
             $initiators = $this->initiators;
         }
-        $object = @json_decode($information, false);
+        if (is_string($information)) {
+            $object = @json_decode($information, false);
+        } else if (is_array($information)) {
+            $object = json_decode(json_encode($information), false);
+        } else {
+            $object = $information;
+        }
 
         if (is_object($object)) {
             foreach ($initiators as $key => $initiator) {
