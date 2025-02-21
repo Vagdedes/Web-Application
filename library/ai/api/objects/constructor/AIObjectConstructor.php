@@ -30,9 +30,13 @@ class AIObjectConstructor
 
     public function get(string|array|object $information, ?array $initiators = null): ?object
     {
+        $array = array();
+
         if ($initiators === null) {
             $initiators = $this->initiators;
         }
+        $this->findInitiators($array, $initiators);
+
         if (is_string($information)) {
             $object = @json_decode($information, false);
         } else if (is_array($information)) {
@@ -42,7 +46,7 @@ class AIObjectConstructor
         }
 
         if (is_object($object)) {
-            foreach ($initiators as $key => $initiator) {
+            foreach ($array as $key => $initiator) {
                 if ($initiator instanceof AIFieldObject) {
                     if (sizeof($initiator->getParents()) > 0) {
                         $value = null;
@@ -102,17 +106,22 @@ class AIObjectConstructor
                         default:
                             return null;
                     }
-                } else if (is_array($initiator)) {
-                    $object = $this->get($information, $initiator);
-
-                    if ($object === null) {
-                        return null;
-                    }
                 }
             }
             return $object;
         }
         return null;
+    }
+
+    private function findInitiators(array &$array, array $initiators): void
+    {
+        foreach ($initiators as $initiator) {
+            if ($initiator instanceof AIFieldObject) {
+                $array[] = $initiator;
+            } else if (is_array($initiator)) {
+                $this->findInitiators($array, $initiator);
+            }
+        }
     }
 
     private function prepare(array &$initiators, ?string $originalKey = null, bool $first = true): object
