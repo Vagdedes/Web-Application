@@ -28,14 +28,10 @@ class AIObjectConstructor
         return @json_encode($object) ?? null;
     }
 
-    public function get(string|array|object $information, ?array $initiators = null): ?object
+    public function get(string|array|object $information, bool $strict = true): ?object
     {
         $array = array();
-
-        if ($initiators === null) {
-            $initiators = $this->initiators;
-        }
-        $this->findInitiators($array, $initiators);
+        $this->findInitiators($array, $this->initiators);
 
         if (is_string($information)) {
             $object = @json_decode($information, false);
@@ -46,61 +42,100 @@ class AIObjectConstructor
         }
 
         if (is_object($object)) {
-            foreach ($array as $key => $initiator) {
+            foreach ($array as $initiator) {
                 if ($initiator instanceof AIFieldObject) {
-                    if (sizeof($initiator->getParents()) > 0) {
-                        $value = null;
+                    $parents = $initiator->getParents();
+                    $parent = array_shift($parents);
+                    $oldObject = null;
 
-                        foreach ($initiator->getParents() as $parent) {
-                            if ($value === null) {
-                                $value = $object->{$parent} ?? null;
-                            } else {
+                    if (isset($object->{$parent})) {
+                        $oldObject = $object;
+                        $value = $object->{$parent};
+
+                        if (!empty($parents)) {
+                            foreach ($parents as $parent) {
+                                $oldObject = $value;
                                 $value = $value->{$parent} ?? null;
-
-                                if ($value === null) {
-                                    return null;
-                                }
                             }
                         }
                     } else {
-                        $value = $object->{$key} ?? null;
+                        $value = null;
                     }
 
-                    if ($object === null) {
-                        if (!$initiator->isNullable()) {
-                            return null;
+                    if ($value === null
+                        || is_string($value) && strlen($value) === 0) {
+                        if ($initiator->isNullable()) {
+                            $oldObject->{$parent} = null;
+                            continue;
                         } else {
-                            $value->{$key} = null;
+                            return null;
                         }
                     }
+
                     switch ($initiator->getType()) {
                         case AIField::INTEGER;
                         case AIField::DECIMAL;
                             if (!is_numeric($value)
-                                || strlen($value) > $initiator->getMaxLength()) {
-                                return null;
+                                && !is_float($value)
+                                && !is_int($value)) {
+                                if ($strict || !$initiator->isNullable()) {
+                                    return null;
+                                } else {
+                                    $oldObject->{$parent} = null;
+                                }
+                            }
+                            if ($strict) {
+                                if (strlen($value) > $initiator->getMaxLength()) {
+                                    return null;
+                                }
+                            } else if (strlen($value) > $initiator->getMaxLength()) {
+                                $oldObject->{$parent} = substr($value, 0, $initiator->getMaxLength());
                             }
                             break;
                         case AIField::STRING;
-                            if (!is_string($value)
-                                || strlen($value) > $initiator->getMaxLength()) {
-                                return null;
+                            if (!is_string($value)) {
+                                if ($strict || !$initiator->isNullable()) {
+                                    return null;
+                                } else {
+                                    $oldObject->{$parent} = null;
+                                }
+                            }
+                            if ($strict) {
+                                if (strlen($value) > $initiator->getMaxLength()) {
+                                    return null;
+                                }
+                            } else if (strlen($value) > $initiator->getMaxLength()) {
+                                $oldObject->{$parent} = substr($value, 0, $initiator->getMaxLength());
                             }
                             break;
                         case AIField::BOOLEAN;
-                            if (!is_bool($value)
-                                || strlen($value) > $initiator->getMaxLength()) {
+                            $value = strtolower($value);
+
+                            if ($strict
+                                && ($value !== "true"
+                                    && $value !== "false")) {
                                 return null;
                             }
+                            $oldObject->{$parent} = $value === "true";
                             break;
                         case AIField::INTEGER_ARRAY;
                         case AIField::DECIMAL_ARRAY;
                         case AIField::STRING_ARRAY;
                         case AIField::BOOLEAN_ARRAY;
                         case AIField::ABSTRACT_ARRAY;
-                            if (!is_array($value)
-                                || sizeof($value) > $initiator->getMaxLength()) {
-                                return null;
+                            if (!is_array($value)) {
+                                if ($strict || !$initiator->isNullable()) {
+                                    return null;
+                                } else {
+                                    $oldObject->{$parent} = null;
+                                }
+                            }
+                            if ($strict) {
+                                if (sizeof($value) > $initiator->getMaxLength()) {
+                                    return null;
+                                }
+                            } else if (sizeof($value) > $initiator->getMaxLength()) {
+                                $oldObject->{$parent} = array_slice($value, 0, $initiator->getMaxLength());
                             }
                             break;
                         default:
