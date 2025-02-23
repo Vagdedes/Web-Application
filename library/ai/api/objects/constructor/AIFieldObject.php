@@ -6,7 +6,6 @@ class AIFieldObject
     private string $type;
     private ?int $maxLength;
     private bool $isNullable;
-    private bool $canFail;
     private string $definition;
     private array $parents;
 
@@ -14,14 +13,12 @@ class AIFieldObject
         string $type,
         ?int   $maxLength,
         bool   $isNullable,
-        bool   $canFail,
         string $definition,
     )
     {
         $this->type = $type;
         $this->maxLength = $maxLength;
         $this->isNullable = $isNullable;
-        $this->canFail = $canFail;
         $this->definition = $definition;
         $this->parents = [];
     }
@@ -39,11 +36,6 @@ class AIFieldObject
     public function isNullable(): bool
     {
         return $this->isNullable;
-    }
-
-    public function canFail(): bool
-    {
-        return $this->canFail;
     }
 
     public function getDefinition(): string

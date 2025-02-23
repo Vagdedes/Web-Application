@@ -24,7 +24,6 @@ class AIObjectConstructor
         $object = new stdClass();
         $object->tasks = $this->tasks;
         $object->object = $this->prepare($this->initiators);
-        $object->return_if_criteria_not_met = "{}";
         return @json_encode($object) ?? null;
     }
 
@@ -175,7 +174,6 @@ class AIObjectConstructor
                     $subObject->type = $initiator->getType();
                     $subObject->max_length = $initiator->getMaxLength();
                     $subObject->is_nullable = $initiator->isNullable();
-                    $subObject->fail_if_criteria_not_met = $initiator->canFail();
                     $subObject->definition = $initiator->getDefinition();
                     $object->{$key} = $subObject;
                 } else if (is_array($initiator)) {
