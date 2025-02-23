@@ -13,7 +13,7 @@ class AIObjectConstructor
         $this->initiators = $initiators;
 
         if (empty($tasks)) {
-            $tasks[] = "Find the object and return it without markdown";
+            $tasks[] = "Find the object and return it in JSON format without markdown";
         }
         $this->tasks = $tasks;
         $this->parents = array();
