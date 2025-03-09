@@ -70,41 +70,6 @@ class AIModelFamily
         OPENAI_SOUND = 13;
 }
 
-class AITextCreationModelFamily
-{
-    public const
-        MOST_POWERFUL = AIModelFamily::OPENAI_O3_MINI,
-        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::OPENAI_O3_MINI;
-}
-
-class AIImageReadingModelFamily
-{
-    public const
-        MOST_POWERFUL = AIModelFamily::OPENAI_O1,
-        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::OPENAI_VISION_PRO;
-}
-
-class AIImageCreationModelFamily
-{
-    public const
-        MOST_POWERFUL = AIModelFamily::DALL_E_3,
-        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::DALL_E_3;
-}
-
-class AISoundReadingModelFamily
-{
-    public const
-        MOST_POWERFUL = AIModelFamily::OPENAI_SOUND_PRO,
-        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::OPENAI_SOUND;
-}
-
-class AISoundCreationModelFamily
-{
-    public const
-        MOST_POWERFUL = AIModelFamily::OPENAI_SOUND_PRO,
-        BEST_PRICE_TO_PERFORMANCE = AIModelFamily::OPENAI_SOUND;
-}
-
 class AICurrency
 {
     public const USD = 1;

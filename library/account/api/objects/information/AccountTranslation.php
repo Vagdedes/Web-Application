@@ -56,8 +56,8 @@ class AccountTranslation
 
         if ($force || empty($query)) {
             $modelFamily = $save && $expiration === null
-                ? AITextCreationModelFamily::MOST_POWERFUL
-                : AITextCreationModelFamily::BEST_PRICE_TO_PERFORMANCE;
+                ? AIModelFamily::OPENAI_O3_MINI
+                : AIModelFamily::CHAT_GPT;
             $arguments = array(
                 "messages" => array(
                     array(
