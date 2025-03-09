@@ -1237,6 +1237,35 @@ class AccountTeam
         }
     }
 
+    public function getRoleMembers(): array
+    {
+        $result = $this->findTeam();
+
+        if (!$result->isPositiveOutcome()) {
+            return array();
+        }
+        $query = get_sql_query(
+            AccountVariables::TEAM_ROLE_MEMBERS_TABLE,
+            array("account_id"),
+            array(
+                array("team_id", $result->getObject()->id),
+                array("deletion_date", null)
+            )
+        );
+
+        if (!empty($query)) {
+            $array = array();
+
+            foreach ($query as $row) {
+                if (!in_array($row->account_id, $array)) {
+                    $array[] = $row->account_id;
+                }
+            }
+            return $array;
+        }
+        return array();
+    }
+
     public function getMemberRoles(?Account $account = null): array
     {
         if ($account === null) {
