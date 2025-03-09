@@ -3,12 +3,16 @@
 class HetznerServerLocation
 {
 
-    public string $name, $networkZone;
+    private string $name;
 
-    public function __construct(string $name, string $networkZone)
+    public function __construct(string $name)
     {
         $this->name = $name;
-        $this->networkZone = $networkZone;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
     }
 
 }

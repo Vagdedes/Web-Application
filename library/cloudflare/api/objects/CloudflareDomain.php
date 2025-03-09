@@ -50,7 +50,7 @@ class CloudflareDomain
         return $request?->success ?? false;
     }
 
-    public function removeA_DNS(string $name, ?string $target = null): bool
+    public function remove_A_DNS(string $name, ?string $target = null): bool
     {
         $zone = self::getZone();
 

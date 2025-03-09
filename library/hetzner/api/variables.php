@@ -7,30 +7,14 @@ class HetznerVariables
 
     public const
         CPU_METRICS_PAST_SECONDS = 30,
-        CONNECTION_METRICS_PAST_SECONDS = 30,
         HETZNER_API_VERSION = "v1",
         HETZNER_CREDENTIALS_DIRECTORY = "hetzner_credentials",
         HETZNER_UPGRADE_USAGE_RATIO = 0.8,
         HETZNER_DOWNGRADE_USAGE_RATIO = 1.0 - self::HETZNER_UPGRADE_USAGE_RATIO,
-        HETZNER_MINIMUM_LOAD_BALANCERS = 1,
-        HETZNER_MINIMUM_SERVERS = 1,
-        HETZNER_DEFAULT_LOAD_BALANCER_NAME = 'app.lb.default',
         HETZNER_DEFAULT_IMAGE_NAME = 'app.snapshot',
-        HETZNER_LOAD_BALANCER_NAME_PATTERN = 'app.lb.',
         HETZNER_DEFAULT_SERVER_NAME = 'app.default',
         HETZNER_SERVER_NAME_PATTERN = 'app.';
 
-}
-
-class HetznerServerStatus
-{
-    public const
-        UPGRADE = ".a",
-        DOWNGRADE = ".b",
-        ALL = array(
-        self::UPGRADE,
-        self::DOWNGRADE
-    );
 }
 
 class HetznerConnectionType
@@ -41,26 +25,6 @@ class HetznerConnectionType
         PUT = "PUT",
         DELETE = "DELETE";
 }
-
-// LOAD BALANCER
-
-$HETZNER_LOAD_BALANCERS = array(
-    new HetznerLoadBalancerType(
-        'lb11',
-        25,
-        10_000
-    ),
-    new HetznerLoadBalancerType(
-        'lb21',
-        75,
-        20_000
-    ),
-    new HetznerLoadBalancerType(
-        'lb31',
-        150,
-        40_000
-    )
-);
 
 // ARM SERVER
 

@@ -3,18 +3,16 @@
 class HetznerComparison
 {
 
-    // Level
-
     public static function getServerLevel(HetznerServer $server, bool $storage = false): int
     {
         if ($server->type instanceof HetznerX86Server) {
             global $HETZNER_X86_SERVERS;
 
             foreach ($HETZNER_X86_SERVERS as $key => $value) {
-                if ($server->type->cpuCores === $value->cpuCores
-                    && $server->type->memoryGB === $value->memoryGB
-                    && $server->type->name === $value->name
-                    && (!$storage || $server->type->storageGB === $value->storageGB)) {
+                if ($server->type->getCpuCores() === $value->getCpuCores()
+                    && $server->type->getMemoryGB() === $value->getMemoryGB()
+                    && $server->type->getName() === $value->getName()
+                    && (!$storage || $server->type->getStorageGB() === $value->getStorageGB())) {
                     return $key;
                 }
             }
@@ -22,39 +20,15 @@ class HetznerComparison
             global $HETZNER_ARM_SERVERS;
 
             foreach ($HETZNER_ARM_SERVERS as $key => $value) {
-                if ($server->type->cpuCores === $value->cpuCores
-                    && $server->type->memoryGB === $value->memoryGB
-                    && $server->type->name === $value->name
-                    && (!$storage || $server->type->storageGB === $value->storageGB)) {
+                if ($server->type->getCpuCores() === $value->getCpuCores()
+                    && $server->type->getMemoryGB() === $value->getMemoryGB()
+                    && $server->type->getName() === $value->getName()
+                    && (!$storage || $server->type->getStorageGB() === $value->getStorageGB())) {
                     return $key;
                 }
             }
         }
         return -1;
-    }
-
-    public static function getLoadBalancerLevel(HetznerLoadBalancerType $loadBalancer): int
-    {
-        global $HETZNER_LOAD_BALANCERS;
-
-        foreach ($HETZNER_LOAD_BALANCERS as $key => $value) {
-            if ($loadBalancer->name === $value->name
-                && $loadBalancer->maxTargets === $value->maxTargets
-                && $loadBalancer->maxConnections === $value->maxConnections) {
-                return $key;
-            }
-        }
-        return -1;
-    }
-
-    // Consider
-
-    public static function shouldConsiderLoadBalancer(HetznerLoadBalancer|string $loadBalancer): bool
-    {
-        return starts_with(
-            is_string($loadBalancer) ? $loadBalancer : $loadBalancer->name,
-            HetznerVariables::HETZNER_LOAD_BALANCER_NAME_PATTERN
-        );
     }
 
     public static function shouldConsiderServer(HetznerServer|string $server): bool
@@ -65,130 +39,20 @@ class HetznerComparison
         );
     }
 
-    // Find
-
     public static function findLeastLevelServer(array $servers, bool $delete = false): ?HetznerServer
     {
         $min = null;
 
         foreach ($servers as $server) {
-            if ((!$delete || $server->canDeleteOrUpdate())
+            if (!($server instanceof HetznerServer)) {
+                continue;
+            }
+            if ((!$delete || $server->canDelete())
                 && ($min === null || self::getServerLevel($server) < self::getServerLevel($min))) {
                 $min = $server;
             }
         }
         return $min;
-    }
-
-    public static function findLeastLevelLoadBalancer(array $loadBalancers, bool $delete = false): ?HetznerLoadBalancer
-    {
-        $min = null;
-
-        foreach ($loadBalancers as $loadBalancer) {
-            if ((!$delete || $loadBalancer->canDelete())
-                && ($min === null || self::getLoadBalancerLevel($loadBalancer->type) < self::getLoadBalancerLevel($min->type))) {
-                $min = $loadBalancer;
-            }
-        }
-        return $min;
-    }
-
-    public static function findLeastPopulatedLoadBalancer(array $loadBalancers, array $servers): ?HetznerLoadBalancer
-    {
-        $object = null;
-        $minCpuCores = 0;
-
-        foreach ($loadBalancers as $loadBalancer) {
-            if ($object === null) {
-                $object = $loadBalancer;
-            } else {
-                $cpuCores = 0;
-
-                foreach ($servers as $server) {
-                    if ($server->loadBalancer?->identifier === $loadBalancer->identifier) {
-                        $cpuCores += $server->type->cpuCores;
-                    }
-                }
-
-                if ($cpuCores < $minCpuCores) {
-                    $object = $loadBalancer;
-                    $minCpuCores = $cpuCores;
-                }
-            }
-        }
-        return $object;
-    }
-
-    public static function findIdealLoadBalancerLevel(
-        HetznerLoadBalancerType $loadBalancerType,
-        int                     $currentTargets,
-        int                     $newTargets
-    ): int
-    {
-        global $HETZNER_LOAD_BALANCERS;
-        $newTargets += $currentTargets;
-        $currentLevel = self::getLoadBalancerLevel($loadBalancerType);
-        $lastLevel = sizeof($HETZNER_LOAD_BALANCERS) - 1;
-
-        foreach ($HETZNER_LOAD_BALANCERS as $key => $value) {
-            if ($key >= $currentLevel
-                && $value->maxTargets >= $newTargets) {
-                return $key;
-            }
-        }
-        return $currentLevel === $lastLevel
-            ? -1
-            : $lastLevel;
-    }
-
-    // Redistribute
-
-    public static function canRedistributeLoadBalancerTraffic(array $loadBalancers, array $servers, HetznerLoadBalancer $toRemove): bool
-    {
-        if (sizeof($toRemove->allTargets($servers)) > 0) {
-            $newCount = sizeof($loadBalancers) - 1;
-
-            if ($newCount >= HetznerVariables::HETZNER_MINIMUM_LOAD_BALANCERS) {
-                $distributedUsageRatio = $toRemove->liveConnections / (float)$newCount;
-
-                foreach ($loadBalancers as $loadBalancer) {
-                    if ($loadBalancer->identifier !== $toRemove->identifier
-                        && $loadBalancer->shouldUpgrade(
-                            ($loadBalancer->liveConnections + $distributedUsageRatio) / (float)$loadBalancer->type->maxConnections
-                        )) {
-                        return false;
-                    }
-                }
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static function canRedistributeServerTraffic(array $servers, HetznerServer $toRemove): bool
-    {
-        if ($toRemove->loadBalancer !== null) {
-            $servers = $toRemove->loadBalancer->allTargets($servers);
-            $newCount = sizeof($servers) - 1;
-
-            if ($newCount >= HetznerVariables::HETZNER_MINIMUM_SERVERS) {
-                $distributedUsageRatioPerCore = $toRemove->cpuPercentage / (float)$toRemove->type->cpuCores / (float)$newCount;
-
-                foreach ($servers as $server) {
-                    if ($server->identifier !== $toRemove->identifier
-                        && $server->shouldUpgrade(
-                            (($server->cpuPercentage / (float)$server->type->cpuCores) + $distributedUsageRatioPerCore)
-                            * $server->type->cpuCores / (float)$server->type->maxCpuPercentage()
-                        )) {
-                        return false;
-                    }
-                }
-            } else {
-                return false;
-            }
-        }
-        return true;
     }
 
 }
