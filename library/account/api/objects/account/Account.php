@@ -1,6 +1,6 @@
 <?php
 
-class Account
+class Account implements JsonSerializable
 {
 
     // Application IDs required in: accounts, accepted-accounts, products, product-giveaways, roles, moderations, statistics
@@ -406,5 +406,14 @@ class Account
                 $this->email->initiateVerification(null, $this->session->isCustom());
             }
         }
+    }
+
+    public final function jsonSerialize(): array|object
+    {
+        $object = $this->object;
+        unset($object->password);
+        unset($object->deletion_date);
+        unset($object->deletion_reason);
+        return $object;
     }
 }
