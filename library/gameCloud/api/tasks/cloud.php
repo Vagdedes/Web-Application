@@ -365,7 +365,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
 
             switch ($split[0]) { // Webhook version
                 case 1:
-                    echo "false"; // Spartan AntiCheat: Old
+                    echo "false"; // Old
                     break;
                 case 2:
                     $url = $split[1] ?? null;
@@ -408,14 +408,14 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                 $url,
                                 null,
                                 $color,
-                                "Spartan AntiCheat",
+                                "Vacan AntiCheat",
                                 null,
                                 get_minecraft_head_image($uuid, 64),
                                 $title,
                                 null,
                                 null,
                                 null,
-                                "https://vagdedes.com/.images/spartan/logo.png",
+                                "https://vagdedes.com/.images/vacan/logo.png",
                                 $details
                             );
 
