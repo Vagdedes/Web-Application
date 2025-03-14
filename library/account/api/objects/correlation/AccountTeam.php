@@ -38,15 +38,22 @@ class AccountTeam
     private Account $account;
     private ?int $additionalID;
     private ?object $forcedTeam;
+    private bool $permissions;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
         $this->additionalID = self::DEFAULT_ADDITIONAL_ID;
         $this->forcedTeam = null;
+        $this->permissions = true;
     }
 
     // Separator
+
+    public function togglePermissions(bool $b): void
+    {
+        $this->permissions = $b;
+    }
 
     public function setTeamAdditionalID(int $additionalID): void
     {
@@ -1929,6 +1936,9 @@ class AccountTeam
         if ($owner->account->getDetail("id") === $account->getDetail("id")) {
             return new MethodReply(true, "Owner has all permissions.");
         }
+        if (!$this->permissions) {
+            return new MethodReply(true, "Permission system disabled.");
+        }
         if ($checkTeam && $this->getTeamPermission($permissionID)->isPositiveOutcome()) {
             return new MethodReply(true, "Permission given to all members.");
         }
@@ -2002,7 +2012,8 @@ class AccountTeam
         }
         $team = $result->getObject()->id;
 
-        if ($owner->account->getDetail("id") === $account->getDetail("id")) {
+        if ($owner->account->getDetail("id") === $account->getDetail("id")
+            || !$this->permissions) {
             $array = array();
             $date = get_current_date();
             $definitions = $this->getPermissionDefinitions();
