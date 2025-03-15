@@ -3,10 +3,24 @@
 class PhpAsync
 {
 
-    public static function run(
-        array                 $dependencies,
+    private string $directory;
+    private array $replacements, $dependencies;
+
+    public function __construct(
+        string $directory = "",
+        array  $replacements = [],
+        array  $dependencies = []
+    )
+    {
+        $this->directory = $directory;
+        $this->replacements = $replacements;
+        $this->dependencies = $dependencies;
+    }
+
+    public function run(
         array|string|callable $method,
         array                 $parameters,
+        array                 $dependencies = [],
         ?bool                 $debug = null
     ): void
     {
@@ -15,9 +29,24 @@ class PhpAsync
         }
         $total = "";
 
+        if (!empty($this->dependencies)) {
+            foreach ($this->dependencies as $dependency) {
+                if (!empty($this->replacements)) {
+                    foreach ($this->replacements as $key => $value) {
+                        $dependency = str_replace($key, $value, $dependency);
+                    }
+                }
+                $total .= "require_once('" . $this->directory . $dependency . "');\n";
+            }
+        }
         if (!empty($dependencies)) {
             foreach ($dependencies as $dependency) {
-                $total .= "require_once('" . $dependency . "');\n";
+                if (!empty($this->replacements)) {
+                    foreach ($this->replacements as $key => $value) {
+                        $dependency = str_replace($key, $value, $dependency);
+                    }
+                }
+                $total .= "require_once('" . $this->directory . $dependency . "');\n";
             }
         }
         $methodString = is_array($method)
@@ -25,7 +54,11 @@ class PhpAsync
             : $method;
         $paramsString = base64_encode(serialize($parameters));
 
-        $total .= "var_dump(call_user_func_array('" . $methodString . "', unserialize(base64_decode('" . $paramsString . "'))));";
+        $total .= "call_user_func_array('" . $methodString . "', unserialize(base64_decode('" . $paramsString . "')));";
+
+        if ($debug !== null) {
+            $total = "var_dump(" . substr($total, 0, -1) . ");";
+        }
         $total = "php -r \"" . $total . "\"";
 
         if ($debug === true) {
