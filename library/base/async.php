@@ -94,7 +94,7 @@ class PhpAsync
 
         $final = "call_user_func_array('" . $methodString . "', unserialize(base64_decode('" . $paramsString . "')));";
 
-        if ($debug !== null) {
+        if (is_bool($debug)) {
             $total .= "var_dump(" . substr($final, 0, -1) . ");";
         } else {
             $total .= $final;
