@@ -60,7 +60,7 @@ class PhpAsync
         array                 $parameters,
         array                 $dependencies = [],
         ?bool                 $debug = null
-    ): void
+    ): string|false|null
     {
         if (!in_array(__FILE__, $dependencies)) {
             $dependencies[] = __FILE__;
@@ -92,19 +92,21 @@ class PhpAsync
             : $method;
         $paramsString = base64_encode(serialize($parameters));
 
-        $total .= "call_user_func_array('" . $methodString . "', unserialize(base64_decode('" . $paramsString . "')));";
+        $final = "call_user_func_array('" . $methodString . "', unserialize(base64_decode('" . $paramsString . "')));";
 
         if ($debug !== null) {
-            $total = "var_dump(" . substr($total, 0, -1) . ");";
+            $total .= "var_dump(" . substr($final, 0, -1) . ");";
+        } else {
+            $total .= $final;
         }
         $total = "php -r \"" . $total . "\"";
 
         if ($debug === true) {
-            var_dump(shell_exec($total));
+            return shell_exec($total);
         } else if ($debug === false) {
-            echo($total);
+            return $total;
         } else {
-            instant_shell_exec($total);
+            return instant_shell_exec($total);
         }
     }
 
