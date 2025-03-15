@@ -17,6 +17,44 @@ class PhpAsync
         $this->dependencies = $dependencies;
     }
 
+    public function setDirectory(
+        string $directory
+    ): void
+    {
+        $this->directory = $directory;
+    }
+
+    public function addReplacement(
+        string $key,
+        string $value
+    ): void
+    {
+        $this->replacements[$key] = $value;
+    }
+
+    public function removeReplacement(
+        string $key
+    ): void
+    {
+        unset($this->replacements[$key]);
+    }
+
+    public function addDependency(
+        string $dependency
+    ): void
+    {
+        $this->dependencies[] = $dependency;
+    }
+
+    public function removeDependency(
+        string $dependency
+    ): void
+    {
+        unset($this->dependencies[array_search($dependency, $this->dependencies)]);
+    }
+
+    // Separator
+
     public function run(
         array|string|callable $method,
         array                 $parameters,
