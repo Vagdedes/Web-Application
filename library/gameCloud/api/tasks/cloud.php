@@ -11,6 +11,9 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     if (empty($data)) {
         return;
     }
+    if (empty($version)) {
+        $version = null;
+    }
     require_once '/var/www/.structure/library/base/requirements/account_systems.php';
     require_once '/var/www/.structure/library/base/form.php';
 
@@ -18,7 +21,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     $accessFailure = null;
     $fileID = null;
     $token = null;
-
     $data = properly_sql_encode($data, true);
     $date = get_current_date();
     $line = "\r\n";
@@ -108,10 +110,9 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
 
             if ($validProductObject->isPositiveOutcome()) {
                 $validProductObject = $validProductObject->getObject()[0];
-                $downloadProductID = $validProductObject->id;
 
                 if (($allProductsAreAllowed
-                        || in_array($downloadProductID, $purposeAllowedProducts))
+                        || in_array($validProductObject->id, $purposeAllowedProducts))
                     && ($purpose->ignore_version !== null
                         || array_key_exists($version, $validProductObject->supported_versions))) {
                     $productObject = $validProductObject;
@@ -126,11 +127,10 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             $account = $download->account;
 
             if ($account->exists()) {
-                $downloadProductID = $download->product_id;
-                $validProductObject = $account->getProduct()->find($downloadProductID, false);
+                $validProductObject = $account->getProduct()->find($download->product_id, false);
 
                 if ($validProductObject->isPositiveOutcome()
-                    && ($allProductsAreAllowed || in_array($downloadProductID, $purposeAllowedProducts))) {
+                    && ($allProductsAreAllowed || in_array($download->product_id, $purposeAllowedProducts))) {
                     $validProductObject = $validProductObject->getObject()[0];
 
                     if ($purpose->ignore_version !== null
@@ -155,56 +155,52 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
         }
     }
 
-    if ($productObject === null) {
+    if ($productObject === null
+        || $accessFailure !== null) {
         return;
     }
 
-    if ($accessFailure !== null) {
-        $hasAccessFailure = true;
-        return;
-    } else if ($requiresVerification) {
+    if ($requiresVerification) {
         if ($gameCloudUser->isValid()) {
-            $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id, $ipAddressModified);
+            $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id);
 
             if ($verificationResult <= 0) {
                 $accessFailure = $verificationResult;
-                $hasAccessFailure = true;
                 return;
-            } else {
-                $hasAccessFailure = false;
             }
         } else {
             $accessFailure = 689340526;
         }
-    } else {
-        $hasAccessFailure = false;
     }
 
     // Connection Counter
     if (!$adminUser) {
-        $verificationRequirement = $requiresVerification ? 1 : null;
         $cause = $action . "-" . $data;
-        $remainingDaySeconds = strtotime("tomorrow") - time();
-        $search_hash = array_to_integer(array(
-            $gameCloudUser->getLicense(),
-            $ipAddressModified,
-            $cause,
-            $version,
-            $productObject->id,
-            $gameCloudUser->getPlatform(),
-            $hasAccessFailure ? $accessFailure : null
-        ));
+        $pastDate = get_past_date("1 day");
         $query = get_sql_query(
             GameCloudVariables::CONNECTION_COUNT_TABLE,
             array("id", "count"),
             array(
-                array("search_hash", $search_hash),
-            )
+                array("license_id", $gameCloudUser->getLicense()),
+                array("product_id", $productObject->id),
+                array("platform_id", $gameCloudUser->getPlatform()),
+                array("ip_address", $ipAddressModified),
+                array("cause", $cause),
+                array("version", $version),
+                array("access_failure", $accessFailure),
+                array("date", ">=", $pastDate)
+            ),
+            array(
+                "DESC",
+                "id"
+            ),
+            1
         );
 
         if (!empty($query)) {
             $row = $query[0];
             $count = $row->count;
+            $remainingDaySeconds = strtotime("tomorrow") - time();
 
             if ($count > $remainingDaySeconds) { // One request every second allowance
                 return; // Temporarily deny user when threshold is reached
@@ -221,23 +217,19 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 null,
                 1
             );
-        } else {
-            $remainingDaySeconds = strtotime("tomorrow") - time();
-            $modifiedDate = date("Y-m-d") . " 00:00:00";
-
-            if ($remainingDaySeconds <= 1000 && !has_memory_cooldown(GameCloudVariables::CONNECTION_COUNT_TABLE, "15 minutes")) {
+            if (!has_memory_cooldown(GameCloudVariables::CONNECTION_COUNT_TABLE, "15 minutes")) {
                 delete_sql_query(
                     GameCloudVariables::CONNECTION_COUNT_TABLE,
                     array(
-                        array("date", "<", $modifiedDate)
+                        array("date", "<", get_past_date("31 days"))
                     )
                 );
             }
+        } else {
             sql_insert(
                 GameCloudVariables::CONNECTION_COUNT_TABLE,
                 array(
-                    "search_hash" => $search_hash,
-                    "verification_requirement" => $verificationRequirement,
+                    "verification_requirement" => $requiresVerification,
                     "platform_id" => $gameCloudUser->getPlatform(),
                     "license_id" => $gameCloudUser->getLicense(),
                     "ip_address" => $ipAddressModified,
@@ -246,12 +238,13 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     "product_id" => $productObject->id,
                     "cause" => $cause,
                     "count" => 1,
-                    "date" => $modifiedDate,
+                    "date" => $date,
                     "access_failure" => $accessFailure
-                ));
+                )
+            );
         }
     }
-    if ($hasAccessFailure) {
+    if ($accessFailure !== null) {
         return;
     }
     $value = properly_sql_encode(get_form("value", false), true);
@@ -278,7 +271,9 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 echo $query[0]->license_id;
             }
         } else if ($data == "ownsProduct") {
-            $value = is_numeric($value) ? $value : $productObject->id;
+            if (!is_numeric($value)) {
+                $value = $productObject->id;
+            }
             $searchedAndFound = false;
 
             if ($value > 0 && $gameCloudUser->getInformation()->ownsProduct($value)) {
@@ -313,7 +308,8 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     array(
                         "DESC",
                         "priority"
-                    )
+                    ),
+                    5
                 );
 
                 if (!empty($query)) {
@@ -347,7 +343,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     } else if ($action == "add") {
         if ($data == "userVerification") {
             if ($gameCloudUser->isValid()) {
-                $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id, $ipAddressModified);
+                $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id);
 
                 if ($verificationResult <= 0) {
                     echo "false";
@@ -364,9 +360,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             $url = null;
 
             switch ($split[0]) { // Webhook version
-                case 1:
-                    echo "false"; // Old
-                    break;
                 case 2:
                     $url = $split[1] ?? null;
                     $color = $split[2] ?? null;
@@ -449,13 +442,8 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                         echo "false";
                     }
                     break;
-                case 3:
-                    echo "false"; // Anti Alt Account & File GUI
-                    break;
-                case 4:
-                    echo "false"; // Ultimate Stats
-                    break;
                 default:
+                    echo "false";
                     break;
             }
         }

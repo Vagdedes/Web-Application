@@ -67,4 +67,5 @@ class GameCloudUser
     {
         return $this->email;
     }
+
 }

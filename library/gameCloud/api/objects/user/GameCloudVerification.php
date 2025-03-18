@@ -23,7 +23,7 @@ class GameCloudVerification
         $this->user = $user;
     }
 
-    public function isVerified(int|string $fileID, int|string $productID, string $ipAddress): int
+    public function isVerified(int|string $fileID, int|string $productID): int
     {
         $result = $this::ordinary_verification_value;
         $licenseID = $this->user->getLicense();
