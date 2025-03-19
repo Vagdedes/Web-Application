@@ -108,7 +108,9 @@ class AIObjectConstructor
                             }
                             break;
                         case AIField::BOOLEAN;
-                            $value = strtolower($value);
+                            $value = is_string($value)
+                                ? strtolower($value)
+                                : $value;
 
                             if ($strict
                                 && ($value !== "true"
