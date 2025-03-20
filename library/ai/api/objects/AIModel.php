@@ -209,9 +209,9 @@ class AIModel
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
                 if ($multiple) {
-                    return $this->getTexts($object);
+                    return $this->getTextsOrVoices($object);
                 } else {
-                    return $this->getText($object);
+                    return $this->getTextOrVoice($object);
                 }
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
@@ -234,7 +234,7 @@ class AIModel
 
     // Separator
 
-    public function getText(?object $object): ?string
+    public function getTextOrVoice(?object $object): ?string
     {
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
@@ -244,9 +244,16 @@ class AIModel
             case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
+                return ($object?->choices[0] ?? null)?->message?->content;
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
-                return ($object?->choices[0] ?? null)?->message?->content;
+                $content = ($object?->choices[0] ?? null)?->message?->content;
+
+                if ($content !== null) {
+                    return $content;
+                } else {
+                    return ($object?->choices[0] ?? null)?->message?->audio?->data;
+                }
             case AIModelFamily::OPENAI_WHISPER:
                 return $object?->text;
             default:
@@ -254,7 +261,7 @@ class AIModel
         }
     }
 
-    public function getTexts(mixed $object): array
+    public function getTextsOrVoices(mixed $object): array
     {
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
@@ -264,6 +271,15 @@ class AIModel
             case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
+                $array = $object?->choices;
+                $texts = array();
+
+                if (!empty($array)) {
+                    foreach ($array as $item) {
+                        $texts[] = $item?->message?->content;
+                    }
+                }
+                return $texts;
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
                 $array = $object?->choices;
@@ -271,7 +287,13 @@ class AIModel
 
                 if (!empty($array)) {
                     foreach ($array as $item) {
-                        $texts[] = $item?->message?->content;
+                        $content = $item?->message?->content;
+
+                        if ($content !== null) {
+                            $texts[] = $content;
+                        } else {
+                            $texts[] = $item?->message?->audio?->data;
+                        }
                     }
                 }
                 return $texts;
