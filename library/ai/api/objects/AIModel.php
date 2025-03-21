@@ -234,7 +234,7 @@ class AIModel
 
     // Separator
 
-    public function getTextOrVoice(?object $object): ?string
+    public function getTextOrVoice(mixed $object): ?string
     {
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:

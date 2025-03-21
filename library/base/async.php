@@ -101,26 +101,38 @@ class PhpAsync
         }
 
         if ($debug === true) {
-            $file = sys_get_temp_dir() . "/" . string_to_integer($total, true) . ".php";
-            $put = @file_put_contents($file, "<?php\n" . $total);
+            while (true) {
+                $file = sys_get_temp_dir() . "/" . random_string(32) . ".php";
 
-            if ($put === false) {
-                return null;
+                if (file_exists($file)) {
+                    continue;
+                }
+                $put = @file_put_contents($file, "<?php\n" . $total);
+
+                if ($put === false) {
+                    return null;
+                }
+                $exec = shell_exec("php " . $file);
+                unlink($file);
+                return $exec;
             }
-            $exec = shell_exec("php " . $file);
-            unlink($file);
-            return $exec;
         } else if ($debug === false) {
             return "php -r \"" . $total . "\"";
         } else {
-            $total .= "\nunlink(__FILE__);";
-            $file = sys_get_temp_dir() . "/" . string_to_integer($total, true) . ".php";
-            $put = @file_put_contents($file, "<?php\n" . $total);
+            while (true) {
+                $file = sys_get_temp_dir() . "/" . random_string(32) . ".php";
 
-            if ($put === false) {
-                return null;
+                if (file_exists($file)) {
+                    continue;
+                }
+                $total .= "\nunlink(__FILE__);";
+                $put = @file_put_contents($file, "<?php\n" . $total);
+
+                if ($put === false) {
+                    return null;
+                }
+                return instant_shell_exec("php " . $file);
             }
-            return instant_shell_exec("php " . $file);
         }
     }
 
