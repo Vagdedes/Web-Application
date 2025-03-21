@@ -99,14 +99,28 @@ class PhpAsync
         } else {
             $total .= $final;
         }
-        $total = "php -r \"" . $total . "\"";
 
         if ($debug === true) {
-            return shell_exec($total);
+            $file = sys_get_temp_dir() . "/" . string_to_integer($total, true) . ".php";
+            $put = @file_put_contents($file, "<?php\n" . $total);
+
+            if ($put === false) {
+                return null;
+            }
+            $exec = shell_exec("php " . $file);
+            unlink($file);
+            return $exec;
         } else if ($debug === false) {
-            return $total;
+            return "php -r \"" . $total . "\"";
         } else {
-            return instant_shell_exec($total);
+            $total .= "\nunlink(__FILE__);";
+            $file = sys_get_temp_dir() . "/" . string_to_integer($total, true) . ".php";
+            $put = @file_put_contents($file, "<?php\n" . $total);
+
+            if ($put === false) {
+                return null;
+            }
+            return instant_shell_exec("php " . $file);
         }
     }
 
