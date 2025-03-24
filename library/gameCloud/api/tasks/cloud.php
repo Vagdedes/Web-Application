@@ -275,18 +275,32 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
 
             if (is_email($paypalEmail)) {
                 $paypalEmail = trim($paypalEmail);
-                $search = find_paypal_transactions_by_data_pair(
-                    array(
-                        "EMAIL" => $paypalEmail,
-                        "AMT" => 9.99
-                    ),
-                    1
+                $amounts = array(
+                    9.99, // Spartan One, Vacan One
+                    29.99, // Spartan Syn
+                    37.49, // Spartan Syn
+                    37.50, // Spartan Syn
+                    16.97, // Spartan Syn
+                    12.49, // Spartan Syn
+                    17.89, // Spartan Syn
+                    15.99, // Spartan Syn
+                    18.79, // Spartan Syn, Ultimate Stats, Global Bans, Anti Alt Account, File GUI (Old), Auto Sync
+                    50 // Spartan Syn
                 );
 
-                if (empty($search)) {
-                    echo "false";
-                } else {
-                    echo "true";
+                foreach ($amounts as $amount) {
+                    $search = find_paypal_transactions_by_data_pair(
+                        array(
+                            "EMAIL" => $paypalEmail,
+                            "AMT" => $amount
+                        ),
+                        1
+                    );
+
+                    if (!empty($search)) {
+                        echo "true";
+                        return;
+                    }
                 }
             }
             $patreonFullName = get_form("patreon_full_name", false);
@@ -295,21 +309,19 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 $patreonFullName = trim($patreonFullName);
                 $patreonSubscriptions = get_patreon2_subscriptions(null, null, null);
 
-                if (empty($patreonSubscriptions)) {
-                    echo "false";
-                } else {
+                if (!empty($patreonSubscriptions)) {
                     foreach ($patreonSubscriptions as $subscription) {
                         if (trim($subscription?->attributes?->full_name) == $patreonFullName) {
                             if ($subscription?->attributes?->lifetime_support_cents >= 900) {
                                 echo "true";
-                            } else {
-                                echo "false";
+                                return;
                             }
                             break;
                         }
                     }
                 }
             }
+            echo "false";
         } else if ($data == "staffAnnouncements") {
             try {
                 $query = get_sql_query(
