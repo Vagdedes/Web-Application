@@ -9,8 +9,6 @@ class AIHelper
             $modelFamily = $modelFamily->getFamilyID();
         }
         switch ($modelFamily) {
-            case AIModelFamily::OPENAI_O1:
-            case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_O3_MINI:
                 return true;
             default:

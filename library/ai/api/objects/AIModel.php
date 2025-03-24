@@ -202,8 +202,6 @@ class AIModel
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::OPENAI_O3_MINI:
-            case AIModelFamily::OPENAI_O1:
-            case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
@@ -220,13 +218,6 @@ class AIModel
                 } else {
                     return $this->getImage($object);
                 }
-            case AIModelFamily::OPENAI_TTS:
-            case AIModelFamily::OPENAI_TTS_HD:
-                if ($multiple) {
-                    return $this->getSpeeches($object);
-                } else {
-                    return $this->getSpeech($object);
-                }
             default:
                 return null;
         }
@@ -240,8 +231,6 @@ class AIModel
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::OPENAI_O3_MINI:
-            case AIModelFamily::OPENAI_O1:
-            case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
                 return ($object?->choices[0] ?? null)?->message?->content;
@@ -254,8 +243,6 @@ class AIModel
                 } else {
                     return ($object?->choices[0] ?? null)?->message?->audio?->data;
                 }
-            case AIModelFamily::OPENAI_WHISPER:
-                return $object?->text;
             default:
                 return null;
         }
@@ -267,8 +254,6 @@ class AIModel
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::OPENAI_O3_MINI:
-            case AIModelFamily::OPENAI_O1:
-            case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
                 $array = $object?->choices;
@@ -297,10 +282,6 @@ class AIModel
                     }
                 }
                 return $texts;
-            case AIModelFamily::OPENAI_WHISPER:
-                return array(
-                    $object?->text
-                );
             default:
                 return array();
         }
@@ -334,22 +315,6 @@ class AIModel
             default:
                 return array();
         }
-    }
-
-    public function getSpeech(mixed $object): mixed
-    {
-        switch ($this->familyID) {
-            case AIModelFamily::OPENAI_TTS:
-            case AIModelFamily::OPENAI_TTS_HD:
-                return $object;
-            default:
-                return null;
-        }
-    }
-
-    public function getSpeeches(mixed $object): mixed
-    {
-        return $this->getSpeech($object); // Not implemented by third-party company yet
     }
 
     public function getRevisedPrompt(mixed $object): ?string
@@ -386,8 +351,6 @@ class AIModel
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::OPENAI_O3_MINI:
-            case AIModelFamily::OPENAI_O1:
-            case AIModelFamily::OPENAI_O1_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
@@ -430,16 +393,6 @@ class AIModel
                     }
                 }
                 return null;
-            case AIModelFamily::OPENAI_TTS:
-            case AIModelFamily::OPENAI_TTS_HD:
-                if ($object instanceof AIManager) {
-                    return strlen($object->getAllParameters()["input"] ?? "") *
-                        ($this->sent_token_cost ?? 0.0);
-                } else {
-                    return null;
-                }
-            case AIModelFamily::OPENAI_WHISPER:
-                return null; // todo
             default:
                 return null;
         }

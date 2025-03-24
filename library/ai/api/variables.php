@@ -25,14 +25,9 @@ class AIModelType
 {
     public const
         TEXT_TO_TEXT = 1,
-
         TEXT_TO_IMAGE = 2,
         IMAGE_AND_TEXT_TO_TEXT = 5,
-
-        TEXT_TO_SPEECH = 3,
-        SPEECH_TO_TEXT = 4,
-
-        SPEECH_PROMPT_TO_TEXT_OR_AUDIO = 6;
+        SPEECH_AND_TEXT_TO_TEXT_OR_AUDIO = 6;
 }
 
 class AIModelFamily
@@ -41,8 +36,6 @@ class AIModelFamily
     public const
         CHAT_GPT = 1,
         CHAT_GPT_PRO = 2,
-        OPENAI_O1 = 3,
-        OPENAI_O1_MINI = 4,
         OPENAI_O3_MINI = 14;
 
     // Text to Image
@@ -50,21 +43,12 @@ class AIModelFamily
         DALL_E_3 = 5,
         DALL_E_2 = 12;
 
-    // Text to Speech
-    public const
-        OPENAI_TTS = 6,
-        OPENAI_TTS_HD = 11;
-
-    // Speech to Text
-    public const
-        OPENAI_WHISPER = 7;
-
     // Image And Text to Text
     public const
         OPENAI_VISION_PRO = 8,
         OPENAI_VISION = 9;
 
-    // Speech Prompt to Text
+    // Speech And Text to Text Or Audio
     public const
         OPENAI_SOUND_PRO = 10,
         OPENAI_SOUND = 13;
@@ -89,9 +73,4 @@ class AIDatabaseTable
         AI_PARAMETERS = "artificial_intelligence.parameters",
         AI_CURRENCIES = "artificial_intelligence.currencies",
         AI_PRICING = "artificial_intelligence.pricing";
-}
-
-class AIProperties
-{
-    public const WORD_TO_TOKEN = 0.75;
 }
