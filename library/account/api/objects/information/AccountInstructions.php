@@ -315,7 +315,7 @@ class AccountInstructions
                         );
 
                         if ($result[0]) {
-                            $containsKeywords = $result[1]->getText($result[2]);
+                            $containsKeywords = $result[1]->getTextOrVoice($result[2]);
                         }
                     }
                     $expiration = get_future_date($row->information_duration);

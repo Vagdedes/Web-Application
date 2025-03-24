@@ -86,7 +86,7 @@ class AccountTranslation
             );
 
             if (array_shift($outcome)) {
-                $after = $outcome[0]->getText($outcome[1]);
+                $after = $outcome[0]->getTextOrVoice($outcome[1]);
 
                 if ($after === null) {
                     return new MethodReply(
