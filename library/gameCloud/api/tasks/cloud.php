@@ -308,7 +308,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             }
             $patreonFullName = get_form("patreon_full_name", false);
 
-            if (!empty($patreonFullName)) {
+            if (strlen($patreonFullName) >= 2) {
                 $patreonFullName = trim($patreonFullName);
                 $patreonSubscriptions = get_patreon2_subscriptions(null, null, null);
 
