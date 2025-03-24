@@ -113,7 +113,7 @@ class PhpAsync
                     return null;
                 }
                 $exec = shell_exec("php " . $file);
-                unlink($file);
+                @unlink($file);
                 return $exec;
             }
         } else if ($debug === false) {
@@ -125,7 +125,7 @@ class PhpAsync
                 if (file_exists($file)) {
                     continue;
                 }
-                $total .= "\nunlink(__FILE__);";
+                $total .= "\n@unlink(__FILE__);";
                 $put = @file_put_contents($file, "<?php\n" . $total);
 
                 if ($put === false) {
