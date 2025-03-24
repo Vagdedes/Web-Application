@@ -270,16 +270,16 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if (!empty($query)) {
                 echo $query[0]->license_id;
             }
-        } else if ($data == "ownsProduct") {
-            if (!is_numeric($value)) {
-                $value = $productObject->id;
-            }
-            $searchedAndFound = false;
+        } else if ($data == "ownsVacanOne") {
+            $paypalEmail = get_form("paypal_email", false);
 
-            if ($value > 0 && $gameCloudUser->getInformation()->ownsProduct($value)) {
-                echo "true";
-            } else {
-                echo "false";
+            if (!empty($paypalEmail)) {
+
+            }
+            $patreonFullName = get_form("patreon_full_name", false);
+
+            if (!empty($patreonFullName)) {
+
             }
         } else if ($data == "staffAnnouncements") {
             try {
@@ -332,12 +332,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     echo implode($separator, $query);
                 }
             } catch (Throwable $ignored) {
-            }
-        } else if ($data == "hasAccount") {
-            if ($account->exists()) {
-                echo "true";
-            } else {
-                echo "false";
             }
         }
     } else if ($action == "add") {
