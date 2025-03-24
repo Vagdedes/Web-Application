@@ -2,11 +2,11 @@
 
 class AIModel
 {
-    private int $typeID, $familyID, $modelID;
+    private int $familyID, $modelID;
     private ?int $context;
-    private string $requestUrl, $codeKey, $code;
-    private ?string $tokenizer;
-    private object $parameter, $currency;
+    private string $requestUrl;
+    private ?string $tokenizer, $requestHeaders, $postFields;
+    private object $currency;
     private ?float $received_token_cost, $received_token_audio_cost, $sent_token_cost, $sent_token_audio_cost;
     private bool $exists;
     private array $pricing;
@@ -31,14 +31,12 @@ class AIModel
             if (empty($query)) {
                 $this->exists = false;
                 $this->currency = new stdClass();
-                $this->parameter = new stdClass();
+                $this->requestHeaders = null;
                 $this->modelID = -1;
-                $this->typeID = -1;
                 $this->familyID = -1;
                 $this->context = null;
                 $this->requestUrl = "";
-                $this->codeKey = "";
-                $this->code = "";
+                $this->postFields = null;
                 $this->tokenizer = null;
                 $this->received_token_cost = null;
                 $this->sent_token_cost = null;
@@ -49,61 +47,43 @@ class AIModel
                 $row = $query[0];
             }
         }
-        $queryChild = get_sql_query(
-            AIDatabaseTable::AI_PARAMETERS,
-            null,
-            array(
-                array("id", $row->parameter_id),
-                array("deletion_date", null),
-            ),
-            null,
-            1
-        );
+        $currency = AIHelper::getCurrency($row->currency_id);
 
-        if (!empty($queryChild)) {
-            $this->parameter = $queryChild[0];
-            $currency = AIHelper::getCurrency($row->currency_id);
+        if ($currency !== null) {
+            $this->exists = true;
+            $this->currency = $currency;
+            $this->modelID = $row->id;
+            $this->familyID = $row->family;
+            $this->context = $row->context;
+            $this->requestUrl = $row->request_url;
+            $this->requestHeaders = $row->request_headers;
+            $this->postFields = $row->post_fields;
+            $this->tokenizer = $row->tokenizer;
+            $this->received_token_cost = $row->received_token_cost;
+            $this->sent_token_cost = $row->sent_token_cost;
+            $this->received_token_audio_cost = $row->received_token_audio_cost;
+            $this->sent_token_audio_cost = $row->sent_token_audio_cost;
+            $pricing = get_sql_query(
+                AIDatabaseTable::AI_PRICING,
+                null,
+                array(
+                    array("model_id", $row->id),
+                    array("deletion_date", null)
+                )
+            );
 
-            if ($currency !== null) {
-                $this->exists = true;
-                $this->currency = $currency;
-                $this->modelID = $row->id;
-                $this->typeID = $row->type;
-                $this->familyID = $row->family;
-                $this->context = $row->context;
-                $this->requestUrl = $row->request_url;
-                $this->codeKey = $row->code_key;
-                $this->code = $row->code;
-                $this->tokenizer = $row->tokenizer;
-                $this->received_token_cost = $row->received_token_cost;
-                $this->sent_token_cost = $row->sent_token_cost;
-                $this->received_token_audio_cost = $row->received_token_audio_cost;
-                $this->sent_token_audio_cost = $row->sent_token_audio_cost;
-                $pricing = get_sql_query(
-                    AIDatabaseTable::AI_PRICING,
-                    null,
-                    array(
-                        array("model_id", $row->id),
-                        array("deletion_date", null)
-                    )
-                );
+            if (!empty($pricing)) {
+                $pricingArray = array();
 
-                if (!empty($pricing)) {
-                    $pricingArray = array();
-
-                    foreach ($pricing as $item) {
-                        if (array_key_exists($item->parameter_family, $pricingArray)) {
-                            $pricingArray[$item->parameter_family][] = $item;
-                        } else {
-                            $pricingArray[$item->parameter_family] = array($item);
-                        }
+                foreach ($pricing as $item) {
+                    if (array_key_exists($item->parameter_family, $pricingArray)) {
+                        $pricingArray[$item->parameter_family][] = $item;
+                    } else {
+                        $pricingArray[$item->parameter_family] = array($item);
                     }
-                    $this->pricing = $pricingArray;
-                } else {
-                    $this->pricing = array();
                 }
+                $this->pricing = $pricingArray;
             } else {
-                $this->exists = false;
                 $this->pricing = array();
             }
         } else {
@@ -143,21 +123,11 @@ class AIModel
         return $this->currency;
     }
 
-    public function getParameter(): object
-    {
-        return $this->parameter;
-    }
-
     // Separator
 
     public function getFamilyID(): int
     {
         return $this->familyID;
-    }
-
-    public function getTypeID(): int
-    {
-        return $this->typeID;
     }
 
     public function getModelID(): int
@@ -179,14 +149,18 @@ class AIModel
         return $this->requestUrl;
     }
 
-    public function getCodeKey(): string
+    public function getRequestHeaders(): ?array
     {
-        return $this->codeKey;
+        return $this->requestHeaders === null
+            ? null
+            : @json_decode($this->requestHeaders, true);
     }
 
-    public function getCode(): string
+    public function getPostFields(): ?array
     {
-        return $this->code;
+        return $this->postFields === null
+            ? null
+            : @json_decode($this->postFields, true);
     }
 
     public function getTokenizer(): ?string

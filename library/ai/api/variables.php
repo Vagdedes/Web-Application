@@ -14,22 +14,6 @@ class AIField
         ABSTRACT_ARRAY = "ARRAY";
 }
 
-class AIParameterType
-{
-    public const
-        JSON = 1,
-        MULTIPART_FORM_DATA = 2;
-}
-
-class AIModelType
-{
-    public const
-        TEXT_TO_TEXT = 1,
-        TEXT_TO_IMAGE = 2,
-        IMAGE_AND_TEXT_TO_TEXT = 5,
-        SPEECH_AND_TEXT_TO_TEXT_OR_AUDIO = 6;
-}
-
 class AIModelFamily
 {
     // Text to Text
@@ -48,15 +32,15 @@ class AIModelFamily
         OPENAI_VISION_PRO = 8,
         OPENAI_VISION = 9;
 
-    // Speech And Text to Text Or Audio
+    // Audio And Text to Text Or Audio
     public const
         OPENAI_SOUND_PRO = 10,
         OPENAI_SOUND = 13;
-}
 
-class AICurrency
-{
-    public const USD = 1;
+    // Speech to Text
+    public const
+        OPENAI_SPEECH = 3,
+        OPENAI_SPEECH_PRO = 4;
 }
 
 class AIAuthorization
@@ -70,7 +54,6 @@ class AIDatabaseTable
     public const
         AI_MODELS = "artificial_intelligence.models",
         AI_HISTORY = "artificial_intelligence.history",
-        AI_PARAMETERS = "artificial_intelligence.parameters",
         AI_CURRENCIES = "artificial_intelligence.currencies",
         AI_PRICING = "artificial_intelligence.pricing";
 }

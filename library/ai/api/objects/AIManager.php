@@ -4,7 +4,7 @@ class AIManager
 {
 
     private ?int $randomID;
-    private int $typeID, $familyID;
+    private int $familyID;
     private array $models, $parameters, $lastParameters;
     private string $apiKey;
 
@@ -15,7 +15,6 @@ class AIManager
         if ($familyID instanceof AIModel) {
             $familyID = $familyID->getFamilyID();
         }
-        $this->typeID = -1;
         $this->familyID = $familyID;
         $this->apiKey = $apiKey;
         $this->parameters = $parameters;
@@ -35,9 +34,6 @@ class AIManager
 
         if (!empty($query)) {
             foreach ($query as $row) {
-                if ($this->typeID === -1) {
-                    $this->typeID = $row->type;
-                }
                 $model = new AIModel($this, $row);
 
                 if ($model->exists()) {
@@ -69,17 +65,12 @@ class AIManager
 
     public function getAllParameters(): array
     {
-        return array_merge($this->parameters, $this->lastParameters);
+        return array_merge($this->lastParameters, $this->parameters);
     }
 
     public function getModels(): array
     {
         return $this->models;
-    }
-
-    public function getTypeID(): int
-    {
-        return $this->typeID;
     }
 
     public function getFamilyID(): int
@@ -127,71 +118,68 @@ class AIManager
         } else {
             return array(false, null, null, 1);
         }
-
-        switch ($model->getParameter()?->id) {
-            case AIParameterType::JSON:
-                $contentType = "application/json";
-                break;
-            case AIParameterType::MULTIPART_FORM_DATA:
-                $contentType = "multipart/form-data";
-                break;
-            default:
-                $contentType = null;
-                break;
+        if (!($model instanceof AIModel)) {
+            return array(false, null, null, 4);
         }
+        $headers = array(
+            "Authorization: Bearer " . $this->apiKey
+        );
+        $requestHeaders = $model->getRequestHeaders();
 
-        if ($contentType !== null) {
+        if (!empty($requestHeaders)) {
+            foreach ($requestHeaders as $headerKey => $headerValue) {
+                $headers[] = $headerKey . ": " . $headerValue;
+            }
+        }
+        $postFields = $model->getPostFields();
+
+        if (!empty($postFields)) {
+            $this->lastParameters = array_merge($postFields, $parameters);
+        } else {
             $this->lastParameters = $parameters;
-            $parameters[$model->getCodeKey()] = $model->getCode();
+        }
+        $parameters = @json_encode($this->getAllParameters());
 
-            if (!empty($this->parameters)) {
-                $parameters = array_merge($parameters, $this->parameters);
+        $reply = get_curl(
+            $model->getRequestURL(),
+            "POST",
+            $headers,
+            $parameters,
+            $timeoutSeconds
+        );
+
+        if ($reply !== null && $reply !== false) {
+            $received = $reply;
+            $reply = @json_decode($reply);
+
+            if ($reply === null) {
+                $reply = $received;
             }
-            $parameters = @json_encode($parameters);
-            $reply = get_curl(
-                $model->getRequestURL(),
-                "POST",
-                array(
-                    "Content-Type: " . $contentType,
-                    "Authorization: Bearer " . $this->apiKey
-                ),
-                $parameters,
-                $timeoutSeconds
-            );
-
-            if ($reply !== null && $reply !== false) {
-                $received = $reply;
-                $reply = @json_decode($reply);
-
-                if ($reply === null) {
-                    $reply = $received;
-                }
-                sql_insert(
-                    AIDatabaseTable::AI_HISTORY,
-                    array(
-                        "model_id" => $model->getModelID(),
-                        "hash" => $hash,
-                        "random_id" => $this->randomID,
-                        "sent_parameters" => $parameters,
-                        "received_parameters" => $received,
-                        "currency_id" => $model->getCurrency()?->id,
-                        "creation_date" => get_current_date()
-                    )
-                );
-                return array(true, $model, $reply, 2);
-            }
-
             sql_insert(
                 AIDatabaseTable::AI_HISTORY,
                 array(
                     "model_id" => $model->getModelID(),
                     "hash" => $hash,
+                    "random_id" => $this->randomID,
                     "sent_parameters" => $parameters,
+                    "received_parameters" => $received,
                     "currency_id" => $model->getCurrency()?->id,
                     "creation_date" => get_current_date()
                 )
             );
+            return array(true, $model, $reply, 2);
         }
+
+        sql_insert(
+            AIDatabaseTable::AI_HISTORY,
+            array(
+                "model_id" => $model->getModelID(),
+                "hash" => $hash,
+                "sent_parameters" => $parameters,
+                "currency_id" => $model->getCurrency()?->id,
+                "creation_date" => get_current_date()
+            )
+        );
         return array(false, $model, null, 3);
     }
 
