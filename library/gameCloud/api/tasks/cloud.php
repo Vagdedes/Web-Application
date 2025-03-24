@@ -279,7 +279,22 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             $patreonFullName = get_form("patreon_full_name", false);
 
             if (!empty($patreonFullName)) {
+                $patreonSubscriptions = get_patreon2_subscriptions(null, null, null);
 
+                if (empty($patreonSubscriptions)) {
+                    echo "false";
+                } else {
+                    foreach ($patreonSubscriptions as $subscription) {
+                        if (trim($subscription?->attributes?->full_name) == $patreonFullName) {
+                            if ($subscription?->attributes?->lifetime_support_cents >= 900) {
+                                echo "true";
+                            } else {
+                                echo "false";
+                            }
+                            break;
+                        }
+                    }
+                }
             }
         } else if ($data == "staffAnnouncements") {
             try {
