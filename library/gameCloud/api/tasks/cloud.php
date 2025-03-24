@@ -271,14 +271,28 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 echo $query[0]->license_id;
             }
         } else if ($data == "ownsVacanOne") {
-            $paypalEmail = get_form("paypal_email", false);
+            $paypalEmail = trim(get_form("paypal_email", false));
 
-            if (!empty($paypalEmail)) {
+            if (is_email($paypalEmail)) {
+                $paypalEmail = trim($paypalEmail);
+                $search = find_paypal_transactions_by_data_pair(
+                    array(
+                        "EMAIL" => $paypalEmail,
+                        "AMT" => 9.99
+                    ),
+                    1
+                );
 
+                if (empty($search)) {
+                    echo "false";
+                } else {
+                    echo "true";
+                }
             }
             $patreonFullName = get_form("patreon_full_name", false);
 
             if (!empty($patreonFullName)) {
+                $patreonFullName = trim($patreonFullName);
                 $patreonSubscriptions = get_patreon2_subscriptions(null, null, null);
 
                 if (empty($patreonSubscriptions)) {
