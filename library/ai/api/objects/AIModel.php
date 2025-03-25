@@ -8,7 +8,7 @@ class AIModel
     private ?string $tokenizer, $requestHeaders, $postFields;
     private object $currency;
     private ?float $received_token_cost, $received_token_audio_cost, $sent_token_cost, $sent_token_audio_cost;
-    private bool $exists;
+    private bool $exists, $encodeFields;
     private array $pricing;
     private ?AIManager $manager;
 
@@ -37,6 +37,7 @@ class AIModel
                 $this->context = null;
                 $this->requestUrl = "";
                 $this->postFields = null;
+                $this->encodeFields = false;
                 $this->tokenizer = null;
                 $this->received_token_cost = null;
                 $this->sent_token_cost = null;
@@ -58,6 +59,7 @@ class AIModel
             $this->requestUrl = $row->request_url;
             $this->requestHeaders = $row->request_headers;
             $this->postFields = $row->post_fields;
+            $this->encodeFields = $row->encode_fields !== null;
             $this->tokenizer = $row->tokenizer;
             $this->received_token_cost = $row->received_token_cost;
             $this->sent_token_cost = $row->sent_token_cost;
@@ -163,6 +165,11 @@ class AIModel
             : @json_decode($this->postFields, true);
     }
 
+    public function encodeFields(): bool
+    {
+        return $this->encodeFields;
+    }
+
     public function getTokenizer(): ?string
     {
         return $this->tokenizer;
@@ -180,6 +187,9 @@ class AIModel
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
+            case AIModelFamily::OPENAI_SPEECH:
+            case AIModelFamily::OPENAI_SPEECH_PRO:
+            case AIModelFamily::OPENAI_SPEECH_OLD:
                 if ($multiple) {
                     return $this->getTextsOrVoices($object);
                 } else {
@@ -217,6 +227,10 @@ class AIModel
                 } else {
                     return ($object?->choices[0] ?? null)?->message?->audio?->data;
                 }
+            case AIModelFamily::OPENAI_SPEECH:
+            case AIModelFamily::OPENAI_SPEECH_PRO:
+            case AIModelFamily::OPENAI_SPEECH_OLD:
+                return $object?->text;
             default:
                 return null;
         }
@@ -256,6 +270,12 @@ class AIModel
                     }
                 }
                 return $texts;
+            case AIModelFamily::OPENAI_SPEECH:
+            case AIModelFamily::OPENAI_SPEECH_PRO:
+            case AIModelFamily::OPENAI_SPEECH_OLD:
+                return array(
+                    $object?->text
+                );
             default:
                 return array();
         }

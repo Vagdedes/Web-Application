@@ -138,8 +138,11 @@ class AIManager
         } else {
             $this->lastParameters = $parameters;
         }
-        $parameters = @json_encode($this->getAllParameters());
+        $parameters = $this->getAllParameters();
 
+        if ($model->encodeFields()) {
+            $parameters = @json_encode($parameters);
+        }
         $reply = get_curl(
             $model->getRequestURL(),
             "POST",
@@ -161,7 +164,7 @@ class AIManager
                     "model_id" => $model->getModelID(),
                     "hash" => $hash,
                     "random_id" => $this->randomID,
-                    "sent_parameters" => $parameters,
+                    "sent_parameters" => is_array($parameters) ? @json_encode($parameters) : $parameters,
                     "received_parameters" => $received,
                     "currency_id" => $model->getCurrency()?->id,
                     "creation_date" => get_current_date()
@@ -175,7 +178,7 @@ class AIManager
             array(
                 "model_id" => $model->getModelID(),
                 "hash" => $hash,
-                "sent_parameters" => $parameters,
+                "sent_parameters" => is_array($parameters) ? @json_encode($parameters) : $parameters,
                 "currency_id" => $model->getCurrency()?->id,
                 "creation_date" => get_current_date()
             )
