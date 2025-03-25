@@ -197,6 +197,7 @@ class AIModel
             case AIModelFamily::OPENAI_SPEECH:
             case AIModelFamily::OPENAI_SPEECH_PRO:
             case AIModelFamily::OPENAI_SPEECH_OLD:
+            case AIModelFamily::OPENAI_SPEECH_TEXT:
                 if ($multiple) {
                     return $this->getTextsOrVoices($object);
                 } else {
@@ -238,6 +239,8 @@ class AIModel
             case AIModelFamily::OPENAI_SPEECH_PRO:
             case AIModelFamily::OPENAI_SPEECH_OLD:
                 return $object?->text;
+            case AIModelFamily::OPENAI_SPEECH_TEXT:
+                return $object;
             default:
                 return null;
         }
@@ -282,6 +285,10 @@ class AIModel
             case AIModelFamily::OPENAI_SPEECH_OLD:
                 return array(
                     $object?->text
+                );
+            case AIModelFamily::OPENAI_SPEECH_TEXT:
+                return array(
+                    $object
                 );
             default:
                 return array();
