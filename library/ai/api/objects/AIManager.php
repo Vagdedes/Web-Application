@@ -153,10 +153,15 @@ class AIManager
 
         if ($reply !== null && $reply !== false) {
             $received = $reply;
-            $reply = @json_decode($reply);
 
-            if ($reply === null) {
-                $reply = $received;
+            if ($model->base64EncodeReply()) {
+                $received = base64_encode($received);
+            } else {
+                $reply = @json_decode($reply);
+
+                if ($reply === null) {
+                    $reply = $received;
+                }
             }
             sql_insert(
                 AIDatabaseTable::AI_HISTORY,

@@ -42,6 +42,10 @@ class AIModelFamily
         OPENAI_SPEECH = 3,
         OPENAI_SPEECH_PRO = 4,
         OPENAI_SPEECH_OLD = 6;
+
+    // Text to Speech
+    public const
+        OPENAI_SPEECH_TEXT = 7;
 }
 
 class AIAuthorization

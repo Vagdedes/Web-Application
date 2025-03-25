@@ -8,7 +8,7 @@ class AIModel
     private ?string $tokenizer, $requestHeaders, $postFields;
     private object $currency;
     private ?float $received_token_cost, $received_token_audio_cost, $sent_token_cost, $sent_token_audio_cost;
-    private bool $exists, $encodeFields;
+    private bool $exists, $encodeFields, $base64EncodeReply;
     private array $pricing;
     private ?AIManager $manager;
 
@@ -43,6 +43,7 @@ class AIModel
                 $this->sent_token_cost = null;
                 $this->received_token_audio_cost = null;
                 $this->sent_token_audio_cost = null;
+                $this->base64EncodeReply = false;
                 return;
             } else {
                 $row = $query[0];
@@ -65,6 +66,7 @@ class AIModel
             $this->sent_token_cost = $row->sent_token_cost;
             $this->received_token_audio_cost = $row->received_token_audio_cost;
             $this->sent_token_audio_cost = $row->sent_token_audio_cost;
+            $this->base64EncodeReply = $row->base64_encode_reply !== null;
             $pricing = get_sql_query(
                 AIDatabaseTable::AI_PRICING,
                 null,
@@ -168,6 +170,11 @@ class AIModel
     public function encodeFields(): bool
     {
         return $this->encodeFields;
+    }
+
+    public function base64EncodeReply(): bool
+    {
+        return $this->base64EncodeReply;
     }
 
     public function getTokenizer(): ?string
