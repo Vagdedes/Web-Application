@@ -106,8 +106,9 @@ class AIManager
             foreach ($this->models as $rowModel) {
                 if (empty($input)
                     || $rowModel->getContext() === null
-                    || $rowModel->getTokenizer() === null
-                    || AIHelper::getTokens($rowModel->getTokenizer(), $input) <= $rowModel->getContext()) {
+                    || ($rowModel->getTokenizer() === null
+                        ? strlen($input) <= $rowModel->getContext()
+                        : AIHelper::getTokens($rowModel->getTokenizer(), $input) <= $rowModel->getContext())) {
                     $model = $rowModel;
                     break;
                 }
