@@ -27,7 +27,7 @@ class AIObjectConstructor
         return @json_encode($object) ?? null;
     }
 
-    public function get(string|array|object $information, bool $strict = true): ?object
+    public function get(mixed $information, bool $strict = true): ?object
     {
         $array = array();
         $this->findInitiators($array, $this->initiators);
@@ -36,8 +36,10 @@ class AIObjectConstructor
             $object = @json_decode($information, false);
         } else if (is_array($information)) {
             $object = json_decode(json_encode($information), false);
-        } else {
+        } else if (is_object($information)) {
             $object = $information;
+        } else {
+            return null;
         }
 
         if (is_object($object)) {
