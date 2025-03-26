@@ -117,7 +117,7 @@ class AIObjectConstructor
                                     && $value !== "false")) {
                                 return null;
                             }
-                            $oldObject->{$parent} = $value === "true";
+                            $oldObject->{$parent} = $value === true || $value === "true";
                             break;
                         case AIField::INTEGER_ARRAY;
                         case AIField::DECIMAL_ARRAY;
