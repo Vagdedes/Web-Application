@@ -53,7 +53,6 @@ class AccountInstructions
     public function setAI(?AIManager $chatAI): void
     {
         $this->managerAI = $chatAI;
-        $this->getPublic();
     }
 
     private function calculateRawContains(?string $text): array
