@@ -33,6 +33,7 @@ class AccountInstructions
         $this->replacements = array();
         $this->localInstructions = null;
         $this->publicInstructions = null;
+        $this->managerAI = null;
     }
 
     private function cacheReplacements(): void
