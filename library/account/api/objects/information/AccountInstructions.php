@@ -475,32 +475,6 @@ class AccountInstructions
                     }
 
                     if ($doc !== null) {
-                        if (false && $row->sub_directories !== null) {
-                            $links = get_urls_from_string($url);
-
-                            if (!empty($links)) {
-                                $domain = get_domain_from_url($row->information_url, true);
-
-                                foreach ($links as $link) {
-                                    if ($link != $row->information_url
-                                        && $link != ($row->information_url . "/")
-                                        && ($row->sub_directories == 2
-                                            || get_domain_from_url($link, true) == $domain)) {
-                                        $url = $this->getRawURLData($link);
-
-                                        if ($url !== null) {
-                                            $object = new stdClass();
-                                            $object->{$link} = $url;
-                                            $json = @json_encode($object);
-
-                                            if ($json !== false) {
-                                                $doc .= $json;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
                         $row->information_value = $doc;
                         $array[$arrayKey] = $row;
                     } else if ($row->information_value === null) {
