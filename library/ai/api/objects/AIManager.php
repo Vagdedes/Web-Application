@@ -107,7 +107,7 @@ class AIManager
                 if (empty($input)
                     || $rowModel->getContext() === null
                     || ($rowModel->getTokenizer() === null
-                        ? strlen($input) <= $rowModel->getContext()
+                        ? (!is_string($input) || strlen($input) <= $rowModel->getContext())
                         : AIHelper::getTokens($rowModel->getTokenizer(), $input) <= $rowModel->getContext())) {
                     $model = $rowModel;
                     break;
