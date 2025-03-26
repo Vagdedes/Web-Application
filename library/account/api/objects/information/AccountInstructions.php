@@ -294,6 +294,7 @@ class AccountInstructions
                         }
                     }
                     if ($row->auto_contains !== null
+                        && $this?->managerAI !== null
                         && $this?->managerAI->exists()) {
                         $result = $this->managerAI->getResult(
                             self::AI_HASH,
