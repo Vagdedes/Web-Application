@@ -137,5 +137,3 @@ class PhpAsync
     }
 
 }
-
-$default_php_async = new PhpAsync();
