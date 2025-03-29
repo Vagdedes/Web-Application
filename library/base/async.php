@@ -5,6 +5,7 @@ class PhpAsync
 
     private string $directory;
     private array $replacements, $dependencies;
+    private static array $files = [];
 
     public function __construct(
         string $directory = "",
@@ -65,42 +66,41 @@ class PhpAsync
         if (!in_array(__FILE__, $dependencies)) {
             $dependencies[] = __FILE__;
         }
-        $total = "";
+        $dependencyHash = string_to_integer(serialize($dependencies));
+        $total = self::$files[$dependencyHash] ?? null;
 
-        if (!empty($this->dependencies)) {
-            foreach ($this->dependencies as $dependency) {
-                if (!empty($this->replacements)) {
-                    foreach ($this->replacements as $key => $value) {
-                        $dependency = str_replace($key, $value, $dependency);
+        if ($total === null) {
+            $total = "";
+
+            if (!empty($this->dependencies)) {
+                foreach ($this->dependencies as $dependency) {
+                    if (!empty($this->replacements)) {
+                        foreach ($this->replacements as $key => $value) {
+                            $dependency = str_replace($key, $value, $dependency);
+                        }
                     }
+                    $total .= "require_once('" . $this->directory . $dependency . "');\n";
                 }
-                $total .= "require_once('" . $this->directory . $dependency . "');\n";
             }
-        }
-        if (!empty($dependencies)) {
-            foreach ($dependencies as $dependency) {
-                if (!empty($this->replacements)) {
-                    foreach ($this->replacements as $key => $value) {
-                        $dependency = str_replace($key, $value, $dependency);
+            if (!empty($dependencies)) {
+                foreach ($dependencies as $dependency) {
+                    if (!empty($this->replacements)) {
+                        foreach ($this->replacements as $key => $value) {
+                            $dependency = str_replace($key, $value, $dependency);
+                        }
                     }
+                    $total .= "require_once('" . $this->directory . $dependency . "');\n";
                 }
-                $total .= "require_once('" . $this->directory . $dependency . "');\n";
             }
+            self::$files[$dependencyHash] = $total;
         }
-        $methodString = is_array($method)
-            ? implode("::", $method)
-            : $method;
-        $paramsString = base64_encode(serialize($parameters));
-
-        $final = "call_user_func_array('" . $methodString . "', unserialize(base64_decode('" . $paramsString . "')));";
-
-        if (is_bool($debug)) {
-            $total .= "var_dump(" . substr($final, 0, -1) . ");";
-        } else {
-            $total .= $final;
-        }
+        $final = "call_user_func_array('"
+            . (is_array($method) ? implode("::", $method) : $method)
+            . "', unserialize(base64_decode('" . base64_encode(serialize($parameters)) . "')));";
 
         if ($debug === true) {
+            $total .= "var_dump(" . substr($final, 0, -1) . ");";
+
             while (true) {
                 $file = sys_get_temp_dir() . "/" . random_string(32) . ".php";
 
@@ -117,8 +117,11 @@ class PhpAsync
                 return $exec;
             }
         } else if ($debug === false) {
+            $total .= "var_dump(" . substr($final, 0, -1) . ");";
             return "php -r \"" . $total . "\"";
         } else {
+            $total .= $final;
+
             while (true) {
                 $file = sys_get_temp_dir() . "/" . random_string(32) . ".php";
 
