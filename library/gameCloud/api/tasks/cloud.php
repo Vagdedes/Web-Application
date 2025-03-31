@@ -88,7 +88,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     $gameCloudUser->setPlatform($platformID);
 
                     if (!$isTokenSearch) {
-                        $account = $gameCloudUser->getInformation()->getAccount();
+                        $account = $gameCloudUser->getAccount()->getAccount();
                     }
                 }
             } else if ($requiresVerification) {
@@ -158,19 +158,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     if ($productObject === null
         || $accessFailure !== null) {
         return;
-    }
-
-    if ($requiresVerification) {
-        if ($gameCloudUser->isValid()) {
-            $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id);
-
-            if ($verificationResult <= 0) {
-                $accessFailure = $verificationResult;
-                return;
-            }
-        } else {
-            $accessFailure = 689340526;
-        }
     }
 
     // Connection Counter
@@ -276,18 +263,10 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if (is_email($paypalEmail)) {
                 $paypalEmail = trim($paypalEmail);
 
-                if (!empty(get_sql_query(
-                    GameCloudVariables::VACAN_ONE_PURCHASES_TABLE,
-                    array(
-                        "paypal_email"
-                    ),
-                    array(
-                        array("paypal_email", $paypalEmail),
-                        array("deletion_date", null)
-                    ),
-                    null,
-                    1
-                ))) {
+                if ($gameCloudUser->getPurchases()->ownsManually(
+                    $paypalEmail,
+                    $data
+                )) {
                     echo "true";
                     return;
                 }

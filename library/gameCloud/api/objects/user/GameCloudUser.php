@@ -4,18 +4,23 @@ class GameCloudUser
 {
     private ?int $platform, $license;
     private GameCloudActions $actions;
-    private GameCloudInformation $information;
+    private GameCloudAccount $account;
     private GameCloudVerification $verification;
-    private GameCloudEmail $email;
+    private GameCloudPurchases $purchases;
 
     public function __construct(?int $platform, ?int $license)
     {
         $this->platform = $platform;
         $this->license = $license;
         $this->actions = new GameCloudActions($this);
-        $this->information = new GameCloudInformation($this);
+        $this->account = new GameCloudAccount($this);
         $this->verification = new GameCloudVerification($this);
-        $this->email = new GameCloudEmail($this);
+        $this->purchases = new GameCloudPurchases($this);
+    }
+
+    public function getPurchases(): GameCloudPurchases
+    {
+        return $this->purchases;
     }
 
     public function getPlatform(): ?int
@@ -53,19 +58,14 @@ class GameCloudUser
         return $this->actions;
     }
 
-    public function getInformation(): GameCloudInformation
+    public function getAccount(): GameCloudAccount
     {
-        return $this->information;
+        return $this->account;
     }
 
     public function getVerification(): GameCloudVerification
     {
         return $this->verification;
-    }
-
-    public function getEmail(): GameCloudEmail
-    {
-        return $this->email;
     }
 
 }

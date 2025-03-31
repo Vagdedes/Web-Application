@@ -171,4 +171,5 @@ class GameCloudVerification
         }
         return true;
     }
+
 }

@@ -70,7 +70,7 @@ if (is_private_connection()) {
     );
     $hasGameCloudUser = $gameCloudUser->isValid();
     $account = $hasGameCloudUser ?
-        $gameCloudUser->getInformation()->getAccount(false) :
+        $gameCloudUser->getAccount()->getAccount(false) :
         $account->getNew(
             $isEmail ? null : ($isNumeric ? $licenseID : null),
             $isEmail ? $licenseID : null, null,

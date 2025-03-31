@@ -1,6 +1,6 @@
 <?php
 
-class GameCloudInformation
+class GameCloudAccount
 {
     private GameCloudUser $user;
     private ?Account $account;
@@ -54,4 +54,19 @@ class GameCloudInformation
         return $account->exists()
             && $account->getPurchases()->owns($productID)->isPositiveOutcome();
     }
+
+    public function sendEmail(
+        int|string|float $case,
+        ?array           $detailsArray = null,
+        string           $type = "account",
+        bool             $unsubscribe = true
+    ): bool
+    {
+        $account = $this->user->getAccount()->getAccount();
+        return $account->exists()
+            && $account->getEmail()->isVerified()
+            && $account->getEmail()->send($case, $detailsArray, $type, $unsubscribe);
+
+    }
+
 }
