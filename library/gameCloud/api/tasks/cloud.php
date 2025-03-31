@@ -275,6 +275,22 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
 
             if (is_email($paypalEmail)) {
                 $paypalEmail = trim($paypalEmail);
+
+                if (!empty(get_sql_query(
+                    GameCloudVariables::VACAN_ONE_PURCHASES_TABLE,
+                    array(
+                        "paypal_email"
+                    ),
+                    array(
+                        array("paypal_email", $paypalEmail),
+                        array("deletion_date", null)
+                    ),
+                    null,
+                    1
+                ))) {
+                    echo "true";
+                    return;
+                }
                 $amounts = array(
                     9.99, // Spartan One, Vacan One
                     29.99, // Spartan Syn
