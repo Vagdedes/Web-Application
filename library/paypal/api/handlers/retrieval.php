@@ -26,7 +26,11 @@ function get_all_paypal_transactions(int $limit = 0, ?string $date = null, bool 
     return $transactions;
 }
 
-function find_paypal_transactions_by_data_pair(array $keyValueArray, int $limit = 0): array
+function find_paypal_transactions_by_data_pair(
+    array   $keyValueArray,
+    int     $limit = 0,
+    ?string $after = null
+): array
 {
     $transactions = array();
     $querySearch = array();
@@ -34,10 +38,14 @@ function find_paypal_transactions_by_data_pair(array $keyValueArray, int $limit 
     foreach ($keyValueArray as $key => $value) {
         $querySearch[] = "details LIKE '%\"$key\":\"$value\"%'";
     }
-    $query = sql_query("SELECT transaction_id, details FROM " . PayPalVariables::SUCCESSFUL_TRANSACTIONS_TABLE . " WHERE "
+    $query = sql_query(
+        "SELECT transaction_id, details FROM " . PayPalVariables::SUCCESSFUL_TRANSACTIONS_TABLE . " WHERE "
         . implode(" AND ", $querySearch)
+        . ($after !== null ? " AND creation_date >= '$after'" : "")
         . " ORDER BY id DESC"
-        . ($limit > 0 ? " LIMIT " . $limit : "") . ";");
+        . ($limit > 0 ? " LIMIT " . $limit : "")
+        . ";"
+    );
 
     if (isset($query->num_rows) && $query->num_rows > 0) {
         while ($row = $query->fetch_assoc()) {
@@ -64,7 +72,7 @@ function queue_paypal_transaction(int|string $transactionID): bool
 
     if (empty($query)) {
         return sql_insert(
-            PayPalVariables::TRANSACTIONS_QUEUE_TABLE,
+                PayPalVariables::TRANSACTIONS_QUEUE_TABLE,
                 array("transaction_id" => $transactionID),
             ) == true;
     }
@@ -75,7 +83,7 @@ function process_failed_paypal_transaction(int|string $transactionID, bool $chec
 {
     return (!$checkExistence
             || empty(get_sql_query(
-            PayPalVariables::FAILED_TRANSACTIONS_TABLE,
+                PayPalVariables::FAILED_TRANSACTIONS_TABLE,
                 array("transaction_id"),
                 array(
                     array("transaction_id", $transactionID)
@@ -83,7 +91,7 @@ function process_failed_paypal_transaction(int|string $transactionID, bool $chec
                 null,
                 1
             ))) && sql_insert(
-                PayPalVariables::FAILED_TRANSACTIONS_TABLE,
+            PayPalVariables::FAILED_TRANSACTIONS_TABLE,
             array(
                 "transaction_id" => $transactionID,
                 "creation_date" => get_current_date()
