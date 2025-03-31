@@ -261,47 +261,21 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             $paypalEmail = trim(get_form("paypal_email", false));
 
             if (is_email($paypalEmail)) {
-                $paypalEmail = trim($paypalEmail);
-
-                if ($gameCloudUser->getPurchases()->ownsManually(
+                $db = $gameCloudUser->getPurchases()->getFromDatabase(
                     $paypalEmail,
                     $data
-                )) {
+                );
+
+                if ($db !== null) {
+                    echo ($db ? "true" : "false");
+                    return;
+                }
+                if ($gameCloudUser->getPurchases()->legacyPayPalTransaction($paypalEmail)) {
                     echo "true";
                     return;
                 }
-                $amounts = array(
-                    9.99, // Spartan One, Vacan One
-                    29.99, // Spartan Syn
-                    37.49, // Spartan Syn
-                    "37.50", // Spartan Syn
-                    16.97, // Spartan Syn
-                    12.49, // Spartan Syn
-                    17.89, // Spartan Syn
-                    15.99, // Spartan Syn
-                    18.79, // Spartan Syn, Ultimate Stats, Global Bans, Anti Alt Account, File GUI (Old), Auto Sync
-                    50, // Spartan Syn
-                    "9.00", // Unlimited Detection Slots (6 Months),
-                    "13.30", // Unlimited Detection Slots (4 Months),
-                    6.83, // Unlimited Detection Slots (8 Months)
-                );
-
-                foreach ($amounts as $amount) {
-                    $search = find_paypal_transactions_by_data_pair(
-                        array(
-                            "EMAIL" => $paypalEmail,
-                            "AMT" => $amount
-                        ),
-                        1
-                    );
-
-                    if (!empty($search)) {
-                        echo "true";
-                        return;
-                    }
-                }
             }
-            $patreonFullName = get_form("patreon_full_name", false);
+            $patreonFullName = trim(get_form("patreon_full_name", false));
 
             if (strlen($patreonFullName) >= 2) {
                 $patreonFullName = trim($patreonFullName);
