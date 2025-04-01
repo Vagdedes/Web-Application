@@ -257,6 +257,41 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if (!empty($query)) {
                 echo $query[0]->license_id;
             }
+        } else if ($data == "ownsChecks") {
+            $type = get_form("type", false);
+
+            switch ($type) {
+                case "Combat":
+                case "Movement":
+                case "World":
+                    break;
+                default:
+                    echo "false";
+                    return;
+            }
+            $paypalEmail = trim(get_form("paypal_email", false));
+
+            if (is_email($paypalEmail)) {
+                $db = $gameCloudUser->getPurchases()->getFromDatabase(
+                    $paypalEmail,
+                    $data . $type
+                );
+
+                if ($db !== null) {
+                    echo($db ? "true" : "false");
+                    return;
+                }
+                if ($gameCloudUser->getPurchases()->hasPayPalTransaction(
+                    $paypalEmail,
+                    9.99,
+                    1,
+                    "Vacan " . $type . " Checks",
+                    "2025-04-02 00:00:00"
+                )) {
+                    echo "true";
+                    return;
+                }
+            }
         } else if ($data == "ownsVacanOne") {
             $paypalEmail = trim(get_form("paypal_email", false));
 
@@ -267,10 +302,10 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 );
 
                 if ($db !== null) {
-                    echo ($db ? "true" : "false");
+                    echo($db ? "true" : "false");
                     return;
                 }
-                if ($gameCloudUser->getPurchases()->legacyPayPalTransaction($paypalEmail)) {
+                if ($gameCloudUser->getPurchases()->hasLegacyPayPalTransaction($paypalEmail)) {
                     echo "true";
                     return;
                 }
