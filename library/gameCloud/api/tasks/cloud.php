@@ -281,17 +281,26 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     echo($db ? "true" : "false");
                     return;
                 }
-                if ($gameCloudUser->getPurchases()->hasPayPalTransaction(
-                    $paypalEmail,
-                    9.99,
-                    1,
-                    "Vacan " . $type . " Checks",
-                    "2025-04-02 00:00:00"
-                )) {
-                    echo "true";
+                $checks = array();
+
+                foreach (array("Java", "Bedrock") as $check) {
+                    if ($gameCloudUser->getPurchases()->hasPayPalTransaction(
+                        $paypalEmail,
+                        9.99,
+                        1,
+                        "Vacan " . $check . " " . $type . " Checks",
+                        "2025-04-02 00:00:00"
+                    )) {
+                        $checks[] = $check;
+                    }
+                }
+
+                if (!empty($checks)) {
+                    echo implode($separator, $checks);
                     return;
                 }
             }
+            echo "false";
         } else if ($data == "ownsVacanOne") {
             $paypalEmail = trim(get_form("paypal_email", false));
 
