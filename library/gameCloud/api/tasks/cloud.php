@@ -258,12 +258,13 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 echo $query[0]->license_id;
             }
         } else if ($data == "ownsChecks") {
-            $type = get_form("type", false);
+            $type = strtolower(get_form("type", false));
 
             switch ($type) {
-                case "Combat":
-                case "Movement":
-                case "World":
+                case "combat":
+                case "movement":
+                case "world":
+                    $type = strtoupper($type[0]) . substr($type, 1);
                     break;
                 default:
                     echo "false";
@@ -272,26 +273,29 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             $paypalEmail = trim(get_form("paypal_email", false));
 
             if (is_email($paypalEmail)) {
-                $db = $gameCloudUser->getPurchases()->getFromDatabase(
-                    $paypalEmail,
-                    $data . $type
-                );
-
-                if ($db !== null) {
-                    echo($db ? "true" : "false");
-                    return;
-                }
                 $checks = array();
 
-                foreach (array("Java", "Bedrock") as $check) {
+                foreach (array("Java", "Bedrock") as $edition) {
+                    $db = $gameCloudUser->getPurchases()->getFromDatabase(
+                        $paypalEmail,
+                        $data . $edition . $type
+                    );
+
+                    if ($db !== null) {
+                        if ($db) {
+                            $checks[] = $edition;
+                        } else {
+                            continue;
+                        }
+                    }
                     if ($gameCloudUser->getPurchases()->hasPayPalTransaction(
                         $paypalEmail,
                         9.99,
                         1,
-                        "Vacan " . $check . " " . $type . " Checks",
-                        "2025-04-02 00:00:00"
+                        "Vacan " . $edition . " " . $type . " Checks",
+                        "2025-04-01 00:00:00"
                     )) {
-                        $checks[] = $check;
+                        $checks[] = $edition;
                     }
                 }
 

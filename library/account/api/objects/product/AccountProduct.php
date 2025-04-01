@@ -159,66 +159,6 @@ class AccountProduct
                             $object->registered_buyers += sizeof(get_patreon2_subscriptions(null, $uniquePatreonTiers));
                         }
                     }
-                    $object->divisions = new stdClass();
-                    $object->buttons = new stdClass();
-                    $object->cards = new stdClass();
-
-                    foreach (array(
-                                 "pre_purchase" => null,
-                                 "post_purchase" => 1,
-                             ) as $key => $value) {
-                        $query = get_sql_query(
-                            AccountVariables::PRODUCT_DIVISIONS_TABLE,
-                            array("family", "name", "description", "no_html"),
-                            array(
-                                array("product_id", $productID),
-                                array("deletion_date", null),
-                                null,
-                                array("post_purchase", "=", 2, 0),
-                                array("post_purchase", $value),
-                                null,
-                            )
-                        );
-
-                        if (!empty($query)) {
-                            $divisions = array();
-
-                            foreach ($query as $division) {
-                                if (array_key_exists($division->family, $divisions)) {
-                                    $divisions[$division->family][] = $division;
-                                } else {
-                                    $divisions[$division->family] = array($division);
-                                }
-                            }
-                            $object->divisions->{$key} = $divisions;
-                        } else {
-                            $object->divisions->{$key} = $query;
-                        }
-                        $object->buttons->{$key} = get_sql_query(
-                            AccountVariables::PRODUCT_BUTTONS_TABLE,
-                            array("color", "name", "url", "requires_account"),
-                            array(
-                                array("product_id", $productID),
-                                array("deletion_date", null),
-                                null,
-                                array("post_purchase", "=", 2, 0),
-                                array("post_purchase", $value),
-                                null,
-                            )
-                        );
-                        $object->cards->{$key} = get_sql_query(
-                            AccountVariables::PRODUCT_CARDS_TABLE,
-                            array("image", "name", "url", "requires_account"),
-                            array(
-                                array("product_id", $productID),
-                                array("deletion_date", null),
-                                null,
-                                array("post_purchase", "=", 2, 0),
-                                array("post_purchase", $value),
-                                null,
-                            )
-                        );
-                    }
                     $object->compatibilities = get_sql_query(
                         AccountVariables::PRODUCT_COMPATIBILITIES_TABLE,
                         array("compatible_product_id"),
