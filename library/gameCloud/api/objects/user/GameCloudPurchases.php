@@ -9,6 +9,33 @@ class GameCloudPurchases
         $this->user = $user;
     }
 
+    public function addToDatabase(
+        string  $email,
+        string  $dataDirectory,
+        bool    $trueFalse,
+        ?string $expirationDate = null,
+        ?string $justification = null
+    ): ?bool
+    {
+        if ($this->getFromDatabase($email, $dataDirectory) !== null) {
+            return false;
+        } else if (sql_insert(
+            GameCloudVariables::PURCHASES_TABLE,
+            array(
+                "email_address" => $email,
+                "data_directory" => $dataDirectory,
+                "true_false" => $trueFalse,
+                "creation_date" => get_current_date(),
+                "creation_reason" => $justification,
+                "expiration_date" => $expirationDate
+            )
+        )) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public function getFromDatabase(
         string $email,
         string $dataDirectory
@@ -22,7 +49,11 @@ class GameCloudPurchases
             array(
                 array("email_address", $email),
                 array("data_directory", $dataDirectory),
-                array("deletion_date", null)
+                array("deletion_date", null),
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", get_current_date()),
+                null,
             ),
             null,
             1
@@ -36,24 +67,60 @@ class GameCloudPurchases
     }
 
     public function hasPayPalTransaction(
-        string                 $email,
-        int|float|string|array $amount,
-        int                    $limit = 1,
-        ?string                $reason = null,
-        ?string                $creationDate = null
+        string                      $email,
+        int|float|string|array|null $amount,
+        int                         $limit = 1,
+        int|float|string|array|null $reason = null,
+        ?string                     $creationDate = null
     ): bool
     {
         $arguments = array(
             "EMAIL" => $email
         );
 
-        if ($reason !== null) {
-            $arguments["L_NAME0"] = $reason;
-        }
         if (is_array($amount)) {
-            foreach ($amount as $single) {
+            if (is_array($reason)) {
+                foreach ($amount as $amountSingle) {
+                    foreach ($reason as $reasonSingle) {
+                        $search = $arguments;
+                        $search["AMT"] = $amountSingle;
+                        $search["L_NAME0"] = $reasonSingle;
+                        $search = find_paypal_transactions_by_data_pair(
+                            $search,
+                            $limit,
+                            $creationDate
+                        );
+
+                        if (!empty($search)) {
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                if ($reason !== null) {
+                    $arguments["L_NAME0"] = $reason;
+                }
+                foreach ($amount as $single) {
+                    $search = $arguments;
+                    $search["AMT"] = $single;
+                    $search = find_paypal_transactions_by_data_pair(
+                        $search,
+                        $limit,
+                        $creationDate
+                    );
+
+                    if (!empty($search)) {
+                        return true;
+                    }
+                }
+            }
+        } else if (is_array($reason)) {
+            if ($amount !== null) {
+                $arguments["AMT"] = $amount;
+            }
+            foreach ($reason as $single) {
                 $search = $arguments;
-                $search["AMT"] = $single;
+                $search["L_NAME0"] = $single;
                 $search = find_paypal_transactions_by_data_pair(
                     $search,
                     $limit,
@@ -65,8 +132,12 @@ class GameCloudPurchases
                 }
             }
         } else {
-            $arguments["AMT"] = $amount;
-
+            if ($amount !== null) {
+                $arguments["AMT"] = $amount;
+            }
+            if ($reason !== null) {
+                $arguments["L_NAME0"] = $reason;
+            }
             if (!empty(find_paypal_transactions_by_data_pair(
                 $arguments,
                 $limit,
@@ -78,7 +149,44 @@ class GameCloudPurchases
         return false;
     }
 
-    public function hasLegacyPayPalTransaction(string $email): bool
+    public function hasVacanPayPalTransaction(string $email): bool
+    {
+        return self::hasPayPalTransaction(
+            $email,
+            array(
+                19.99,
+                22.49,
+                "22.50",
+                "18.79",
+                14.99,
+                "15.00",
+                "8",
+                "7.50",
+                "9.90",
+                "10.00",
+                7.99,
+                "13.20",
+                "16.00",
+                16.49,
+                "13.00",
+                17.89,
+                "13.50",
+                "18.00",
+                "20.00",
+                "22.00",
+                "25.00",
+                19.97,
+                18.99
+            ),
+            1,
+            array(
+                "Spartan",
+                "Vacan"
+            )
+        );
+    }
+
+    public function hasVacanExtendedPayPalTransaction(string $email): bool
     {
         return self::hasPayPalTransaction(
             $email,

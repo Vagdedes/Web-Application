@@ -273,29 +273,49 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             $paypalEmail = trim(get_form("paypal_email", false));
 
             if (is_email($paypalEmail)) {
+                $inceptionDate = "2025-04-01 00:00:00";
+                $legacyExpirationDate = "2025-10-01 00:00:00";
+                $legacyExtendedExpirationDate = "2026-01-01 00:00:00";
                 $checks = array();
 
-                foreach (array("Java", "Bedrock") as $edition) {
-                    $db = $gameCloudUser->getPurchases()->getFromDatabase(
-                        $paypalEmail,
-                        $data . $edition . $type
-                    );
-
-                    if ($db !== null) {
-                        if ($db) {
-                            $checks[] = $edition;
-                        } else {
-                            continue;
-                        }
+                if ($date <= $legacyExpirationDate) {
+                    if ($gameCloudUser->getAccount()->ownsProduct(1)
+                        || $gameCloudUser->getAccount()->ownsProduct(16)
+                        || $gameCloudUser->getPurchases()->hasVacanPayPalTransaction($paypalEmail)
+                        || $gameCloudUser->getPurchases()->hasVacanExtendedPayPalTransaction($paypalEmail)) {
+                        $checks[] = "Java";
+                        $checks[] = "Bedrock";
                     }
-                    if ($gameCloudUser->getPurchases()->hasPayPalTransaction(
-                        $paypalEmail,
-                        9.99,
-                        1,
-                        "Vacan " . $edition . " " . $type . " Checks",
-                        "2025-04-01 00:00:00"
-                    )) {
-                        $checks[] = $edition;
+                } else if ($date <= $legacyExtendedExpirationDate
+                    && ($gameCloudUser->getAccount()->ownsProduct(26)
+                        || $gameCloudUser->getPurchases()->hasVacanExtendedPayPalTransaction($paypalEmail))) {
+                    $checks[] = "Java";
+                    $checks[] = "Bedrock";
+                }
+
+                if (empty($checks)) {
+                    foreach (array("Java", "Bedrock") as $edition) {
+                        $db = $gameCloudUser->getPurchases()->getFromDatabase(
+                            $paypalEmail,
+                            $data . $edition . $type
+                        );
+
+                        if ($db !== null) {
+                            if ($db) {
+                                $checks[] = $edition;
+                            } else {
+                                continue;
+                            }
+                        }
+                        if ($gameCloudUser->getPurchases()->hasPayPalTransaction(
+                            $paypalEmail,
+                            9.99,
+                            1,
+                            "Vacan " . $edition . " " . $type . " Checks",
+                            $inceptionDate
+                        )) {
+                            $checks[] = $edition;
+                        }
                     }
                 }
 
@@ -308,6 +328,10 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
         } else if ($data == "ownsVacanOne") {
             $paypalEmail = trim(get_form("paypal_email", false));
 
+            if ($gameCloudUser->getAccount()->ownsProduct(26)) {
+                echo "true";
+                return;
+            }
             if (is_email($paypalEmail)) {
                 $db = $gameCloudUser->getPurchases()->getFromDatabase(
                     $paypalEmail,
@@ -318,7 +342,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     echo($db ? "true" : "false");
                     return;
                 }
-                if ($gameCloudUser->getPurchases()->hasLegacyPayPalTransaction($paypalEmail)) {
+                if ($gameCloudUser->getPurchases()->hasVacanExtendedPayPalTransaction($paypalEmail)) {
                     echo "true";
                     return;
                 }
