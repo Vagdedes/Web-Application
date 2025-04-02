@@ -15,7 +15,7 @@ class GameCloudPurchases
         bool    $trueFalse,
         ?string $expirationDate = null,
         ?string $justification = null
-    ): ?bool
+    ): bool
     {
         if (sql_insert(
             GameCloudVariables::PURCHASES_TABLE,
