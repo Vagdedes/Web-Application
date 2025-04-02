@@ -17,9 +17,7 @@ class GameCloudPurchases
         ?string $justification = null
     ): ?bool
     {
-        if ($this->getFromDatabase($email, $dataDirectory) !== null) {
-            return false;
-        } else if (sql_insert(
+        if (sql_insert(
             GameCloudVariables::PURCHASES_TABLE,
             array(
                 "email_address" => $email,
@@ -55,7 +53,10 @@ class GameCloudPurchases
                 array("expiration_date", ">", get_current_date()),
                 null,
             ),
-            null,
+            array(
+                "DESC",
+                "id"
+            ),
             1
         );
 
