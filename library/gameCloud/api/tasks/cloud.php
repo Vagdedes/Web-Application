@@ -274,8 +274,8 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
 
             if (is_email($paypalEmail)) {
                 $inceptionDate = "2025-04-01 00:00:00";
-                $legacyExpirationDate = "2025-10-01 00:00:00";
-                $legacyExtendedExpirationDate = "2026-01-01 00:00:00";
+                $legacyExpirationDate = "2025-10-04 00:00:00";
+                $legacyExtendedExpirationDate = "2026-01-04 00:00:00";
                 $checks = array();
 
                 if ($date <= $legacyExpirationDate) {
@@ -317,6 +317,18 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                             $checks[] = $edition;
                         }
                     }
+                }
+
+                if (empty($checks)
+                    && $gameCloudUser->getPurchases()->hasPayPalTransaction(
+                        $paypalEmail,
+                        29.97,
+                        1,
+                        "Vacan All " . $edition . " Checks",
+                        $inceptionDate
+                    )) {
+                    $checks[] = "Java";
+                    $checks[] = "Bedrock";
                 }
 
                 if (!empty($checks)) {
