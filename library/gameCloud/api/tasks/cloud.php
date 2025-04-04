@@ -308,27 +308,21 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                             }
                         }
                         if ($gameCloudUser->getPurchases()->hasPayPalTransaction(
-                            $paypalEmail,
-                            9.99,
-                            1,
-                            "Vacan " . $edition . " " . $type . " Checks",
-                            $inceptionDate
-                        )) {
+                                $paypalEmail,
+                                9.99,
+                                1,
+                                "Vacan " . $edition . " " . $type . " Checks",
+                                $inceptionDate
+                            ) || $gameCloudUser->getPurchases()->hasPayPalTransaction(
+                                $paypalEmail,
+                                29.97,
+                                1,
+                                "Vacan All " . $edition . " Checks",
+                                $inceptionDate
+                            )) {
                             $checks[] = $edition;
                         }
                     }
-                }
-
-                if (empty($checks)
-                    && $gameCloudUser->getPurchases()->hasPayPalTransaction(
-                        $paypalEmail,
-                        29.97,
-                        1,
-                        "Vacan All " . $edition . " Checks",
-                        $inceptionDate
-                    )) {
-                    $checks[] = "Java";
-                    $checks[] = "Bedrock";
                 }
 
                 if (!empty($checks)) {
