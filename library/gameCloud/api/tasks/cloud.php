@@ -273,9 +273,9 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             $paypalEmail = trim(urldecode(get_form("paypal_email", false)));
 
             if (is_email($paypalEmail)) {
-                $inceptionDate = "2025-04-01 00:00:00";
-                $legacyExpirationDate = "2025-10-04 00:00:00";
-                $legacyExtendedExpirationDate = "2026-01-04 00:00:00";
+                $inceptionDate = "2025-04-05 00:00:00";
+                $legacyExpirationDate = "2025-10-05 00:00:00";
+                $legacyExtendedExpirationDate = "2026-01-05 00:00:00";
                 $checks = array();
 
                 if ($date <= $legacyExpirationDate) {
@@ -307,30 +307,53 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                 continue;
                             }
                         }
-                        if ($gameCloudUser->getPurchases()->hasPayPalTransaction(
+                        if (!empty($gameCloudUser->getPurchases()->hasPayPalTransaction(
                                 $paypalEmail,
                                 9.99,
                                 1,
                                 "Vacan " . $edition . " " . $type . " Checks",
                                 $inceptionDate
-                            ) || $gameCloudUser->getPurchases()->hasPayPalTransaction(
+                            )) || !empty($gameCloudUser->getPurchases()->hasPayPalTransaction(
                                 $paypalEmail,
                                 29.97,
                                 1,
                                 "Vacan All " . $edition . " Checks",
                                 $inceptionDate
-                            )) {
+                            ))) {
                             $checks[] = $edition;
+                        } else {
+                            $transactions = $gameCloudUser->getPurchases()->hasPayPalTransaction(
+                                $paypalEmail,
+                                0.01,
+                                1,
+                                array(
+                                    "Vacan " . $edition . " " . $type . " Checks",
+                                    "Vacan All " . $edition . " Checks"
+                                ),
+                                $inceptionDate
+                            );
+
+                            if (!empty($transactions)) {
+                                $transaction = $transactions[0];
+
+                                if (isset($transaction->TIMESTAMP)) {
+                                    $timestampDate = reformat_date($transaction->TIMESTAMP);
+                                    $timePassed = strtotime($date) - strtotime($timestampDate);
+
+                                    // less than a day
+                                    if ($timePassed <= 86_400) {
+                                        $checks[] = $edition;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
                 if (!empty($checks)) {
                     echo implode($separator, $checks);
-                    return;
                 }
             }
-            echo "false";
         } else if ($data == "ownsVacanOne") {
             $paypalEmail = trim(urldecode(get_form("paypal_email", false)));
 

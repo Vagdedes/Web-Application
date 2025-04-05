@@ -13,7 +13,7 @@ class GameCloudPurchases
         string  $email,
         string  $dataDirectory,
         bool    $trueFalse,
-        ?string $expirationDate = null,
+        ?string $expirationTime = null,
         ?string $justification = null
     ): bool
     {
@@ -25,7 +25,7 @@ class GameCloudPurchases
                 "true_false" => $trueFalse,
                 "creation_date" => get_current_date(),
                 "creation_reason" => $justification,
-                "expiration_date" => $expirationDate
+                "expiration_date" => $expirationTime !== null ? get_future_date($expirationTime) : null
             )
         )) {
             return true;
@@ -73,7 +73,7 @@ class GameCloudPurchases
         int                         $limit = 1,
         int|float|string|array|null $reason = null,
         ?string                     $creationDate = null
-    ): bool
+    ): ?array
     {
         $arguments = array(
             "EMAIL" => $email
@@ -93,7 +93,7 @@ class GameCloudPurchases
                         );
 
                         if (!empty($search)) {
-                            return true;
+                            return $search;
                         }
                     }
                 }
@@ -111,7 +111,7 @@ class GameCloudPurchases
                     );
 
                     if (!empty($search)) {
-                        return true;
+                        return $search;
                     }
                 }
             }
@@ -129,7 +129,7 @@ class GameCloudPurchases
                 );
 
                 if (!empty($search)) {
-                    return true;
+                    return $search;
                 }
             }
         } else {
@@ -139,20 +139,22 @@ class GameCloudPurchases
             if ($reason !== null) {
                 $arguments["L_NAME0"] = $reason;
             }
-            if (!empty(find_paypal_transactions_by_data_pair(
+            $search = find_paypal_transactions_by_data_pair(
                 $arguments,
                 $limit,
                 $creationDate
-            ))) {
-                return true;
+            );
+
+            if (!empty($search)) {
+                return $search;
             }
         }
-        return false;
+        return null;
     }
 
     public function hasVacanPayPalTransaction(string $email): bool
     {
-        return self::hasPayPalTransaction(
+        return !empty(self::hasPayPalTransaction(
             $email,
             array(
                 19.99,
@@ -177,19 +179,20 @@ class GameCloudPurchases
                 "22.00",
                 "25.00",
                 19.97,
-                18.99
+                18.99,
+                11.49
             ),
             1,
             array(
                 "Spartan",
                 "Vacan"
             )
-        );
+        ));
     }
 
     public function hasVacanExtendedPayPalTransaction(string $email): bool
     {
-        return self::hasPayPalTransaction(
+        return !empty(self::hasPayPalTransaction(
             $email,
             array(
                 9.99, // Spartan One, Vacan One, Combat Detection, Movement Detections, World Detections
@@ -206,7 +209,7 @@ class GameCloudPurchases
                 "13.30", // Unlimited Detection Slots (4 Months),
                 6.83, // Unlimited Detection Slots (8 Months)
             )
-        );
+        ));
     }
 
 }
