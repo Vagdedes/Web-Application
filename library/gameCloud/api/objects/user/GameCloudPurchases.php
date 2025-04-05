@@ -20,6 +20,8 @@ class GameCloudPurchases
         if (sql_insert(
             GameCloudVariables::PURCHASES_TABLE,
             array(
+                "platform_id" => $this->user->getPlatform(),
+                "license_id" => $this->user->getLicense(),
                 "email_address" => $email,
                 "data_directory" => $dataDirectory,
                 "true_false" => $trueFalse,
