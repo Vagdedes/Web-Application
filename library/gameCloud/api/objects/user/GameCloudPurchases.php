@@ -159,6 +159,96 @@ class GameCloudPurchases
         return null;
     }
 
+    public function hasStripeTransaction(
+        ?string                     $email,
+        int|float|string|array|null $amount,
+        int                         $limit = 1,
+        int|float|string|array|null $reason = null,
+        ?string                     $custom = null,
+        ?string                     $creationDate = null
+    ): ?array
+    {
+        $arguments = array();
+
+        if ($email !== null) {
+            $arguments["EMAIL"] = $email . "\"";
+        }
+        if ($custom !== null) {
+            $arguments["CUSTOM"] = $custom;
+        }
+        if (is_array($amount)) {
+            if (is_array($reason)) {
+                foreach ($amount as $amountSingle) {
+                    foreach ($reason as $reasonSingle) {
+                        $search = $arguments;
+                        $search["AMT"] = $amountSingle . "\"";
+                        $search["L_NAME0"] = $reasonSingle;
+                        $search = find_stripe_transactions_by_data_pair(
+                            $search,
+                            $limit,
+                            $creationDate
+                        );
+
+                        if (!empty($search)) {
+                            return $search;
+                        }
+                    }
+                }
+            } else {
+                if ($reason !== null) {
+                    $arguments["L_NAME0"] = $reason;
+                }
+                foreach ($amount as $single) {
+                    $search = $arguments;
+                    $search["AMT"] = $single . "\"";
+                    $search = find_stripe_transactions_by_data_pair(
+                        $search,
+                        $limit,
+                        $creationDate
+                    );
+
+                    if (!empty($search)) {
+                        return $search;
+                    }
+                }
+            }
+        } else if (is_array($reason)) {
+            if ($amount !== null) {
+                $arguments["AMT"] = $amount . "\"";
+            }
+            foreach ($reason as $single) {
+                $search = $arguments;
+                $search["L_NAME0"] = $single;
+                $search = find_stripe_transactions_by_data_pair(
+                    $search,
+                    $limit,
+                    $creationDate
+                );
+
+                if (!empty($search)) {
+                    return $search;
+                }
+            }
+        } else {
+            if ($amount !== null) {
+                $arguments["AMT"] = $amount . "\"";
+            }
+            if ($reason !== null) {
+                $arguments["L_NAME0"] = $reason;
+            }
+            $search = find_stripe_transactions_by_data_pair(
+                $arguments,
+                $limit,
+                $creationDate
+            );
+
+            if (!empty($search)) {
+                return $search;
+            }
+        }
+        return null;
+    }
+
     public function hasVacanPayPalTransaction(string $email): bool
     {
         return !empty(self::hasPayPalTransaction(

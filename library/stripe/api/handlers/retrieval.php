@@ -111,64 +111,31 @@ function find_stripe_transactions_by_id(int|string $transactionID): array
     }
 }
 
-function find_stripe_transactions_by_data_pair(array $keyValueArray, int $limit = 0, bool $sqlOnly = false): array
+function find_stripe_transactions_by_data_pair(
+    array   $keyValueArray,
+    int     $limit = 0,
+    ?string $after = null
+): array
 {
     $transactions = array();
+    $querySearch = array();
 
-    if ($sqlOnly) {
-        $querySearch = array();
+    foreach ($keyValueArray as $key => $value) {
+        $querySearch[] = "details LIKE '%\"$key\":\"$value%'";
+    }
+    $query = sql_query(
+        "SELECT transaction_id, details FROM " . StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE . " WHERE "
+        . implode(" AND ", $querySearch)
+        . ($after !== null ? " AND creation_date >= '$after'" : "")
+        . " ORDER BY id DESC"
+        . ($limit > 0 ? " LIMIT " . $limit : "")
+        . ";"
+    );
 
-        foreach ($keyValueArray as $key => $value) {
-            $querySearch[] = "details LIKE '%\"$key\":\"$value\"%'";
-        }
-        $query = get_sql_query(
-            StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
-            array("transaction_id", "details"),
-            null,
-            array(
-                "DESC",
-                "id"
-            ),
-            $limit
-        );
-
-        if (!empty($query)) {
-            foreach ($query as $row) {
-                $transactionID = $row->transaction_id;
-                $transactions[$transactionID] = json_decode($row->details);
-            }
-        }
-    } else {
-        $query = get_sql_query(
-            StripeVariables::SUCCESSFUL_TRANSACTIONS_TABLE,
-            array("transaction_id", "details"),
-            null,
-            array(
-                "DESC",
-                "id"
-            ),
-            $limit
-        );
-
-        if (!empty($query)) {
-            $keyValueArraySize = sizeof($keyValueArray);
-
-            foreach ($query as $row) {
-                $counter = 0;
-                $details = json_decode($row->details);
-
-                foreach ($keyValueArray as $key => $value) {
-                    $key = get_object_depth_key($details, $key);
-
-                    if ($key[0] && $key[1] == $value) {
-                        $counter++;
-                    }
-                }
-
-                if ($counter == $keyValueArraySize) {
-                    $transactions[$row->transaction_id] = $details;
-                }
-            }
+    if (isset($query->num_rows) && $query->num_rows > 0) {
+        while ($row = $query->fetch_assoc()) {
+            $transactionID = $row["transaction_id"];
+            $transactions[$transactionID] = json_decode($row["details"]);
         }
     }
     return $transactions;

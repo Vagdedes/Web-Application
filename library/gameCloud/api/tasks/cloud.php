@@ -371,12 +371,12 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 }
             }
         } else if ($data == "ownsVacanOne") {
-            $paypalEmail = trim(urldecode(get_form("paypal_email", false)));
-
             if ($gameCloudUser->getAccount()->ownsProduct(26)) {
                 echo "true";
                 return;
             }
+            $paypalEmail = trim(urldecode(get_form("paypal_email", false)));
+
             if (is_email($paypalEmail)) {
                 $db = $gameCloudUser->getPurchases()->getFromDatabase(
                     $paypalEmail,
@@ -391,6 +391,20 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     echo "true";
                     return;
                 }
+            }
+            $stripeEmail = trim(urldecode(get_form("stripe_email", false)));
+
+            if (is_email($stripeEmail)) {
+                $db = $gameCloudUser->getPurchases()->getFromDatabase(
+                    $stripeEmail,
+                    $data
+                );
+
+                if ($db !== null) {
+                    echo($db ? "true" : "false");
+                    return;
+                }
+                // todo
             }
             $patreonFullName = trim(urldecode(get_form("patreon_full_name", false)));
 
