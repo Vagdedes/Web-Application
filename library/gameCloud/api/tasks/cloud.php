@@ -257,6 +257,19 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if (!empty($query)) {
                 echo $query[0]->license_id;
             }
+        } else if ($data == "isSubscriptionBased") {
+            if (!empty($gameCloudUser->getPurchases()->hasPayPalTransaction(
+                null,
+                4.99,
+                1,
+                null,
+                "resource_purchase|" . $gameCloudUser->getLicense() . "|",
+                "2025-04-05 00:00:00"
+            ))) {
+                echo "true";
+            } else {
+                echo "false";
+            }
         } else if ($data == "ownsChecks") {
             $type = strtolower(get_form("type", false));
 
@@ -312,12 +325,14 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                 9.99,
                                 1,
                                 "Vacan " . $edition . " " . $type . " Checks",
+                                null,
                                 $inceptionDate
                             )) || !empty($gameCloudUser->getPurchases()->hasPayPalTransaction(
                                 $paypalEmail,
                                 29.97,
                                 1,
                                 "Vacan All " . $edition . " Checks",
+                                null,
                                 $inceptionDate
                             ))) {
                             $checks[] = $edition;
@@ -330,6 +345,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                     "Vacan " . $edition . " " . $type . " Checks",
                                     "Vacan All " . $edition . " Checks"
                                 ),
+                                null,
                                 $inceptionDate
                             );
 

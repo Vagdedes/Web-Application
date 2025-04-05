@@ -68,23 +68,28 @@ class GameCloudPurchases
     }
 
     public function hasPayPalTransaction(
-        string                      $email,
+        ?string                     $email,
         int|float|string|array|null $amount,
         int                         $limit = 1,
         int|float|string|array|null $reason = null,
+        ?string                     $custom = null,
         ?string                     $creationDate = null
     ): ?array
     {
-        $arguments = array(
-            "EMAIL" => $email
-        );
+        $arguments = array();
 
+        if ($email !== null) {
+            $arguments["EMAIL"] = $email . "\"";
+        }
+        if ($custom !== null) {
+            $arguments["CUSTOM"] = $custom;
+        }
         if (is_array($amount)) {
             if (is_array($reason)) {
                 foreach ($amount as $amountSingle) {
                     foreach ($reason as $reasonSingle) {
                         $search = $arguments;
-                        $search["AMT"] = $amountSingle;
+                        $search["AMT"] = $amountSingle . "\"";
                         $search["L_NAME0"] = $reasonSingle;
                         $search = find_paypal_transactions_by_data_pair(
                             $search,
@@ -103,7 +108,7 @@ class GameCloudPurchases
                 }
                 foreach ($amount as $single) {
                     $search = $arguments;
-                    $search["AMT"] = $single;
+                    $search["AMT"] = $single . "\"";
                     $search = find_paypal_transactions_by_data_pair(
                         $search,
                         $limit,
@@ -117,7 +122,7 @@ class GameCloudPurchases
             }
         } else if (is_array($reason)) {
             if ($amount !== null) {
-                $arguments["AMT"] = $amount;
+                $arguments["AMT"] = $amount . "\"";
             }
             foreach ($reason as $single) {
                 $search = $arguments;
@@ -134,7 +139,7 @@ class GameCloudPurchases
             }
         } else {
             if ($amount !== null) {
-                $arguments["AMT"] = $amount;
+                $arguments["AMT"] = $amount . "\"";
             }
             if ($reason !== null) {
                 $arguments["L_NAME0"] = $reason;

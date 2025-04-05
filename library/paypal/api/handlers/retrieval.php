@@ -36,7 +36,7 @@ function find_paypal_transactions_by_data_pair(
     $querySearch = array();
 
     foreach ($keyValueArray as $key => $value) {
-        $querySearch[] = "details LIKE '%\"$key\":\"$value\"%'";
+        $querySearch[] = "details LIKE '%\"$key\":\"$value%'";
     }
     $query = sql_query(
         "SELECT transaction_id, details FROM " . PayPalVariables::SUCCESSFUL_TRANSACTIONS_TABLE . " WHERE "
