@@ -249,7 +249,7 @@ class GameCloudPurchases
         return null;
     }
 
-    public function hasVacanPayPalTransaction(string $email): bool
+    public function hasSpartanPayPalTransaction(string $email): bool
     {
         return !empty(self::hasPayPalTransaction(
             $email,
@@ -287,7 +287,7 @@ class GameCloudPurchases
         ));
     }
 
-    public function hasVacanExtendedPayPalTransaction(string $email): bool
+    public function hasSpartanExtendedPayPalTransaction(string $email): bool
     {
         return !empty(self::hasPayPalTransaction(
             $email,

@@ -257,61 +257,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if (!empty($query)) {
                 echo $query[0]->license_id;
             }
-        } else if ($data == "ownsVacanOne") {
-            if ($gameCloudUser->getAccount()->ownsProduct(26)) {
-                echo "true";
-                return;
-            }
-            $paypalEmail = trim(urldecode(get_form("paypal_email", false)));
-
-            if (is_email($paypalEmail)) {
-                $db = $gameCloudUser->getPurchases()->getFromDatabase(
-                    $paypalEmail,
-                    $data
-                );
-
-                if ($db !== null) {
-                    echo($db ? "true" : "false");
-                    return;
-                }
-                if ($gameCloudUser->getPurchases()->hasVacanExtendedPayPalTransaction($paypalEmail)) {
-                    echo "true";
-                    return;
-                }
-            }
-            $stripeEmail = trim(urldecode(get_form("stripe_email", false)));
-
-            if (is_email($stripeEmail)) {
-                $db = $gameCloudUser->getPurchases()->getFromDatabase(
-                    $stripeEmail,
-                    $data
-                );
-
-                if ($db !== null) {
-                    echo($db ? "true" : "false");
-                    return;
-                }
-                // todo
-            }
-            $patreonFullName = trim(urldecode(get_form("patreon_full_name", false)));
-
-            if (strlen($patreonFullName) >= 2) {
-                $patreonFullName = trim($patreonFullName);
-                $patreonSubscriptions = get_patreon2_subscriptions(null, null, null);
-
-                if (!empty($patreonSubscriptions)) {
-                    foreach ($patreonSubscriptions as $subscription) {
-                        if (trim($subscription?->attributes?->full_name) == $patreonFullName) {
-                            if ($subscription?->attributes?->lifetime_support_cents >= 900) {
-                                echo "true";
-                                return;
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-            echo "false";
         } else if ($data == "staffAnnouncements") {
             try {
                 $query = get_sql_query(
@@ -426,14 +371,14 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                 $url,
                                 null,
                                 $color,
-                                "Vacan AntiCheat",
+                                "Spartan AntiCheat",
                                 null,
                                 get_minecraft_head_image($uuid, 64),
                                 $title,
                                 null,
                                 null,
                                 null,
-                                "https://vagdedes.com/.images/vacan/logo.png",
+                                "https://vagdedes.com/.images/spartan/logo.png",
                                 $details
                             );
 
