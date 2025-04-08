@@ -58,7 +58,8 @@ class GameCloudVerification
                     $type = $row->type;
                     $number = $row->number;
 
-                    if ($number == $licenseID
+                    if (($number == $licenseID
+                            || $number === null)
                         && $type == $this::managed_license_types[0]) { // license
                         $result = $this::suspended_user_value;
                         break;
