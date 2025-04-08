@@ -257,6 +257,61 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if (!empty($query)) {
                 echo $query[0]->license_id;
             }
+        } else if ($data == "ownedEditions") {
+            $email = trim(urldecode(get_form("email_address", false)));
+            $found = array();
+            $all = array("Java", "Bedrock");
+
+            if (is_email($email)) {
+                if (empty($found)) {
+                    foreach ($all as $edition) {
+                        $db = $gameCloudUser->getPurchases()->getFromDatabase(
+                            $email,
+                            $data . $edition
+                        );
+
+                        if ($db === true) {
+                            $found[] = $edition;
+                        }
+                    }
+                }
+            }
+            if (sizeof($found) < sizeof($all)) {
+                $patreonFullName = trim(urldecode(get_form("patreon_full_name", false)));
+
+                if (!empty($patreonFullName)) {
+                    $account = new Account();
+
+                    if ($account->getPatreon()->custom(
+                        $patreonFullName,
+                        array(25600775) // Both
+                    )) {
+                        foreach ($all as $available) {
+                            if (!in_array($available, $found)) {
+                                $found[] = $available;
+                            }
+                        }
+                    } else if ($account->getPatreon()->custom(
+                        $patreonFullName,
+                        array(25600830) // Java
+                    )) {
+                        if (!in_array($all[0], $found)) {
+                            $found[] = $all[0];
+                        }
+                    } else if ($account->getPatreon()->custom(
+                        $patreonFullName,
+                        array(25600831) // Bedrock
+                    )) {
+                        if (!in_array($all[1], $found)) {
+                            $found[] = $all[1];
+                        }
+                    }
+                }
+            }
+
+            if (!empty($found)) {
+                echo implode($separator, $found);
+            }
         } else if ($data == "staffAnnouncements") {
             try {
                 $query = get_sql_query(

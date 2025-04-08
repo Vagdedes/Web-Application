@@ -11,7 +11,38 @@ class AccountPatreon
         $this->retrieve = null;
     }
 
-    public function retrieve(?array $specificTiers = null, ?int $lifetimeCents = null, bool $and = false): MethodReply
+    public function custom(
+        string $name,
+        ?array $specificTiers = null,
+        ?int   $lifetimeCents = null,
+        bool   $and = false
+    ): MethodReply
+    {
+        if (!empty($specificTiers)
+            || !empty($lifetimeCents)) {
+            $object = $this->find(
+                $name,
+                $specificTiers
+            );
+            return new MethodReply(
+                ($specificTiers === null
+                    || patreon_object_is_paid($object)
+                    && patreon_object_has_tier($object, null, $specificTiers))
+                && (!$and
+                    || $lifetimeCents !== null && $object?->attributes?->lifetime_support_cents >= $lifetimeCents),
+                $object->getMessage(),
+                $object
+            );
+        } else {
+            return new MethodReply(false);
+        }
+    }
+
+    public function retrieve(
+        ?array $specificTiers = null,
+        ?int   $lifetimeCents = null,
+        bool   $and = false
+    ): MethodReply
     {
         if ($this->retrieve === null) {
             if (empty($specificTiers) && empty($lifetimeCents)) {
@@ -42,9 +73,11 @@ class AccountPatreon
         }
         $object = $this->retrieve->getObject();
         return new MethodReply(
-            patreon_object_is_paid($object)
-            && patreon_object_has_tier($object, null, $specificTiers)
-            && (!$and || $lifetimeCents !== null && $object?->attributes?->lifetime_support_cents >= $lifetimeCents),
+            ($specificTiers === null
+                || patreon_object_is_paid($object)
+                && patreon_object_has_tier($object, null, $specificTiers))
+            && (!$and
+                || $lifetimeCents !== null && $object?->attributes?->lifetime_support_cents >= $lifetimeCents),
             $this->retrieve->getMessage(),
             $object
         );
