@@ -15,8 +15,10 @@ while (true) {
     try {
         echo call_user_func_array($function, $argv) . "\n";
     } catch (Throwable $exception) {
-        var_dump($exception->getMessage());
-        $trace = $exception->getTraceAsString();
+        $object = new stdClass();
+        $object->message = $exception->getMessage();
+        $object->trace = $exception->getTraceAsString();
+        $trace = json_encode($object, JSON_PRETTY_PRINT);
         $file = fopen(
             "/var/www/.structure/library/scheduler/errors/exception_" . string_to_integer($trace, true) . ".txt",
             "w"
