@@ -7,13 +7,15 @@ require_once '/var/www/.structure/library/base/sql.php';
 unset($argv[0]);
 $function = explode("/", array_shift($argv));
 $function = array_pop($function);
+$function = array("__SchedulerTasks", $function);
 $refreshSeconds = round(array_shift($argv) * 1_000_000);
-require_once '/var/www/.structure/library/scheduler/tasks/' . $function . ".php";
+require_once '/var/www/.structure/library/scheduler/tasks.php';
 
 while (true) {
     try {
         echo call_user_func_array($function, $argv) . "\n";
     } catch (Throwable $exception) {
+        var_dump($exception->getMessage());
         $trace = $exception->getTraceAsString();
         $file = fopen(
             "/var/www/.structure/library/scheduler/errors/exception_" . string_to_integer($trace, true) . ".txt",
