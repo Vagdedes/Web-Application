@@ -122,19 +122,23 @@ class PhpAsync
         } else {
             $total .= $final;
 
-            while (true) {
-                $file = sys_get_temp_dir() . "/" . random_string(32) . ".php";
+            if (strlen($total) <= 2_097_152 - 32) {
+                return instant_shell_exec("php -r \"" . $total . "\"");
+            } else {
+                while (true) {
+                    $file = sys_get_temp_dir() . "/" . random_string(32) . ".php";
 
-                if (file_exists($file)) {
-                    continue;
-                }
-                $total .= "\n@unlink(__FILE__);";
-                $put = @file_put_contents($file, "<?php\n" . $total);
+                    if (file_exists($file)) {
+                        continue;
+                    }
+                    $total .= "\n@unlink(__FILE__);";
+                    $put = @file_put_contents($file, "<?php\n" . $total);
 
-                if ($put === false) {
-                    return null;
+                    if ($put === false) {
+                        return null;
+                    }
+                    return instant_shell_exec("php " . $file);
                 }
-                return instant_shell_exec("php " . $file);
             }
         }
     }

@@ -40,4 +40,4 @@ obj/
 
 # Custom
 /private
-/library/bigmanage
+**/bigmanage

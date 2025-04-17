@@ -78,7 +78,12 @@ class HetznerAction
 
         if (!empty($query)) {
             foreach ($query as $page) {
-                foreach ($page->servers as $server) {
+                $servers = $page?->servers;
+
+                if ($servers == null) {
+                    continue;
+                }
+                foreach ($servers as $server) {
                     $serverID = $server->id;
                     $metrics = get_hetzner_object(
                         HetznerConnectionType::GET,
