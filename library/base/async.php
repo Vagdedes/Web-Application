@@ -3,6 +3,8 @@
 class PhpAsync
 {
 
+    private const SQL_TABLE = "php_async.executableTasks";
+
     private string $directory;
     private array $replacements, $dependencies;
     private static array $files = [];
@@ -55,6 +57,88 @@ class PhpAsync
     }
 
     // Separator
+
+    public function executeStored(int $limit = 0): void
+    {
+        $query = get_sql_query(
+            self::SQL_TABLE,
+            array(
+                "id",
+                "method_name",
+                "method_parameters",
+                "code_dependencies",
+                "debug_code"
+            ),
+            array(
+                array("debug_result", null),
+            ),
+            null,
+            $limit
+        );
+
+        if (!empty($query)) {
+            foreach ($query as $row) {
+                $debug = $row->debug_code === null
+                    ? null
+                    : $row->debug_code == 1;
+
+                if ($debug === null) {
+                    delete_sql_query(
+                        self::SQL_TABLE,
+                        array(
+                            array("id", $row->id)
+                        ),
+                        null,
+                        1
+                    );
+                    $this->run(
+                        unserialize(base64_decode($row->method_name)),
+                        unserialize(base64_decode($row->method_parameters)),
+                        unserialize(base64_decode($row->code_dependencies)),
+                        $debug
+                    );
+                } else {
+                    $result = $this->run(
+                        unserialize(base64_decode($row->method_name)),
+                        unserialize(base64_decode($row->method_parameters)),
+                        unserialize(base64_decode($row->code_dependencies)),
+                        $debug
+                    );
+                    set_sql_query(
+                        self::SQL_TABLE,
+                        array(
+                            "debug_result" => json_encode($result, JSON_PRETTY_PRINT),
+                        ),
+                        array(
+                            array("id", $row->id),
+                        ),
+                        null,
+                        1
+                    );
+                }
+            }
+        }
+    }
+
+    public function storeAndRun(
+        array|string|callable $method,
+        array                 $parameters,
+        array                 $dependencies = [],
+        ?bool                 $debug = null,
+        ?string               $expiration = null
+    ): void
+    {
+        sql_insert(
+            self::SQL_TABLE,
+            array(
+                "method_name" => base64_encode(serialize($method)),
+                "method_parameters" => base64_encode(serialize($parameters)),
+                "code_dependencies" => base64_encode(serialize($dependencies)),
+                "debug_code" => $debug === null ? null : ($debug ? 1 : 0),
+                "expiration_date" => $expiration === null ? null : get_future_date($expiration),
+            )
+        );
+    }
 
     public function run(
         array|string|callable $method,

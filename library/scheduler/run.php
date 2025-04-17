@@ -1,15 +1,16 @@
 <?php
 ini_set('memory_limit', '-1');
 require '/root/vendor/autoload.php';
-require_once '/var/www/.structure/library/base/utilities.php';
-require_once '/var/www/.structure/library/base/sql.php';
+require '/var/www/.structure/library/base/utilities.php';
+require '/var/www/.structure/library/base/sql.php';
+require '/var/www/.structure/library/base/communication.php';
+require '/var/www/.structure/library/scheduler/tasks.php';
 
 unset($argv[0]);
 $function = explode("/", array_shift($argv));
 $function = array_pop($function);
 $function = array("__SchedulerTasks", $function);
 $refreshSeconds = round(array_shift($argv) * 1_000_000);
-require_once '/var/www/.structure/library/scheduler/tasks.php';
 
 while (true) {
     try {

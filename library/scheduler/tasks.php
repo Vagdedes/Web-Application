@@ -3,6 +3,13 @@
 class __SchedulerTasks
 {
 
+    public static function php_async(int $limit): void
+    {
+        require_once '/var/www/.structure/library/base/async.php';
+        $async = new PhpAsync();
+        $async->executeStored($limit);
+    }
+
     public static function big_manage_schedulers(): bool
     {
         require_once '/var/www/.structure/library/bigmanage/init.php';
