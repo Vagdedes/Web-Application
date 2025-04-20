@@ -17,6 +17,7 @@ while (true) {
         echo call_user_func_array($function, $argv) . "\n";
     } catch (Throwable $exception) {
         $object = new stdClass();
+        $object->date = get_current_date();
         $object->message = $exception->getMessage();
         $object->trace = $exception->getTraceAsString();
         $trace = json_encode($object, JSON_PRETTY_PRINT);
