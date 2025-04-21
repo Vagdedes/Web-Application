@@ -31,6 +31,7 @@ while (true) {
             fwrite($file, $trace);
             fclose($file);
         }
+        exit();
     }
     if ($refreshSeconds > 0) {
         usleep($refreshSeconds);
