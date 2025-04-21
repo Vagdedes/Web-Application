@@ -14,10 +14,16 @@ $refreshSeconds = round(array_shift($argv) * 1_000_000);
 
 while (true) {
     try {
-        echo call_user_func_array($function, $argv) . "\n";
+        if (has_sql_connections()
+            && !is_sql_usable()) {
+            exit();
+            break;
+        } else {
+            echo call_user_func_array($function, $argv) . "\n";
 
-        if ($refreshSeconds > 0) {
-            usleep($refreshSeconds);
+            if ($refreshSeconds > 0) {
+                usleep($refreshSeconds);
+            }
         }
     } catch (Throwable $exception) {
         $object = new stdClass();
@@ -35,6 +41,7 @@ while (true) {
             fwrite($file, $trace);
             fclose($file);
         }
+        exit();
         break;
     }
 }
