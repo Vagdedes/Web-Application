@@ -15,6 +15,10 @@ $refreshSeconds = round(array_shift($argv) * 1_000_000);
 while (true) {
     try {
         echo call_user_func_array($function, $argv) . "\n";
+
+        if ($refreshSeconds > 0) {
+            usleep($refreshSeconds);
+        }
     } catch (Throwable $exception) {
         $object = new stdClass();
         $object->date = get_current_date();
@@ -31,9 +35,6 @@ while (true) {
             fwrite($file, $trace);
             fclose($file);
         }
-        exit();
-    }
-    if ($refreshSeconds > 0) {
-        usleep($refreshSeconds);
+        break;
     }
 }
