@@ -15,4 +15,9 @@ abstract class AbstractMethodReply
         return $this->success;
     }
 
+    public final function setOutcome(bool $outcome): void
+    {
+        $this->success = $outcome;
+    }
+
 }

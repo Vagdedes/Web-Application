@@ -37,10 +37,10 @@ class AccountTranslation
         $date = get_current_date();
         $query = get_sql_query(
             AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
-            $details ? null : array("after"),
+            $details ? null : array("translation"),
             array(
                 array("translation_hash", $hash),
-                array("language", $language),
+                array("translation_language", $language),
                 array("deletion_date", null),
                 null,
                 array("expiration_date", "IS", null, 0),
@@ -86,9 +86,9 @@ class AccountTranslation
             );
 
             if (array_shift($outcome)) {
-                $after = $outcome[0]->getTextOrVoice($outcome[1]);
+                $translation = $outcome[0]->getTextOrVoice($outcome[1]);
 
-                if ($after === null) {
+                if ($translation === null) {
                     return new MethodReply(
                         false,
                         null,
@@ -100,9 +100,9 @@ class AccountTranslation
                         AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
                         array(
                             "translation_hash" => $hash,
-                            "language" => $language,
+                            "translation_language" => $language,
                             "actual" => $text,
-                            "translation" => $after,
+                            "translation" => $translation,
                             "creation_date" => $date,
                             "expiration_date" => $expiration === null ? null : get_future_date($expiration)
                         )
@@ -111,7 +111,7 @@ class AccountTranslation
                 return new MethodReply(
                     true,
                     null,
-                    $after
+                    $translation
                 );
             } else {
                 return new MethodReply(
@@ -125,7 +125,7 @@ class AccountTranslation
             return new MethodReply(
                 true,
                 null,
-                $details ? $query : $query->after
+                $details ? $query : $query->translation
             );
         }
     }
