@@ -58,7 +58,7 @@ class PhpAsync
 
     // Separator
 
-    public function executeStored(int $limit = 0): void
+    public function executeStored(int $limit = 0): int
     {
         $query = get_sql_query(
             self::SQL_TABLE,
@@ -118,6 +118,7 @@ class PhpAsync
                 }
             }
         }
+        return sizeof($query);
     }
 
     public function storeAndRun(

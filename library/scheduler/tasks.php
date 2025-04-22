@@ -3,30 +3,30 @@
 class __SchedulerTasks
 {
 
-    public static function php_async(int $limit): void
+    public static function php_async(int $limit): int
     {
-        require '/var/www/.structure/library/base/async.php';
+        require_once '/var/www/.structure/library/base/async.php';
         $async = new PhpAsync();
-        $async->executeStored($limit);
+        return $async->executeStored($limit);
     }
 
     public static function big_manage_schedulers(): bool
     {
-        require '/var/www/.structure/library/bigmanage/init.php';
+        require_once '/var/www/.structure/library/bigmanage/init.php';
         return BigManageCombinedScheduler::run();
     }
 
     public static function hetzner_maintain_network(): bool
     {
-        require '/var/www/.structure/library/hetzner/init.php';
+        require_once '/var/www/.structure/library/hetzner/init.php';
         return hetzner_maintain_network();
     }
 
     public static function transactions(int $pastDays): string
     {
-        require '/var/www/.structure/library/account/init.php';
-        require '/var/www/.structure/library/paypal/init.php';
-        require '/var/www/.structure/library/stripe/init.php';
+        require_once '/var/www/.structure/library/account/init.php';
+        require_once '/var/www/.structure/library/paypal/init.php';
+        require_once '/var/www/.structure/library/stripe/init.php';
         $bool = update_paypal_storage(0, $pastDays, true);
         $bool |= update_stripe_storage();
         $account = new Account();
