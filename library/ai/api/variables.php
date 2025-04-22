@@ -20,7 +20,7 @@ class AIModelFamily
     public const
         CHAT_GPT = 1,
         CHAT_GPT_PRO = 2,
-        OPENAI_O3_MINI = 14;
+        OPENAI_OMNI_MINI = 14;
 
     // Text to Image
     public const

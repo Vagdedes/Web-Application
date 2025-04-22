@@ -56,7 +56,7 @@ class AccountTranslation
 
         if ($force || empty($query)) {
             $modelFamily = $save && $expiration === null
-                ? AIModelFamily::OPENAI_O3_MINI
+                ? AIModelFamily::OPENAI_OMNI_MINI
                 : AIModelFamily::CHAT_GPT;
             $arguments = array(
                 "messages" => array(

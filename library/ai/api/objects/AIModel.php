@@ -189,7 +189,7 @@ class AIModel
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
-            case AIModelFamily::OPENAI_O3_MINI:
+            case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
@@ -222,7 +222,7 @@ class AIModel
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
-            case AIModelFamily::OPENAI_O3_MINI:
+            case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
                 return ($object?->choices[0] ?? null)?->message?->content;
@@ -251,7 +251,7 @@ class AIModel
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
-            case AIModelFamily::OPENAI_O3_MINI:
+            case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
                 $array = $object?->choices;
@@ -358,7 +358,7 @@ class AIModel
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
-            case AIModelFamily::OPENAI_O3_MINI:
+            case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
