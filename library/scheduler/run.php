@@ -11,10 +11,12 @@ $function = explode("/", array_shift($argv));
 $function = array_pop($function);
 $function = array("__SchedulerTasks", $function);
 $refreshSeconds = round(array_shift($argv) * 1_000_000);
+$start = time();
 
 while (true) {
     try {
-        if (has_sql_connections()
+        if (time() - $start > 60
+            || has_sql_connections()
             && !is_sql_usable()) {
             exit();
             break;
