@@ -3,6 +3,8 @@
 class AIObjectConstructor
 {
 
+    public const DEFAULT_INSTRUCTION = "Find the object and return it in JSON format without markdown";
+
     private array $initiators, $tasks, $parents;
 
     public function __construct(
@@ -13,7 +15,7 @@ class AIObjectConstructor
         $this->initiators = $initiators;
 
         if (empty($tasks)) {
-            $tasks[] = "Find the object and return it in JSON format without markdown";
+            $tasks[] = self::DEFAULT_INSTRUCTION;
         }
         $this->tasks = $tasks;
         $this->parents = array();
