@@ -136,6 +136,7 @@ class PhpAsync
                 "method_parameters" => base64_encode(serialize($parameters)),
                 "code_dependencies" => base64_encode(serialize($dependencies)),
                 "debug_code" => $debug === null ? null : ($debug ? 1 : 0),
+                "creation_date" => get_current_date(),
                 "expiration_date" => $expiration === null ? null : get_future_date($expiration),
             )
         );
