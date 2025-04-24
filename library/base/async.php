@@ -204,7 +204,7 @@ class PhpAsync
             }
         } else if ($debug === false) {
             $total .= "var_dump(" . substr($final, 0, -1) . ");";
-            return "php -r \"" . $total . "\"";
+            return base64_encode($total);
         } else {
             $total .= $final;
 
