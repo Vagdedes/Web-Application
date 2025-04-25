@@ -3,6 +3,19 @@
 class AIHelper
 {
 
+    public static function isLinearImageModel(int|AIModel $modelFamily): bool
+    {
+        if ($modelFamily instanceof AIModel) {
+            $modelFamily = $modelFamily->getFamilyID();
+        }
+        switch ($modelFamily) {
+            case AIModelFamily::GPT_IMAGE_1:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public static function isReasoningModel(int|AIModel $modelFamily): bool
     {
         if ($modelFamily instanceof AIModel) {
