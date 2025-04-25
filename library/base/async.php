@@ -209,7 +209,7 @@ class PhpAsync
             $total .= $final;
 
             if (strlen($total) <= 2_097_152 - 32) {
-                return instant_shell_exec("php -r \"" . $total . "\"");
+                return instant_shell_exec("php -r \"" . $total . "\"", false);
             } else {
                 while (true) {
                     $file = sys_get_temp_dir() . "/" . random_string(32) . ".php";
@@ -223,7 +223,7 @@ class PhpAsync
                     if ($put === false) {
                         return null;
                     }
-                    return instant_shell_exec("php " . $file);
+                    return instant_shell_exec("php " . $file, false);
                 }
             }
         }
