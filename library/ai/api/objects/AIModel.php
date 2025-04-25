@@ -203,6 +203,7 @@ class AIModel
                 } else {
                     return $this->getTextOrVoice($object);
                 }
+            case AIModelFamily::GPT_IMAGE_1:
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
                 if ($multiple) {
@@ -298,6 +299,8 @@ class AIModel
     public function getImage(mixed $object): ?string
     {
         switch ($this->familyID) {
+            case AIModelFamily::GPT_IMAGE_1:
+                return ($object?->data[0] ?? null)?->b64_json;
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
                 return ($object?->data[0] ?? null)?->url;
@@ -309,6 +312,16 @@ class AIModel
     public function getImages(mixed $object): array
     {
         switch ($this->familyID) {
+            case AIModelFamily::GPT_IMAGE_1:
+                $array = $object?->b64_json;
+                $images = array();
+
+                if (!empty($array)) {
+                    foreach ($array as $item) {
+                        $images[] = $item->url;
+                    }
+                }
+                return $images;
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
                 $array = $object?->data;
@@ -371,6 +384,7 @@ class AIModel
 
                     + (($object?->usage?->prompt_tokens_details?->audio_tokens ?? 0.0) * ($this->sent_token_audio_cost ?? 0.0))
                     + (($object?->usage?->completion_tokens_details?->audio_tokens ?? 0.0) * ($this->received_token_audio_cost ?? 0.0));
+            case AIModelFamily::GPT_IMAGE_1:
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
                 if (!($object instanceof AIManager)) {
@@ -379,28 +393,35 @@ class AIModel
                     }
                     $object = $this->manager;
                 }
+                $price = (($object?->usage?->output_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
+                    + (($object?->usage?->input_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0));
+
+                if (false && $this->getTokenizer() !== null) { // Not used or needed but implemented nonetheless
+                    $lastInput = $object->getLastInput();
+
+                    if ($lastInput !== null) {
+                        $price += AIHelper::getTokens(
+                                $this->getTokenizer(),
+                                $lastInput
+                            ) * ($this->sent_token_cost ?? 0.0);
+                    }
+                }
                 if (!empty($this->pricing)) {
                     $parameters = $object->getAllParameters();
 
                     if (!empty($parameters)) {
                         foreach ($this->pricing as $family) {
-                            $price = null;
-
                             foreach ($family as $row) {
                                 if (($parameters[$row->parameter_name] ?? null) == $row->parameter_match) {
-                                    $price = $row->price;
+                                    $price += $row->price;
                                 } else {
                                     continue 2;
                                 }
                             }
-
-                            if ($price !== null) {
-                                return $price;
-                            }
                         }
                     }
                 }
-                return null;
+                return $price;
             default:
                 return null;
         }

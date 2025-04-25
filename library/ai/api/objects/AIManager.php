@@ -7,6 +7,7 @@ class AIManager
     private int $familyID;
     private array $models, $parameters, $lastParameters;
     private string $apiKey;
+    private string|array|null $lastInput;
 
     public function __construct(int|AIModel $familyID,
                                 string      $apiKey,
@@ -21,6 +22,7 @@ class AIManager
         $this->lastParameters = array();
         $this->models = array();
         $this->randomID = null;
+        $this->lastInput = null;
 
         $query = get_sql_query(
             AIDatabaseTable::AI_MODELS,
@@ -51,6 +53,11 @@ class AIManager
     public function setRandomID(int $randomID): void
     {
         $this->randomID = $randomID;
+    }
+
+    public function getLastInput(): string|array|null
+    {
+        return $this->lastInput;
     }
 
     public function getParameters(): array
@@ -100,6 +107,8 @@ class AIManager
                               string|array|null $input = null,
                               int               $timeoutSeconds = 0): array
     {
+        $this->lastInput = $input;
+
         if (!empty($this->models)) {
             $model = null;
 

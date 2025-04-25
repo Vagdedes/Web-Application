@@ -24,6 +24,7 @@ class AIModelFamily
 
     // Text to Image
     public const
+        GPT_IMAGE_1 = 15,
         DALL_E_3 = 5,
         DALL_E_2 = 12;
 
