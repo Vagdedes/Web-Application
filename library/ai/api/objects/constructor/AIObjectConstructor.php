@@ -87,13 +87,14 @@ class AIObjectConstructor
                                 } else {
                                     $oldObject->{$parent} = null;
                                 }
-                            }
-                            if ($strict) {
-                                if (strlen($value) > $initiator->getMaxLength()) {
-                                    return null;
+                            } else {
+                                if ($strict) {
+                                    if (strlen($value) > $initiator->getMaxLength()) {
+                                        return null;
+                                    }
+                                } else if (strlen($value) > $initiator->getMaxLength()) {
+                                    $oldObject->{$parent} = substr($value, 0, $initiator->getMaxLength());
                                 }
-                            } else if (strlen($value) > $initiator->getMaxLength()) {
-                                $oldObject->{$parent} = substr($value, 0, $initiator->getMaxLength());
                             }
                             break;
                         case AIField::STRING;
@@ -103,13 +104,14 @@ class AIObjectConstructor
                                 } else {
                                     $oldObject->{$parent} = null;
                                 }
-                            }
-                            if ($strict) {
-                                if (strlen($value) > $initiator->getMaxLength()) {
-                                    return null;
+                            } else {
+                                if ($strict) {
+                                    if (strlen($value) > $initiator->getMaxLength()) {
+                                        return null;
+                                    }
+                                } else if (strlen($value) > $initiator->getMaxLength()) {
+                                    $oldObject->{$parent} = substr($value, 0, $initiator->getMaxLength());
                                 }
-                            } else if (strlen($value) > $initiator->getMaxLength()) {
-                                $oldObject->{$parent} = substr($value, 0, $initiator->getMaxLength());
                             }
                             break;
                         case AIField::BOOLEAN;
