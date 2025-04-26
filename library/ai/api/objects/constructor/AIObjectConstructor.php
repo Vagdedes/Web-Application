@@ -62,6 +62,7 @@ class AIObjectConstructor
                             }
                         }
                     } else {
+                        $oldObject = $object;
                         $value = null;
                     }
 
