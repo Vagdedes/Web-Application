@@ -946,25 +946,28 @@ class AccountTeam
         if (!$otherResult->isPositiveOutcome()) {
             return new MethodReply(false, "The other account is not in this team.");
         }
-        if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            $owner = $this->getOwner();
+        $owner = $this->getOwner();
 
-            if ($owner === null) {
-                return new MethodReply(false, "Owner not found.");
-            }
-            if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-                return new MethodReply(false, "You cannot change your own position in team.");
-            }
+        if ($owner === null) {
+            return new MethodReply(false, "Owner not found.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$owner
+            && $account->getDetail("id") === $this->account->getDetail("id")) {
+            return new MethodReply(false, "You cannot change your own position in the team.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change others positions.");
         }
         $userPosition = $this->getPosition();
 
-        if ($userPosition <= $position) {
+        if (!$owner
+            && $userPosition <= $position) {
             return new MethodReply(false, "Cannot change the position to the your or a higher position level.");
         }
-        if ($userPosition <= $this->getPosition($account)) {
+        if (!$owner
+            && $userPosition <= $this->getPosition($account)) {
             return new MethodReply(false, "Cannot change the position of a member with the same or higher position.");
         }
         global $max_32bit_Integer;
@@ -1193,7 +1196,7 @@ class AccountTeam
                 ))) {
                 return new MethodReply(true, "Role created.");
             } else {
-                return new MethodReply(false, "Failed to set role position in team.");
+                return new MethodReply(false, "Failed to set role position in the team.");
             }
         } else {
             return new MethodReply(false, "Failed to create role.");
@@ -1717,12 +1720,25 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_POSITIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change positions of roles.");
         }
+        global $max_32bit_Integer;
+
+        if ($position >= $max_32bit_Integer) {
+            return new MethodReply(false, "Cannot change the position to the highest possible level.");
+        }
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "Owner not found.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
         $userPosition = $this->getPosition();
 
-        if ($userPosition <= $this->getRolePosition($role)) {
+        if (!$owner
+            && $userPosition <= $this->getRolePosition($role)) {
             return new MethodReply(false, "Cannot change the position of a role with the same or higher position.");
         }
-        if ($userPosition <= $position) {
+        if (!$owner
+            && $userPosition <= $position) {
             return new MethodReply(false, "Cannot change the position of a role to the your position or a higher position.");
         }
         $selfMemberID = $this->getMember()?->id;
