@@ -444,7 +444,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                 delete_sql_query(
                                     GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE,
                                     array(
-                                        array("date", "<", get_past_date("31 days"))
+                                        array("creation_date", "<", get_past_date("31 days"))
                                     )
                                 );
                             }
