@@ -420,7 +420,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                             . $gameCloudUser->getPlatform()
                             . "-"
                             . $gameCloudUser->getLicense(),
-                            "2 seconds"
+                            "1 second"
                         ) ? true
                             : send_discord_webhook(
                                 $url,
