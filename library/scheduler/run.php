@@ -1,4 +1,7 @@
 <?php
+
+use React\EventLoop\Loop;
+
 ini_set('memory_limit', '-1');
 require '/root/vendor/autoload.php';
 require '/var/www/.structure/library/base/utilities.php';
@@ -10,22 +13,18 @@ unset($argv[0]);
 $function = explode("/", array_shift($argv));
 $function = array_pop($function);
 $function = array("__SchedulerTasks", $function);
-$refreshSeconds = round(array_shift($argv) * 1_000_000);
+$refreshSeconds = array_shift($argv);
 $start = time();
 
-while (true) {
+$loop = Loop::get();
+$loop->addPeriodicTimer($refreshSeconds, function () use ($start, $function, $argv) {
     try {
         if (time() - $start > 60
             || has_sql_connections()
             && !is_sql_usable()) {
             exit();
-            break;
         } else {
             echo call_user_func_array($function, $argv) . "\n";
-
-            if ($refreshSeconds > 0) {
-                usleep($refreshSeconds);
-            }
         }
     } catch (Throwable $exception) {
         $object = new stdClass();
@@ -44,6 +43,6 @@ while (true) {
             fclose($file);
         }
         exit();
-        break;
     }
-}
+});
+$loop->run();
