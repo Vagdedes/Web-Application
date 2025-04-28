@@ -8,23 +8,47 @@ require '/var/www/.structure/library/base/utilities.php';
 require '/var/www/.structure/library/base/sql.php';
 require '/var/www/.structure/library/base/communication.php';
 require '/var/www/.structure/library/scheduler/tasks.php';
+require '/var/www/.structure/library/scheduler/database.php';
 
 unset($argv[0]);
 $function = explode("/", array_shift($argv));
 $function = array_pop($function);
 $function = array("__SchedulerTasks", $function);
 $refreshSeconds = array_shift($argv);
-$start = time();
+$uniqueRun = array_shift($argv) == "true";
+$scriptHash = string_to_integer(__FILE__, true);
+$serverHash = get_server_identifier(true);
+$runningId = null;
 
+__SchedulerDatabase::deleteOldRows($scriptHash);
+
+$start = time();
 $loop = Loop::get();
-$loop->addPeriodicTimer($refreshSeconds, function () use ($start, $function, $argv) {
+$loop->addPeriodicTimer($refreshSeconds, function ()
+use ($start, $function, $argv, $uniqueRun, $scriptHash, $serverHash, &$runningId) {
     try {
         if (time() - $start > 60
             || has_sql_connections()
             && !is_sql_usable()) {
             exit();
         } else {
-            echo call_user_func_array($function, $argv) . "\n";
+            if (!$uniqueRun
+                || !__SchedulerDatabase::isRunning($scriptHash)) {
+                $callable = function () use ($function, $argv) {
+                    echo call_user_func_array($function, $argv) . "\n";
+                };
+
+                if ($uniqueRun) {
+                    $runningId = __SchedulerDatabase::setRunning($scriptHash, $serverHash);
+                    $callable();
+
+                    if ($runningId !== null) {
+                        __SchedulerDatabase::deleteSpecific($runningId);
+                    }
+                } else {
+                    $callable();
+                }
+            }
         }
     } catch (Throwable $exception) {
         $object = new stdClass();
@@ -41,6 +65,9 @@ $loop->addPeriodicTimer($refreshSeconds, function () use ($start, $function, $ar
         if ($file !== false) {
             fwrite($file, $trace);
             fclose($file);
+        }
+        if ($runningId !== null) {
+            __SchedulerDatabase::deleteSpecific($runningId);
         }
         exit();
     }
