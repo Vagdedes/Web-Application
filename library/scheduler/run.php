@@ -26,36 +26,32 @@ $scriptHash = array_to_integer(
 );
 $serverHash = get_server_identifier(true);
 $runningId = null;
+$callable = function () use ($function, $argv) {
+    echo call_user_func_array($function, $argv) . "\n";
+};
 
 __SchedulerDatabase::deleteOldRows($scriptHash);
 
 $start = time();
 $loop = Loop::get();
 $loop->addPeriodicTimer($refreshSeconds, function ()
-use ($start, $function, $argv, $uniqueRun, $scriptHash, $serverHash, &$runningId) {
+use ($start, $function, $argv, $uniqueRun, $scriptHash, $serverHash, &$runningId, $callable) {
     try {
         if (time() - $start > 60
             || has_sql_connections()
             && !is_sql_usable()) {
             exit();
-        } else {
-            if (!$uniqueRun
-                || !__SchedulerDatabase::isRunning($scriptHash)) {
-                $callable = function () use ($function, $argv) {
-                    echo call_user_func_array($function, $argv) . "\n";
-                };
+        } else if ($uniqueRun) {
+            if (!__SchedulerDatabase::isRunning($scriptHash)) {
+                $runningId = __SchedulerDatabase::setRunning($scriptHash, $serverHash);
+                $callable();
 
-                if ($uniqueRun) {
-                    $runningId = __SchedulerDatabase::setRunning($scriptHash, $serverHash);
-                    $callable();
-
-                    if ($runningId !== null) {
-                        __SchedulerDatabase::deleteSpecific($runningId);
-                    }
-                } else {
-                    $callable();
+                if ($runningId !== null) {
+                    __SchedulerDatabase::deleteSpecific($runningId);
                 }
             }
+        } else {
+            $callable();
         }
     } catch (Throwable $exception) {
         $object = new stdClass();
