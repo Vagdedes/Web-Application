@@ -16,7 +16,14 @@ $function = array_pop($function);
 $function = array("__SchedulerTasks", $function);
 $refreshSeconds = array_shift($argv);
 $uniqueRun = array_shift($argv) == "true";
-$scriptHash = string_to_integer(__FILE__, true);
+$scriptHash = array_to_integer(
+    array(
+        __FILE__,
+        $function[0],
+        $function[1],
+    ),
+    true
+);
 $serverHash = get_server_identifier(true);
 $runningId = null;
 
