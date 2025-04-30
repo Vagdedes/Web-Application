@@ -415,12 +415,13 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                 "value" => "``$information``",
                                 "inline" => false)
                         );
-                        $response = has_memory_cooldown(
+                        $response = has_memory_limit(
                             "game-cloud=discord-webhook="
                             . $gameCloudUser->getPlatform()
                             . "-"
                             . $gameCloudUser->getLicense(),
-                            "1 second"
+                            30,
+                            "1 minute"
                         ) ? true
                             : send_discord_webhook(
                                 $url,
