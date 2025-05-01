@@ -3,13 +3,13 @@
 function send_discord_webhook(string                $webhookURL,
                               ?string               $avatarURL,
                               int|string|null       $color,
-                              ?string               $authorName,
+                              ?string               $author,
                               ?string               $authorURL,
                               ?string               $authorIconURL,
-                              ?string               $titleName,
+                              ?string               $title,
                               ?string               $titleURL,
                               ?string               $description,
-                              ?string               $footerName,
+                              ?string               $footer,
                               ?string               $footerIconURL,
                               array                 $fields,
                               int|string|float|bool $content = null): bool|string
@@ -49,17 +49,29 @@ function send_discord_webhook(string                $webhookURL,
     if ($hasTitleURL && !is_url($titleURL)) {
         return "Local: Failed title-url criteria";
     }
-    if (!empty($titleName) && strlen($titleName) > 64) {
-        return "Local: Failed title-name criteria";
+    if (!empty($title) && strlen($title) > 256) {
+        return "Local: Failed title criteria";
     }
-    $hasFooterName = $footerName !== null;
+    $hasFooter = $footer !== null;
 
-    if ($hasFooterName && strlen($footerName) > 64) {
-        return "Local: Failed footer-name criteria";
+    if ($hasFooter && strlen($footer) > 2048) {
+        return "Local: Failed footer criteria";
     }
-    $hasTitleName = $titleName !== null;
-    $hasAuthorName = $authorName !== null;
     $hasDescription = $description !== null;
+
+    if ($hasDescription && strlen($description) > 2048) {
+        return "Local: Failed description criteria";
+    }
+    $hasTitle = $title !== null;
+
+    if ($hasTitle && strlen($title) > 256) {
+        return "Local: Failed title criteria";
+    }
+    $hasAuthor = $author !== null;
+
+    if ($hasAuthor && strlen($author) > 256) {
+        return "Local: Failed author criteria";
+    }
     $array = array(
         "content" => $content !== null ? $content : "",
         "avatar_url" => ($hasAvatarURL ? $avatarURL : ""),
@@ -69,20 +81,20 @@ function send_discord_webhook(string                $webhookURL,
         // Embeds Array
         "embeds" => array(
             array(
-                "title" => ($hasTitleName ? $titleName : ""),
+                "title" => ($hasTitle ? $title : ""),
                 "type" => "rich",
                 "description" => ($hasDescription ? $description : ""),
                 "url" => ($hasTitleURL ? $titleURL : ""),
                 "timestamp" => date("c", strtotime("now")),
                 "color" => ($hasColor ? hexdec($color) : "000000"),
                 "footer" => array(
-                    "text" => ($hasFooterName ? $footerName : ""),
+                    "text" => ($hasFooter ? $footer : ""),
                     "icon_url" => ($hasFooterURL ? $footerIconURL : "")
                 ),
                 "author" => array(
-                    "name" => ($hasAuthorName ? $authorName : ""),
-                    "url" => ($hasAuthorName && $hasAuthorURL ? $authorURL : ""),
-                    "icon_url" => ($hasAuthorName && $hasAuthorIconURL ? $authorIconURL : ""),
+                    "name" => ($hasAuthor ? $author : ""),
+                    "url" => ($hasAuthor && $hasAuthorURL ? $authorURL : ""),
+                    "icon_url" => ($hasAuthor && $hasAuthorIconURL ? $authorIconURL : ""),
                 ),
                 "fields" => $fields
             )
