@@ -477,43 +477,45 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     break;
             }
         } else if ($data == "advancedDiscordWebhook") {
-            if ($gameCloudUser->getPlatform() !== 2) {
-                echo "false";
-                return;
-            }
-            $ownerships = get_builtbybit_resource_ownerships(64165);
-
-            if (empty($ownerships)) {
-                echo "false";
-                return;
-            } else {
-                $owns = false;
-
-                foreach ($ownerships as $row) {
-                    if ($row->user == $gameCloudUser->getLicense()) {
-                        $owns = true;
-                        break;
-                    }
-                }
-
-                if (!$owns) {
+            if (false) {
+                if ($gameCloudUser->getPlatform() !== 2) {
                     echo "false";
                     return;
                 }
+                $ownerships = get_builtbybit_resource_ownerships(64165);
+
+                if (empty($ownerships)) {
+                    echo "false";
+                    return;
+                } else {
+                    $owns = false;
+
+                    foreach ($ownerships as $row) {
+                        if ($row->user == $gameCloudUser->getLicense()) {
+                            $owns = true;
+                            break;
+                        }
+                    }
+
+                    if (!$owns) {
+                        echo "false";
+                        return;
+                    }
+                }
             }
-            $url = get_form("webhook_url");
-            $avatarURL = get_form("avatar_url");
-            $color = get_form("color");
-            $author = get_form("author");
-            $authorURL = get_form("author_url");
-            $authorIconURL = get_form("author_icon_url");
-            $title = get_form("title");
-            $titleURL = get_form("title_url");
-            $description = get_form("description");
-            $footer = get_form("footer");
-            $footerIconURL = get_form("footer_icon_url");
-            $content = get_form("content");
-            $fields = get_form("fields");
+            $url = urldecode(get_form("webhook_url", false));
+            $avatarURL = urldecode(get_form("avatar_url", false));
+            $color = urldecode(get_form("color", false));
+            $author = urldecode(get_form("author", false));
+            $authorURL = urldecode(get_form("author_url", false));
+            $authorIconURL = urldecode(get_form("author_icon_url", false));
+            $title = urldecode(get_form("title", false));
+            $titleURL = urldecode(get_form("title_url", false));
+            $description = urldecode(get_form("description", false));
+            $footer = urldecode(get_form("footer", false));
+            $footerIconURL = urldecode(get_form("footer_icon_url", false));
+            $content = urldecode(get_form("content", false));
+            $fields = urldecode(get_form("fields", false));
 
             if ($fields === null) {
                 $fields = array();
