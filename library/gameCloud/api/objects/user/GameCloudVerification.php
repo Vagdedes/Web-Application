@@ -23,11 +23,11 @@ class GameCloudVerification
         $this->user = $user;
     }
 
-    public function isVerified(int|string $fileID, int|string $productID): int
+    public function isVerified(int|string $fileID, int|string $productID, string $ipAddress): int
     {
         $result = $this::ordinary_verification_value;
         $licenseID = $this->user->getLicense();
-
+        $date = get_current_date();
         $query = get_sql_query(
             GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
             array("type", "number", "expiration_date"),
@@ -43,31 +43,29 @@ class GameCloudVerification
                 array("product_id", "=", $productID, 0),
                 array("product_id", null),
                 null,
+                null,
+                array("expiration_date", ">=", $date, 0),
+                array("expiration_date", null),
+                null
             ),
             null,
             1
         );
 
         if (!empty($query)) {
-            $date = get_current_date();
-
             foreach ($query as $row) {
-                $expiration_date = $row->expiration_date;
+                $type = $row->type;
+                $number = $row->number;
 
-                if ($expiration_date === null || $date < $expiration_date) {
-                    $type = $row->type;
-                    $number = $row->number;
-
-                    if (($number == $licenseID
-                            || $number === null)
-                        && $type == $this::managed_license_types[0]) { // license
-                        $result = $this::suspended_user_value;
-                        break;
-                    }
-                    if ($type == $this::managed_license_types[1] && $number == $fileID) { // file
-                        $result = $this::suspended_user_value;
-                        break;
-                    }
+                if (($number == $licenseID
+                        || $number === null)
+                    && $type == $this::managed_license_types[0]) { // license
+                    $result = $this::suspended_user_value;
+                    break;
+                }
+                if ($type == $this::managed_license_types[1] && $number == $fileID) { // file
+                    $result = $this::suspended_user_value;
+                    break;
                 }
             }
         }

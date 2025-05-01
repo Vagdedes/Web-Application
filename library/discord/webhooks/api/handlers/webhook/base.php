@@ -129,6 +129,7 @@ function send_discord_webhook(string                $webhookURL,
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
     curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
     $response = curl_exec($ch);
     curl_close($ch);
     return strlen($response) === 0 ? true : $response;

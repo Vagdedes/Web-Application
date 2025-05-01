@@ -368,7 +368,11 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     } else if ($action == "add") {
         if ($data == "userVerification") {
             if ($gameCloudUser->isValid()) {
-                $verificationResult = $gameCloudUser->getVerification()->isVerified($fileID, $productObject->id);
+                $verificationResult = $gameCloudUser->getVerification()->isVerified(
+                    $fileID,
+                    $productObject->id,
+                    $ipAddressModified
+                );
 
                 if ($verificationResult <= 0) {
                     echo "false";
