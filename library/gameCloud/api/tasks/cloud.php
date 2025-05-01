@@ -589,7 +589,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                         "error" => $response
                     )
                 );
-                echo "false";
+                echo $response;
             }
         }
     }
