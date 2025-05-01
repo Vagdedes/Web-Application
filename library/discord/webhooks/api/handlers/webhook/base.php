@@ -6,7 +6,7 @@ function send_discord_webhook(string                $webhookURL,
                               ?string               $authorName,
                               ?string               $authorURL,
                               ?string               $authorIconURL,
-                              string                $titleName,
+                              ?string               $titleName,
                               ?string               $titleURL,
                               ?string               $description,
                               ?string               $footerName,
@@ -57,6 +57,7 @@ function send_discord_webhook(string                $webhookURL,
     if ($hasFooterName && strlen($footerName) > 64) {
         return "Local: Failed footer-name criteria";
     }
+    $hasTitleName = $titleName !== null;
     $hasAuthorName = $authorName !== null;
     $hasDescription = $description !== null;
     $array = array(
@@ -68,7 +69,7 @@ function send_discord_webhook(string                $webhookURL,
         // Embeds Array
         "embeds" => array(
             array(
-                "title" => $titleName,
+                "title" => ($hasTitleName ? $titleName : ""),
                 "type" => "rich",
                 "description" => ($hasDescription ? $description : ""),
                 "url" => ($hasTitleURL ? $titleURL : ""),

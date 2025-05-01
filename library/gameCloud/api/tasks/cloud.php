@@ -416,7 +416,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                 "inline" => false)
                         );
                         $response = has_memory_limit(
-                            "game-cloud=discord-webhook="
+                            "game-cloud=" . $data . "="
                             . $gameCloudUser->getPlatform()
                             . "-"
                             . $gameCloudUser->getLicense(),
@@ -471,6 +471,97 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 default:
                     echo "false";
                     break;
+            }
+        } else if ($data == "advancedDiscordWebhook") {
+            $url = get_form("webhook_url");
+            $avatarURL = get_form("avatar_url");
+            $color = get_form("color");
+            $author = get_form("author");
+            $authorURL = get_form("author_url");
+            $authorIconURL = get_form("author_icon_url");
+            $title = get_form("title");
+            $titleURL = get_form("title_url");
+            $description = get_form("description");
+            $footer = get_form("footer");
+            $footerIconURL = get_form("footer_icon_url");
+            $content = get_form("content");
+            $fields = get_form("fields");
+
+            if ($fields === null) {
+                $fields = array();
+            } else {
+                $fields = @json_decode($fields, true);
+
+                if (!is_array($fields)) {
+                    $fields = array();
+                }
+            }
+            $response = has_memory_limit(
+                "game-cloud=" . $data . "="
+                . $gameCloudUser->getPlatform()
+                . "-"
+                . $gameCloudUser->getLicense(),
+                30,
+                "1 minute"
+            ) ? true
+                : send_discord_webhook(
+                    get_form("webhook_url"),
+                    $avatarURL,
+                    $color,
+                    $author,
+                    $authorURL,
+                    $authorIconURL,
+                    $title,
+                    $titleURL,
+                    $description,
+                    $footer,
+                    $footerIconURL,
+                    $fields,
+                    $content
+                );
+
+            if ($response === true) {
+                echo "true";
+            } else {
+                if (!has_memory_cooldown(GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE, "15 minutes")) {
+                    delete_sql_query(
+                        GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE,
+                        array(
+                            array("creation_date", "<", get_past_date("31 days"))
+                        )
+                    );
+                }
+                $details = new stdClass();
+                $details->fields = $fields;
+                $details->description = $description;
+                $details->footer = $footer;
+                $details->footer_icon_url = $footerIconURL;
+                $details->title = $title;
+                $details->title_url = $titleURL;
+                $details->author = $author;
+                $details->author_url = $authorURL;
+                $details->author_icon_url = $authorIconURL;
+                $details->color = $color;
+                $details->avatar_url = $avatarURL;
+                $details->webhook_url = $url;
+                $details->content = $content;
+                sql_insert(
+                    GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE,
+                    array(
+                        "creation_date" => $date,
+                        "version" => $version,
+                        "platform_id" => $gameCloudUser->getPlatform(),
+                        "license_id" => $gameCloudUser->getLicense(),
+                        "product_id" => $productObject->id,
+                        "webhook_url" => $url,
+                        "details" => @json_encode(
+                            $details,
+                            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+                        ),
+                        "error" => $response
+                    )
+                );
+                echo "false";
             }
         }
     }
