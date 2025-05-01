@@ -77,6 +77,7 @@ class GameCloudVerification
                 GameCloudVariables::IP_MANAGEMENT_TABLE,
                 array("ip_allow"),
                 array(
+                    array("ip_address", $ipAddress),
                     array("platform_id", $this->user->getPlatform()),
                     array("license_id", $licenseID),
                     array("deletion_date", null),
@@ -104,9 +105,16 @@ class GameCloudVerification
     public function addLicenseManagement(int|string|null $productID,
                                          string          $type,
                                          ?string         $reason,
-                                         ?string         $duration): bool
+                                         ?string         $duration,
+                                         ?string         $ipAddress): bool
     {
         if (!in_array($type, $this::managed_license_types)) {
+            return false;
+        }
+        $isIpManagement = $type === $this::managed_license_types[2];
+
+        if ($isIpManagement
+            && $ipAddress === null) {
             return false;
         }
         if ($duration !== null) {
@@ -115,7 +123,6 @@ class GameCloudVerification
         $date = get_current_date();
         $platform = $this->user->getPlatform();
         $licenseID = $this->user->getLicense();
-        $isIpManagement = $type === $this::managed_license_types[2];
         $table = $isIpManagement
             ? GameCloudVariables::IP_MANAGEMENT_TABLE
             : GameCloudVariables::LICENSE_MANAGEMENT_TABLE;
@@ -131,7 +138,9 @@ class GameCloudVerification
                     : array("number", $licenseID),
                 array("platform_id", $platform),
                 array("deletion_date", null),
-                $productID !== null ? array("product_id", $productID) : "",
+                $productID !== null
+                    ? array("product_id", $productID)
+                    : "",
             ),
             null,
             1
@@ -143,6 +152,7 @@ class GameCloudVerification
                     "license_id" => $licenseID,
                     "platform_id" => $platform,
                     "product_id" => $productID,
+                    "ip_address" => $ipAddress,
                     "reason" => $reason,
                     "creation_date" => $date,
                     "expiration_date" => $duration
@@ -203,7 +213,9 @@ class GameCloudVerification
                     : array("number", $licenseID),
                 array("platform_id", $platform),
                 array("deletion_date", null),
-                $productID !== null ? array("product_id", $productID) : "",
+                $productID !== null
+                    ? array("product_id", $productID)
+                    : "",
             ),
             null,
             1
