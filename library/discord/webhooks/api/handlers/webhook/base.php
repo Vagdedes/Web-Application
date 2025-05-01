@@ -72,6 +72,27 @@ function send_discord_webhook(string                $webhookURL,
     if ($hasAuthor && strlen($author) > 256) {
         return "Local: Failed author criteria";
     }
+    if (!empty($fields)) {
+        foreach ($fields as $field) {
+            if (!is_array($field)) {
+                return "Local: Failed fields criteria (not array)";
+            }
+            if (count($field) !== 3) {
+                return "Local: Failed fields criteria (count)";
+            }
+            if (strlen($field[0]) > 256) {
+                return "Local: Failed fields criteria (name)";
+            }
+            if (strlen($field[1]) > 1024) {
+                return "Local: Failed fields criteria (value)";
+            }
+            if (!is_bool($field[2])) {
+                return "Local: Failed fields criteria (inline)";
+            }
+        }
+    } else {
+        $fields = array();
+    }
     $array = array(
         "content" => $content !== null ? $content : "",
         "avatar_url" => ($hasAvatarURL ? $avatarURL : ""),
