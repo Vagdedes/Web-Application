@@ -477,11 +477,11 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     break;
             }
         } else if ($data == "advancedDiscordWebhook") {
+            if ($gameCloudUser->getPlatform() !== 2) {
+                echo "false";
+                return;
+            }
             if (false) {
-                if ($gameCloudUser->getPlatform() !== 2) {
-                    echo "false";
-                    return;
-                }
                 $ownerships = get_builtbybit_resource_ownerships(64165);
 
                 if (empty($ownerships)) {
@@ -516,39 +516,26 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             $footerIconURL = urldecode(get_form("footer_icon_url", false));
             $content = urldecode(get_form("content", false));
             $fields = urldecode(get_form("fields", false));
+            $fields = @json_decode($fields, true);
 
-            if ($fields === null) {
+            if (!is_array($fields)) {
                 $fields = array();
-            } else {
-                $fields = @json_decode($fields, true);
-
-                if (!is_array($fields)) {
-                    $fields = array();
-                }
             }
-            $response = has_memory_limit(
-                "game-cloud=" . $data . "="
-                . $gameCloudUser->getPlatform()
-                . "-"
-                . $gameCloudUser->getLicense(),
-                30,
-                "1 minute"
-            ) ? true
-                : send_discord_webhook(
-                    get_form("webhook_url"),
-                    $avatarURL,
-                    $color,
-                    $author,
-                    $authorURL,
-                    $authorIconURL,
-                    $title,
-                    $titleURL,
-                    $description,
-                    $footer,
-                    $footerIconURL,
-                    $fields,
-                    $content
-                );
+            $response = send_discord_webhook(
+                $url,
+                $avatarURL,
+                $color,
+                $author,
+                $authorURL,
+                $authorIconURL,
+                $title,
+                $titleURL,
+                $description,
+                $footer,
+                $footerIconURL,
+                $fields,
+                $content
+            );
 
             if ($response === true) {
                 echo "true";
@@ -591,8 +578,9 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                         "error" => $response
                     )
                 );
-                echo $response;
+                echo $fields;
             }
         }
     }
 }
+echo "123";

@@ -24,27 +24,27 @@ function send_discord_webhook(string                $webhookURL,
     if ($hasColor && (strlen($color) < 3 || strlen($color) > 6)) {
         return "Local: Failed color criteria";
     }
-    $hasAuthorURL = $authorURL !== null;
+    $hasAuthorURL = !empty($authorURL);
 
     if ($hasAuthorURL && !is_url($authorURL)) {
         return "Local: Failed author-url criteria";
     }
-    $hasAuthorIconURL = $authorIconURL !== null;
+    $hasAuthorIconURL = !empty($authorIconURL);
 
     if ($hasAuthorIconURL && !is_url($authorIconURL)) {
         return "Local: Failed author-icon-url criteria";
     }
-    $hasAvatarURL = $avatarURL !== null;
+    $hasAvatarURL = !empty($avatarURL);
 
     if ($hasAvatarURL && !is_url($avatarURL)) {
         return "Local: Failed avatar-url criteria";
     }
-    $hasFooterURL = $footerIconURL !== null;
+    $hasFooterURL = !empty($footerIconURL);
 
     if ($hasFooterURL && !is_url($footerIconURL)) {
         return "Local: Failed footer-url criteria";
     }
-    $hasTitleURL = $titleURL !== null;
+    $hasTitleURL = !empty($titleURL);
 
     if ($hasTitleURL && !is_url($titleURL)) {
         return "Local: Failed title-url criteria";
@@ -52,22 +52,22 @@ function send_discord_webhook(string                $webhookURL,
     if (!empty($title) && strlen($title) > 256) {
         return "Local: Failed title criteria";
     }
-    $hasFooter = $footer !== null;
+    $hasFooter = !empty($footer);
 
     if ($hasFooter && strlen($footer) > 2048) {
         return "Local: Failed footer criteria";
     }
-    $hasDescription = $description !== null;
+    $hasDescription = !empty($description);
 
     if ($hasDescription && strlen($description) > 2048) {
         return "Local: Failed description criteria";
     }
-    $hasTitle = $title !== null;
+    $hasTitle = !empty($title);
 
     if ($hasTitle && strlen($title) > 256) {
         return "Local: Failed title criteria";
     }
-    $hasAuthor = $author !== null;
+    $hasAuthor = !empty($author);
 
     if ($hasAuthor && strlen($author) > 256) {
         return "Local: Failed author criteria";
