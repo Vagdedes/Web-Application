@@ -4,16 +4,19 @@ class GameCloudVerification
 {
 
     // States
-    public const
+    private const
         ordinary_verification_value = 1,
-        suspended_user_value = 0;
+        suspended_user_value = 0,
+        suspended_ip_value = -1;
 
     // Structure
     public const managed_license_types = array(
         /*0*/
         "license", // license bans
         /*1*/
-        "file" // file bans
+        "file", // file bans,
+        /*2*/
+        "ip-address", // ip management
     );
 
     private GameCloudUser $user;
@@ -69,12 +72,39 @@ class GameCloudVerification
                 }
             }
         }
+        if ($result === $this::ordinary_verification_value) {
+            $query = get_sql_query(
+                GameCloudVariables::IP_MANAGEMENT_TABLE,
+                array("ip_allow"),
+                array(
+                    array("platform_id", $this->user->getPlatform()),
+                    array("license_id", $licenseID),
+                    array("deletion_date", null),
+                    null,
+                    array("product_id", "=", $productID, 0),
+                    array("product_id", null),
+                    null,
+                    null,
+                    array("expiration_date", ">=", $date, 0),
+                    array("expiration_date", null),
+                    null
+                ),
+                null,
+                1
+            );
+
+            if (!empty($query)
+                && $query[0]->ip_allow === null) {
+                $result = $this::suspended_ip_value;
+            }
+        }
         return $result;
     }
 
-    public function addLicenseManagement(int|string|null $productID, string $type,
+    public function addLicenseManagement(int|string|null $productID,
+                                         string          $type,
                                          ?string         $reason,
-                                         ?string         $duration, bool $automated = false): bool
+                                         ?string         $duration): bool
     {
         if (!in_array($type, $this::managed_license_types)) {
             return false;
@@ -85,12 +115,20 @@ class GameCloudVerification
         $date = get_current_date();
         $platform = $this->user->getPlatform();
         $licenseID = $this->user->getLicense();
+        $isIpManagement = $type === $this::managed_license_types[2];
+        $table = $isIpManagement
+            ? GameCloudVariables::IP_MANAGEMENT_TABLE
+            : GameCloudVariables::LICENSE_MANAGEMENT_TABLE;
         $query = get_sql_query(
-            GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
+            $table,
             array("id"),
             array(
-                array("type", $type),
-                array("number", $licenseID),
+                $isIpManagement
+                    ? ""
+                    : array("type", $type),
+                $isIpManagement
+                    ? array("license_id", $licenseID)
+                    : array("number", $licenseID),
                 array("platform_id", $platform),
                 array("deletion_date", null),
                 $productID !== null ? array("product_id", $productID) : "",
@@ -100,26 +138,34 @@ class GameCloudVerification
         );
 
         if (empty($query)) {
-            if (!sql_insert(
-                GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
-                array(
+            $insert = $isIpManagement
+                ? array(
+                    "license_id" => $licenseID,
+                    "platform_id" => $platform,
+                    "product_id" => $productID,
+                    "reason" => $reason,
+                    "creation_date" => $date,
+                    "expiration_date" => $duration
+                )
+                : array(
                     "type" => $type,
                     "number" => $licenseID,
                     "platform_id" => $platform,
                     "product_id" => $productID,
                     "reason" => $reason,
                     "creation_date" => $date,
-                    "expiration_date" => $duration,
-                    "automated" => $automated
-                )
+                    "expiration_date" => $duration
+                );
+            if (!sql_insert(
+                $table,
+                $insert
             )) {
                 return false;
             }
         } else if (!set_sql_query(
-            GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
+            $table,
             array(
                 "reason" => $reason,
-                "automated" => $automated,
                 "expiration_date" => $duration,
                 "creation_date" => $date
             ),
@@ -141,14 +187,22 @@ class GameCloudVerification
         }
         $platform = $this->user->getPlatform();
         $licenseID = $this->user->getLicense();
+        $isIpManagement = $type === $this::managed_license_types[2];
+        $table = $isIpManagement
+            ? GameCloudVariables::IP_MANAGEMENT_TABLE
+            : GameCloudVariables::LICENSE_MANAGEMENT_TABLE;
         $query = get_sql_query(
-            GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
+            $table,
             array("id"),
             array(
-                array("type", $type),
-                array("number", $licenseID),
+                $isIpManagement
+                    ? ""
+                    : array("type", $type),
+                $isIpManagement
+                    ? array("license_id", $licenseID)
+                    : array("number", $licenseID),
                 array("platform_id", $platform),
-                array("deletion_Date", null),
+                array("deletion_date", null),
                 $productID !== null ? array("product_id", $productID) : "",
             ),
             null,
@@ -157,7 +211,7 @@ class GameCloudVerification
 
         if (!empty($query)
             && !set_sql_query(
-                GameCloudVariables::LICENSE_MANAGEMENT_TABLE,
+                $table,
                 array(
                     "deletion_date" => get_current_date()
                 ),
