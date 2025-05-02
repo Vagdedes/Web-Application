@@ -474,12 +474,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     break;
             }
         } else if ($data == "advancedDiscordWebhook") {
-            if ($gameCloudUser->getPlatform() !== 2
-                && $gameCloudUser->getPlatform() !== 3
-                && $gameCloudUser->getPlatform() !== 4) {
-                echo "false";
-                return;
-            }
             if ($gameCloudUser->getPlatform() === 2) {
                 $ownerships = get_builtbybit_resource_ownerships(64165);
 
@@ -511,6 +505,9 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     echo "false";
                     return;
                 }
+            } else if ($gameCloudUser->getPlatform() !== 4) {
+                echo "false";
+                return;
             }
             $url = urldecode(get_form("webhook_url", false));
             $avatarURL = urldecode(get_form("avatar_url", false));
