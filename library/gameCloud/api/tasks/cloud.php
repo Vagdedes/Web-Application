@@ -420,10 +420,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                 "inline" => false)
                         );
                         $response = has_memory_limit(
-                            "game-cloud=" . $data . "="
-                            . $gameCloudUser->getPlatform()
-                            . "-"
-                            . $gameCloudUser->getLicense(),
+                            "game-cloud=" . $data . "=" . string_to_integer($url, true),
                             30,
                             "1 minute"
                         ) ? true
@@ -477,11 +474,13 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     break;
             }
         } else if ($data == "advancedDiscordWebhook") {
-            if ($gameCloudUser->getPlatform() !== 2) {
+            if ($gameCloudUser->getPlatform() !== 2
+                && $gameCloudUser->getPlatform() !== 3
+                && $gameCloudUser->getPlatform() !== 4) {
                 echo "false";
                 return;
             }
-            if (false) {
+            if ($gameCloudUser->getPlatform() === 2) {
                 $ownerships = get_builtbybit_resource_ownerships(64165);
 
                 if (empty($ownerships)) {
@@ -502,6 +501,16 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                         return;
                     }
                 }
+            } else if ($gameCloudUser->getPlatform() === 3) {
+                $buyer = get_polymart_buyer_details(
+                    0,  // todo
+                    $gameCloudUser->getLicense()
+                );
+
+                if ($buyer === null) {
+                    echo "false";
+                    return;
+                }
             }
             $url = urldecode(get_form("webhook_url", false));
             $avatarURL = urldecode(get_form("avatar_url", false));
@@ -520,6 +529,14 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
 
             if (!is_array($fields)) {
                 $fields = array();
+            }
+            if ($gameCloudUser->getPlatform() === 4
+                && has_memory_cooldown(
+                    "game-cloud=" . $data . "=" . string_to_integer($url, true),
+                    "30 seconds",
+                )) {
+                echo "The free edition has a cooldown, consider purchasing the premium edition: https://builtbybit.com/resources/64165";
+                return;
             }
             $response = send_discord_webhook(
                 $url,
