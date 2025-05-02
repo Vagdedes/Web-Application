@@ -505,9 +505,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     echo "false";
                     return;
                 }
-            } else if ($gameCloudUser->getPlatform() !== 4) {
-                echo "false";
-                return;
             }
             $url = urldecode(get_form("webhook_url", false));
             $avatarURL = urldecode(get_form("avatar_url", false));
@@ -527,7 +524,9 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if (!is_array($fields)) {
                 $fields = array();
             }
-            if ($gameCloudUser->getPlatform() === 4
+            if (false
+                && $gameCloudUser->getPlatform() !== 2
+                && $gameCloudUser->getPlatform() !== 3
                 && has_memory_cooldown(
                     "game-cloud=" . $data . "=" . string_to_integer($url, true),
                     "30 seconds",
@@ -592,7 +591,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                         "error" => $response
                     )
                 );
-                echo $fields;
+                echo $response;
             }
         }
     }
