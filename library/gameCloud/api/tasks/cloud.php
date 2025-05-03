@@ -596,4 +596,3 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
         }
     }
 }
-echo "123";
