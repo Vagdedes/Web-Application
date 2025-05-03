@@ -74,10 +74,11 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
 
         if ($size == 3) {
             $licenseID = $split[1];
-            $fileID = $split[2];
+            $fileID = string_to_integer($split[2]);
 
-            if (is_numeric($licenseID) && $licenseID > 0
-                && is_numeric($fileID) && $fileID != 0) {
+            if (is_numeric($licenseID)
+                && $licenseID > 0
+                && $fileID != 0) {
                 $gameCloudUser->setLicense($licenseID);
                 $platformID = new MinecraftPlatformConverter($split[0]);
                 $platformID = $platformID->getConversion();
