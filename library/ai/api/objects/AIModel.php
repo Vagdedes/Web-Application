@@ -414,6 +414,7 @@ class AIModel
                             foreach ($family as $row) {
                                 if (($parameters[$row->parameter_name] ?? null) == $row->parameter_match) {
                                     $price += $row->price;
+                                    break 2;
                                 } else {
                                     continue 2;
                                 }
