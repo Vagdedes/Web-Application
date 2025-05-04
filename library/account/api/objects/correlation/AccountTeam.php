@@ -327,7 +327,7 @@ class AccountTeam
             if (empty($subQuery)) {
                 return new MethodReply(false, "Team not found.");
             } else {
-                return new MethodReply(true, null, $query[0]);
+                return new MethodReply(true, null, $subQuery[0]);
             }
         }
     }
