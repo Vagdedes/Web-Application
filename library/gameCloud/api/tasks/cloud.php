@@ -525,14 +525,14 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if (!is_array($fields)) {
                 $fields = array();
             }
-            if (false
+            if (true
                 && $gameCloudUser->getPlatform() !== 2
                 && $gameCloudUser->getPlatform() !== 3
                 && has_memory_cooldown(
                     "game-cloud=" . $data . "=" . string_to_integer($url, true),
                     "30 seconds",
                 )) {
-                echo "The free edition has a cooldown, consider purchasing the premium edition: https://builtbybit.com/resources/64165";
+                echo "The free edition has a 30 seconds cooldown, consider purchasing the premium edition: https://builtbybit.com/resources/64165";
                 return;
             }
             $response = send_discord_webhook(
