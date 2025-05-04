@@ -85,7 +85,8 @@ function send_discord_webhook(string                $webhookURL,
             if (count($field) !== 3) {
                 return "Local: Failed fields criteria (count)";
             }
-            $len = strlen($field[0]);
+            $len = strlen($field["name"]);
+
             if ($len > 256) {
                 return "Local: Failed fields criteria (name)";
             }
@@ -94,7 +95,7 @@ function send_discord_webhook(string                $webhookURL,
             if ($sum > 6000) {
                 return "Local: Failed fields criteria (sum)";
             }
-            $len = strlen($field[1]);
+            $len = strlen($field["value"]);
 
             if ($len > 1024) {
                 return "Local: Failed fields criteria (value)";
@@ -104,7 +105,7 @@ function send_discord_webhook(string                $webhookURL,
             if ($sum > 6000) {
                 return "Local: Failed fields criteria (sum)";
             }
-            if (!is_bool($field[2])) {
+            if (!is_bool($field["inline"])) {
                 return "Local: Failed fields criteria (inline)";
             }
         }
