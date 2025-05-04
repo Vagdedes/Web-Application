@@ -525,7 +525,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if (!is_array($fields)) {
                 $fields = array();
             }
-            if (false
+            if (true
                 && $gameCloudUser->getPlatform() !== 2
                 && $gameCloudUser->getPlatform() !== 3
                 && has_memory_cooldown(
