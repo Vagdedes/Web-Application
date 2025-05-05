@@ -3,19 +3,30 @@
 class AIObjectConstructor
 {
 
-    public const DEFAULT_INSTRUCTION = "Find the object and return it in JSON format without markdown";
+    public const DEFAULT_INSTRUCTIONS =
+        [
+            "Find the object and return it in JSON format without markdown",
+            "If one non-nullable parameter is not found, fail the rest of the parameters"
+        ];
 
     private array $initiators, $tasks, $parents;
 
     public function __construct(
         array $initiators,
-        array $tasks = []
+        array $tasks = [],
+        bool  $addDefaultInstructions = true
     )
     {
         $this->initiators = $initiators;
 
         if (empty($tasks)) {
-            $tasks[] = self::DEFAULT_INSTRUCTION;
+            $tasks = self::DEFAULT_INSTRUCTIONS;
+        } else if ($addDefaultInstructions) {
+            foreach (self::DEFAULT_INSTRUCTIONS as $instruction) {
+                if (!in_array($instruction, $tasks)) {
+                    array_unshift($tasks, $instruction);
+                }
+            }
         }
         $this->tasks = $tasks;
         $this->parents = array();
