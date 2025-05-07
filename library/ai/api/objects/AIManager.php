@@ -71,6 +71,11 @@ class AIManager
         return $this->lastHash;
     }
 
+    public function getLastPickedModel(): ?AIModel
+    {
+        return $this->lastPickedModel;
+    }
+
     public function getParameters(): array
     {
         return $this->parameters;
@@ -117,7 +122,8 @@ class AIManager
                               array             $parameters = [],
                               string|array|null $input = null,
                               int               $timeoutSeconds = 0,
-                              mixed             $loop = null): mixed
+                              mixed             $loop = null,
+                              ?callable         $callable = null): mixed
     {
         $this->lastHash = $hash;
         $this->lastInput = $input;
@@ -139,9 +145,11 @@ class AIManager
                 return array(false, null, null, 0);
             }
         } else {
+            $this->lastParameters = array();
             return array(false, null, null, 1);
         }
         if (!($this->lastPickedModel instanceof AIModel)) {
+            $this->lastParameters = array();
             return array(false, null, null, 4);
         }
         $headers = array(
@@ -176,14 +184,34 @@ class AIManager
                     $timeoutSeconds
                 )
             );
-        } else {
+        } else if ($callable === null) {
             return get_react_http(
                 $loop,
                 $this->lastPickedModel->getRequestURL(),
                 "POST",
                 $headers,
                 $parameters
+            )->then(
+                function (mixed $reply) {
+                    if (class_exists("BigManageError")) {
+                        BigManageError::debug($reply);
+                    }
+                    return $this->resolve($reply);
+                },
+                function (Throwable $e) {
+                    return array(false, null, null, 5);
+                }
             );
+        } else {
+            get_curl_multi_with_react(
+                $loop,
+                $this->lastPickedModel->getRequestURL(),
+                "POST",
+                $headers,
+                $parameters,
+                $callable,
+            );
+            return null;
         }
     }
 
