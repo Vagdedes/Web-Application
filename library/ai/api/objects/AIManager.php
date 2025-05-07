@@ -8,10 +8,14 @@ class AIManager
     private array $models, $parameters, $lastParameters;
     private string $apiKey;
     private string|array|null $lastInput;
+    private ?AIModel $lastPickedModel;
+    private int|string $lastHash;
 
-    public function __construct(int|AIModel $familyID,
-                                string      $apiKey,
-                                array       $parameters = [])
+    public function __construct(
+        int|AIModel $familyID,
+        string      $apiKey,
+        array       $parameters = []
+    )
     {
         if ($familyID instanceof AIModel) {
             $familyID = $familyID->getFamilyID();
@@ -23,6 +27,8 @@ class AIManager
         $this->models = array();
         $this->randomID = null;
         $this->lastInput = null;
+        $this->lastPickedModel = null;
+        $this->lastHash = 0;
 
         $query = get_sql_query(
             AIDatabaseTable::AI_MODELS,
@@ -58,6 +64,11 @@ class AIManager
     public function getLastInput(): string|array|null
     {
         return $this->lastInput;
+    }
+
+    public function getLastHash(): int|string
+    {
+        return $this->lastHash;
     }
 
     public function getParameters(): array
@@ -105,12 +116,14 @@ class AIManager
     public function getResult(int|string        $hash,
                               array             $parameters = [],
                               string|array|null $input = null,
-                              int               $timeoutSeconds = 0): array
+                              int               $timeoutSeconds = 0,
+                              mixed             $loop = null): mixed
     {
+        $this->lastHash = $hash;
         $this->lastInput = $input;
 
         if (!empty($this->models)) {
-            $model = null;
+            $this->lastPickedModel = null;
 
             foreach ($this->models as $rowModel) {
                 if (empty($input)
@@ -118,30 +131,30 @@ class AIManager
                     || ($rowModel->getTokenizer() === null
                         ? (!is_string($input) || strlen($input) <= $rowModel->getContext())
                         : AIHelper::getTokens($rowModel->getTokenizer(), $input) <= $rowModel->getContext())) {
-                    $model = $rowModel;
+                    $this->lastPickedModel = $rowModel;
                     break;
                 }
             }
-            if ($model === null) {
+            if ($this->lastPickedModel === null) {
                 return array(false, null, null, 0);
             }
         } else {
             return array(false, null, null, 1);
         }
-        if (!($model instanceof AIModel)) {
+        if (!($this->lastPickedModel instanceof AIModel)) {
             return array(false, null, null, 4);
         }
         $headers = array(
             "Authorization: Bearer " . $this->apiKey
         );
-        $requestHeaders = $model->getRequestHeaders();
+        $requestHeaders = $this->lastPickedModel->getRequestHeaders();
 
         if (!empty($requestHeaders)) {
             foreach ($requestHeaders as $headerKey => $headerValue) {
                 $headers[] = $headerKey . ": " . $headerValue;
             }
         }
-        $postFields = $model->getPostFields();
+        $postFields = $this->lastPickedModel->getPostFields();
 
         if (!empty($postFields)) {
             $this->lastParameters = array_merge($postFields, $parameters);
@@ -150,21 +163,36 @@ class AIManager
         }
         $parameters = $this->getAllParameters();
 
-        if ($model->encodeFields()) {
+        if ($this->lastPickedModel->encodeFields()) {
             $parameters = @json_encode($parameters);
         }
-        $reply = get_curl(
-            $model->getRequestURL(),
-            "POST",
-            $headers,
-            $parameters,
-            $timeoutSeconds
-        );
+        if ($loop === null) {
+            return $this->resolve(
+                get_curl(
+                    $this->lastPickedModel->getRequestURL(),
+                    "POST",
+                    $headers,
+                    $parameters,
+                    $timeoutSeconds
+                )
+            );
+        } else {
+            return get_react_http(
+                $loop,
+                $this->lastPickedModel->getRequestURL(),
+                "POST",
+                $headers,
+                $parameters
+            );
+        }
+    }
 
+    public function resolve(mixed $reply): array
+    {
         if ($reply !== null && $reply !== false) {
             $received = $reply;
 
-            if ($model->base64EncodeReply()) {
+            if ($this->lastPickedModel->base64EncodeReply()) {
                 $received = base64_encode($received);
             } else {
                 $reply = @json_decode($reply);
@@ -176,29 +204,29 @@ class AIManager
             sql_insert(
                 AIDatabaseTable::AI_HISTORY,
                 array(
-                    "model_id" => $model->getModelID(),
-                    "hash" => $hash,
+                    "model_id" => $this->lastPickedModel->getModelID(),
+                    "hash" => $this->getLastHash(),
                     "random_id" => $this->randomID,
-                    "sent_parameters" => is_array($parameters) ? @json_encode($parameters) : $parameters,
+                    "sent_parameters" => @json_encode($this->getAllParameters()),
                     "received_parameters" => $received,
-                    "currency_id" => $model->getCurrency()?->id,
+                    "currency_id" => $this->lastPickedModel->getCurrency()?->id,
                     "creation_date" => get_current_date()
                 )
             );
-            return array(true, $model, $reply, 2);
+            return array(true, $this->lastPickedModel, $reply, 2);
         }
 
         sql_insert(
             AIDatabaseTable::AI_HISTORY,
             array(
-                "model_id" => $model->getModelID(),
-                "hash" => $hash,
-                "sent_parameters" => is_array($parameters) ? @json_encode($parameters) : $parameters,
-                "currency_id" => $model->getCurrency()?->id,
+                "model_id" => $this->lastPickedModel->getModelID(),
+                "hash" => $this->getLastHash(),
+                "sent_parameters" => @json_encode($this->getAllParameters()),
+                "currency_id" => $this->lastPickedModel->getCurrency()?->id,
                 "creation_date" => get_current_date()
             )
         );
-        return array(false, $model, null, 3);
+        return array(false, $this->lastPickedModel, null, 3);
     }
 
 }
