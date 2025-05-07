@@ -193,9 +193,6 @@ class AIManager
                 $parameters
             )->then(
                 function (mixed $reply) {
-                    if (class_exists("BigManageError")) {
-                        BigManageError::debug($reply);
-                    }
                     return $this->resolve($reply);
                 },
                 function (Throwable $e) {
