@@ -2,7 +2,6 @@
 
 use Clue\React\Buzz\Browser;
 use Psr\Http\Message\ResponseInterface;
-use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 use React\EventLoop\TimerInterface;
 use React\Promise\PromiseInterface;
@@ -12,15 +11,11 @@ function get_react_http(
     string         $url,
     string         $type,
     array          $headers = [],
-    mixed          $arguments = null
+    mixed          $body = null
 ): PromiseInterface
 {
     $browser = new Browser($loop);
-
     $method = strtolower($type);
-    $body = $arguments !== null
-        ? json_encode($arguments)
-        : "";
 
     return $browser->$method($url, $headers, $body)->then(
         function (ResponseInterface $response) {
@@ -30,11 +25,14 @@ function get_react_http(
                 return null;
             }
         },
-        function (Throwable $e) {
+        function (Throwable $e) use ($url, $headers, $body) {
             if (class_exists("BigManageError")) {
                 BigManageError::debug(2);
                 BigManageError::debug($e->getMessage());
                 BigManageError::debug($e->getTraceAsString());
+                BigManageError::debug($url);
+                BigManageError::debug($headers);
+                BigManageError::debug($body);
             }
             return null;
         }

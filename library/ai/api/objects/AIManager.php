@@ -155,11 +155,15 @@ class AIManager
         $headers = array(
             "Authorization: Bearer " . $this->apiKey
         );
+        $headersJSON = array(
+            "Authorization" => "Bearer " . $this->apiKey,
+        );
         $requestHeaders = $this->lastPickedModel->getRequestHeaders();
 
         if (!empty($requestHeaders)) {
             foreach ($requestHeaders as $headerKey => $headerValue) {
                 $headers[] = $headerKey . ": " . $headerValue;
+                $headersJSON[$headerKey] = $headerValue;
             }
         }
         $postFields = $this->lastPickedModel->getPostFields();
@@ -189,7 +193,7 @@ class AIManager
                 $loop,
                 $this->lastPickedModel->getRequestURL(),
                 "POST",
-                $headers,
+                $headersJSON,
                 $parameters
             )->then(
                 function (mixed $reply) {
