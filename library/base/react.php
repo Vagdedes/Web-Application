@@ -5,6 +5,7 @@ use Psr\Http\Message\ResponseInterface;
 use React\EventLoop\LoopInterface;
 use React\EventLoop\TimerInterface;
 use React\Promise\PromiseInterface;
+use function React\Promise\reject;
 
 function get_react_http(
     LoopInterface $loop,
@@ -63,7 +64,7 @@ function get_react_http(
             return $response->getBody()->getContents();
         },
         function (Throwable $e) {
-            return null;
+            return reject($e);
         }
     );
 }
