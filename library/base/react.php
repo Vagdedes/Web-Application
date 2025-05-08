@@ -7,25 +7,62 @@ use React\EventLoop\TimerInterface;
 use React\Promise\PromiseInterface;
 
 function get_react_http(
-    ?LoopInterface $loop,
-    string         $url,
-    string         $type,
-    array          $headers = [],
-    mixed          $body = null
+    LoopInterface $loop,
+    string        $url,
+    string        $type,
+    array         $headers = [],
+    mixed         $body = null
 ): PromiseInterface
 {
     $browser = new Browser($loop);
     $method = strtolower($type);
 
+    if (is_array($body)
+        && array_key_exists('Content-Type', $headers)
+        && str_contains($headers['Content-Type'], 'multipart/form-data')) {
+        $boundary = uniqid('boundary_');
+        $bodyContent = '';
+
+        foreach ($body as $key => $value) {
+            if ($value instanceof CURLFile) {
+                $filePath = $value->getFilename();
+                $fileName = basename($filePath);
+                $fileContent = file_get_contents($filePath);
+
+                $bodyContent .= "--$boundary\r\n";
+                $bodyContent .= "Content-Disposition: form-data; name=\"$key\"; filename=\"$fileName\"\r\n";
+                $bodyContent .= "Content-Type: application/octet-stream\r\n\r\n";
+                $bodyContent .= $fileContent . "\r\n";
+            } elseif (is_array($value)) {
+                foreach ($value as $file) {
+                    if (file_exists($file)) {
+                        $bodyContent .= "--$boundary\r\n";
+                        $bodyContent .= "Content-Disposition: form-data; name=\"$key\"; filename=\"" . basename($file) . "\"\r\n";
+                        $bodyContent .= "Content-Type: application/octet-stream\r\n\r\n";
+                        $bodyContent .= file_get_contents($file) . "\r\n";
+                    }
+                }
+            } else {
+                $bodyContent .= "--$boundary\r\n";
+                $bodyContent .= "Content-Disposition: form-data; name=\"$key\"\r\n\r\n";
+                $bodyContent .= $value . "\r\n";
+            }
+        }
+
+        $bodyContent .= "--$boundary--\r\n";
+        $headers['Content-Type'] = 'multipart/form-data; boundary=' . $boundary;
+
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, $bodyContent);
+        rewind($stream);
+
+        $body = $stream;
+    }
     return $browser->$method($url, $headers, $body)->then(
         function (ResponseInterface $response) {
-            try {
-                return $response->getBody()->getContents();
-            } catch (Throwable $e) {
-                return null;
-            }
+            return $response->getBody()->getContents();
         },
-        function (Throwable $e) use ($url, $headers, $body) {
+        function (Throwable $e) {
             return null;
         }
     );
