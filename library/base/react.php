@@ -26,14 +26,6 @@ function get_react_http(
             }
         },
         function (Throwable $e) use ($url, $headers, $body) {
-            if (class_exists("BigManageError")) {
-                BigManageError::debug(2);
-                BigManageError::debug($e->getMessage());
-                BigManageError::debug($e->getTraceAsString());
-                BigManageError::debug($url);
-                BigManageError::debug($headers);
-                BigManageError::debug($body);
-            }
             return null;
         }
     );
