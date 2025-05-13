@@ -225,9 +225,9 @@ class Account implements JsonSerializable
         return $this->exists;
     }
 
-    public function getDetail($detail)
+    public function getDetail(string $detail, string $def = null)
     {
-        return $this->object->{$detail} ?? null;
+        return $this->object->{$detail} ?? $def;
     }
 
     public function setDetail(string $detail, mixed $value): MethodReply
