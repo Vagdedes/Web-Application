@@ -142,7 +142,7 @@ class AccountTeam
                     )) {
                         return new MethodReply(false, "Failed to add team description.");
                     }
-                    return new MethodReply(true, "Team created.");
+                    return new MethodReply(true, "Team created as '" . $title . "'.");
                 } else {
                     return new MethodReply(false, "Failed to add member to team.");
                 }
@@ -361,13 +361,13 @@ class AccountTeam
             1
         )) {
             $this->clearCache();
-            return new MethodReply(true, "Team deleted.");
+            return new MethodReply(true, "Team deleted successfully.");
         } else {
             return new MethodReply(false, "Failed to delete team.");
         }
     }
 
-    public function transferTeam(Account $account, ?string $reason = null, bool $automatic = false): MethodReply
+    public function transferTeamOwnership(Account $account, ?string $reason = null, bool $automatic = false): MethodReply
     {
         $result = $this->findTeam();
 
@@ -408,9 +408,9 @@ class AccountTeam
                 "automatic" => $automatic
             )
         )) {
-            return new MethodReply(false, "Failed to transfer team.");
+            return new MethodReply(false, "Failed to transfer team ownership to another member.");
         }
-        return new MethodReply(true, "Team transferred.");
+        return new MethodReply(true, "Team ownership transferred to another member.");
     }
 
     // Separator
@@ -477,13 +477,13 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Team title updated.");
+            return new MethodReply(true, "Team title updated to '" . $name . "'.");
         } else {
-            return new MethodReply(false, "Failed to update team title.");
+            return new MethodReply(false, "Failed to update team title to '" . $name . "'.");
         }
     }
 
-    public function updateTeamDescription(string $name, ?string $reason = null): MethodReply
+    public function updateTeamDescription(string $description, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
 
@@ -498,22 +498,22 @@ class AccountTeam
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
         }
-        if ($this->getTeamDescription() === $name) {
+        if ($this->getTeamDescription() === $description) {
             return new MethodReply(false, "Team description is already set to this value.");
         }
         if (sql_insert(
             AccountVariables::TEAM_NAME_CHANGES,
             array(
                 "team_id" => $result->getObject()->id,
-                "name" => $name,
+                "name" => $description,
                 "creation_date" => get_current_date(),
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason,
                 "description" => true
             ))) {
-            return new MethodReply(true, "Team description updated.");
+            return new MethodReply(true, "Team description updated to '" . $description . "'.");
         } else {
-            return new MethodReply(false, "Failed to update team description.");
+            return new MethodReply(false, "Failed to update team description to '" . $description . "'.");
         }
     }
 
@@ -547,7 +547,7 @@ class AccountTeam
                 if ($newOwner === null) {
                     return new MethodReply(false, "New owner not found.");
                 }
-                $adjust = $this->transferTeam(
+                $adjust = $this->transferTeamOwnership(
                     $newOwner->account,
                     null,
                     true
@@ -570,7 +570,7 @@ class AccountTeam
                 1
             )) {
                 $this->clearCache();
-                return new MethodReply(true, "You left the team.");
+                return new MethodReply(true, "You left the team '" . $this->getTeamTitle() . "'.");
             } else {
                 return new MethodReply(false, "Failed to leave team.");
             }
@@ -997,7 +997,7 @@ class AccountTeam
             ))) {
             return new MethodReply(true, "Team position of member has changed.");
         } else {
-            return new MethodReply(false, "Failed to change position.");
+            return new MethodReply(false, "Failed to change position of member.");
         }
     }
 
@@ -1077,12 +1077,12 @@ class AccountTeam
                 null,
                 1
             )) {
-                return new MethodReply(true, "Team role's title updated.");
+                return new MethodReply(true, "Team role's title updated to '" . $name . "'.");
             } else {
                 return new MethodReply(false, "Failed to fully update the team role's title.");
             }
         } else {
-            return new MethodReply(false, "Failed to update the team role's title.");
+            return new MethodReply(false, "Failed to update the team role's title to '" . $name . "'.");
         }
     }
 
@@ -1131,12 +1131,12 @@ class AccountTeam
                 null,
                 1
             )) {
-                return new MethodReply(true, "Team role's description updated.");
+                return new MethodReply(true, "Team role's description updated to '" . $description . "'.");
             } else {
                 return new MethodReply(false, "Failed to fully update the team role's description.");
             }
         } else {
-            return new MethodReply(false, "Failed to update the team role's description.");
+            return new MethodReply(false, "Failed to update the team role's description to '" . $description . "'.");
         }
     }
 
@@ -1194,12 +1194,12 @@ class AccountTeam
                     "creation_date" => $date,
                     "created_by" => $selfMemberID
                 ))) {
-                return new MethodReply(true, "Role created.");
+                return new MethodReply(true, "Role created in the team.");
             } else {
                 return new MethodReply(false, "Failed to set role position in the team.");
             }
         } else {
-            return new MethodReply(false, "Failed to create role.");
+            return new MethodReply(false, "Failed to create role in the team.");
         }
     }
 
@@ -1241,9 +1241,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Role deleted.");
+            return new MethodReply(true, "Role deleted from team.");
         } else {
-            return new MethodReply(false, "Failed to delete role.");
+            return new MethodReply(false, "Failed to delete role from team.");
         }
     }
 
@@ -1608,9 +1608,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Permission added.");
+            return new MethodReply(true, "Permission added to role.");
         } else {
-            return new MethodReply(false, "Failed to add permission.");
+            return new MethodReply(false, "Failed to add permission to role.");
         }
     }
 
@@ -1662,9 +1662,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Permission removed.");
+            return new MethodReply(true, "Permission removed from role.");
         } else {
-            return new MethodReply(false, "Failed to remove permission.");
+            return new MethodReply(false, "Failed to remove permission from role.");
         }
     }
 
@@ -1756,9 +1756,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Role position changed.");
+            return new MethodReply(true, "Role hierarchical position changed successfully.");
         } else {
-            return new MethodReply(false, "Failed to change position.");
+            return new MethodReply(false, "Failed to change the role's hierarchical position.");
         }
     }
 
@@ -1863,9 +1863,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Permission added.");
+            return new MethodReply(true, "Permission added to member.");
         } else {
-            return new MethodReply(false, "Failed to add permission.");
+            return new MethodReply(false, "Failed to add permission to member.");
         }
     }
 
@@ -1923,9 +1923,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Permission removed.");
+            return new MethodReply(true, "Permission removed from member.");
         } else {
-            return new MethodReply(false, "Failed to remove permission.");
+            return new MethodReply(false, "Failed to remove permission from member.");
         }
     }
 
@@ -2150,9 +2150,9 @@ class AccountTeam
                 "created_by" => $memberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Permission added.");
+            return new MethodReply(true, "Permission added to the whole team.");
         } else {
-            return new MethodReply(false, "Failed to add permission.");
+            return new MethodReply(false, "Failed to add permission to the whole team.");
         }
     }
 
@@ -2199,9 +2199,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Permission removed.");
+            return new MethodReply(true, "Permission removed from the whole team.");
         } else {
-            return new MethodReply(false, "Failed to remove permission.");
+            return new MethodReply(false, "Failed to remove permission from the whole team.");
         }
     }
 
