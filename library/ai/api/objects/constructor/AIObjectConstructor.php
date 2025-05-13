@@ -37,7 +37,7 @@ class AIObjectConstructor
         $object = new stdClass();
         $object->tasks = $this->tasks;
         $object->object = $this->prepare($this->initiators);
-        return @json_encode($object, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?? null;
+        return @json_encode($object) ?? null;
     }
 
     public function get(mixed $information, bool $strict = true): ?object
