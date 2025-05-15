@@ -63,9 +63,9 @@ class AccountAccounts
         return $acceptedAccount->getObjects();
     }
 
-    public function add(int|string $type, int|float|string $credential, int $deletePreviousIfSurpassing = 0,
-                        bool       $emailCode = false,
-                        int|string $cooldown = "2 seconds"): MethodReply
+    public function add(int|string      $type, int|float|string $credential, int $deletePreviousIfSurpassing = 1,
+                        bool            $emailCode = false,
+                        int|string|null $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::ADD_ACCOUNT, true);
@@ -130,10 +130,14 @@ class AccountAccounts
                 }
                 break;
         }
-        $deletePreviousIfSurpassing = max(
-            $acceptedAccount->limit_before_deletion === null ? 0 : $acceptedAccount->limit_before_deletion,
-            $deletePreviousIfSurpassing
-        );
+        if ($deletePreviousIfSurpassing > 0) {
+            $deletePreviousIfSurpassing = max(
+                $acceptedAccount->limit_before_deletion === null
+                    ? 0
+                    : $acceptedAccount->limit_before_deletion,
+                $deletePreviousIfSurpassing
+            );
+        }
         $accountID = $this->account->getDetail("id");
         $query = get_sql_query(
             AccountVariables::ADDED_ACCOUNTS_TABLE,
