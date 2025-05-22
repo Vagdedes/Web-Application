@@ -146,7 +146,8 @@ class AIObjectConstructor
                                 if ($strict || !$initiator->isNullable()) {
                                     return null;
                                 } else {
-                                    $oldObject->{$parent} = null;
+                                    $oldObject->{$parent} = array();
+                                    $value = array();
                                 }
                             }
                             if ($strict) {
@@ -155,6 +156,48 @@ class AIObjectConstructor
                                 }
                             } else if (sizeof($value) > $initiator->getMaxLength()) {
                                 $oldObject->{$parent} = array_slice($value, 0, $initiator->getMaxLength());
+                            }
+                            if (!empty($value)) {
+                                switch ($initiator->getType()) {
+                                    case AIField::DECIMAL_ARRAY:
+                                    case AIField::INTEGER_ARRAY:
+                                        foreach ($value as $key => $val) {
+                                            if (!is_numeric($val)
+                                                && !is_float($val)
+                                                && !is_int($val)) {
+                                                if ($strict) {
+                                                    return null;
+                                                } else {
+                                                    unset($oldObject->{$parent}[$key]);
+                                                }
+                                            } else {
+                                                if ($strict) {
+                                                    if (strlen($val) > $initiator->getMaxLength()) {
+                                                        return null;
+                                                    }
+                                                } else if (strlen($val) > $initiator->getMaxLength()) {
+                                                    $oldObject->{$parent}[$key] = substr($val, 0, $initiator->getMaxLength());
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    case AIField::BOOLEAN_ARRAY:
+                                        foreach ($value as $key => $val) {
+                                            $val = is_string($val)
+                                                ? trim(strtolower($val))
+                                                : $val;
+
+                                            if ($strict
+                                                && ($val !== "true"
+                                                    && $val !== "false")) {
+                                                return null;
+                                            }
+                                            $oldObject->{$parent}[$key] = $val === true || $val === "true";
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
                             break;
                         default:
