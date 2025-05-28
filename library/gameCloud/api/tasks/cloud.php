@@ -276,6 +276,18 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                         }
                     }
                 }
+                if (sizeof($found) < sizeof($all)) {
+                    if (!in_array($all[0], $found)) {
+                        if ($gameCloudUser->getPurchases()->hasSpartanJavaTransaction($email)) {
+                            $found[] = $all[0];
+                        }
+                    }
+                    if (!in_array($all[1], $found)) {
+                        if ($gameCloudUser->getPurchases()->hasSpartanBedrockTransaction($email)) {
+                            $found[] = $all[1];
+                        }
+                    }
+                }
             }
             if (sizeof($found) < sizeof($all)) {
                 $patreonFullName = trim(urldecode(get_form("patreon_full_name", false)));

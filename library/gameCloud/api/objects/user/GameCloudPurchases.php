@@ -249,7 +249,35 @@ class GameCloudPurchases
         return null;
     }
 
-    public function hasSpartanPayPalTransaction(string $email): bool
+    public function hasSpartanJavaTransaction(string $email): bool
+    {
+        return !empty(self::hasPayPalTransaction(
+            $email,
+            array(
+                19.99
+            ),
+            1,
+            array(
+                "Spartan AntiCheat: Java / Bukkit Edition"
+            )
+        ));
+    }
+
+    public function hasSpartanBedrockTransaction(string $email): bool
+    {
+        return !empty(self::hasPayPalTransaction(
+            $email,
+            array(
+                12.49
+            ),
+            1,
+            array(
+                "Spartan AntiCheat: Bedrock / Geyser Edition"
+            )
+        ));
+    }
+
+    public function hasLegacySpartanPayPalTransaction(string $email): bool
     {
         return !empty(self::hasPayPalTransaction(
             $email,
