@@ -164,25 +164,21 @@ class GameCloudPurchases
         int|float|string|array|null $amount,
         int                         $limit = 1,
         int|float|string|array|null $reason = null,
-        ?string                     $custom = null,
         ?string                     $creationDate = null
     ): ?array
     {
         $arguments = array();
 
         if ($email !== null) {
-            $arguments["EMAIL"] = $email . "\"";
-        }
-        if ($custom !== null) {
-            $arguments["CUSTOM"] = $custom;
+            $arguments["source.billing_details.email"] = $email . "\"";
         }
         if (is_array($amount)) {
             if (is_array($reason)) {
                 foreach ($amount as $amountSingle) {
                     foreach ($reason as $reasonSingle) {
                         $search = $arguments;
-                        $search["AMT"] = $amountSingle . "\"";
-                        $search["L_NAME0"] = $reasonSingle;
+                        $search["amount"] = $amountSingle . "\"";
+                        $search["description"] = $reasonSingle;
                         $search = find_stripe_transactions_by_data_pair(
                             $search,
                             $limit,
@@ -196,11 +192,11 @@ class GameCloudPurchases
                 }
             } else {
                 if ($reason !== null) {
-                    $arguments["L_NAME0"] = $reason;
+                    $arguments["description"] = $reason;
                 }
                 foreach ($amount as $single) {
                     $search = $arguments;
-                    $search["AMT"] = $single . "\"";
+                    $search["amount"] = $single . "\"";
                     $search = find_stripe_transactions_by_data_pair(
                         $search,
                         $limit,
@@ -214,11 +210,11 @@ class GameCloudPurchases
             }
         } else if (is_array($reason)) {
             if ($amount !== null) {
-                $arguments["AMT"] = $amount . "\"";
+                $arguments["amount"] = $amount . "\"";
             }
             foreach ($reason as $single) {
                 $search = $arguments;
-                $search["L_NAME0"] = $single;
+                $search["description"] = $single;
                 $search = find_stripe_transactions_by_data_pair(
                     $search,
                     $limit,
@@ -231,10 +227,10 @@ class GameCloudPurchases
             }
         } else {
             if ($amount !== null) {
-                $arguments["AMT"] = $amount . "\"";
+                $arguments["amount"] = $amount . "\"";
             }
             if ($reason !== null) {
-                $arguments["L_NAME0"] = $reason;
+                $arguments["description"] = $reason;
             }
             $search = find_stripe_transactions_by_data_pair(
                 $arguments,
@@ -251,30 +247,52 @@ class GameCloudPurchases
 
     public function hasSpartanJavaTransaction(string $email): bool
     {
+        $string = "Spartan AntiCheat: Java / Bukkit Edition";
         return !empty(self::hasPayPalTransaction(
-            $email,
-            array(
-                19.99
-            ),
-            1,
-            array(
-                "Spartan AntiCheat: Java / Bukkit Edition"
-            )
-        ));
+                $email,
+                array(
+                    19.99
+                ),
+                1,
+                array(
+                    $string
+                )
+            ))
+            || !empty(self::hasStripeTransaction(
+                $email,
+                array(
+                    1999
+                ),
+                1,
+                array(
+                    $string
+                )
+            ));
     }
 
     public function hasSpartanBedrockTransaction(string $email): bool
     {
+        $string = "Spartan AntiCheat: Bedrock / Geyser Edition";
         return !empty(self::hasPayPalTransaction(
-            $email,
-            array(
-                12.49
-            ),
-            1,
-            array(
-                "Spartan AntiCheat: Bedrock / Geyser Edition"
-            )
-        ));
+                $email,
+                array(
+                    12.49
+                ),
+                1,
+                array(
+                    $string
+                )
+            ))
+            || !empty(self::hasStripeTransaction(
+                $email,
+                array(
+                    1249
+                ),
+                1,
+                array(
+                    $string
+                )
+            ));
     }
 
     public function hasLegacySpartanPayPalTransaction(string $email): bool
