@@ -63,9 +63,13 @@ class AccountAccounts
         return $acceptedAccount->getObjects();
     }
 
-    public function add(int|string      $type, int|float|string $credential, int $deletePreviousIfSurpassing = 1,
-                        bool            $emailCode = false,
-                        int|string|null $cooldown = "2 seconds"): MethodReply
+    public function add(
+        int|string       $type,
+        int|float|string $credential,
+        int              $deletePreviousIfSurpassing = 1,
+        bool             $emailCode = false,
+        int|string|null  $cooldown = "2 seconds"
+    ): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::ADD_ACCOUNT, true);
@@ -211,7 +215,7 @@ class AccountAccounts
     }
 
     public function remove(int|string $type, int|float|string $idOrCredential = null,
-                           int        $limit = 0, int|string $cooldown = "2 seconds"): MethodReply
+                           int        $limit = 0, int|string|null $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::REMOVE_ACCOUNT, true);

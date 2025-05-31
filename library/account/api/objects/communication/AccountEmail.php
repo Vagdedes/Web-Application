@@ -9,8 +9,8 @@ class AccountEmail
         $this->account = $account;
     }
 
-    public function requestVerification(string     $email, bool $code = false,
-                                        int|string $cooldown = "1 minute"): MethodReply
+    public function requestVerification(string          $email, bool $code = false,
+                                        int|string|null $cooldown = "1 minute"): MethodReply
     {
         if (!is_email($email)) {
             return new MethodReply(false, "Please enter a valid email address.");
@@ -54,8 +54,8 @@ class AccountEmail
         return new MethodReply($resultOutcome, $result->getMessage());
     }
 
-    public function completeVerification(string     $tokenOrCode, bool $code = false,
-                                         int|string $cooldown = "1 day"): MethodReply
+    public function completeVerification(string          $tokenOrCode, bool $code = false,
+                                         int|string|null $cooldown = "1 day"): MethodReply
     {
         $account = $this->account;
         $exists = $account->exists();

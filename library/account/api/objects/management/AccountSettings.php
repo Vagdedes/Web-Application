@@ -38,7 +38,7 @@ class AccountSettings
         return $option !== null && $option !== false;
     }
 
-    public function modify(string $option, mixed $value, int|string $cooldown = "2 seconds"): MethodReply
+    public function modify(string $option, mixed $value, int|string|null $cooldown = "2 seconds"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::MODIFY_OPTION, true);
@@ -93,7 +93,11 @@ class AccountSettings
         return new MethodReply(true);
     }
 
-    public function toggle(string $option, int|string $cooldown = "2 seconds"): MethodReply
+    public function toggle(
+        string          $option,
+        bool            $default = false,
+        int|string|null $cooldown = "2 seconds"
+    ): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::MODIFY_OPTION, true);
@@ -105,7 +109,7 @@ class AccountSettings
             return new MethodReply(false, "No account found.");
         }
         $date = get_current_date();
-        $object = $this->get($option, null);
+        $object = $this->get($option, $default);
 
         if ($object->isPositiveOutcome()) {
             $oldValue = $object->getObject();

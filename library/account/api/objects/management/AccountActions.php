@@ -149,8 +149,8 @@ class AccountActions
         }
     }
 
-    public function changeName(string     $name, bool $emailCode = false, string $type = self::NAME,
-                               int|string $cooldown = "1 day"): MethodReply
+    public function changeName(string          $name, bool $emailCode = false, string $type = self::NAME,
+                               int|string|null $cooldown = "1 day"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_NAME, true);

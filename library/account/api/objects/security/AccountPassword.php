@@ -11,7 +11,7 @@ class AccountPassword
         $this->account = $account;
     }
 
-    public function requestChange(bool $code = false, int|string $cooldown = "1 minute"): MethodReply
+    public function requestChange(bool $code = false, int|string|null $cooldown = "1 minute"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_PASSWORD, true);
@@ -66,7 +66,7 @@ class AccountPassword
     }
 
     public function completeChange(string $tokenOrCode, int|float|string $password,
-                                   bool   $code = false, int|string $cooldown = "1 hour"): MethodReply
+                                   bool   $code = false, int|string|null $cooldown = "1 hour"): MethodReply
     {
         $functionality = $this->account->getFunctionality();
         $functionalityOutcome = $functionality->getResult(AccountFunctionality::CHANGE_PASSWORD);
