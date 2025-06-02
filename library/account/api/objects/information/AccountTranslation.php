@@ -27,9 +27,9 @@ class AccountTranslation
 
         if ($defaultLanguage === $language) {
             return new MethodReply(
-                false,
+                true,
                 null,
-                null
+                $details ? null : $text
             );
         }
         $text = trim($text);
