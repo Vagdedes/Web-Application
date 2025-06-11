@@ -245,57 +245,7 @@ class GameCloudPurchases
         return null;
     }
 
-    public function hasSpartanJavaTransaction(string $email): bool
-    {
-        $string = "Spartan AntiCheat: Java / Bukkit Edition";
-        return !empty(self::hasPayPalTransaction(
-                $email,
-                array(
-                    19.99
-                ),
-                1,
-                array(
-                    $string
-                )
-            ))
-            || !empty(self::hasStripeTransaction(
-                $email,
-                array(
-                    1999
-                ),
-                1,
-                array(
-                    $string
-                )
-            ));
-    }
-
-    public function hasSpartanBedrockTransaction(string $email): bool
-    {
-        $string = "Spartan AntiCheat: Bedrock / Geyser Edition";
-        return !empty(self::hasPayPalTransaction(
-                $email,
-                array(
-                    12.49
-                ),
-                1,
-                array(
-                    $string
-                )
-            ))
-            || !empty(self::hasStripeTransaction(
-                $email,
-                array(
-                    1249
-                ),
-                1,
-                array(
-                    $string
-                )
-            ));
-    }
-
-    public function hasLegacySpartanPayPalTransaction(string $email): bool
+    public function hasSpartanPayPalTransaction(string $email): bool
     {
         return !empty(self::hasPayPalTransaction(
             $email,
@@ -323,13 +273,16 @@ class GameCloudPurchases
                 "25.00",
                 19.97,
                 18.99,
-                11.49
+                11.49,
+                24.99
             ),
             1,
             array(
                 "Spartan",
                 "Vacan"
-            )
+            ),
+            null,
+            get_past_date("1 year")
         ));
     }
 

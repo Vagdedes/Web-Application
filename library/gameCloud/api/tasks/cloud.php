@@ -277,13 +277,13 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     }
                 }
                 if (sizeof($found) < sizeof($all)) {
-                    if (!in_array($all[0], $found)) {
-                        if ($gameCloudUser->getPurchases()->hasSpartanJavaTransaction($email)) {
+                    if ((!in_array($all[0], $found)
+                            || !in_array($all[1], $found))
+                        && $gameCloudUser->getPurchases()->hasSpartanPayPalTransaction($email)) {
+                        if (!in_array($all[0], $found)) {
                             $found[] = $all[0];
                         }
-                    }
-                    if (!in_array($all[1], $found)) {
-                        if ($gameCloudUser->getPurchases()->hasSpartanBedrockTransaction($email)) {
+                        if (!in_array($all[1], $found)) {
                             $found[] = $all[1];
                         }
                     }
