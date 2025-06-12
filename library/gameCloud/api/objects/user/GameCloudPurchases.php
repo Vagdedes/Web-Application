@@ -274,7 +274,8 @@ class GameCloudPurchases
                 19.97,
                 18.99,
                 11.49,
-                24.99
+                24.99,
+                21.99
             ),
             1,
             array(
