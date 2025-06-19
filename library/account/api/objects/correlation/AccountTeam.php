@@ -1382,7 +1382,9 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change roles of members.");
         }
-        if ($this->getPosition() <= $this->getPosition($account)) {
+        $position = $this->getPosition();
+
+        if ($position <= $this->getPosition($account)) {
             return new MethodReply(false, "Cannot change the role of a member with the same or higher hierarchical position.");
         }
         $team = $result->getObject()->id;
@@ -1406,6 +1408,13 @@ class AccountTeam
 
             if ($role === null) {
                 return new MethodReply(false, "Role not found.");
+            }
+        }
+        if ($position <= $this->getRolePosition($role)) {
+            if ($trueFalse) {
+                return new MethodReply(false, "Cannot give a role with the same or higher hierarchical position.");
+            } else {
+                return new MethodReply(false, "Cannot remove a role with the same or higher hierarchical position.");
             }
         }
         $roles = $this->getMemberRoles($account);
