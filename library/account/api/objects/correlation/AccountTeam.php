@@ -35,6 +35,12 @@ class AccountTeam
         // Grouping
         PERMISSION_ADJUST_TEAM_MEMBER_ROLES = 13;
 
+    private const
+        MAX_TEAMS = 100,
+        MAX_MEMBERS = 1000,
+        MAX_PERMISSIONS = 500,
+        MAX_ROLES = 500;
+
     private Account $account;
     private ?int $additionalID;
     private ?object $forcedTeam;
@@ -168,7 +174,8 @@ class AccountTeam
                 array(
                     "DESC",
                     "id"
-                )
+                ),
+                self::MAX_TEAMS
             );
 
             if (!empty($query)) {
@@ -251,7 +258,8 @@ class AccountTeam
                 array(
                     "DESC",
                     "id"
-                )
+                ),
+                self::MAX_TEAMS
             );
 
             if (!empty($query)) {
@@ -700,7 +708,9 @@ class AccountTeam
             array(
                 array("team_id", $result->getObject()->id),
                 array("deletion_date", null)
-            )
+            ),
+            null,
+            self::MAX_MEMBERS
         );
 
         if (empty($query)) {
@@ -1260,7 +1270,9 @@ class AccountTeam
             array(
                 array("team_id", $result->getObject()->id),
                 array("deletion_date", null)
-            )
+            ),
+            null,
+            self::MAX_MEMBERS
         );
 
         if (!empty($query)) {
@@ -1299,7 +1311,9 @@ class AccountTeam
                 array("team_id", $team),
                 array("member_id", $memberID),
                 array("deletion_date", null)
-            )
+            ),
+            null,
+            self::MAX_ROLES
         );
 
         if (empty($query)) {
@@ -1368,7 +1382,9 @@ class AccountTeam
             array(
                 array("team_id", $result->getObject()->id),
                 array("deletion_date", null)
-            )
+            ),
+            null,
+            self::MAX_ROLES
         );
     }
 
@@ -1544,7 +1560,8 @@ class AccountTeam
             array(
                 "DESC",
                 "id"
-            )
+            ),
+            self::MAX_PERMISSIONS
         );
         if (empty($query)) {
             return array();
@@ -1790,7 +1807,9 @@ class AccountTeam
         return get_sql_query(
             AccountVariables::TEAM_PERMISSION_DEFINITIONS_TABLE,
             null,
-            $where
+            $where,
+            null,
+            self::MAX_PERMISSIONS
         );
     }
 
@@ -2072,7 +2091,8 @@ class AccountTeam
             array(
                 "DESC",
                 "id"
-            )
+            ),
+            self::MAX_PERMISSIONS
         );
         $new = array();
 
@@ -2266,7 +2286,8 @@ class AccountTeam
             array(
                 "DESC",
                 "id"
-            )
+            ),
+            self::MAX_PERMISSIONS
         );
 
         if (empty($query)) {
