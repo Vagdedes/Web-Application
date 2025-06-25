@@ -298,7 +298,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     if ($account->getPatreon()->custom(
                         $patreonFullName,
                         array(25600775) // Both
-                    )) {
+                    )->isPositiveOutcome()) {
                         foreach ($all as $available) {
                             if (!in_array($available, $found)) {
                                 $found[] = $available;
@@ -307,14 +307,14 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     } else if ($account->getPatreon()->custom(
                         $patreonFullName,
                         array(25600830) // Java
-                    )) {
+                    )->isPositiveOutcome()) {
                         if (!in_array($all[0], $found)) {
                             $found[] = $all[0];
                         }
                     } else if ($account->getPatreon()->custom(
                         $patreonFullName,
                         array(25600831) // Bedrock
-                    )) {
+                    )->isPositiveOutcome()) {
                         if (!in_array($all[1], $found)) {
                             $found[] = $all[1];
                         }

@@ -26,10 +26,10 @@ class AccountPatreon
             );
             return new MethodReply(
                 ($specificTiers === null
-                    || patreon_object_is_paid($object)
-                    && patreon_object_has_tier($object, null, $specificTiers))
+                    || patreon_object_is_paid($object->getObject())
+                    && patreon_object_has_tier($object->getObject(), null, $specificTiers))
                 && (!$and
-                    || $lifetimeCents !== null && $object?->attributes?->lifetime_support_cents >= $lifetimeCents),
+                    || $lifetimeCents !== null && $object->getObject()?->attributes?->lifetime_support_cents >= $lifetimeCents),
                 $object->getMessage(),
                 $object
             );
@@ -59,13 +59,6 @@ class AccountPatreon
                         $name->getObject()[0],
                         $specificTiers
                     );
-
-                    if (!$this->retrieve->isPositiveOutcome()) {
-                        $this->retrieve = $this->find(
-                            $name->getObject()[0],
-                            $specificTiers
-                        );
-                    }
                 } else {
                     $this->retrieve = new MethodReply(false);
                 }
@@ -83,16 +76,22 @@ class AccountPatreon
         );
     }
 
-    private function find(string $name, ?array $tiers = null): MethodReply
+    private function find(
+        string $name,
+        ?array $tiers = null,
+        string $patreonPageName = "spartananticheat"
+    ): MethodReply
     {
-        $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers, null);
+        if (strtolower($name) != $patreonPageName) {
+            $patreonSubscriptions = get_patreon2_subscriptions(null, $tiers, null);
 
-        if (!empty($patreonSubscriptions)) {
-            $name = trim($name);
+            if (!empty($patreonSubscriptions)) {
+                $name = trim($name);
 
-            foreach ($patreonSubscriptions as $subscription) {
-                if (trim($subscription->attributes->full_name) == $name) {
-                    return new MethodReply(true, null, $subscription);
+                foreach ($patreonSubscriptions as $subscription) {
+                    if (trim($subscription->attributes->full_name) == $name) {
+                        return new MethodReply(true, null, $subscription);
+                    }
                 }
             }
         }
