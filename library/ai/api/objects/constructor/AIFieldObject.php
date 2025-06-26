@@ -8,18 +8,21 @@ class AIFieldObject
     private bool $isNullable;
     private string $definition;
     private array $parents;
+    private ?array $enums;
 
     public function __construct(
         string $type,
         ?int   $maxLength,
         bool   $isNullable,
         string $definition,
+        ?array $enums = null
     )
     {
         $this->type = $type;
         $this->maxLength = $maxLength;
         $this->isNullable = $isNullable;
         $this->definition = $definition;
+        $this->enums = $enums;
         $this->parents = [];
     }
 
@@ -41,6 +44,11 @@ class AIFieldObject
     public function getDefinition(): string
     {
         return $this->definition;
+    }
+
+    public function getEnums(): ?array
+    {
+        return $this->enums;
     }
 
     public function getParents(): array
