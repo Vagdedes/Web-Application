@@ -9,15 +9,15 @@ class AIFieldObject
     private string $definition;
     private array $parents;
     private ?array $enums;
-    private ?object $default;
+    private mixed $default;
 
     public function __construct(
-        string  $type,
-        ?int    $maxLength,
-        bool    $isNullable,
-        string  $definition,
-        ?array  $enums = null,
-        ?object $default = null
+        string $type,
+        ?int   $maxLength,
+        bool   $isNullable,
+        string $definition,
+        ?array $enums = null,
+        mixed  $default = null
     )
     {
         $this->type = $type;
@@ -49,7 +49,7 @@ class AIFieldObject
         return $this->definition;
     }
 
-    public function getDefault(): ?object
+    public function getDefault(): mixed
     {
         return $this->default;
     }
