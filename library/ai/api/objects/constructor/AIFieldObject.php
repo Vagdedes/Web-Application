@@ -12,15 +12,17 @@ class AIFieldObject
     private mixed $default;
 
     public function __construct(
-        string $type,
-        ?int   $maxLength,
-        bool   $isNullable,
-        string $definition,
-        ?array $enums = null,
-        mixed  $default = null
+        string|array $type,
+        ?int         $maxLength,
+        bool         $isNullable,
+        string       $definition,
+        ?array       $enums = null,
+        mixed        $default = null
     )
     {
-        $this->type = $type;
+        $this->type = is_array($type)
+            ? implode("|", $type)
+            : $type;
         $this->maxLength = $maxLength;
         $this->isNullable = $isNullable;
         $this->definition = $definition;
