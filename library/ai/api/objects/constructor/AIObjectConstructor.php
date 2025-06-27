@@ -238,7 +238,13 @@ class AIObjectConstructor
                     $subObject->max_length = $initiator->getMaxLength();
                     $subObject->is_nullable = $initiator->isNullable();
                     $subObject->definition = $initiator->getDefinition();
-                    $subObject->enums = $initiator->getEnums();
+
+                    if (!empty($initiator->getEnums())) {
+                        $subObject->enums = $initiator->getEnums();
+                    }
+                    if (!empty($initiator->getDefault())) {
+                        $subObject->default = $initiator->getDefault();
+                    }
                     $object->{$key} = $subObject;
                 } else if (is_array($initiator)) {
                     $arrayKey = $originalKey ?? $key;
