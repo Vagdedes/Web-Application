@@ -158,6 +158,18 @@ class AccountTeam
         }
     }
 
+    public function getAllTeams(): array
+    {
+        return get_sql_query(
+            AccountVariables::TEAM_TABLE,
+            null,
+            array(
+                array("additional_id", $this->additionalID),
+                array("deletion_date", null)
+            )
+        );
+    }
+
     public function findTeams(Account $account = null): array
     {
         if ($account === null) {
