@@ -229,17 +229,19 @@ class AccountTeam
     {
         if ($this->forcedTeam !== null) {
             if (isset($this->forcedTeam->id)) {
-                $query = get_sql_query(
-                    AccountVariables::TEAM_TABLE,
-                    null,
-                    array(
-                        array("id", $this->forcedTeam->id),
-                        array("additional_id", $this->additionalID),
-                        array("deletion_date", null)
-                    ),
-                    null,
-                    1
-                );
+                $query = $this->forcedTeam->id <= 0
+                    ? null
+                    : get_sql_query(
+                        AccountVariables::TEAM_TABLE,
+                        null,
+                        array(
+                            array("id", $this->forcedTeam->id),
+                            array("additional_id", $this->additionalID),
+                            array("deletion_date", null)
+                        ),
+                        null,
+                        1
+                    );
 
                 if (empty($query)) {
                     return new MethodReply(false, "Forced team not found.");
