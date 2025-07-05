@@ -46,9 +46,14 @@ class AccountAccounts
             ),
             1
         );
-        return empty($array)
-            ? null
-            : $this->account->getNew($array[0]->account_id);
+
+        if (empty($array)) {
+            return null;
+        }
+        $account = $this->account->getNew($array[0]->account_id);
+        return $account->exists()
+            ? $account
+            : null;
     }
 
     public function getAvailable(?array $select = null, ?int $id = null, bool $manual = true): array
