@@ -78,7 +78,7 @@ class AccountTeam
 
     // Separator
 
-    public function createTeam(string $title, string $description, ?string $reason = null): MethodReply
+    public function createTeam(string $title, ?string $description, ?string $reason = null): MethodReply
     {
         if (!$this->account->exists()) {
             return new MethodReply(false, "Account not found.");

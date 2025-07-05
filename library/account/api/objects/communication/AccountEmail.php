@@ -3,10 +3,17 @@
 class AccountEmail
 {
     private Account $account;
+    private bool $run;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
+        $this->run = true;
+    }
+
+    public function setToRun(bool $run): void
+    {
+        $this->run = $run;
     }
 
     public function requestVerification(string          $email, bool $code = false,
@@ -73,7 +80,9 @@ class AccountEmail
             AccountVariables::EMAIL_VERIFICATIONS_TABLE,
             $exists ? array("id", "email_address") : array("id", "email_address", "account_id"),
             array(
-                $tokenOrCode === null ? "" : array($code ? "code" : "token", $tokenOrCode),
+                $tokenOrCode === null
+                    ? array("account_id", $account->getDetail("id"))
+                    : array($code ? "code" : "token", $tokenOrCode),
                 array("completion_date", null),
                 array("expiration_date", ">", $date)
             ),
@@ -240,7 +249,8 @@ class AccountEmail
         if ($applicationID === null) {
             $applicationID = 0;
         }
-        return $this->account->getSettings()->isEnabled(
+        return $this->run
+            && $this->account->getSettings()->isEnabled(
                 "receive_" . $type . "_emails",
                 $type === "account"
             )
