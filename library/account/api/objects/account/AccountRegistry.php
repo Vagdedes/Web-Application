@@ -32,10 +32,14 @@ class AccountRegistry
                 return new MethodReply(false, $parameter->getOutcome()->getMessage());
             }
         }
-        $parameter = new ParameterVerification($name, null, 2, 20);
+        $hasName = !empty($name);
 
-        if (!$parameter->getOutcome()->isPositiveOutcome()) {
-            return new MethodReply(false, $parameter->getOutcome()->getMessage());
+        if ($hasName) {
+            $parameter = new ParameterVerification($name, null, 2, 20);
+
+            if (!$parameter->getOutcome()->isPositiveOutcome()) {
+                return new MethodReply(false, $parameter->getOutcome()->getMessage());
+            }
         }
         $email = strtolower($email);
 
@@ -54,7 +58,8 @@ class AccountRegistry
                 }
             }
         }
-        if ($this->account->transform(null, null, $name)->exists()) {
+        if ($hasName
+            && $this->account->transform(null, null, $name)->exists()) {
             return new MethodReply(false, "Account with this name already exists.");
         }
         if ($this->account->getSession()->isCustom() // Protected by captcha when not custom

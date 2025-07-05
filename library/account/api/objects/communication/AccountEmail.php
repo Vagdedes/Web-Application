@@ -54,7 +54,7 @@ class AccountEmail
         return new MethodReply($resultOutcome, $result->getMessage());
     }
 
-    public function completeVerification(string          $tokenOrCode, bool $code = false,
+    public function completeVerification(?string         $tokenOrCode = null, bool $code = false,
                                          int|string|null $cooldown = "1 day"): MethodReply
     {
         $account = $this->account;
@@ -73,7 +73,7 @@ class AccountEmail
             AccountVariables::EMAIL_VERIFICATIONS_TABLE,
             $exists ? array("id", "email_address") : array("id", "email_address", "account_id"),
             array(
-                array($code ? "code" : "token", $tokenOrCode),
+                $tokenOrCode === null ? "" : array($code ? "code" : "token", $tokenOrCode),
                 array("completion_date", null),
                 array("expiration_date", ">", $date)
             ),
@@ -177,7 +177,9 @@ class AccountEmail
                 array("completion_date", null),
                 array("email_address", $email),
                 array("expiration_date", ">", $date)
-            )
+            ),
+            null,
+            1
         );
 
         if (empty($array)) {
