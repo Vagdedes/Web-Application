@@ -71,7 +71,7 @@ class TwoFactorAuthentication
                         "expiration_date" => get_future_date("1 hour")
                     )
                 )) {
-                    return new MethodReply(true, "Could not interact with database.");
+                    return new MethodReply(false, "Could not interact with database.");
                 }
             }
             if ($account->getCooldowns()->addInstant("instant_login", "1 minute")) {
