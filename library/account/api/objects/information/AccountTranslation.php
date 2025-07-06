@@ -20,7 +20,8 @@ class AccountTranslation
         ?string $expiration = null,
         bool    $details = false,
         bool    $force = false,
-        bool    $save = true): MethodReply
+        bool    $save = true,
+        mixed   $loop = null): mixed
     {
         $defaultLanguage = strtolower(trim($defaultLanguage));
         $language = strtolower(trim($language));
@@ -81,43 +82,53 @@ class AccountTranslation
                 AIHelper::getAuthorization(AIAuthorization::OPENAI),
                 $arguments
             );
-            $outcome = $managerAI->getResult(
-                self::AI_HASH
-            );
-
-            if (array_shift($outcome)) {
-                $translation = $outcome[0]->getTextOrVoice($outcome[1]);
-
-                if ($translation === null) {
-                    return new MethodReply(
-                        false,
-                        null,
-                        null
-                    );
-                }
-                if ($save) {
-                    sql_insert(
-                        AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
-                        array(
-                            "translation_hash" => $hash,
-                            "translation_language" => $language,
-                            "actual" => $text,
-                            "translation" => $translation,
-                            "creation_date" => $date,
-                            "expiration_date" => $expiration === null ? null : get_future_date($expiration)
-                        )
-                    );
-                }
-                return new MethodReply(
-                    true,
-                    null,
-                    $translation
+            if ($loop === null) {
+                $outcome = $managerAI->getResult(
+                    self::AI_HASH
+                );
+                return $this->processResult(
+                    $outcome,
+                    $language,
+                    $text,
+                    $expiration,
+                    $hash,
+                    $details,
+                    $force,
+                    $save,
+                    $date
                 );
             } else {
-                return new MethodReply(
-                    false,
-                    null,
-                    $outcome
+                $outcome = $managerAI->getResult(
+                    self::AI_HASH
+                );
+                return $outcome->then(
+                    function (array $outcome) use (
+                        $language,
+                        $text,
+                        $expiration,
+                        $hash,
+                        $details,
+                        $force,
+                        $save,
+                        $date
+                    ) {
+                        return $this->processResult(
+                            $outcome,
+                            $language,
+                            $text,
+                            $expiration,
+                            $hash,
+                            $details,
+                            $force,
+                            $save,
+                            $date
+                        );
+                    },
+                    function (Throwable $e) {
+                        return new MethodReply(
+                            false
+                        );
+                    }
                 );
             }
         } else {
@@ -126,6 +137,73 @@ class AccountTranslation
                 true,
                 null,
                 $details ? $query : $query->translation
+            );
+        }
+    }
+
+    private function processResult(
+        array   $outcome,
+        string  $language,
+        string  $text,
+        ?string $expiration,
+        string  $hash,
+        bool    $details,
+        bool    $force,
+        bool    $save,
+        string  $date
+    ): MethodReply
+    {
+        if (array_shift($outcome)) {
+            $translation = $outcome[0]->getTextOrVoice($outcome[1]);
+
+            if ($translation === null) {
+                $object = new stdClass();
+                $object->scenario = 2;
+                $object->language = $language;
+                $object->text = $text;
+                $object->creation_date = $date;
+                $object->expiration_date = $expiration === null ? null : get_future_date($expiration);
+                $object->translation_hash = $hash;
+                $object->details = $details;
+                $object->force = $force;
+                return new MethodReply(
+                    false,
+                    BigManageReader::jsonObject($object),
+                    null
+                );
+            }
+            if ($save) {
+                sql_insert(
+                    AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
+                    array(
+                        "translation_hash" => $hash,
+                        "translation_language" => $language,
+                        "actual" => $text,
+                        "translation" => $translation,
+                        "creation_date" => $date,
+                        "expiration_date" => $expiration === null ? null : get_future_date($expiration)
+                    )
+                );
+            }
+            return new MethodReply(
+                true,
+                null,
+                $translation
+            );
+        } else {
+            $object = new stdClass();
+            $object->scenario = 1;
+            $object->language = $language;
+            $object->text = $text;
+            $object->creation_date = $date;
+            $object->expiration_date = $expiration === null ? null : get_future_date($expiration);
+            $object->translation_hash = $hash;
+            $object->details = $details;
+            $object->force = $force;
+            return new MethodReply(
+                false,
+                BigManageReader::jsonObject($object),
+                $outcome
             );
         }
     }

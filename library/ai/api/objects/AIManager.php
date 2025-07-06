@@ -124,8 +124,7 @@ class AIManager
                               array             $parameters = [],
                               string|array|null $input = null,
                               int               $timeoutSeconds = 0,
-                              mixed             $loop = null,
-                              ?callable         $callable = null): mixed
+                              mixed             $loop = null): mixed
     {
         $this->lastHash = $hash;
         $this->lastInput = $input;
@@ -190,7 +189,7 @@ class AIManager
                     $timeoutSeconds
                 )
             );
-        } else if ($callable === null) {
+        } else {
             return get_react_http(
                 $loop,
                 $this->lastPickedModel->getRequestURL(),
@@ -205,20 +204,10 @@ class AIManager
                     return reject($e);
                 }
             );
-        } else {
-            get_curl_multi_with_react(
-                $loop,
-                $this->lastPickedModel->getRequestURL(),
-                "POST",
-                $headers,
-                $parameters,
-                $callable,
-            );
-            return null;
         }
     }
 
-    public function resolve(mixed $reply): array
+    private function resolve(mixed $reply): array
     {
         if ($reply !== null && $reply !== false) {
             $received = $reply;
