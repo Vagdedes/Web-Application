@@ -1,7 +1,5 @@
 <?php
 
-use function React\Promise\reject;
-
 class AIManager
 {
 
@@ -201,7 +199,7 @@ class AIManager
                     return $this->resolve($reply);
                 },
                 function (Throwable $e) {
-                    return reject($e);
+                    return React\Promise\reject($e);
                 }
             );
         }

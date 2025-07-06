@@ -27,11 +27,17 @@ class AccountTranslation
         $language = strtolower(trim($language));
 
         if ($defaultLanguage === $language) {
-            return new MethodReply(
+            $methodReply = new MethodReply(
                 true,
                 null,
                 $details ? null : $text
             );
+
+            if ($loop === null) {
+                return $methodReply;
+            } else {
+                return \React\Promise\resolve($methodReply);
+            }
         }
         $text = trim($text);
         $hash = array_to_integer(array($language, $text), true);
@@ -99,7 +105,11 @@ class AccountTranslation
                 );
             } else {
                 $outcome = $managerAI->getResult(
-                    self::AI_HASH
+                    self::AI_HASH,
+                    [],
+                    null,
+                    0,
+                    $loop
                 );
                 return $outcome->then(
                     function (array $outcome) use (
@@ -125,19 +135,23 @@ class AccountTranslation
                         );
                     },
                     function (Throwable $e) {
-                        return new MethodReply(
-                            false
-                        );
+                        return React\Promise\reject($e);
                     }
                 );
             }
         } else {
             $query = $query[0];
-            return new MethodReply(
+            $methodReply = new MethodReply(
                 true,
                 null,
                 $details ? $query : $query->translation
             );
+
+            if ($loop === null) {
+                return $methodReply;
+            } else {
+                return \React\Promise\resolve($methodReply);
+            }
         }
     }
 
