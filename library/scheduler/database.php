@@ -13,7 +13,7 @@ class __SchedulerDatabase
                 "id"
             ),
             array(
-                array("script_hash" => $scriptHash),
+                array("script_hash", $scriptHash),
                 array("expiration_time", ">", time())
             ),
             null,
@@ -54,7 +54,7 @@ class __SchedulerDatabase
         delete_sql_query(
             self::TABLE_NAME,
             array(
-                array("script_hash" => $scriptHash),
+                array("script_hash", $scriptHash),
                 array("expiration_time", "<=", time())
             )
         );
