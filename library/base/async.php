@@ -146,7 +146,8 @@ class PhpAsync
         array|string|callable $method,
         array                 $parameters,
         array                 $dependencies = [],
-        ?bool                 $debug = null
+        ?bool                 $debug = null,
+        bool                  $nonFileExecution = false
     ): string|false|null
     {
         if (!in_array(__FILE__, $dependencies)) {
@@ -156,7 +157,7 @@ class PhpAsync
         $total = self::$files[$dependencyHash] ?? null;
 
         if ($total === null) {
-            $total = "";
+            $total = "error_reporting(E_ALL);\nini_set('display_errors', 1);\n";
 
             if (!empty($this->dependencies)) {
                 foreach ($this->dependencies as $dependency) {
@@ -193,12 +194,13 @@ class PhpAsync
                 if (file_exists($file)) {
                     continue;
                 }
+                $total .= "\n@unlink(__FILE__);";
                 $put = @file_put_contents($file, "<?php\n" . $total);
 
                 if ($put === false) {
                     return null;
                 }
-                $exec = shell_exec("php " . $file);
+                $exec = shell_exec("php " . escapeshellarg($file));
                 @unlink($file);
                 return $exec;
             }
@@ -208,7 +210,8 @@ class PhpAsync
         } else {
             $total .= $final;
 
-            if (strlen($total) <= 2_097_152 - 32) {
+            if ($nonFileExecution
+                && strlen($total) <= 2_097_152 - 32) {
                 return instant_shell_exec("php -r \"" . $total . "\"", false);
             } else {
                 while (true) {
@@ -223,7 +226,7 @@ class PhpAsync
                     if ($put === false) {
                         return null;
                     }
-                    return instant_shell_exec("php " . $file, false);
+                    return instant_shell_exec("php " . escapeshellarg($file), false);
                 }
             }
         }
