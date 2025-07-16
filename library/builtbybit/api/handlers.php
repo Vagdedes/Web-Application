@@ -44,8 +44,14 @@ function get_builtbybit_resource_ownerships(int|string $resource): array
                         $object->transaction_id = "builtbybit_" . $subArray["license_id"];
                         $object->creation_date = time_to_date($subArray["start_date"]);
                         $endDate = $subArray["end_date"];
-                        $object->expiration_date = $endDate == 0 ? null : time_to_date($endDate);
-                        $array[$object->user] = $object;
+                        $object->expiration_date = $endDate == 0
+                            ? null
+                            : time_to_date($endDate);
+
+                        if ($object->expiration_date === null
+                            || $object->expiration_date > time_to_date(time())) {
+                            $array[$object->user] = $object;
+                        }
                     }
                     unset($array[$key]);
                 }

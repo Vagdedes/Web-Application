@@ -321,6 +321,39 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     }
                 }
             }
+            if (sizeof($found) < sizeof($all)) {
+                if ($gameCloudUser->getPlatform() === 2) {
+                    $ownerships = get_builtbybit_resource_ownerships(11196);
+
+                    if (!empty($ownerships)) {
+                        foreach ($ownerships as $row) {
+                            if ($row->user == $gameCloudUser->getLicense()) {
+                                if (!in_array($all[0], $found)) {
+                                    $found[] = $all[0];
+                                }
+                                if (!in_array($all[1], $found)) {
+                                    $found[] = $all[1];
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } else if ($gameCloudUser->getPlatform() === 3) {
+                    $buyer = get_polymart_buyer_details(
+                        350,
+                        $gameCloudUser->getLicense()
+                    );
+
+                    if ($buyer !== null) {
+                        if (!in_array($all[0], $found)) {
+                            $found[] = $all[0];
+                        }
+                        if (!in_array($all[1], $found)) {
+                            $found[] = $all[1];
+                        }
+                    }
+                }
+            }
 
             if (!empty($found)) {
                 echo implode($separator, $found);
