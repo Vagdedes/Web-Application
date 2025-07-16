@@ -323,19 +323,12 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             }
             if (sizeof($found) < sizeof($all)) {
                 if ($gameCloudUser->getPlatform() === 2) {
-                    $ownerships = get_builtbybit_resource_ownerships(11196);
-
-                    if (!empty($ownerships)) {
-                        foreach ($ownerships as $row) {
-                            if ($row->user == $gameCloudUser->getLicense()) {
-                                if (!in_array($all[0], $found)) {
-                                    $found[] = $all[0];
-                                }
-                                if (!in_array($all[1], $found)) {
-                                    $found[] = $all[1];
-                                }
-                                break;
-                            }
+                    if (has_builtbybit_resource_ownership(11196, $gameCloudUser->getLicense())) {
+                        if (!in_array($all[0], $found)) {
+                            $found[] = $all[0];
+                        }
+                        if (!in_array($all[1], $found)) {
+                            $found[] = $all[1];
                         }
                     }
                 } else if ($gameCloudUser->getPlatform() === 3) {
@@ -521,25 +514,9 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             }
         } else if ($data == "advancedDiscordWebhook") {
             if ($gameCloudUser->getPlatform() === 2) {
-                $ownerships = get_builtbybit_resource_ownerships(64165);
-
-                if (empty($ownerships)) {
+                if (!has_builtbybit_resource_ownership(64165, $gameCloudUser->getLicense())) {
                     echo "false";
                     return;
-                } else {
-                    $owns = false;
-
-                    foreach ($ownerships as $row) {
-                        if ($row->user == $gameCloudUser->getLicense()) {
-                            $owns = true;
-                            break;
-                        }
-                    }
-
-                    if (!$owns) {
-                        echo "false";
-                        return;
-                    }
                 }
             } else if ($gameCloudUser->getPlatform() === 3) {
                 $buyer = get_polymart_buyer_details(
