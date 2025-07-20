@@ -245,17 +245,13 @@ class AccountEmail
                          string $type = "account", bool $unsubscribe = true): bool
     {
         $applicationID = $this->account->getDetail("application_id");
-
-        if ($applicationID === null) {
-            $applicationID = 0;
-        }
         return $this->run
             && $this->account->getSettings()->isEnabled(
                 "receive_" . $type . "_emails",
                 $type === "account"
             )
             && send_email_by_plan(
-                $applicationID . "-" . $case,
+                ($applicationID === null ? "" : $applicationID) . "-" . $case,
                 $this->account->getDetail("email_address"),
                 $detailsArray,
                 $unsubscribe
