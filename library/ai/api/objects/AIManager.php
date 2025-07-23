@@ -199,7 +199,7 @@ class AIManager
                     return $this->resolve($reply);
                 },
                 function (Throwable $e) {
-                    return React\Promise\reject($e);
+                    throw $e;
                 }
             );
         }

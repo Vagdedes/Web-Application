@@ -204,7 +204,7 @@ class AccountTranslation
                     );
                 },
                 function (Throwable $e) {
-                    return \React\Promise\reject($e);
+                    throw $e;
                 }
             );
         }
