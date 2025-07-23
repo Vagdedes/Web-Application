@@ -135,7 +135,7 @@ class AccountTranslation
                         );
                     },
                     function (Throwable $e) {
-                        return React\Promise\reject($e);
+                        return \React\Promise\reject($e);
                     }
                 );
             }
