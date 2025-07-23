@@ -44,7 +44,7 @@ class AccountTranslation
         $date = get_current_date();
         $query = get_sql_query(
             AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
-            $details ? null : array("translation"),
+            $details ? null : array("translation", "id"),
             array(
                 array("translation_hash", $hash),
                 array("translation_language", $language),
@@ -62,83 +62,30 @@ class AccountTranslation
         );
 
         if ($force || empty($query)) {
-            $modelFamily = $save && $expiration === null
-                ? AIModelFamily::OPENAI_OMNI_MINI
-                : AIModelFamily::CHAT_GPT;
-            $arguments = array(
-                "messages" => array(
+            if ($save) {
+                sql_insert(
+                    AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
                     array(
-                        "role" => "system",
-                        "content" => "Translate the text to '" . $language . "' and return only the result."
-                    ),
-                    array(
-                        "role" => "user",
-                        "content" => $text
+                        "translation_hash" => $hash,
+                        "translation_language" => $language,
+                        "actual" => $text,
+                        "creation_date" => $date,
+                        "expiration_date" => $expiration === null ? null : get_future_date($expiration)
                     )
-                )
-            );
-
-            if (AIHelper::isReasoningModel($modelFamily)) {
-                $arguments["reasoning_effort"] = "low";
-            } else {
-                $arguments["temperature"] = 0.1;
-            }
-            $managerAI = new AIManager(
-                $modelFamily,
-                AIHelper::getAuthorization(AIAuthorization::OPENAI),
-                $arguments
-            );
-            if ($loop === null) {
-                $outcome = $managerAI->getResult(
-                    self::AI_HASH
-                );
-                return $this->processResult(
-                    $outcome,
-                    $language,
-                    $text,
-                    $expiration,
-                    $hash,
-                    $details,
-                    $force,
-                    $save,
-                    $date
-                );
-            } else {
-                $outcome = $managerAI->getResult(
-                    self::AI_HASH,
-                    [],
-                    null,
-                    0,
-                    $loop
-                );
-                return $outcome->then(
-                    function (array $outcome) use (
-                        $language,
-                        $text,
-                        $expiration,
-                        $hash,
-                        $details,
-                        $force,
-                        $save,
-                        $date
-                    ) {
-                        return $this->processResult(
-                            $outcome,
-                            $language,
-                            $text,
-                            $expiration,
-                            $hash,
-                            $details,
-                            $force,
-                            $save,
-                            $date
-                        );
-                    },
-                    function (Throwable $e) {
-                        return \React\Promise\reject($e);
-                    }
                 );
             }
+            return $this->processTranslation(
+                $language,
+                $text,
+                $expiration,
+                $hash,
+                $details,
+                $force,
+                $save,
+                $loop,
+                $date,
+                null
+            );
         } else {
             $query = $query[0];
             $methodReply = new MethodReply(
@@ -147,11 +94,119 @@ class AccountTranslation
                 $details ? $query : $query->translation
             );
 
-            if ($loop === null) {
+            if ($query->translation === null) {
+                return $this->processTranslation(
+                    $language,
+                    $text,
+                    $expiration,
+                    $hash,
+                    $details,
+                    $force,
+                    $save,
+                    $loop,
+                    $date,
+                    $query->id
+                );
+            } else if ($loop === null) {
                 return $methodReply;
             } else {
                 return \React\Promise\resolve($methodReply);
             }
+        }
+    }
+
+    private function processTranslation(
+        string  $language,
+        string  $text,
+        ?string $expiration,
+        string  $hash,
+        bool    $details,
+        bool    $force,
+        bool    $save,
+        mixed   $loop,
+        string  $date,
+        ?int    $id
+    )
+    {
+        $modelFamily = $save && $expiration === null
+            ? AIModelFamily::OPENAI_OMNI_MINI
+            : AIModelFamily::CHAT_GPT;
+        $arguments = array(
+            "messages" => array(
+                array(
+                    "role" => "system",
+                    "content" => "Translate the text to '" . $language . "' and return only the result."
+                ),
+                array(
+                    "role" => "user",
+                    "content" => $text
+                )
+            )
+        );
+
+        if (AIHelper::isReasoningModel($modelFamily)) {
+            $arguments["reasoning_effort"] = "low";
+        } else {
+            $arguments["temperature"] = 0.1;
+        }
+        $managerAI = new AIManager(
+            $modelFamily,
+            AIHelper::getAuthorization(AIAuthorization::OPENAI),
+            $arguments
+        );
+        if ($loop === null) {
+            $outcome = $managerAI->getResult(
+                self::AI_HASH
+            );
+            return $this->processResult(
+                $outcome,
+                $language,
+                $text,
+                $expiration,
+                $hash,
+                $details,
+                $force,
+                $save,
+                $date,
+                $id
+            );
+        } else {
+            $outcome = $managerAI->getResult(
+                self::AI_HASH,
+                [],
+                null,
+                0,
+                $loop
+            );
+            return $outcome->then(
+                function (array $outcome) use (
+                    $language,
+                    $text,
+                    $expiration,
+                    $hash,
+                    $details,
+                    $force,
+                    $save,
+                    $date,
+                    $id
+                ) {
+                    return $this->processResult(
+                        $outcome,
+                        $language,
+                        $text,
+                        $expiration,
+                        $hash,
+                        $details,
+                        $force,
+                        $save,
+                        $date,
+                        $id
+                    );
+                },
+                function (Throwable $e) {
+                    return \React\Promise\reject($e);
+                }
+            );
         }
     }
 
@@ -164,7 +219,8 @@ class AccountTranslation
         bool    $details,
         bool    $force,
         bool    $save,
-        string  $date
+        string  $date,
+        ?int    $id
     ): MethodReply
     {
         if (array_shift($outcome)) {
@@ -187,17 +243,40 @@ class AccountTranslation
                 );
             }
             if ($save) {
-                sql_insert(
-                    AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
-                    array(
-                        "translation_hash" => $hash,
-                        "translation_language" => $language,
-                        "actual" => $text,
-                        "translation" => $translation,
-                        "creation_date" => $date,
-                        "expiration_date" => $expiration === null ? null : get_future_date($expiration)
-                    )
-                );
+                if ($id === null) {
+                    set_sql_query(
+                        AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
+                        array(
+                            "translation" => $translation
+                        ),
+                        array(
+                            array("translation_hash", $hash),
+                            array("translation_language", $language),
+                            array("deletion_date", null),
+                            null,
+                            array("expiration_date", "IS", null, 0),
+                            array("expiration_date", ">", $date),
+                            null
+                        ),
+                        array(
+                            "DESC",
+                            "id"
+                        ),
+                        1
+                    );
+                } else {
+                    set_sql_query(
+                        AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
+                        array(
+                            "translation" => $translation
+                        ),
+                        array(
+                            array("id", $id)
+                        ),
+                        null,
+                        1
+                    );
+                }
             }
             return new MethodReply(
                 true,
