@@ -25,12 +25,33 @@ class AccountTranslation
     {
         $defaultLanguage = strtolower(trim($defaultLanguage));
         $language = strtolower(trim($language));
+        $text = trim($text);
+        $hash = array_to_integer(array($language, $text), true);
+        $date = get_current_date();
 
         if ($defaultLanguage === $language) {
+            if ($details) {
+                $object = new stdClass();
+                $object->id = 0;
+                $object->translation_hash = $hash;
+                $object->translation_language = $language;
+                $object->actual = $text;
+                $object->translation = $text;
+                $object->creation_date = $date;
+                $object->expiration_date = null;
+                $object->deletion_date = null;
+                return new MethodReply(
+                    false,
+                    BigManageReader::jsonObject($object),
+                    null
+                );
+            } else {
+                $object = $text;
+            }
             $methodReply = new MethodReply(
                 true,
                 null,
-                $details ? null : $text
+                $object
             );
 
             if ($loop === null) {
@@ -39,9 +60,6 @@ class AccountTranslation
                 return \React\Promise\resolve($methodReply);
             }
         }
-        $text = trim($text);
-        $hash = array_to_integer(array($language, $text), true);
-        $date = get_current_date();
         $query = get_sql_query(
             AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
             $details ? null : array("translation", "id"),
