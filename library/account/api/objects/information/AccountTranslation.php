@@ -32,14 +32,18 @@ class AccountTranslation
         if ($defaultLanguage === $language) {
             if ($details) {
                 $object = new stdClass();
+                $object->scenario = 3;
                 $object->id = 0;
                 $object->translation_hash = $hash;
                 $object->translation_language = $language;
                 $object->actual = $text;
                 $object->translation = $text;
                 $object->creation_date = $date;
-                $object->expiration_date = null;
+                $object->expiration_date = $expiration === null ? null : get_future_date($expiration);
                 $object->deletion_date = null;
+                $object->details = $details;
+                $object->force = $force;
+                $object->save = $save;
                 return new MethodReply(
                     false,
                     BigManageReader::jsonObject($object),
@@ -153,7 +157,7 @@ class AccountTranslation
             "messages" => array(
                 array(
                     "role" => "system",
-                    "content" => "Translate the text to '" . $language . "' and return only the result."
+                    "content" => "Translate the text to the '" . $language . "' language and return only the result."
                 ),
                 array(
                     "role" => "user",
@@ -169,12 +173,12 @@ class AccountTranslation
         }
         $managerAI = new AIManager(
             $modelFamily,
-            AIHelper::getAuthorization(AIAuthorization::OPENAI),
-            $arguments
+            AIHelper::getAuthorization(AIAuthorization::OPENAI)
         );
         if ($loop === null) {
             $outcome = $managerAI->getResult(
-                self::AI_HASH
+                self::AI_HASH,
+                $arguments
             );
             return $this->processResult(
                 $outcome,
@@ -191,7 +195,7 @@ class AccountTranslation
         } else {
             $outcome = $managerAI->getResult(
                 self::AI_HASH,
-                [],
+                $arguments,
                 null,
                 0,
                 $loop
@@ -247,13 +251,17 @@ class AccountTranslation
             if ($translation === null) {
                 $object = new stdClass();
                 $object->scenario = 2;
-                $object->language = $language;
-                $object->text = $text;
+                $object->id = 0;
+                $object->translation_language = $language;
+                $object->actual = $text;
+                $object->translation = $text;
                 $object->creation_date = $date;
                 $object->expiration_date = $expiration === null ? null : get_future_date($expiration);
+                $object->deletion_date = null;
                 $object->translation_hash = $hash;
                 $object->details = $details;
                 $object->force = $force;
+                $object->save = $save;
                 return new MethodReply(
                     false,
                     BigManageReader::jsonObject($object),
@@ -304,13 +312,17 @@ class AccountTranslation
         } else {
             $object = new stdClass();
             $object->scenario = 1;
-            $object->language = $language;
-            $object->text = $text;
+            $object->id = 0;
+            $object->translation_language = $language;
+            $object->actual = $text;
+            $object->translation = $text;
             $object->creation_date = $date;
             $object->expiration_date = $expiration === null ? null : get_future_date($expiration);
+            $object->deletion_date = null;
             $object->translation_hash = $hash;
             $object->details = $details;
             $object->force = $force;
+            $object->save = $save;
             return new MethodReply(
                 false,
                 BigManageReader::jsonObject($object),
