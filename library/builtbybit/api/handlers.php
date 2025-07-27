@@ -70,7 +70,7 @@ function get_builtbybit_resource_ownerships(int|string $resource, array $sort = 
     return $array;
 }
 
-function has_builtbybit_resource_ownership(int|string $resource, int|string $member): bool
+function has_builtbybit_resource_ownership(int|string $resource, int|string $member, bool $default = true): bool
 {
     $cacheKey = array(
         $resource,
@@ -97,6 +97,6 @@ function has_builtbybit_resource_ownership(int|string $resource, int|string $mem
             $page++;
         }
     }
-    set_key_value_pair($cacheKey, false, "1 minute");
-    return false;
+    set_key_value_pair($cacheKey, $default, "1 minute");
+    return $default;
 }
