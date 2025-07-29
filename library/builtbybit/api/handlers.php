@@ -77,6 +77,16 @@ function has_builtbybit_resource_ownership(int|string $resource, int|string $mem
         $member,
         "builtbybit-resource-ownership"
     );
+    $cache = get_key_value_pair($cacheKey);
+
+    if (is_bool($cache)) {
+        return $cache;
+    }
+    $otherCacheKey = array(
+        $resource,
+        -1,
+        "builtbybit-resource-ownership"
+    );
     $page = 1;
 
     while (true) {
@@ -87,16 +97,23 @@ function has_builtbybit_resource_ownership(int|string $resource, int|string $mem
         } else {
             $object = $ownerships[$member] ?? null;
 
-            if ($object !== null) {
-                $bool = $object->active
+            if ($object === null) {
+                foreach ($ownerships as $id => $object) {
+                    $result = $object->active
+                        && ($object->expiration_date === null
+                            || $object->expiration_date > time_to_date(time()));
+                    $otherCacheKey[1] = $id;
+                    set_key_value_pair($otherCacheKey, $result, "30 minutes");
+                }
+            } else {
+                $default = $object->active
                     && ($object->expiration_date === null
                         || $object->expiration_date > time_to_date(time()));
-                set_key_value_pair($cacheKey, $bool, "1 minute");
-                return $bool;
+                break;
             }
             $page++;
         }
     }
-    set_key_value_pair($cacheKey, $default, "1 minute");
+    set_key_value_pair($cacheKey, $default, "30 minutes");
     return $default;
 }

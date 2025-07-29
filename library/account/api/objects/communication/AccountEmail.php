@@ -251,7 +251,7 @@ class AccountEmail
                 $type === "account"
             )
             && send_email_by_plan(
-                ($applicationID === null ? "" : $applicationID) . "-" . $case,
+                ($applicationID === null ? "" : $applicationID . "-") . $case,
                 $this->account->getDetail("email_address"),
                 $detailsArray,
                 $unsubscribe
