@@ -12,7 +12,11 @@ function get_builtbybit_wrapper(): mixed
     return $response->isSuccess() ? $wrapper : $response->getError()["message"];
 }
 
-function get_builtbybit_resource_ownerships(int|string $resource, array $sort = []): array
+function get_builtbybit_resource_ownerships(
+    int|string $resource,
+    array      $sort = [],
+    bool       $checkCache = true
+): array
 {
     if (is_numeric($resource)) {
         $resource = (int)$resource;
@@ -24,11 +28,14 @@ function get_builtbybit_resource_ownerships(int|string $resource, array $sort = 
         "builtbybit-resource-ownerships",
         array_to_integer($sort)
     );
-    $cache = get_key_value_pair($cacheKey);
 
-    if (is_array($cache)
-        && !empty($cache)) {
-        return $cache;
+    if ($checkCache) {
+        $cache = get_key_value_pair($cacheKey);
+
+        if (is_array($cache)
+            && !empty($cache)) {
+            return $cache;
+        }
     }
     $wrapper = get_builtbybit_wrapper();
 
@@ -70,42 +77,48 @@ function get_builtbybit_resource_ownerships(int|string $resource, array $sort = 
     return $array;
 }
 
-function has_builtbybit_resource_ownership(int|string $resource, int|string $member, bool $default = true): bool
+function has_builtbybit_resource_ownership(
+    int|string $resource,
+    int|string $member,
+    bool       $default = true,
+    int        $maxExecutionTime = 25
+): bool
 {
+    $time = time();
+    $maxExecutionTime = ini_get("max_execution_time");
     $cacheKey = array(
         $resource,
         $member,
         "builtbybit-resource-ownership"
     );
-    $cache = get_key_value_pair($cacheKey);
 
-    if (is_bool($cache)) {
-        return $cache;
+    if (get_key_value_pair($cacheKey) === true) {
+        return true;
     }
-    $otherCacheKey = array(
-        $resource,
-        -1,
-        "builtbybit-resource-ownership"
-    );
     $page = 1;
 
     while (true) {
-        $ownerships = get_builtbybit_resource_ownerships($resource, array("page" => $page));
+        if (time() - $time > $maxExecutionTime) {
+            break;
+        }
+        $ownerships = get_builtbybit_resource_ownerships(
+            $resource,
+            array("page" => $page)
+        );
 
         if (empty($ownerships)) {
             break;
         } else {
+            foreach ($ownerships as $id => $object) {
+                $result = $object->active
+                    && ($object->expiration_date === null
+                        || $object->expiration_date > time_to_date(time()));
+                $cacheKey[1] = $id;
+                set_key_value_pair($cacheKey, $result, "30 minutes");
+            }
             $object = $ownerships[$member] ?? null;
 
-            if ($object === null) {
-                foreach ($ownerships as $id => $object) {
-                    $result = $object->active
-                        && ($object->expiration_date === null
-                            || $object->expiration_date > time_to_date(time()));
-                    $otherCacheKey[1] = $id;
-                    set_key_value_pair($otherCacheKey, $result, "30 minutes");
-                }
-            } else {
+            if ($object !== null) {
                 $default = $object->active
                     && ($object->expiration_date === null
                         || $object->expiration_date > time_to_date(time()));
@@ -114,6 +127,5 @@ function has_builtbybit_resource_ownership(int|string $resource, int|string $mem
             $page++;
         }
     }
-    set_key_value_pair($cacheKey, $default, "30 minutes");
     return $default;
 }

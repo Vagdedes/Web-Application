@@ -323,7 +323,8 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             }
             if (sizeof($found) < sizeof($all)) {
                 if ($gameCloudUser->getPlatform() === 2) {
-                    if (has_builtbybit_resource_ownership(11196, $gameCloudUser->getLicense())) {
+                    if (has_builtbybit_resource_ownership(11196, $gameCloudUser->getLicense())
+                        || has_builtbybit_resource_ownership(20142, $gameCloudUser->getLicense())) {
                         if (!in_array($all[0], $found)) {
                             $found[] = $all[0];
                         }
