@@ -145,10 +145,23 @@ function create_and_close_connection(string $url): bool|string
     return timed_file_get_contents($url, 1);
 }
 
-function timed_file_get_contents(string $url, int $timeoutSeconds = 0): bool|string
+function timed_file_get_contents(
+    string $url,
+    int    $timeoutSeconds = 0,
+    ?array $contextOptions = null
+): bool|string
 {
     if ($timeoutSeconds > 0) {
-        return @file_get_contents($url, 0, stream_context_create(["http" => ["timeout" => $timeoutSeconds]]));
+        if ($contextOptions !== null) {
+            $contextOptions['http']['timeout'] = $timeoutSeconds;
+        } else {
+            $contextOptions = ['http' => ['timeout' => $timeoutSeconds]];
+        }
+        return @file_get_contents(
+            $url,
+            0,
+            stream_context_create($contextOptions)
+        );
     } else {
         return @file_get_contents($url);
     }
@@ -537,13 +550,15 @@ function is_base64_image(?string $string): bool
 
 // Strings
 
-function str_contains_ignore_diacritics(string $haystack, string $needle): bool {
+function str_contains_ignore_diacritics(string $haystack, string $needle): bool
+{
     $normalizedHaystack = remove_diacritics($haystack);
     $normalizedNeedle = remove_diacritics($needle);
     return mb_stripos($normalizedHaystack, $normalizedNeedle) !== false;
 }
 
-function remove_diacritics(string $text): string {
+function remove_diacritics(string $text): string
+{
     $normalized = Normalizer::normalize($text, Normalizer::FORM_D);
     return preg_replace('/\p{Mn}/u', '', $normalized);
 }
