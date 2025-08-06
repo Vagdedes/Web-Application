@@ -214,7 +214,7 @@ class AccountTeam
                     );
 
                     if (!empty($subQuery)) {
-                        $result[] = $subQuery[0];
+                        $result[$subQuery[0]->id] = $subQuery[0];
                     }
                 }
                 return $result;
