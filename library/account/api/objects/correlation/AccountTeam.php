@@ -227,7 +227,8 @@ class AccountTeam
         Account|string|int|null $reference = null,
         int|object|null         $checkAgainst = null): MethodReply
     {
-        if ($this->forcedTeam !== null) {
+        if ($this->forcedTeam !== null
+            && $checkAgainst === null) {
             if (isset($this->forcedTeam->id)) {
                 $query = $this->forcedTeam->id <= 0
                     ? null
