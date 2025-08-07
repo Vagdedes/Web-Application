@@ -168,12 +168,17 @@ class AccountAccounts
 
                 if ($account->exists()) {
                     $email = $account->getDetail("email_address");
-                    $at = strpos($email, "@");
 
-                    for ($i = 0; $i < max($at / 2, 1); $i++) {
-                        $email[$i] = "*";
+                    if ($email === null) {
+                        return new MethodReply(false, "Some else has already added this account.");
+                    } else {
+                        $at = strpos($email, "@");
+
+                        for ($i = 0; $i < max($at / 2, 1); $i++) {
+                            $email[$i] = "*";
+                        }
+                        return new MethodReply(false, "Some else has already added this account with email: " . $email);
                     }
-                    return new MethodReply(false, "Some else has already added this account with email: " . $email);
                 }
             }
         }

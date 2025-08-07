@@ -31,7 +31,8 @@ class AccountEmail
         }
         $currentEmail = $this->account->getDetail("email_address");
 
-        if ($email === strtolower($currentEmail)) {
+        if ($currentEmail !== null
+            && $email === strtolower($currentEmail)) {
             return new MethodReply(false, "This is already your email address.");
         }
         if (!empty(get_sql_query(
@@ -110,8 +111,9 @@ class AccountEmail
             }
         }
         $email = $object->email_address;
+        $oldEmail = $account->getDetail("email_address");
 
-        if ($account->getDetail("email_address") != $email
+        if ($oldEmail != $email
             && !empty(get_sql_query(
                 AccountVariables::ACCOUNTS_TABLE,
                 array("id"),
@@ -138,7 +140,6 @@ class AccountEmail
         )) {
             return new MethodReply(false, "Failed to interact with the database.");
         }
-        $oldEmail = $account->getDetail("email_address");
         $change = $account->setDetail("email_address", $email);
 
         if (!$change->isPositiveOutcome()) {
@@ -225,41 +226,57 @@ class AccountEmail
 
     public function isVerified(): bool
     {
-        return !empty(get_sql_query(
-            AccountVariables::EMAIL_VERIFICATIONS_TABLE,
-            array("id"),
-            array(
-                array("account_id", $this->account->getDetail("id")),
-                array("completion_date", "IS NOT", null),
+        $email = $this->account->getDetail("email_address");
+
+        if ($email === null) {
+            return $this->account->getDetail("id") == Account::SYSTEM_ACCOUNT_ID;
+        } else {
+            return !empty(get_sql_query(
+                AccountVariables::EMAIL_VERIFICATIONS_TABLE,
+                array("id"),
+                array(
+                    array("account_id", $this->account->getDetail("id")),
+                    array("completion_date", "IS NOT", null),
+                    null,
+                    array("email_address", "IS", null, 0), // Support for old system structure
+                    array("email_address", $email),
+                    null,
+                ),
                 null,
-                array("email_address", "IS", null, 0), // Support for old system structure
-                array("email_address", $this->account->getDetail("email_address")),
-                null,
-            ),
-            null,
-            1
-        ));
+                1
+            ));
+        }
     }
 
     public function send(string $case, ?array $detailsArray = null,
                          string $type = "account", bool $unsubscribe = true): bool
     {
-        $applicationID = $this->account->getDetail("application_id");
-        return $this->run
-            && $this->account->getSettings()->isEnabled(
-                "receive_" . $type . "_emails",
-                $type === "account"
-            )
-            && send_email_by_plan(
-                ($applicationID === null ? "" : $applicationID . "-") . $case,
-                $this->account->getDetail("email_address"),
-                $detailsArray,
-                $unsubscribe
-            ) === 1;
+        $email = $this->account->getDetail("email_address");
+
+        if ($email === null) {
+            return false;
+        } else {
+            $applicationID = $this->account->getDetail("application_id");
+            return $this->run
+                && $this->account->getSettings()->isEnabled(
+                    "receive_" . $type . "_emails",
+                    $type === "account"
+                )
+                && send_email_by_plan(
+                    ($applicationID === null ? "" : $applicationID . "-") . $case,
+                    $email,
+                    $detailsArray,
+                    $unsubscribe
+                ) === 1;
+        }
     }
 
-    public function createTicket(string $subject, string $info, ?string $email = null,
-                                 ?array $extra = null): array
+    public function createTicket(
+        string  $subject,
+        string  $info,
+        ?string $email = null,
+        ?array  $extra = null
+    ): array
     {
         $hasEmail = $email !== null;
         $account = $hasEmail ? $this->account->getNew(null, $email) : $this->account;
@@ -269,10 +286,9 @@ class AccountEmail
 
         if ($found) {
             if (!$hasEmail) {
-                $email = $account->getDetail("email_address");
+                $email = $account->getDetail("email_address", "unknown");
             }
-            $platformsString = "https://www.idealistic.ai/contents/?path=account/panel&platform=0&id="
-                . $email . "\r\n\r\n";
+            $platformsString = "";
             $accounts = $account->getAccounts()->getAdded();
 
             if (!empty($accounts)) {
