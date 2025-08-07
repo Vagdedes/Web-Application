@@ -91,7 +91,10 @@ class AccountEmail
                     ? array("account_id", $account->getDetail("id"))
                     : array($code ? "code" : "token", $tokenOrCode),
                 array("completion_date", null),
-                array("expiration_date", ">", $date)
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", $date),
+                null
             ),
             null,
             1
@@ -196,7 +199,10 @@ class AccountEmail
                 array("account_id", $accountID),
                 array("completion_date", null),
                 array("email_address", $email),
-                array("expiration_date", ">", $date)
+                null,
+                array("expiration_date", "IS", null, 0),
+                array("expiration_date", ">", $date),
+                null
             ),
             null,
             1
