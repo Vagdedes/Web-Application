@@ -16,8 +16,11 @@ class AccountEmail
         $this->run = $run;
     }
 
-    public function requestVerification(string          $email, bool $code = false,
-                                        int|string|null $cooldown = "1 minute"): MethodReply
+    public function requestVerification(
+        string          $email,
+        bool            $code = false,
+        int|string|null $cooldown = "1 minute"
+    ): MethodReply
     {
         if (!is_email($email)) {
             return new MethodReply(false, "Please enter a valid email address.");
@@ -62,8 +65,11 @@ class AccountEmail
         return new MethodReply($resultOutcome, $result->getMessage());
     }
 
-    public function completeVerification(?string         $tokenOrCode = null, bool $code = false,
-                                         int|string|null $cooldown = "1 day"): MethodReply
+    public function completeVerification(
+        ?string         $tokenOrCode = null,
+        bool            $code = false,
+        int|string|null $cooldown = "1 day"
+    ): MethodReply
     {
         $account = $this->account;
         $exists = $account->exists();
@@ -169,6 +175,10 @@ class AccountEmail
                 return new MethodReply(true, "Your email address is already verified.");
             }
             $email = $this->account->getDetail("email_address");
+
+            if ($email === null) {
+                return new MethodReply(false, "You do not have an email address set.");
+            }
         } else {
             $parameter = new ParameterVerification($email, ParameterVerification::TYPE_EMAIL, 5, 384);
 
@@ -212,12 +222,16 @@ class AccountEmail
             $token = $array[0]->token;
             $createdCode = $array[0]->code;
         }
+        $array = array(
+            "token" => $token,
+        );
+
+        if (!empty($createdCode)) {
+            $array["code"] = $createdCode;
+        }
         $this->send(
             "verifyEmail",
-            array(
-                "token" => $token,
-                "code" => $code ? $createdCode : "(undefined)"
-            ),
+            $array,
             "account",
             false
         );
@@ -248,8 +262,12 @@ class AccountEmail
         }
     }
 
-    public function send(string $case, ?array $detailsArray = null,
-                         string $type = "account", bool $unsubscribe = true): bool
+    public function send(
+        string $case,
+        ?array $detailsArray = null,
+        string $type = "account",
+        bool   $unsubscribe = true
+    ): bool
     {
         $email = $this->account->getDetail("email_address");
 
