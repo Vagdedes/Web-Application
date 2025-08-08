@@ -199,6 +199,7 @@ class AIManager
                     return $this->resolve($reply);
                 },
                 function (Throwable $e) {
+                    $this->resolve($e->getMessage());
                     throw $e;
                 }
             );
@@ -215,7 +216,8 @@ class AIManager
             } else {
                 $reply = @json_decode($reply);
 
-                if ($reply === null) {
+                if ($reply === null
+                    || $reply === false) {
                     $reply = $received;
                 }
             }
