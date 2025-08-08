@@ -198,7 +198,7 @@ class PhpAsync
                 $put = @file_put_contents($file, "<?php\n" . $total);
 
                 if ($put === false) {
-                    return null;
+                    throw new Exception("Failed to write PHP async file (1): " . $file);
                 }
                 $exec = shell_exec("php " . escapeshellarg($file));
                 @unlink($file);
@@ -224,7 +224,7 @@ class PhpAsync
                     $put = @file_put_contents($file, "<?php\n" . $total);
 
                     if ($put === false) {
-                        return null;
+                        throw new Exception("Failed to write PHP async file (2): " . $file);
                     }
                     return instant_shell_exec("php " . escapeshellarg($file));
                 }

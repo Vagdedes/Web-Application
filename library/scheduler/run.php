@@ -3,7 +3,7 @@
 use React\EventLoop\Loop;
 
 ini_set('memory_limit', '-1');
-require '/root/vendor/autoload.php';
+require '/var/www/.structure/library/base/vendor.php';
 require '/var/www/.structure/library/base/utilities.php';
 require '/var/www/.structure/library/base/sql.php';
 require '/var/www/.structure/library/base/communication.php';
