@@ -193,7 +193,8 @@ class AIManager
                 $this->lastPickedModel->getRequestURL(),
                 "POST",
                 $headersJSON,
-                $parameters
+                $parameters,
+                1
             )->then(
                 function (mixed $reply) {
                     return $this->resolve($reply);

@@ -5,13 +5,15 @@ use Psr\Http\Message\ResponseInterface;
 use React\EventLoop\LoopInterface;
 use React\EventLoop\TimerInterface;
 use React\Promise\PromiseInterface;
+use function React\Promise\resolve;
 
 function get_react_http(
     LoopInterface $loop,
     string        $url,
     string        $type,
     array         $headers = [],
-    mixed         $body = null
+    mixed         $body = null,
+    int           $retry = 0,
 ): PromiseInterface
 {
     $browser = new Browser($loop);
@@ -62,7 +64,26 @@ function get_react_http(
         function (ResponseInterface $response) {
             return $response->getBody()->getContents();
         },
-        function (Throwable $e) {
+        function (Throwable $e) use (
+            $retry,
+            $loop,
+            $url,
+            $type,
+            $headers,
+            $body
+        ) {
+            if ($retry > 0) {
+                return resolve(
+                    get_react_http(
+                        $loop,
+                        $url,
+                        $type,
+                        $headers,
+                        $body,
+                        $retry - 1
+                    )
+                );
+            }
             throw $e;
         }
     );
