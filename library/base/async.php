@@ -142,6 +142,9 @@ class PhpAsync
         );
     }
 
+    /**
+     * @throws Exception
+     */
     public function run(
         array|string|callable $method,
         array                 $parameters,
@@ -187,23 +190,35 @@ class PhpAsync
 
         if ($debug === true) {
             $total .= "var_dump(" . substr($final, 0, -1) . ");";
+            $file = tempnam(sys_get_temp_dir(), "php_async_");
 
-            while (true) {
-                $file = sys_get_temp_dir() . "/" . random_string(32) . ".php";
-
-                if (file_exists($file)) {
-                    continue;
-                }
-                $total .= "\n@unlink(__FILE__);";
-                $put = @file_put_contents($file, "<?php\n" . $total);
-
-                if ($put === false) {
-                    throw new Exception("Failed to write PHP async file (1): " . $file);
-                }
-                $exec = shell_exec("php " . escapeshellarg($file));
-                @unlink($file);
-                return $exec;
+            if ($file === false) {
+                throw new Exception("Failed to create temporary PHP async file (1).");
             }
+            $total .= "\nunlink(__FILE__);";
+            $put = file_put_contents($file, "<?php\n" . $total);
+
+            if ($put === false) {
+                @unlink($file);
+                throw new Exception("Failed to write PHP async file (1): " . $file);
+            }
+            @chmod($file, 0644);
+            $newFile = $file . '.php';
+
+            if (!rename($file, $newFile)) {
+                @unlink($file);
+                throw new Exception("Failed to rename temporary PHP async file (1): " . $file);
+            }
+            $file = $newFile;
+            clearstatcache(true, $file);
+
+            if (!is_readable($file)) {
+                @unlink($file);
+                throw new Exception("PHP async file is not readable (1): " . $file);
+            }
+            $exec = shell_exec("php " . escapeshellarg($file));
+            unlink($file);
+            return $exec;
         } else if ($debug === false) {
             $total .= "var_dump(" . substr($final, 0, -1) . ");";
             return base64_encode($total);
@@ -214,20 +229,33 @@ class PhpAsync
                 && strlen($total) <= 2_097_152 - 32) {
                 return instant_shell_exec("php -r \"" . $total . "\"");
             } else {
-                while (true) {
-                    $file = sys_get_temp_dir() . "/" . random_string(32) . ".php";
+                $file = tempnam(sys_get_temp_dir(), "php_async_");
 
-                    if (file_exists($file)) {
-                        continue;
-                    }
-                    $total .= "\n@unlink(__FILE__);";
-                    $put = @file_put_contents($file, "<?php\n" . $total);
-
-                    if ($put === false) {
-                        throw new Exception("Failed to write PHP async file (2): " . $file);
-                    }
-                    return instant_shell_exec("php " . escapeshellarg($file));
+                if ($file === false) {
+                    throw new Exception("Failed to create temporary PHP async file (2).");
                 }
+                $total .= "\nunlink(__FILE__);";
+                $put = file_put_contents($file, "<?php\n" . $total);
+
+                if ($put === false) {
+                    @unlink($file);
+                    throw new Exception("Failed to write PHP async file (2): " . $file);
+                }
+                @chmod($file, 0644);
+                $newFile = $file . '.php';
+
+                if (!rename($file, $newFile)) {
+                    @unlink($file);
+                    throw new Exception("Failed to rename temporary PHP async file (2): " . $file);
+                }
+                $file = $newFile;
+                clearstatcache(true, $file);
+
+                if (!is_readable($file)) {
+                    @unlink($file);
+                    throw new Exception("PHP async file is not readable (2): " . $file);
+                }
+                return instant_shell_exec("php " . escapeshellarg($file));
             }
         }
     }
