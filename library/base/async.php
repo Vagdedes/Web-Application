@@ -176,11 +176,11 @@ class PhpAsync
             $total .= "\n});";
 
             $total .= "\nset_error_handler(function(\$severity, \$message, \$file, \$line) {\n";
-            $total .= "    file_put_contents('/tmp/reactphp_errors.log', \"[Error] \$message in \$file on line \$line\\n\", FILE_APPEND);\n";
+            $total .= "    file_put_contents('/tmp/instant_php_async_run_debug.log', \"[Error] \$message in \$file on line \$line\\n\", FILE_APPEND);\n";
             $total .= "});";
 
             $total .= "\nset_exception_handler(function(\$e) {\n";
-            $total .= "    file_put_contents('/tmp/reactphp_errors.log', \"[Exception] \" . \$e->getMessage() . \" in \" . \$e->getFile() . \" on line \" . \$e->getLine() . \"\\nStack trace:\\n\" . \$e->getTraceAsString() . \"\\n\", FILE_APPEND);\n";
+            $total .= "    file_put_contents('/tmp/instant_php_async_run_debug.log', \"[Exception] \" . \$e->getMessage() . \" in \" . \$e->getFile() . \" on line \" . \$e->getLine() . \"\\nStack trace:\\n\" . \$e->getTraceAsString() . \"\\n\", FILE_APPEND);\n";
             $total .= "});\n";
 
             if (!empty($this->dependencies)) {
