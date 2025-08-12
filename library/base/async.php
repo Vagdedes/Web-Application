@@ -150,7 +150,7 @@ class PhpAsync
         array                 $parameters,
         array                 $dependencies = [],
         ?bool                 $debug = null,
-        bool                  $nonFileExecution = false
+        int                   $defaultRamMB = 1024
     ): string|false|null
     {
         if (!in_array(__FILE__, $dependencies)) {
@@ -160,7 +160,19 @@ class PhpAsync
         $total = self::$files[$dependencyHash] ?? null;
 
         if ($total === null) {
-            $total = "error_reporting(E_ALL);\nini_set('display_errors', 1);\n";
+            $total = "error_reporting(E_ALL);";
+            $total .= "\nini_set('display_errors', 1);";
+            $total .= "\nini_set('log_errors', 1);";
+            $total .= "\nini_set('memory_limit', '" . $defaultRamMB . "M');";
+            $total .= "\nini_set('error_log', '/tmp/instant_php_async_run_debug.log');";
+            $total .= "\nset_time_limit(0);";
+
+            $total .= "\nregister_shutdown_function(function() {";
+            $total .= "\n  \$error = error_get_last();";
+            $total .= "\n  if (\$error) {";
+            $total .= "\n    file_put_contents('/tmp/instant_php_async_run_debug.log', \"Shutdown error: \" . print_r(\$error, true) . \"\\n\", FILE_APPEND);";
+            $total .= "\n  }";
+            $total .= "\n});\n";
 
             if (!empty($this->dependencies)) {
                 foreach ($this->dependencies as $dependency) {
@@ -216,47 +228,49 @@ class PhpAsync
                 @unlink($file);
                 throw new Exception("PHP async file is not readable (1): " . $file);
             }
-            $exec = shell_exec("php " . escapeshellarg($file));
-            unlink($file);
+            $exec = shell_exec(
+                "php -d display_errors=1 -d display_startup_errors=1 -d error_reporting=E_ALL "
+                . "-d memory_limit=" . $defaultRamMB . "M -d max_execution_time=0 "
+                . escapeshellarg($file)
+            );
+            @unlink($file);
             return $exec;
         } else if ($debug === false) {
             $total .= "var_dump(" . substr($final, 0, -1) . ");";
             return base64_encode($total);
         } else {
             $total .= $final;
+            $file = tempnam(sys_get_temp_dir(), "php_async_");
 
-            if ($nonFileExecution
-                && strlen($total) <= 2_097_152 - 32) {
-                return instant_shell_exec("php -r \"" . $total . "\"");
-            } else {
-                $file = tempnam(sys_get_temp_dir(), "php_async_");
-
-                if ($file === false) {
-                    throw new Exception("Failed to create temporary PHP async file (2).");
-                }
-                $total .= "\nunlink(__FILE__);";
-                $put = file_put_contents($file, "<?php\n" . $total);
-
-                if ($put === false) {
-                    @unlink($file);
-                    throw new Exception("Failed to write PHP async file (2): " . $file);
-                }
-                @chmod($file, 0644);
-                $newFile = $file . '.php';
-
-                if (!rename($file, $newFile)) {
-                    @unlink($file);
-                    throw new Exception("Failed to rename temporary PHP async file (2): " . $file);
-                }
-                $file = $newFile;
-                clearstatcache(true, $file);
-
-                if (!is_readable($file)) {
-                    @unlink($file);
-                    throw new Exception("PHP async file is not readable (2): " . $file);
-                }
-                return instant_shell_exec("php " . escapeshellarg($file));
+            if ($file === false) {
+                throw new Exception("Failed to create temporary PHP async file (2).");
             }
+            $total .= "\nunlink(__FILE__);";
+            $put = file_put_contents($file, "<?php\n" . $total);
+
+            if ($put === false) {
+                @unlink($file);
+                throw new Exception("Failed to write PHP async file (2): " . $file);
+            }
+            @chmod($file, 0644);
+            $newFile = $file . '.php';
+
+            if (!rename($file, $newFile)) {
+                @unlink($file);
+                throw new Exception("Failed to rename temporary PHP async file (2): " . $file);
+            }
+            $file = $newFile;
+            clearstatcache(true, $file);
+
+            if (!is_readable($file)) {
+                @unlink($file);
+                throw new Exception("PHP async file is not readable (2): " . $file);
+            }
+            return instant_shell_exec(
+                "php -d display_errors=1 -d display_startup_errors=1 -d error_reporting=E_ALL "
+                . "-d memory_limit=" . $defaultRamMB . "M -d max_execution_time=0 "
+                . escapeshellarg($file)
+            );
         }
     }
 
