@@ -4,16 +4,23 @@ class AccountEmail
 {
     private Account $account;
     private bool $run;
+    private ?string $suffix;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
         $this->run = true;
+        $this->suffix = null;
     }
 
     public function setToRun(bool $run): void
     {
         $this->run = $run;
+    }
+
+    public function setSuffix(?string $suffix): void
+    {
+        $this->suffix = $suffix;
     }
 
     public function requestVerification(
@@ -287,7 +294,9 @@ class AccountEmail
                     $type === "account"
                 )
                 && send_email_by_plan(
-                    ($applicationID === null ? "" : $applicationID . "-") . $case,
+                    ($applicationID === null ? "" : $applicationID . "-")
+                    . $case
+                    . ($this->suffix !== null ? "-" . $this->suffix : ""),
                     $email,
                     $detailsArray,
                     $unsubscribe
