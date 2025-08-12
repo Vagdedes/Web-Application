@@ -10,7 +10,7 @@ class AccountVariables
 
     public const
         SESSIONS_TABLE = "session.sessions",
-        INSTANT_LOGINS_TABLE = "session.instantLogins",
+        TWO_FACTOR_AUTHENTICATION_TABLE = "session.twoFactorAuthentication",
 
         TEAM_MEMBERS_TABLE = "team.members",
         TEAM_TABLE = "team.teams",

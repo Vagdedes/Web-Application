@@ -27,7 +27,7 @@ class TwoFactorAuthentication
         if (empty($array)) {
             $date = date("Y-m-d H:i:s");
             $array = get_sql_query(
-                AccountVariables::INSTANT_LOGINS_TABLE,
+                AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
                 array("expiration_date", "token"),
                 array(
                     array("account_id", $accountID),
@@ -61,7 +61,7 @@ class TwoFactorAuthentication
 
                 // Separator
                 if (!sql_insert(
-                    AccountVariables::INSTANT_LOGINS_TABLE,
+                    AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
                     array(
                         "account_id" => $accountID,
                         ($code ? "code" : "token") => $credential,
@@ -74,12 +74,12 @@ class TwoFactorAuthentication
                     return new MethodReply(false, "Could not interact with database.");
                 }
             }
-            if ($account->getCooldowns()->addInstant("instant_login", "1 minute")) {
+            if ($account->getCooldowns()->addInstant("two_factor_authentication", "1 minute")) {
                 $account->getEmail()->send(
-                    "instantLogin" . ($code ? "Code" : "Token"),
+                    "twoFactorAuthentication" . ($code ? "Code" : "Token"),
                     array(
                         ($code ? "code" : "URL") =>
-                            ($code ? $credential : ("https://" . get_domain() . "/account/profile/instantLogin/?token=" . $credential)),
+                            ($code ? $credential : ("https://" . get_domain() . "/account/profile/twoFactorAuthentication/?token=" . $credential)),
                     ),
                     "account",
                     false
@@ -101,7 +101,7 @@ class TwoFactorAuthentication
         if ($hasCode || strlen($token) === AccountSession::session_token_length) {
             $date = get_current_date();
             $query = get_sql_query(
-                AccountVariables::INSTANT_LOGINS_TABLE,
+                AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
                 array("id", "account_id"),
                 array(
                     $hasCode ? array("code", $code) : array("token", $token),
@@ -123,7 +123,7 @@ class TwoFactorAuthentication
                     return new MethodReply(false, "Failed to find account.");
                 }
                 if (!set_sql_query(
-                    AccountVariables::INSTANT_LOGINS_TABLE,
+                    AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
                     array(
                         "completion_date" => $date
                     ),
@@ -153,7 +153,7 @@ class TwoFactorAuthentication
     public function isPending(): bool
     {
         return !empty(get_sql_query(
-            AccountVariables::INSTANT_LOGINS_TABLE,
+            AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
             array("id", "account_id"),
             array(
                 array("completion_date", null),
