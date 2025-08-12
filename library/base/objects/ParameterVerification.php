@@ -155,19 +155,19 @@ class ParameterVerification
                 }
             }
         }
-        if ($mustStartWith !== null && !starts_with($parameter, $mustStartWith)) {
+        if ($mustStartWith !== null && !str_starts_with($parameter, $mustStartWith)) {
             $this->outcome = new MethodReply(false, "Parameter must start with $mustStartWith.", $parameter);
             return;
         }
-        if ($mustNotStartWith !== null && starts_with($parameter, $mustNotStartWith)) {
+        if ($mustNotStartWith !== null && str_starts_with($parameter, $mustNotStartWith)) {
             $this->outcome = new MethodReply(false, "Parameter must not start with $mustNotStartWith.", $parameter);
             return;
         }
-        if ($mustEndWidth !== null && !ends_with($parameter, $mustEndWidth)) {
+        if ($mustEndWidth !== null && !str_ends_with($parameter, $mustEndWidth)) {
             $this->outcome = new MethodReply(false, "Parameter must end with $mustEndWidth.", $parameter);
             return;
         }
-        if ($mustNotEndWidth !== null && ends_with($parameter, $mustNotEndWidth)) {
+        if ($mustNotEndWidth !== null && str_ends_with($parameter, $mustNotEndWidth)) {
             $this->outcome = new MethodReply(false, "Parameter must not end with $mustNotEndWidth.", $parameter);
             return;
         }

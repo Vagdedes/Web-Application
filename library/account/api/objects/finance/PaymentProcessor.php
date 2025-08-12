@@ -20,7 +20,7 @@ class PaymentProcessor
         if (isset($transaction->CUSTOM)) {
             $custom = $transaction->CUSTOM;
 
-            if (starts_with($custom, "resource_purchase")) {
+            if (str_starts_with($custom, "resource_purchase")) {
                 $custom = explode("|", $custom, 5);
 
                 if (sizeof($custom) === 4) {
@@ -119,13 +119,13 @@ class PaymentProcessor
 
                                 switch (trim($transactionSearchProperties->identification_method)) {
                                     case "startsWith":
-                                        if (!starts_with($actualTransactionValue, $expectedTransactionValue)) {
+                                        if (!str_starts_with($actualTransactionValue, $expectedTransactionValue)) {
                                             $failed[] = $transactionSearchProperties->lookup_id;
                                             unset($product->transaction_search[$arrayKey]);
                                         }
                                         break;
                                     case "endsWith":
-                                        if (!ends_with($actualTransactionValue, $expectedTransactionValue)) {
+                                        if (!str_ends_with($actualTransactionValue, $expectedTransactionValue)) {
                                             $failed[] = $transactionSearchProperties->lookup_id;
                                             unset($product->transaction_search[$arrayKey]);
                                         }

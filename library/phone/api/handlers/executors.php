@@ -252,12 +252,12 @@ function send_phone_message_by_plan(int|string|float $planID, int|string $phoneP
             foreach ($query as $properties) {
                 switch (trim($properties->identification_method)) {
                     case "startsWith":
-                        if (starts_with($credential, $properties->phone_number)) {
+                        if (str_starts_with($credential, $properties->phone_number)) {
                             continue 3;
                         }
                         break;
                     case "endsWith":
-                        if (ends_with($credential, $properties->phone_number)) {
+                        if (str_ends_with($credential, $properties->phone_number)) {
                             continue 3;
                         }
                         break;

@@ -33,7 +33,7 @@ class HetznerComparison
 
     public static function shouldConsiderServer(HetznerServer|string $server): bool
     {
-        return starts_with(
+        return str_starts_with(
             is_string($server) ? $server : $server->name,
             HetznerVariables::HETZNER_SERVER_NAME_PATTERN
         );

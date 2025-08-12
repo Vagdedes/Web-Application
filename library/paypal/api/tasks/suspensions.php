@@ -44,12 +44,12 @@ function identify_paypal_suspended_transactions(object|array $transactions): arr
 
                                 switch (trim($suspendedLicense->identification_method)) {
                                     case "startsWith":
-                                        if (starts_with($transactionValue, $suspendedTransactionValue)) {
+                                        if (str_starts_with($transactionValue, $suspendedTransactionValue)) {
                                             $continue = true;
                                         }
                                         break;
                                     case "endsWith":
-                                        if (ends_with($transactionValue, $suspendedTransactionValue)) {
+                                        if (str_ends_with($transactionValue, $suspendedTransactionValue)) {
                                             $continue = true;
                                         }
                                         break;

@@ -70,16 +70,16 @@ if (!empty($path)) {
             if (!empty($contents) && $file !== __FILE__) {
                 $contents = substr($contents, 5); // Remove: <?php
 
-                if (ends_with($contents, "?>")) {
+                if (str_ends_with($contents, "?>")) {
                     $contents = substr($contents, 0, -2); // Remove php end
                 }
                 $contents = explode("\n", $contents);
 
                 foreach ($contents as $key => $line) {
                     if (empty($line)
-                        || starts_with($line, "require")
-                        || starts_with($line, "include")
-                        || starts_with($line, "//")) {
+                        || str_starts_with($line, "require")
+                        || str_starts_with($line, "include")
+                        || str_starts_with($line, "//")) {
                         unset($contents[$key]);
                     }
                 }

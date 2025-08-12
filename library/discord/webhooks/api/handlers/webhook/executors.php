@@ -290,12 +290,12 @@ function send_discord_webhook_by_plan(int|string|float $planID, string $webhookP
             foreach ($query as $properties) {
                 switch (trim($properties->identification_method)) {
                     case "startsWith":
-                        if (starts_with($credential, $properties->webhook_url)) {
+                        if (str_starts_with($credential, $properties->webhook_url)) {
                             continue 3;
                         }
                         break;
                     case "endsWith":
-                        if (ends_with($credential, $properties->webhook_url)) {
+                        if (str_ends_with($credential, $properties->webhook_url)) {
                             continue 3;
                         }
                         break;

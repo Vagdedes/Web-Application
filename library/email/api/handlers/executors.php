@@ -266,12 +266,12 @@ function send_email_by_plan(int|string|float $planID, string $emailPointer,
                 }
                 switch (trim($properties->identification_method)) {
                     case "startsWith":
-                        if (starts_with($credentialCopy, $properties->email_address)) {
+                        if (str_starts_with($credentialCopy, $properties->email_address)) {
                             continue 3;
                         }
                         break;
                     case "endsWith":
-                        if (ends_with($credentialCopy, $properties->email_address)) {
+                        if (str_ends_with($credentialCopy, $properties->email_address)) {
                             continue 3;
                         }
                         break;
