@@ -84,10 +84,14 @@ class TwoFactorAuthentication
                     "account",
                     false
                 );
+                return new MethodReply(
+                    true,
+                    "An authentication email has been sent as a security measurement."
+                );
             }
             return new MethodReply(
                 true,
-                "A authentication email has been sent as a security measurement."
+                "An authentication email was recently sent as a security measurement."
             );
         } else {
             return new MethodReply(false);
