@@ -162,6 +162,7 @@ class PhpAsync
         if ($total === null) {
             $total = "error_reporting(E_ALL);";
             $total .= "\nini_set('display_errors', 1);";
+            $total .= "\nini_set('display_startup_errors', '1');";
             $total .= "\nini_set('log_errors', 1);";
             $total .= "\nini_set('memory_limit', '" . $defaultRamMB . "M');";
             $total .= "\nini_set('error_log', '/tmp/instant_php_async_run_debug.log');";
