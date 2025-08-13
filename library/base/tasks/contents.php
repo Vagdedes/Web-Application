@@ -76,10 +76,8 @@ if (!empty($path)) {
                 $contents = explode("\n", $contents);
 
                 foreach ($contents as $key => $line) {
-                    if (empty($line)
-                        || str_starts_with($line, "require")
-                        || str_starts_with($line, "include")
-                        || str_starts_with($line, "//")) {
+                    if (str_starts_with($line, "require")
+                        || str_starts_with($line, "include")) {
                         unset($contents[$key]);
                     }
                 }
