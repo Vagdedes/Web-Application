@@ -10,6 +10,7 @@ class AIObjectConstructor
         ];
 
     private array $initiators, $tasks, $parents;
+    private ?object $lastObject;
 
     public function __construct(
         array $initiators,
@@ -30,6 +31,7 @@ class AIObjectConstructor
         }
         $this->tasks = $tasks;
         $this->parents = array();
+        $this->lastObject = null;
     }
 
     public function build(): ?string
@@ -56,6 +58,8 @@ class AIObjectConstructor
         }
 
         if (is_object($object)) {
+            $this->lastObject = $object;
+
             foreach ($array as $initiator) {
                 if ($initiator instanceof AIFieldObject) {
                     $parents = $initiator->getParents();
@@ -208,6 +212,11 @@ class AIObjectConstructor
             return $object;
         }
         return null;
+    }
+
+    public function getLastObject(): ?object
+    {
+        return $this->lastObject;
     }
 
     private function findInitiators(array &$array, array $initiators): void
