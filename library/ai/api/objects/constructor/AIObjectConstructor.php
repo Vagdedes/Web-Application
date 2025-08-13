@@ -6,7 +6,7 @@ class AIObjectConstructor
     public const DEFAULT_INSTRUCTIONS =
         [
             "Construct the object and return it in JSON format without markdown",
-            "If at least one non-nullable parameter with no default defined is not found, return null",
+            "If at least one non-nullable parameter with no default defined is not found, return null with the cause of error",
         ];
 
     private array $initiators, $tasks, $parents;
@@ -242,7 +242,7 @@ class AIObjectConstructor
                     if (!empty($initiator->getEnums())) {
                         $subObject->enums = $initiator->getEnums();
                     }
-                    if (!empty($initiator->getDefault())) {
+                    if ($initiator->getDefault() !== null) {
                         $subObject->default = $initiator->getDefault();
                     }
                     $object->{$key} = $subObject;
