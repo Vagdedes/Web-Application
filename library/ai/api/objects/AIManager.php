@@ -215,7 +215,7 @@ class AIManager
             if ($this->lastPickedModel->base64EncodeReply()) {
                 $received = base64_encode($received);
             } else {
-                $reply = @json_decode($reply);
+                $reply = json_decode($reply);
 
                 if ($reply === null
                     || $reply === false) {

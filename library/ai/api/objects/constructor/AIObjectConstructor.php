@@ -46,7 +46,7 @@ class AIObjectConstructor
         $this->findInitiators($array, $this->initiators);
 
         if (is_string($information)) {
-            $object = @json_decode($information, false);
+            $object = json_decode($information, false);
         } else if (is_array($information)) {
             $object = json_decode(json_encode($information), false);
         } else if (is_object($information)) {

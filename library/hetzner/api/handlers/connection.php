@@ -7,7 +7,7 @@ function get_hetzner_object(string $type, string $service, mixed $arguments = nu
     if ($credentials === null) {
         return null;
     }
-    return @json_decode(get_curl(
+    return json_decode(get_curl(
         "https://api.hetzner.cloud/" . HetznerVariables::HETZNER_API_VERSION . "/" . $service,
         $type,
         array(

@@ -10,7 +10,7 @@ class CloudflareConnection
         if ($credentials === null) {
             return null;
         }
-        return @json_decode(get_curl(
+        return json_decode(get_curl(
             "https://api.cloudflare.com/client/" . CloudflareVariables::CLOUDFLARE_API_VERSION . "/" . $service,
             $type,
             array(

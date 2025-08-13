@@ -543,7 +543,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             $footerIconURL = urldecode(get_form("footer_icon_url", false));
             $content = urldecode(get_form("content", false));
             $fields = urldecode(get_form("fields", false));
-            $fields = @json_decode($fields, true);
+            $fields = json_decode($fields, true);
 
             if (!is_array($fields)) {
                 $fields = array();

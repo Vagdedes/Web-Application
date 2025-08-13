@@ -157,14 +157,14 @@ class AIModel
     {
         return $this->requestHeaders === null
             ? null
-            : @json_decode($this->requestHeaders, true);
+            : json_decode($this->requestHeaders, true);
     }
 
     public function getPostFields(): ?array
     {
         return $this->postFields === null
             ? null
-            : @json_decode($this->postFields, true);
+            : json_decode($this->postFields, true);
     }
 
     public function encodeFields(): bool
