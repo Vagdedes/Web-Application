@@ -290,10 +290,6 @@ class IndividualMemoryBlock
 
     private function getBlock(bool $write = false): mixed
     {
-        if (!$write
-            && !@shmop_open($this->key, "a", 0, 0)) {
-            return false;
-        }
         return @shmop_open($this->key, $write ? "w" : "a", 0, 0);
     }
 
