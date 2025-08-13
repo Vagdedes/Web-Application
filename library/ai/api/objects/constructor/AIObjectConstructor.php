@@ -6,7 +6,7 @@ class AIObjectConstructor
     public const DEFAULT_INSTRUCTIONS =
         [
             "Construct the object and return it in JSON format without markdown",
-            "If at least one non-nullable parameter with no default defined is not found, return null with the cause of error",
+            "If at least one non-nullable parameter with no defined default is not found return: {error:'%error%'}, where %error% is a description of the error",
         ];
 
     private array $initiators, $tasks, $parents;
