@@ -151,7 +151,7 @@ class AccountTranslation
     )
     {
         $modelFamily = $save && $expiration === null
-            ? AIModelFamily::OPENAI_OMNI_MINI
+            ? AIModelFamily::CHAT_GPT_PRO
             : AIModelFamily::CHAT_GPT;
         $arguments = array(
             "messages" => array(

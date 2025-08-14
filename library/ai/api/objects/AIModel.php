@@ -189,6 +189,7 @@ class AIModel
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
+            case AIModelFamily::CHAT_GPT_NANO:
             case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
@@ -223,6 +224,7 @@ class AIModel
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
+            case AIModelFamily::CHAT_GPT_NANO:
             case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
@@ -252,6 +254,7 @@ class AIModel
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
+            case AIModelFamily::CHAT_GPT_NANO:
             case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
@@ -371,6 +374,7 @@ class AIModel
         switch ($this->familyID) {
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
+            case AIModelFamily::CHAT_GPT_NANO:
             case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
