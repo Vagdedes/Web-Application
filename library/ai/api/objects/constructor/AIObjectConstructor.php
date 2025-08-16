@@ -3,10 +3,13 @@
 class AIObjectConstructor
 {
 
-    public const DEFAULT_INSTRUCTIONS =
+    public const
+        ERROR_KEY = "error",
+        DEFAULT_INSTRUCTIONS =
         [
             "Construct the object and return it in JSON format without markdown",
-            "If at least one non-nullable parameter with no defined default is not found return: {error:'%error%'}, where %error% is a description of the error",
+            "If at least one non-nullable parameter with undefined default is not found, return what could be found along with the key '"
+            . self::ERROR_KEY . "' set to the value '%error%', where %error% is a description of the error",
         ];
 
     private array $initiators, $tasks, $parents;
@@ -18,6 +21,9 @@ class AIObjectConstructor
         bool  $addDefaultInstructions = true
     )
     {
+        if (array_key_exists(self::ERROR_KEY, $initiators)) {
+            throw new InvalidArgumentException("The key '" . self::ERROR_KEY . "' is reserved and cannot be used as an initiator.");
+        }
         $this->initiators = $initiators;
 
         if (empty($tasks)) {
@@ -60,6 +66,9 @@ class AIObjectConstructor
         if (is_object($object)) {
             $this->lastObject = $object;
 
+            if (isset($object->{self::ERROR_KEY})) {
+                return null;
+            }
             foreach ($array as $initiator) {
                 if ($initiator instanceof AIFieldObject) {
                     $parents = $initiator->getParents();
