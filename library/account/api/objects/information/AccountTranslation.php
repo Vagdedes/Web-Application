@@ -150,9 +150,12 @@ class AccountTranslation
         ?int    $id
     )
     {
-        $modelFamily = strlen($text) > 100
-            ? AIModelFamily::CHAT_GPT
-            : AIModelFamily::CHAT_GPT_NANO;
+        $length = strlen($text);
+        $modelFamily = $length > 10_000
+            ? AIModelFamily::CHAT_GPT_PRO
+            : ($length > 100
+                ? AIModelFamily::CHAT_GPT
+                : AIModelFamily::CHAT_GPT_NANO);
         $arguments = array(
             "messages" => array(
                 array(
