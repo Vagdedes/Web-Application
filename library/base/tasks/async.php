@@ -1,6 +1,6 @@
 <?php
 require '/var/www/.structure/library/base/form.php';
-$function = get_form_get("function");
+$function = get_form("function");
 
 if (!empty($function)) {
     require '/var/www/.structure/library/base/communication.php';
@@ -12,10 +12,9 @@ if (!empty($function)) {
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', '1');
         ini_set('log_errors', 1);
-        ini_set('error_log', '/tmp/instant_php_async_run_debug.log');
         $function = urldecode($function);
-        $parameters = urldecode(get_form_get("parameters"));
-        $dependencies = urldecode(get_form_get("dependencies"));
+        $parameters = urldecode(get_form("parameters"));
+        $dependencies = urldecode(get_form("dependencies"));
         $debug = strtolower(trim(get_form("debug")));
 
         if (empty($function)) {
@@ -35,15 +34,6 @@ if (!empty($function)) {
                 return;
             }
         }
-        if (empty($parameters)) {
-            $parameters = array();
-        } else {
-            $parameters = json_decode($parameters, true);
-
-            if (!is_array($parameters)) {
-                $parameters = array();
-            }
-        }
         if (empty($dependencies)) {
             $dependencies = array();
         } else {
@@ -57,11 +47,22 @@ if (!empty($function)) {
                 }
             }
         }
+        if (empty($parameters)) {
+            $parameters = array();
+        } else {
+            $parameters = unserialize(base64_decode(urldecode($parameters)));
+
+            if (!is_array($parameters)) {
+                $parameters = array();
+            }
+        }
         if ($debug == "true") {
-            echo call_user_func_array(
+            $outcome = call_user_func_array(
                 $function,
                 $parameters
             );
+            error_log($outcome);
+            echo $outcome;
         } else {
             call_user_func_array(
                 $function,

@@ -8,7 +8,7 @@ class PhpAsync
 
     public const
         DEFAULT_RAM_MB = 1024,
-        SECONDS_TIME_LIMIT = 60 * 10;
+        SECONDS_TIME_LIMIT = 60 * 5;
 
     private string $directory;
     private array $replacements, $dependencies;
@@ -165,17 +165,19 @@ class PhpAsync
         int                   $secondsTimeLimit = self::SECONDS_TIME_LIMIT
     ): string|false|null
     {
-        if ($website && false) {
+        if ($website) {
             global $backup_domain;
             return $this->run(
-                "timed_file_get_contents",
+                "private_file_get_contents",
                 array(
-                    $backup_domain . "/async/"
-                    . "?function=" . urlencode(json_encode($method))
-                    . "&parameters=" . urlencode(json_encode($parameters))
-                    . "&dependencies=" . urlencode(json_encode($dependencies))
-                    . "&debug=" . ($debug === null ? "null" : ($debug ? "true" : "false")),
-                    1
+                    "https://" . $backup_domain . "/async/",
+                    1,
+                    array(
+                        "function" => urlencode(json_encode($method)),
+                        "parameters" => urlencode(base64_encode(serialize($parameters))),
+                        "dependencies" => urlencode(json_encode($dependencies)),
+                        "debug" => ($debug === null ? "null" : ($debug ? "true" : "false"))
+                    )
                 ),
                 $dependencies,
                 $debug,
