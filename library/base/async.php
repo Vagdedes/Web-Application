@@ -3,7 +3,12 @@
 class PhpAsync
 {
 
-    private const SQL_TABLE = "php_async.executableTasks";
+    private const
+        SQL_TABLE = "php_async.executableTasks";
+
+    public const
+        DEFAULT_RAM_MB = 1024,
+        SECONDS_TIME_LIMIT = 60 * 10;
 
     private string $directory;
     private array $replacements, $dependencies;
@@ -67,10 +72,11 @@ class PhpAsync
                 "method_name",
                 "method_parameters",
                 "code_dependencies",
-                "debug_code"
+                "debug_code",
+                "website_execution"
             ),
             array(
-                array("debug_result", null),
+                array("debug_result", null)
             ),
             null,
             $limit
@@ -95,14 +101,16 @@ class PhpAsync
                         unserialize(base64_decode($row->method_name)),
                         unserialize(base64_decode($row->method_parameters)),
                         unserialize(base64_decode($row->code_dependencies)),
-                        $debug
+                        $debug,
+                        $row->website_execution !== null
                     );
                 } else {
                     $result = $this->run(
                         unserialize(base64_decode($row->method_name)),
                         unserialize(base64_decode($row->method_parameters)),
                         unserialize(base64_decode($row->code_dependencies)),
-                        $debug
+                        $debug,
+                        $row->website_execution !== null
                     );
                     set_sql_query(
                         self::SQL_TABLE,
@@ -126,7 +134,8 @@ class PhpAsync
         array                 $parameters,
         array                 $dependencies = [],
         ?bool                 $debug = null,
-        ?string               $expiration = null
+        ?string               $expiration = null,
+        bool                  $website = false
     ): void
     {
         sql_insert(
@@ -138,6 +147,7 @@ class PhpAsync
                 "debug_code" => $debug === null ? null : ($debug ? 1 : 0),
                 "creation_date" => get_current_date(),
                 "expiration_date" => $expiration === null ? null : get_future_date($expiration),
+                "website_execution" => $website
             )
         );
     }
@@ -150,9 +160,30 @@ class PhpAsync
         array                 $parameters,
         array                 $dependencies = [],
         ?bool                 $debug = null,
-        int                   $defaultRamMB = 1024
+        bool                  $website = false,
+        int                   $defaultRamMB = self::DEFAULT_RAM_MB,
+        int                   $secondsTimeLimit = self::SECONDS_TIME_LIMIT
     ): string|false|null
     {
+        if ($website && false) {
+            global $backup_domain;
+            return $this->run(
+                "timed_file_get_contents",
+                array(
+                    $backup_domain . "/async/"
+                    . "?function=" . urlencode(json_encode($method))
+                    . "&parameters=" . urlencode(json_encode($parameters))
+                    . "&dependencies=" . urlencode(json_encode($dependencies))
+                    . "&debug=" . ($debug === null ? "null" : ($debug ? "true" : "false")),
+                    1
+                ),
+                $dependencies,
+                $debug,
+                false,
+                $defaultRamMB,
+                $secondsTimeLimit
+            );
+        }
         if (!in_array(__FILE__, $dependencies)) {
             $dependencies[] = __FILE__;
         }
@@ -166,7 +197,7 @@ class PhpAsync
             $total .= "\nini_set('log_errors', 1);";
             $total .= "\nini_set('memory_limit', '" . $defaultRamMB . "M');";
             $total .= "\nini_set('error_log', '/tmp/instant_php_async_run_debug.log');";
-            $total .= "\nset_time_limit(0);";
+            $total .= "\nset_time_limit('" . $secondsTimeLimit . "');";
 
             $total .= "\nregister_shutdown_function(function() {";
             $total .= "\n  \$error = error_get_last();";
