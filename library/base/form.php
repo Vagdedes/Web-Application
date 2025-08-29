@@ -1,17 +1,17 @@
 <?php
-function get_form(int|string $str, bool $null = true): mixed
+function get_form(int|string $str, mixed $default = null): mixed
 {
-    return $_POST[$str] ?? ($_GET[$str] ?? ($null ? null : ""));
+    return trim($_POST[$str] ?? ($_GET[$str] ?? $default));
 }
 
-function get_form_post(int|string $str): mixed
+function get_form_post(int|string $str, mixed $default = ""): mixed
 {
-    return $_POST[$str] ?? "";
+    return trim($_POST[$str] ?? $default);
 }
 
-function get_form_get(int|string $str): mixed
+function get_form_get(int|string $str, mixed $default = ""): mixed
 {
-    return $_GET[$str] ?? "";
+    return trim($_GET[$str] ?? $default);
 }
 
 function has_form_post(int|string $str): bool

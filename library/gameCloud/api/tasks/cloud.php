@@ -2,11 +2,11 @@
 // Arguments
 
 require_once '/var/www/.structure/library/base/form.php';
-$action = get_form("action", false);
+$action = get_form("action", "");
 
 if (true && in_array($action, array("get", "add"))) { // Toggle database insertions
-    $version = get_form("version", false);
-    $data = get_form("data", false);
+    $version = get_form("version", "");
+    $data = get_form("data", "");
 
     if (empty($data)) {
         return;
@@ -65,7 +65,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     $allProductsAreAllowed = $purposeAllowedProducts === null;
 
     $gameCloudUser = new GameCloudUser(null, null);
-    $identification = get_form("identification", false);
+    $identification = get_form("identification", "");
 
     // Account Finder
     if (!empty($identification)) {
@@ -235,7 +235,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     if ($accessFailure !== null) {
         return;
     }
-    $value = properly_sql_encode(get_form("value", false), true);
+    $value = properly_sql_encode(get_form("value", ""), true);
 
     // Processing
     if ($action == "get") {
@@ -259,7 +259,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 echo $query[0]->license_id;
             }
         } else if ($data == "ownedEditions") {
-            $email = trim(urldecode(get_form("email_address", false)));
+            $email = trim(urldecode(get_form("email_address", "")));
             $found = array();
             $all = array("Java", "Bedrock");
 
@@ -290,7 +290,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 }
             }
             if (sizeof($found) < sizeof($all)) {
-                $patreonFullName = trim(urldecode(get_form("patreon_full_name", false)));
+                $patreonFullName = trim(urldecode(get_form("patreon_full_name", "")));
 
                 if (!empty($patreonFullName)) {
                     $account = new Account();
@@ -530,19 +530,19 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     return;
                 }
             }
-            $url = urldecode(get_form("webhook_url", false));
-            $avatarURL = urldecode(get_form("avatar_url", false));
-            $color = urldecode(get_form("color", false));
-            $author = urldecode(get_form("author", false));
-            $authorURL = urldecode(get_form("author_url", false));
-            $authorIconURL = urldecode(get_form("author_icon_url", false));
-            $title = urldecode(get_form("title", false));
-            $titleURL = urldecode(get_form("title_url", false));
-            $description = urldecode(get_form("description", false));
-            $footer = urldecode(get_form("footer", false));
-            $footerIconURL = urldecode(get_form("footer_icon_url", false));
-            $content = urldecode(get_form("content", false));
-            $fields = urldecode(get_form("fields", false));
+            $url = urldecode(get_form("webhook_url", ""));
+            $avatarURL = urldecode(get_form("avatar_url", ""));
+            $color = urldecode(get_form("color", ""));
+            $author = urldecode(get_form("author", ""));
+            $authorURL = urldecode(get_form("author_url", ""));
+            $authorIconURL = urldecode(get_form("author_icon_url", ""));
+            $title = urldecode(get_form("title", ""));
+            $titleURL = urldecode(get_form("title_url", ""));
+            $description = urldecode(get_form("description", ""));
+            $footer = urldecode(get_form("footer", ""));
+            $footerIconURL = urldecode(get_form("footer_icon_url", ""));
+            $content = urldecode(get_form("content", ""));
+            $fields = urldecode(get_form("fields", ""));
             $fields = json_decode($fields, true);
 
             if (!is_array($fields)) {
