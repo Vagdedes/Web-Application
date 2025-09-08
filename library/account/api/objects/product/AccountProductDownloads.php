@@ -26,13 +26,11 @@ class AccountProductDownloads
         $found = null;
 
         foreach ($files as $file) {
-            if ($file->required_permission !== null) {
-                if (!$this->account->getPermissions()->hasPermission($file->required_permission)) {
-                    return new MethodReply(true, "Download found successfully.", $file);
-                }
-            } else {
-                $found = $file;
+            if ($file->required_permission !== null
+                && !$this->account->getPermissions()->hasPermission($file->required_permission)) {
+                continue;
             }
+            $found = $file;
         }
         return $found !== null ?
             new MethodReply(true, "Download found successfully.", $found) :

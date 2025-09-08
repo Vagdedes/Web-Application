@@ -294,7 +294,7 @@ class AccountTeam
                     if (!empty($subQuery)) {
                         $subQuery = $subQuery[0];
                         $this->setForcedTeam($subQuery);
-                        return new MethodReply(true, null, $subQuery);
+                        return new MethodReply(true, "Team successfully found.", $subQuery);
                     }
                 }
             }
