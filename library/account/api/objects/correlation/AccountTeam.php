@@ -247,7 +247,7 @@ class AccountTeam
                 if (empty($query)) {
                     return new MethodReply(false, "Forced team not found.");
                 } else {
-                    return new MethodReply(true, null, $query[0]);
+                    return new MethodReply(true, "Forced team found successfully.", $query[0]);
                 }
             } else {
                 return new MethodReply(false, "Forced team ID not set.");
@@ -315,7 +315,7 @@ class AccountTeam
             if (empty($query)) {
                 return new MethodReply(false, "Team not found.");
             } else {
-                return new MethodReply(true, null, $query[0]);
+                return new MethodReply(true, "Team found successfully.", $query[0]);
             }
         } else {
             $query = get_sql_query(
@@ -350,7 +350,7 @@ class AccountTeam
             if (empty($subQuery)) {
                 return new MethodReply(false, "Team not found.");
             } else {
-                return new MethodReply(true, null, $subQuery[0]);
+                return new MethodReply(true, "Team found successfully.", $subQuery[0]);
             }
         }
     }
@@ -1552,7 +1552,7 @@ class AccountTeam
         } else {
             $query = $query[0];
             return $query->deletion_date === null
-                ? new MethodReply(true, null, $query)
+                ? new MethodReply(true, "Permission already given.", $query)
                 : new MethodReply(false, "Permission given and removed.");
         }
     }

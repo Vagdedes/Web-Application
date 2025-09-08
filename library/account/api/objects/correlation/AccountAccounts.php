@@ -329,7 +329,7 @@ class AccountAccounts
         $acceptedAccount = new AcceptedAccount($this->account->getDetail("application_id"), $id, null, $manual);
 
         if (!$acceptedAccount->exists()) {
-            return new MethodReply(false);
+            return new MethodReply(false, "This account type does not exist.");
         }
         $array = get_sql_query(
             AccountVariables::ADDED_ACCOUNTS_TABLE,
@@ -348,11 +348,11 @@ class AccountAccounts
         );
 
         if (empty($array)) {
-            return new MethodReply(false);
+            return new MethodReply(false, "No accounts found.");
         }
         foreach ($array as $key => $value) {
             $array[$key] = $value->credential;
         }
-        return new MethodReply(true, null, $array);
+        return new MethodReply(true, "Account/s successfully found.", $array);
     }
 }

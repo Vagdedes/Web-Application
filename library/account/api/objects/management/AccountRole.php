@@ -113,9 +113,9 @@ class AccountRole
         );
 
         if (empty($query)) {
-            return new MethodReply(false);
+            return new MethodReply(false, "Permission not found.");
         } else {
-            return new MethodReply(true, null, $query[0]);
+            return new MethodReply(true, "Permission found successfully.", $query[0]);
         }
     }
 

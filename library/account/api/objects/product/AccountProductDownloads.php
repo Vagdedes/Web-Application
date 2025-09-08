@@ -28,15 +28,15 @@ class AccountProductDownloads
         foreach ($files as $file) {
             if ($file->required_permission !== null) {
                 if (!$this->account->getPermissions()->hasPermission($file->required_permission)) {
-                    return new MethodReply(true, null, $file);
+                    return new MethodReply(true, "Download found successfully.", $file);
                 }
             } else {
                 $found = $file;
             }
         }
         return $found !== null ?
-            new MethodReply(true, null, $found) :
-            new MethodReply(false, "No download available for you currently.");
+            new MethodReply(true, "Download found successfully.", $found) :
+            new MethodReply(false, "Download not found.");
     }
 
     private function calculateDuration(int|string|null $customExpiration): string
@@ -92,7 +92,7 @@ class AccountProductDownloads
                     return new MethodReply(false, "Failed to interact with the database.");
                 }
             }
-            return new MethodReply(true);
+            return new MethodReply(true, "Download count successfully updated.");
         } else {
             return new MethodReply(false, "Download token not found or has expired.");
         }
@@ -314,10 +314,10 @@ class AccountProductDownloads
                 );
             } else {
                 $query->account = new Account(Account::IGNORE_APPLICATION_ID, $query->account_id);
-                return new MethodReply(true, null, $query);
+                return new MethodReply(true, "Download token successfully found.", $query);
             }
         } else {
-            return new MethodReply(false);
+            return new MethodReply(false, "Download token not found or has expired.");
         }
     }
 

@@ -74,8 +74,8 @@ class TwoFactorAuthentication
                     return new MethodReply(false, "Could not interact with database.");
                 }
             }
-            if ($account->getCooldowns()->addInstant("two_factor_authentication", "1 minute")) {
-                $account->getEmail()->send(
+            if (!$account->getCooldowns()->has("two_factor_authentication", true, true, false)) {
+                if ($account->getEmail()->send(
                     "twoFactorAuthentication" . ($code ? "Code" : "Token"),
                     array(
                         ($code ? "code" : "URL") =>
@@ -83,18 +83,22 @@ class TwoFactorAuthentication
                     ),
                     "account",
                     false
-                );
-                return new MethodReply(
-                    true,
-                    "An authentication email has been sent as a security measurement."
-                );
+                )) {
+                    $account->getCooldowns()->addInstant("two_factor_authentication", "1 minute");
+                    return new MethodReply(
+                        true,
+                        "An authentication email has been sent as a security measurement."
+                    );
+                } else {
+                    return new MethodReply(false, "Failed to send authentication email.");
+                }
             }
             return new MethodReply(
                 true,
                 "An authentication email was recently sent as a security measurement."
             );
         } else {
-            return new MethodReply(false);
+            return new MethodReply(false, "Cannot initiate two factor authentication.");
         }
     }
 

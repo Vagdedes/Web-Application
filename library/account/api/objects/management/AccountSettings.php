@@ -25,8 +25,8 @@ class AccountSettings
             1
         );
         return empty($query) ?
-            new MethodReply(false, null, $default) :
-            new MethodReply(true, null, $query[0]->option_value);
+            new MethodReply(false, "Setting not found", $default) :
+            new MethodReply(true, "Setting found successfully", $query[0]->option_value);
     }
 
     public function isEnabled(string $option, mixed $default = null): bool
@@ -90,7 +90,7 @@ class AccountSettings
         if ($cooldown !== null) {
             $functionality->addInstantCooldown(AccountFunctionality::MODIFY_OPTION, $cooldown);
         }
-        return new MethodReply(true);
+        return new MethodReply(true, "Option successfully modified.");
     }
 
     public function toggle(

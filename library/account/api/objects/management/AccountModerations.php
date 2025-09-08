@@ -217,8 +217,8 @@ class AccountModerations
             1
         );
         return empty($array) ?
-            new MethodReply(false) :
-            new MethodReply(true, $array[0]["creation_reason"], $array[0]);
+            new MethodReply(false, "No moderation action found.") :
+            new MethodReply(true, $array[0]->creation_reason, $array[0]);
     }
 
     public function hasExecutedAction(int|string $moderation, bool $active = true): bool

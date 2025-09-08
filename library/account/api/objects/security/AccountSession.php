@@ -160,7 +160,7 @@ class AccountSession
                         null,
                         1
                     ); // Extend expiration date of session
-                    return new MethodReply(true, null, $account);
+                    return new MethodReply(true, "Account session found successfully.", $account);
                 }
             }
         } else { // Delete session cookie if key is at incorrect length
@@ -168,7 +168,7 @@ class AccountSession
         }
         return new MethodReply(
             false,
-            null,
+            "Account session not found.",
             $this->account->exists() ? $this->account->getNew(0) : $this->account
         );
     }
@@ -244,7 +244,7 @@ class AccountSession
                         "expiration_date" => get_future_date(self::session_account_refresh_expiration),
                     )
                 )) { // Insert information into the database
-                    return new MethodReply(true);
+                    return new MethodReply(true, "Session created successfully.");
                 } else {
                     $this->deleteKey();
                     return new MethodReply(false, "Failed to create session in the database.");

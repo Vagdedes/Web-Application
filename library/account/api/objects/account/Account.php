@@ -248,7 +248,7 @@ class Account implements JsonSerializable
             }
             $this->object->{$detail} = $value;
         }
-        return new MethodReply(true);
+        return new MethodReply(true, "Account detail updated.");
     }
 
     public function getObject(): ?object

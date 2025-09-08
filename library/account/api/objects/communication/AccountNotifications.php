@@ -25,9 +25,9 @@ class AccountNotifications
         );
 
         if (!empty($query)) {
-            return new MethodReply(true, null, $query[0]);
+            return new MethodReply(true, "Notification type found successfully.", $query[0]);
         } else {
-            return new MethodReply(false);
+            return new MethodReply(false, "Notification type not found.");
         }
     }
 

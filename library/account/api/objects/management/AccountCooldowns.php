@@ -93,7 +93,7 @@ class AccountCooldowns
                 null,
                 1
             ))) {
-            return new MethodReply(true);
+            return new MethodReply(true, "Instant cooldown active.");
         }
         if ($buffer) {
             $query = get_sql_query(
@@ -109,10 +109,10 @@ class AccountCooldowns
             );
 
             if (!empty($query)) {
-                return new MethodReply(true, null, $query[0]);
+                return new MethodReply(true, "Active cooldown found.", $query[0]);
             }
         }
-        return new MethodReply(false);
+        return new MethodReply(false, "No cooldowns active.");
     }
 
     public function has(

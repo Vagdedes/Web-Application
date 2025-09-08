@@ -81,7 +81,7 @@ class AccountActions
         }
         $functionality->addInstantCooldown(AccountFunctionality::LOG_IN, self::log_in_out_cooldown);
         $this->account->refresh();
-        return new MethodReply(true);
+        return new MethodReply(true, "Successfully logged in.");
     }
 
     public function logOut(): MethodReply

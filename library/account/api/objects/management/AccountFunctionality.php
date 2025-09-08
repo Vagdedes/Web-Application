@@ -111,9 +111,9 @@ class AccountFunctionality
     {
         if ($this->account->exists()) {
             $this->account->getCooldowns()->addInstant($name, $duration);
-            return new MethodReply(true);
+            return new MethodReply(true, "Instant cooldown added.");
         } else {
-            return new MethodReply(false);
+            return new MethodReply(false, "Account does not exist.");
         }
     }
 
@@ -121,9 +121,9 @@ class AccountFunctionality
     {
         if ($this->account->exists()) {
             $this->account->getCooldowns()->addBuffer($name, $threshold, $duration);
-            return new MethodReply(true);
+            return new MethodReply(true, "Buffer cooldown added.");
         } else {
-            return new MethodReply(false);
+            return new MethodReply(false, "Account does not exist.");
         }
     }
 
@@ -170,7 +170,7 @@ class AccountFunctionality
         )) {
             return new MethodReply(true, "Blocked feature for user successfully.");
         }
-        return new MethodReply(false);
+        return new MethodReply(false, "Failed to execute moderation action.");
     }
 
     public function cancelAction(int|string $accountID, int|string $functionality, string|int|null|float $reason = null): MethodReply
@@ -250,8 +250,8 @@ class AccountFunctionality
             1
         );
         return empty($array) ?
-            new MethodReply(false) :
-            new MethodReply(true, $array[0]["creation_reason"], $array[0]);
+            new MethodReply(false, ) :
+            new MethodReply(true, $array[0]->creation_reason, $array[0]);
     }
 
     public function hasExecutedAction(int|string $functionality, bool $active = true): bool

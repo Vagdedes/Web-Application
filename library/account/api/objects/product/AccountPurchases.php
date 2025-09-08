@@ -184,11 +184,11 @@ class AccountPurchases
             foreach ($array as $row) {
                 if ($row->product_id == $productID
                     && (!$hasTier || $row->tier_id == $tierID)) {
-                    return new MethodReply(true, null, $row);
+                    return new MethodReply(true, "Current purchase successfully found.", $row);
                 }
             }
         }
-        return new MethodReply(false);
+        return new MethodReply(false, "No current purchase found.");
     }
 
     public function owned(int|string $productID, int|string|null $tierID = null): MethodReply
@@ -201,11 +201,11 @@ class AccountPurchases
             foreach ($array as $row) {
                 if ($row->product_id == $productID
                     && (!$hasTier || $row->tier_id == $tierID)) {
-                    return new MethodReply(true, null, $row);
+                    return new MethodReply(true, "Expired purchase successfully found.", $row);
                 }
             }
         }
-        return new MethodReply(false);
+        return new MethodReply(false, "No expired purchase found.");
     }
 
     public function ownsMultiple(array $products, bool $databaseOnly = false): MethodReply
@@ -219,12 +219,12 @@ class AccountPurchases
                 foreach ($array as $row) {
                     if ($row->product_id == $productID
                         && (!$hasTier || $row->tier_id == $tierID)) {
-                        return new MethodReply(true);
+                        return new MethodReply(true, "Multiple products from the list may be owned.");
                     }
                 }
             }
         }
-        return new MethodReply(false);
+        return new MethodReply(false, "No products owned from the list.");
     }
 
     public function add(int|string            $productID, int|string|null $tierID = null,

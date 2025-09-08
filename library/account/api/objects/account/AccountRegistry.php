@@ -123,7 +123,7 @@ class AccountRegistry
                 array("websiteUsername" => $name)
             );
         }
-        return new MethodReply(true, null, $this->account);
+        return new MethodReply(true, "Account successfully registered.", $this->account);
     }
 
     public function getAccountAmount(): int

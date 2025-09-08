@@ -238,7 +238,7 @@ class AccountGiveaway
                 $productWon = $this->account->getProduct()->find($giveaway->product_id, false);
 
                 if (!$productWon->isPositiveOutcome()) {
-                    return new MethodReply(false);
+                    return new MethodReply(false, "Winning product not found.");
                 }
                 $winners = get_sql_query(
                     AccountVariables::GIVEAWAY_WINNERS_TABLE,
@@ -263,12 +263,12 @@ class AccountGiveaway
                 }
                 return new MethodReply(
                     true,
-                    null,
+                    "Giveaway found.",
                     array($winners, $productWon->getObject()[0])
                 );
             }
         }
-        return new MethodReply(false);
+        return new MethodReply(false, "Giveaway not found.");
     }
 
     private function finalise(int|string $objectID,
