@@ -1272,6 +1272,50 @@ class AccountTeam
         }
     }
 
+    public function restoreRole(string|int|object $role, ?string $reason = null): MethodReply
+    {
+        $result = $this->findTeam();
+
+        if (!$result->isPositiveOutcome()) {
+            return $result;
+        }
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to delete team roles.");
+        }
+        if (is_string($role) || is_int($role)) {
+            $role = $this->getRole($role);
+
+            if ($role === null) {
+                return new MethodReply(false, "Role not found.");
+            }
+        }
+        if ($this->getPosition() <= $this->getRolePosition($role)) {
+            return new MethodReply(false, "Cannot delete a role with the same or higher hierarchical position.");
+        }
+        $selfMemberID = $this->getMember()?->id;
+
+        if ($selfMemberID === null) {
+            return new MethodReply(false, "Executor member not found.");
+        }
+        if (set_sql_query(
+            AccountVariables::TEAM_ROLES_TABLE,
+            array(
+                "deletion_date" => get_current_date(),
+                "deleted_by" => $selfMemberID,
+                "deletion_reason" => $reason
+            ),
+            array(
+                array("id", $role->id)
+            ),
+            null,
+            1
+        )) {
+            return new MethodReply(true, "Role deleted from team.");
+        } else {
+            return new MethodReply(false, "Failed to delete role from team.");
+        }
+    }
+
     public function getRoleMembers(): array
     {
         $result = $this->findTeam();
@@ -1384,7 +1428,7 @@ class AccountTeam
         return $query[0];
     }
 
-    public function getTeamRoles(): array
+    public function getTeamRoles(bool $deleted = false): array
     {
         $result = $this->findTeam();
 
@@ -1396,7 +1440,9 @@ class AccountTeam
             null,
             array(
                 array("team_id", $result->getObject()->id),
-                array("deletion_date", null)
+                $deleted
+                    ? array("deletion_date", "IS NOT", null)
+                    : array("deletion_date", null)
             ),
             null,
             self::MAX_ROLES
