@@ -14,6 +14,7 @@ class AccountTeam
         // Roles
         PERMISSION_CREATE_TEAM_ROLES = 8,
         PERMISSION_DELETE_TEAM_ROLES = 9,
+        PERMISSION_RESTORE_TEAM_ROLES = 65,
 
         // Positions
         PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS = 3,
@@ -150,7 +151,7 @@ class AccountTeam
                     }
                     return new MethodReply(true, "Team created as '" . $title . "'.");
                 } else {
-                    return new MethodReply(false, "Failed to add member to team.");
+                    return new MethodReply(false, "Failed to add member to the team.");
                 }
             }
         } else {
@@ -657,9 +658,9 @@ class AccountTeam
             if ($memberID === null) {
                 return new MethodReply(false, "Member not found.");
             }
-            return new MethodReply(true, "Member added to team.");
+            return new MethodReply(true, "Member added to the team.");
         } else {
-            return new MethodReply(false, "Failed to add member to team.");
+            return new MethodReply(false, "Failed to add member to the team.");
         }
     }
 
@@ -704,9 +705,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Member removed from team.");
+            return new MethodReply(true, "Member removed from the team.");
         } else {
-            return new MethodReply(false, "Failed to remove member from team.");
+            return new MethodReply(false, "Failed to remove member from the team.");
         }
     }
 
@@ -1266,9 +1267,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Role deleted from team.");
+            return new MethodReply(true, "Role deleted from the team.");
         } else {
-            return new MethodReply(false, "Failed to delete role from team.");
+            return new MethodReply(false, "Failed to delete role from the team.");
         }
     }
 
@@ -1279,18 +1280,18 @@ class AccountTeam
         if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to delete team roles.");
+        if (!$this->getMemberPermission($this->account, self::PERMISSION_RESTORE_TEAM_ROLES)->isPositiveOutcome()) {
+            return new MethodReply(false, "Missing permission to restore deleted team roles.");
         }
         if (is_string($role) || is_int($role)) {
-            $role = $this->getRole($role);
+            $role = $this->getRole($role, true);
 
             if ($role === null) {
                 return new MethodReply(false, "Role not found.");
             }
         }
-        if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot delete a role with the same or higher hierarchical position.");
+        if ($this->getPosition() <= $this->getRolePosition($role, true)) {
+            return new MethodReply(false, "Cannot restore a deleted role with the same or higher hierarchical position.");
         }
         $selfMemberID = $this->getMember()?->id;
 
@@ -1300,9 +1301,9 @@ class AccountTeam
         if (set_sql_query(
             AccountVariables::TEAM_ROLES_TABLE,
             array(
-                "deletion_date" => get_current_date(),
-                "deleted_by" => $selfMemberID,
-                "deletion_reason" => $reason
+                "deletion_date" => null,
+                "deleted_by" => null,
+                "deletion_reason" => null
             ),
             array(
                 array("id", $role->id)
@@ -1310,9 +1311,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Role deleted from team.");
+            return new MethodReply(true, "Deleted role restored in the team.");
         } else {
-            return new MethodReply(false, "Failed to delete role from team.");
+            return new MethodReply(false, "Failed to restore deleted role in the team.");
         }
     }
 
@@ -1403,7 +1404,7 @@ class AccountTeam
         }
     }
 
-    public function getRole(string|int $reference): ?object
+    public function getRole(string|int $reference, bool $deleted = false): ?object
     {
         $result = $this->findTeam();
 
@@ -1416,7 +1417,9 @@ class AccountTeam
             array(
                 array("team_id", $result->getObject()->id),
                 is_numeric($reference) ? array("id", $reference) : array("title", $reference),
-                array("deletion_date", null)
+                $deleted
+                    ? array("deletion_date", "IS NOT", null)
+                    : array("deletion_date", null)
             ),
             null,
             1
@@ -1755,7 +1758,7 @@ class AccountTeam
         }
     }
 
-    public function getRolePosition(string|int|object $role): int
+    public function getRolePosition(string|int|object $role, bool $deleted = false): int
     {
         $result = $this->findTeam();
 
@@ -1764,7 +1767,7 @@ class AccountTeam
             return $min_32bit_Integer;
         }
         if (is_string($role) || is_int($role)) {
-            $role = $this->getRole($role);
+            $role = $this->getRole($role, $deleted);
 
             if ($role === null) {
                 global $min_32bit_Integer;
