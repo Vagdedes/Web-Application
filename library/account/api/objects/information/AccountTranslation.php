@@ -13,9 +13,12 @@ class AccountTranslation
         $this->account = $account;
     }
 
-    private function getMemoryKey(int|float|string $hash): string
+    private function getMemoryKey(int|float|string $hash): int
     {
-        return __CLASS__ . "_" . $hash;
+        return array_to_integer(array(
+            self::class,
+            $hash
+        ));
     }
 
     public function translate(
