@@ -6,6 +6,7 @@ class __SchedulerTasks
     public static function php_async(int $limit): int
     {
         require_once '/var/www/.structure/library/base/async.php';
+        ini_set('error_log', '/var/log/apache2/error.log');
         $async = new PhpAsync();
         return $async->executeStored($limit);
     }

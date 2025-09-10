@@ -97,32 +97,48 @@ class PhpAsync
                         null,
                         1
                     );
-                    $this->run(
-                        unserialize(base64_decode($row->method_name)),
-                        unserialize(base64_decode($row->method_parameters)),
-                        unserialize(base64_decode($row->code_dependencies)),
-                        $debug,
-                        $row->website_execution !== null
-                    );
+                    if ($row->website_execution !== null) {
+                        $this->website(
+                            base64_decode($row->method_name),
+                            base64_decode($row->method_parameters),
+                            base64_decode($row->code_dependencies),
+                            $debug
+                        );
+                    } else {
+                        $this->run(
+                            unserialize(base64_decode($row->method_name)),
+                            unserialize(base64_decode($row->method_parameters)),
+                            unserialize(base64_decode($row->code_dependencies)),
+                            $debug
+                        );
+                    }
                 } else {
-                    $result = $this->run(
-                        unserialize(base64_decode($row->method_name)),
-                        unserialize(base64_decode($row->method_parameters)),
-                        unserialize(base64_decode($row->code_dependencies)),
-                        $debug,
-                        $row->website_execution !== null
-                    );
-                    set_sql_query(
-                        self::SQL_TABLE,
-                        array(
-                            "debug_result" => json_encode($result, JSON_PRETTY_PRINT),
-                        ),
-                        array(
-                            array("id", $row->id),
-                        ),
-                        null,
-                        1
-                    );
+                    if ($row->website_execution !== null) {
+                        $this->website(
+                            base64_decode($row->method_name),
+                            base64_decode($row->method_parameters),
+                            base64_decode($row->code_dependencies),
+                            $debug
+                        );
+                    } else {
+                        $result = $this->run(
+                            unserialize(base64_decode($row->method_name)),
+                            unserialize(base64_decode($row->method_parameters)),
+                            unserialize(base64_decode($row->code_dependencies)),
+                            $debug
+                        );
+                        set_sql_query(
+                            self::SQL_TABLE,
+                            array(
+                                "debug_result" => json_encode($result, JSON_PRETTY_PRINT),
+                            ),
+                            array(
+                                array("id", $row->id),
+                            ),
+                            null,
+                            1
+                        );
+                    }
                 }
             }
         }
@@ -152,6 +168,35 @@ class PhpAsync
         );
     }
 
+    private function website(
+        array|string|callable $method,
+        string                $parameters,
+        string                $dependencies,
+        ?bool                 $debug = null
+    ): void
+    {
+        global $backup_domain;
+        $this->run(
+            "private_file_get_contents",
+            array(
+                "https://" . $backup_domain . "/async/",
+                1,
+                array(
+                    "function" => $method,
+                    "parameters" => $parameters,
+                    "dependencies" => $dependencies,
+                    "debug" => ($debug === null ? "null" : ($debug ? "true" : "false"))
+                )
+            ),
+            array(
+                "/var/www/.structure/library/base/utilities.php",
+                "/var/www/.structure/library/base/sql.php",
+                "/var/www/.structure/library/base/communication.php",
+                "/var/www/.structure/library/memory/init.php"
+            )
+        );
+    }
+
     /**
      * @throws Exception
      */
@@ -160,32 +205,10 @@ class PhpAsync
         array                 $parameters,
         array                 $dependencies = [],
         ?bool                 $debug = null,
-        bool                  $website = false,
         int                   $defaultRamMB = self::DEFAULT_RAM_MB,
         int                   $secondsTimeLimit = self::SECONDS_TIME_LIMIT
     ): string|false|null
     {
-        if ($website) {
-            global $backup_domain;
-            return $this->run(
-                "private_file_get_contents",
-                array(
-                    "https://" . $backup_domain . "/async/",
-                    1,
-                    array(
-                        "function" => json_encode($method),
-                        "parameters" => serialize($parameters),
-                        "dependencies" => json_encode($dependencies),
-                        "debug" => ($debug === null ? "null" : ($debug ? "true" : "false"))
-                    )
-                ),
-                $dependencies,
-                $debug,
-                false,
-                $defaultRamMB,
-                $secondsTimeLimit
-            );
-        }
         if (!in_array(__FILE__, $dependencies)) {
             $dependencies[] = __FILE__;
         }

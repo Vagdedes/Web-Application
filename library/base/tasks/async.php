@@ -20,7 +20,7 @@ if (!empty($function)) {
             error_log("PhpAsync (Website): Function is empty");
             return;
         } else {
-            $function = json_decode($function, true);
+            $function = @unserialize($function);
 
             if (!is_string($function)
                 && !is_array($function)
@@ -36,7 +36,7 @@ if (!empty($function)) {
         if (empty($dependencies)) {
             $dependencies = array();
         } else {
-            $dependencies = json_decode($dependencies, true);
+            $dependencies = @unserialize($dependencies);
 
             if (is_array($dependencies)) {
                 foreach ($dependencies as $key => $value) {
