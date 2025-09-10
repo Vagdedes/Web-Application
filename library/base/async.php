@@ -174,7 +174,7 @@ class PhpAsync
                     1,
                     array(
                         "function" => json_encode($method),
-                        "parameters" => base64_encode(serialize($parameters)),
+                        "parameters" => serialize($parameters),
                         "dependencies" => json_encode($dependencies),
                         "debug" => ($debug === null ? "null" : ($debug ? "true" : "false"))
                     )

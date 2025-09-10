@@ -49,7 +49,7 @@ if (!empty($function)) {
         if (empty($parameters)) {
             $parameters = array();
         } else {
-            $parameters = @unserialize(base64_decode($parameters));
+            $parameters = @unserialize($parameters);
 
             if (!is_array($parameters)) {
                 $parameters = array();
