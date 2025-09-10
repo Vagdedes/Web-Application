@@ -272,7 +272,7 @@ class AccountTranslation
                 }
             }
             if (function_exists("set_key_value_pair")) {
-                set_key_value_pair(self::getMemoryKey($hash), $translation);
+                set_key_value_pair(self::getMemoryKey($hash), $translation, "30 minutes");
             }
             return new MethodReply(
                 true,
