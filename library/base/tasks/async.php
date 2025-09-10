@@ -1,6 +1,6 @@
 <?php
 require '/var/www/.structure/library/base/form.php';
-$function = get_form("function");
+$function = get_form_post("function");
 
 if (!empty($function)) {
     require '/var/www/.structure/library/base/communication.php';
@@ -12,10 +12,9 @@ if (!empty($function)) {
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', '1');
         ini_set('log_errors', 1);
-        $function = urldecode($function);
-        $parameters = urldecode(get_form("parameters"));
-        $dependencies = urldecode(get_form("dependencies"));
-        $debug = strtolower(trim(get_form("debug")));
+        $parameters = get_form_post("parameters");
+        $dependencies = get_form_post("dependencies");
+        $debug = strtolower(trim(get_form_post("debug")));
 
         if (empty($function)) {
             error_log("PhpAsync (Website): Function is empty");
@@ -50,18 +49,20 @@ if (!empty($function)) {
         if (empty($parameters)) {
             $parameters = array();
         } else {
-            $parameters = unserialize(base64_decode(urldecode($parameters)));
+            $parameters = @unserialize(base64_decode($parameters));
 
             if (!is_array($parameters)) {
                 $parameters = array();
             }
         }
         if ($debug == "true") {
+            error_log(serialize($function));
+            error_log(serialize($parameters));
             $outcome = call_user_func_array(
                 $function,
                 $parameters
             );
-            error_log($outcome);
+            error_log(serialize($outcome));
             echo $outcome;
         } else {
             call_user_func_array(

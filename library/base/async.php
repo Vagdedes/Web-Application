@@ -173,9 +173,9 @@ class PhpAsync
                     "https://" . $backup_domain . "/async/",
                     1,
                     array(
-                        "function" => urlencode(json_encode($method)),
-                        "parameters" => urlencode(base64_encode(serialize($parameters))),
-                        "dependencies" => urlencode(json_encode($dependencies)),
+                        "function" => json_encode($method),
+                        "parameters" => base64_encode(serialize($parameters)),
+                        "dependencies" => json_encode($dependencies),
                         "debug" => ($debug === null ? "null" : ($debug ? "true" : "false"))
                     )
                 ),
