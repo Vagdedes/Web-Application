@@ -10,7 +10,7 @@ if (!empty($function)) {
         set_time_limit(PhpAsync::SECONDS_TIME_LIMIT);
         ini_set('memory_limit', PhpAsync::DEFAULT_RAM_MB . "M");
         ini_set('display_errors', 1);
-        ini_set('display_startup_errors', '1');
+        ini_set('display_startup_errors', 1);
         ini_set('log_errors', 1);
         $parameters = get_form_post("parameters");
         $dependencies = get_form_post("dependencies");
@@ -20,7 +20,7 @@ if (!empty($function)) {
             error_log("PhpAsync (Website): Function is empty");
             return;
         } else {
-            $function = @unserialize($function);
+            $function = unserialize($function);
 
             if (!is_string($function)
                 && !is_array($function)
@@ -36,7 +36,7 @@ if (!empty($function)) {
         if (empty($dependencies)) {
             $dependencies = array();
         } else {
-            $dependencies = @unserialize($dependencies);
+            $dependencies = unserialize($dependencies);
 
             if (is_array($dependencies)) {
                 foreach ($dependencies as $key => $value) {
@@ -49,7 +49,7 @@ if (!empty($function)) {
         if (empty($parameters)) {
             $parameters = array();
         } else {
-            $parameters = @unserialize($parameters);
+            $parameters = unserialize($parameters);
 
             if (!is_array($parameters)) {
                 $parameters = array();
