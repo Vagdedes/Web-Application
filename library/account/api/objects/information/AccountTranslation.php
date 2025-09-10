@@ -101,9 +101,7 @@ class AccountTranslation
             return $this->processTranslation(
                 $language,
                 $text,
-                $expiration,
                 $hash,
-                $force,
                 $save,
                 $loop,
                 $date,
@@ -121,9 +119,7 @@ class AccountTranslation
                 return $this->processTranslation(
                     $language,
                     $text,
-                    $expiration,
                     $hash,
-                    $force,
                     $save,
                     $loop,
                     $date,
@@ -140,9 +136,7 @@ class AccountTranslation
     private function processTranslation(
         string  $language,
         string  $text,
-        ?string $expiration,
         string  $hash,
-        bool    $force,
         bool    $save,
         mixed   $loop,
         string  $date,
