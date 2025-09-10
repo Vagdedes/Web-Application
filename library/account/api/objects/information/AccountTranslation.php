@@ -13,12 +13,19 @@ class AccountTranslation
         $this->account = $account;
     }
 
+    private function getMemoryKey(int|float|string $hash): int
+    {
+        return array_to_integer(array(
+            __CLASS__,
+            $hash
+        ));
+    }
+
     public function translate(
         string  $defaultLanguage,
         string  $language,
         string  $text,
         ?string $expiration = null,
-        bool    $details = false,
         bool    $force = false,
         bool    $save = true,
         mixed   $loop = null): mixed
@@ -30,32 +37,10 @@ class AccountTranslation
         $date = get_current_date();
 
         if ($defaultLanguage === $language) {
-            if ($details) {
-                $object = new stdClass();
-                $object->scenario = 3;
-                $object->id = 0;
-                $object->translation_hash = $hash;
-                $object->translation_language = $language;
-                $object->actual = $text;
-                $object->translation = $text;
-                $object->creation_date = $date;
-                $object->expiration_date = $expiration === null ? null : get_future_date($expiration);
-                $object->deletion_date = null;
-                $object->details = $details;
-                $object->force = $force;
-                $object->save = $save;
-                return new MethodReply(
-                    false,
-                    BigManageReader::jsonObject($object),
-                    null
-                );
-            } else {
-                $object = $text;
-            }
             $methodReply = new MethodReply(
                 true,
                 null,
-                $object
+                $text
             );
 
             if ($loop === null) {
@@ -64,9 +49,12 @@ class AccountTranslation
                 return \React\Promise\resolve($methodReply);
             }
         }
+        if (function_exists("get_key_value_pair")) {
+            $keyValue = get_key_value_pair(self::getMemoryKey($hash));
+        }
         $query = get_sql_query(
             AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
-            $details ? null : array("translation", "id"),
+            array("translation", "id"),
             array(
                 array("translation_hash", $hash),
                 array("translation_language", $language),
@@ -101,7 +89,6 @@ class AccountTranslation
                 $text,
                 $expiration,
                 $hash,
-                $details,
                 $force,
                 $save,
                 $loop,
@@ -113,7 +100,7 @@ class AccountTranslation
             $methodReply = new MethodReply(
                 true,
                 null,
-                $details ? $query : $query->translation
+                $query->translation
             );
 
             if ($query->translation === null) {
@@ -122,7 +109,6 @@ class AccountTranslation
                     $text,
                     $expiration,
                     $hash,
-                    $details,
                     $force,
                     $save,
                     $loop,
@@ -142,7 +128,6 @@ class AccountTranslation
         string  $text,
         ?string $expiration,
         string  $hash,
-        bool    $details,
         bool    $force,
         bool    $save,
         mixed   $loop,
@@ -186,11 +171,7 @@ class AccountTranslation
             return $this->processResult(
                 $outcome,
                 $language,
-                $text,
-                $expiration,
                 $hash,
-                $details,
-                $force,
                 $save,
                 $date,
                 $id
@@ -206,11 +187,7 @@ class AccountTranslation
             return $outcome->then(
                 function (array $outcome) use (
                     $language,
-                    $text,
-                    $expiration,
                     $hash,
-                    $details,
-                    $force,
                     $save,
                     $date,
                     $id
@@ -218,11 +195,7 @@ class AccountTranslation
                     return $this->processResult(
                         $outcome,
                         $language,
-                        $text,
-                        $expiration,
                         $hash,
-                        $details,
-                        $force,
                         $save,
                         $date,
                         $id
@@ -238,11 +211,7 @@ class AccountTranslation
     private function processResult(
         array   $outcome,
         string  $language,
-        string  $text,
-        ?string $expiration,
         string  $hash,
-        bool    $details,
-        bool    $force,
         bool    $save,
         string  $date,
         ?int    $id
@@ -252,22 +221,9 @@ class AccountTranslation
             $translation = $outcome[0]->getTextOrVoice($outcome[1]);
 
             if ($translation === null) {
-                $object = new stdClass();
-                $object->scenario = 2;
-                $object->id = 0;
-                $object->translation_language = $language;
-                $object->actual = $text;
-                $object->translation = $text;
-                $object->creation_date = $date;
-                $object->expiration_date = $expiration === null ? null : get_future_date($expiration);
-                $object->deletion_date = null;
-                $object->translation_hash = $hash;
-                $object->details = $details;
-                $object->force = $force;
-                $object->save = $save;
                 return new MethodReply(
                     false,
-                    BigManageReader::jsonObject($object),
+                    null,
                     null
                 );
             }
@@ -313,22 +269,9 @@ class AccountTranslation
                 $translation
             );
         } else {
-            $object = new stdClass();
-            $object->scenario = 1;
-            $object->id = 0;
-            $object->translation_language = $language;
-            $object->actual = $text;
-            $object->translation = $text;
-            $object->creation_date = $date;
-            $object->expiration_date = $expiration === null ? null : get_future_date($expiration);
-            $object->deletion_date = null;
-            $object->translation_hash = $hash;
-            $object->details = $details;
-            $object->force = $force;
-            $object->save = $save;
             return new MethodReply(
                 false,
-                BigManageReader::jsonObject($object),
+                null,
                 $outcome
             );
         }
