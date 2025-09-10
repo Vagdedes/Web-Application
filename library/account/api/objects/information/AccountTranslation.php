@@ -15,10 +15,7 @@ class AccountTranslation
 
     private function getMemoryKey(int|float|string $hash): int
     {
-        return array_to_integer(array(
-            __CLASS__,
-            $hash
-        ));
+        return __CLASS__ . "_" . $hash;
     }
 
     public function translate(
@@ -134,13 +131,13 @@ class AccountTranslation
     }
 
     private function processTranslation(
-        string  $language,
-        string  $text,
-        string  $hash,
-        bool    $save,
-        mixed   $loop,
-        string  $date,
-        ?int    $id
+        string $language,
+        string $text,
+        string $hash,
+        bool   $save,
+        mixed  $loop,
+        string $date,
+        ?int   $id
     )
     {
         $length = strlen($text);
@@ -217,12 +214,12 @@ class AccountTranslation
     }
 
     private function processResult(
-        array   $outcome,
-        string  $language,
-        string  $hash,
-        bool    $save,
-        string  $date,
-        ?int    $id
+        array  $outcome,
+        string $language,
+        string $hash,
+        bool   $save,
+        string $date,
+        ?int   $id
     ): MethodReply
     {
         if (array_shift($outcome)) {
