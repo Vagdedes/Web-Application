@@ -261,8 +261,12 @@ class IndividualMemoryBlock
                 return false;
             }
         }
-        $bytesWritten = shmop_write($block, $objectToText, 0);
-        return $bytesWritten === $bytesSize;
+        if (is_object($block)) {
+            $bytesWritten = shmop_write($block, $objectToText, 0);
+            return $bytesWritten === $bytesSize;
+        } else {
+            return false;
+        }
     }
 
     // Separator
