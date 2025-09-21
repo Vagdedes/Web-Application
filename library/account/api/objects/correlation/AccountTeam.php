@@ -84,6 +84,12 @@ class AccountTeam
         if (!$this->account->exists()) {
             return new MethodReply(false, "Account not found.");
         }
+        if (strlen($title) === 0) {
+            return new MethodReply(false, "Title cannot be empty.");
+        }
+        if (strlen($title) > 128) {
+            return new MethodReply(false, "Title cannot be longer than 128 characters.");
+        }
         $result = $this->findTeam($title);
 
         if ($result->isPositiveOutcome()) {
@@ -481,6 +487,12 @@ class AccountTeam
         if (!$result->isPositiveOutcome()) {
             return $result;
         }
+        if (strlen($name) === 0) {
+            return new MethodReply(false, "Title cannot be empty.");
+        }
+        if (strlen($name) > 128) {
+            return new MethodReply(false, "Title cannot be longer than 128 characters.");
+        }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_NAME)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team title.");
         }
@@ -507,12 +519,20 @@ class AccountTeam
         }
     }
 
-    public function updateTeamDescription(string $description, ?string $reason = null): MethodReply
+    public function updateTeamDescription(?string $description, ?string $reason = null): MethodReply
     {
         $result = $this->findTeam();
 
         if (!$result->isPositiveOutcome()) {
             return $result;
+        }
+        if ($description !== null) {
+            if (strlen($description) === 0) {
+                return new MethodReply(false, "Description cannot be empty.");
+            }
+            if (strlen($description) > 512) {
+                return new MethodReply(false, "Description cannot be longer than 512 characters.");
+            }
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_DESCRIPTION)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team description.");
@@ -1175,6 +1195,9 @@ class AccountTeam
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CREATE_TEAM_ROLES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to create team roles.");
+        }
+        if (strlen($name) === 0) {
+            return new MethodReply(false, "Role name cannot be empty.");
         }
         $role = $this->getRole($name);
 
