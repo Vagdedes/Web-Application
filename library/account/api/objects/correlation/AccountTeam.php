@@ -173,6 +173,10 @@ class AccountTeam
             array(
                 array("additional_id", $this->additionalID),
                 array("deletion_date", null)
+            ),
+            array(
+                "DESC",
+                "id"
             )
         );
     }
