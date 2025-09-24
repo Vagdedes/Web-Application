@@ -4,6 +4,8 @@ $sql_credentials = array();
 $is_sql_usable = false;
 $debug = false;
 $sql_last_insert_id = null;
+$sql_enable_local_memory = false;
+$sql_local_memory = array();
 
 // Connection
 
@@ -262,8 +264,26 @@ function sql_build_order(string|array|null $order): ?string
 
 // Cache
 
-function sql_delete_outdated_cache(int $time = 60 * 60): bool
+function sql_delete_outdated_cache(int $time = 60 * 60, bool $memory = true): bool
 {
+    global $sql_enable_local_memory;
+
+    if ($sql_enable_local_memory
+        && $memory) {
+        global $sql_local_memory;
+        $currentTime = time();
+
+        foreach ($sql_local_memory as $table => $entries) {
+            foreach ($entries as $hash => $value) {
+                if ($value[2] < ($currentTime - $time)) {
+                    unset($sql_local_memory[$table][$hash]);
+                }
+            }
+            if (empty($sql_local_memory[$table])) {
+                unset($sql_local_memory[$table]);
+            }
+        }
+    }
     $retrieverTable = "memory.queryCacheRetriever";
     $trackerTable = "memory.queryCacheTracker";
     $query = sql_query(
@@ -286,6 +306,22 @@ function sql_delete_outdated_cache(int $time = 60 * 60): bool
 
 function sql_clear_cache(string $table, array $columns): bool
 {
+    global $sql_enable_local_memory;
+
+    if ($sql_enable_local_memory) {
+        global $sql_local_memory;
+
+        if (array_key_exists($table, $sql_local_memory)) {
+            foreach ($sql_local_memory[$table] as $hash => $value) {
+                foreach ($columns as $column) {
+                    if (in_array($column, $value[0])) {
+                        unset($sql_local_memory[$table][$hash]);
+                        break;
+                    }
+                }
+            }
+        }
+    }
     $retrieverTable = "memory.queryCacheRetriever";
     $trackerTable = "memory.queryCacheTracker";
 
@@ -339,9 +375,19 @@ function sql_store_cache(string           $table,
                          bool             $cacheExists): bool
 {
     $time = time();
+    global $sql_enable_local_memory;
 
-    foreach ($columns as $key => $column) {
-        $columns[$key] = array($table, $column, $hash, $time);
+    if ($sql_enable_local_memory) {
+        global $sql_local_memory;
+
+        foreach ($columns as $key => $column) {
+            $columns[$key] = array($table, $column, $hash, $time);
+        }
+        if (array_key_exists($table, $sql_local_memory)) {
+            $sql_local_memory[$table][$hash] = array($columns, $query, $time);
+        } else {
+            $sql_local_memory[$table] = array($hash => array($columns, $query, $time));
+        }
     }
     $store = @json_encode($query, JSON_UNESCAPED_UNICODE);
 
@@ -466,6 +512,26 @@ function get_sql_query(string $table, ?array $select = null, ?array $where = nul
         ),
         true
     );
+    global $sql_enable_local_memory;
+
+    if ($sql_enable_local_memory
+        && !$debug) {
+        global $sql_local_memory;
+
+        if (array_key_exists($table, $sql_local_memory)) {
+            $value = $sql_local_memory[$table][$hash] ?? null;
+
+            if ($value !== null) {
+                $results = $value[1];
+
+                if (is_array($results)) {
+                    $value[2] = time();
+                    $sql_local_memory[$table][$hash] = $value;
+                    return $results;
+                }
+            }
+        }
+    }
     load_sql_database(SqlDatabaseCredentials::MEMORY);
     $cache = sql_query(
         "SELECT results FROM memory.queryCacheRetriever "
