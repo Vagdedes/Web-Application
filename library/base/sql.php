@@ -83,6 +83,24 @@ function reset_all_sql_connections(): void
     }
 }
 
+function sql_set_local_memory(bool|array $boolOrTables): void
+{
+    global $sql_enable_local_memory;
+    $sql_enable_local_memory = $boolOrTables;
+}
+
+function is_sql_local_memory_enabled(?string $table): bool
+{
+    global $sql_enable_local_memory;
+
+    if (is_array($sql_enable_local_memory)) {
+        return $table === null
+            || in_array($table, $sql_enable_local_memory);
+    } else {
+        return $sql_enable_local_memory;
+    }
+}
+
 function create_sql_connection(): ?object
 {
     global $sql_credentials;
@@ -266,16 +284,13 @@ function sql_build_order(string|array|null $order): ?string
 
 function sql_delete_outdated_cache(int $time = 60 * 60, bool $memory = true): bool
 {
-    global $sql_enable_local_memory;
-
-    if ($sql_enable_local_memory
-        && $memory) {
+    if ($memory
+        && is_sql_local_memory_enabled(null)) {
         global $sql_local_memory;
-        $currentTime = time();
 
         foreach ($sql_local_memory as $table => $entries) {
             foreach ($entries as $hash => $value) {
-                if ($value[2] < ($currentTime - $time)) {
+                if ($value[2] < (time() - $time)) {
                     unset($sql_local_memory[$table][$hash]);
                 }
             }
@@ -306,13 +321,12 @@ function sql_delete_outdated_cache(int $time = 60 * 60, bool $memory = true): bo
 
 function sql_clear_cache(string $table, array $columns): bool
 {
-    global $sql_enable_local_memory;
-
-    if ($sql_enable_local_memory) {
+    if (is_sql_local_memory_enabled($table)) {
         global $sql_local_memory;
+        $memory = $sql_local_memory[$table] ?? null;
 
-        if (array_key_exists($table, $sql_local_memory)) {
-            foreach ($sql_local_memory[$table] as $hash => $value) {
+        if ($memory !== null) {
+            foreach ($memory as $hash => $value) {
                 foreach ($columns as $column) {
                     if (in_array($column, $value[0])) {
                         unset($sql_local_memory[$table][$hash]);
@@ -375,19 +389,18 @@ function sql_store_cache(string           $table,
                          bool             $cacheExists): bool
 {
     $time = time();
-    global $sql_enable_local_memory;
 
-    if ($sql_enable_local_memory) {
+    if (is_sql_local_memory_enabled($table)) {
         global $sql_local_memory;
 
-        foreach ($columns as $key => $column) {
-            $columns[$key] = array($table, $column, $hash, $time);
-        }
         if (array_key_exists($table, $sql_local_memory)) {
             $sql_local_memory[$table][$hash] = array($columns, $query, $time);
         } else {
             $sql_local_memory[$table] = array($hash => array($columns, $query, $time));
         }
+    }
+    foreach ($columns as $key => $column) {
+        $columns[$key] = array($table, $column, $hash, $time);
     }
     $store = @json_encode($query, JSON_UNESCAPED_UNICODE);
 
@@ -512,10 +525,8 @@ function get_sql_query(string $table, ?array $select = null, ?array $where = nul
         ),
         true
     );
-    global $sql_enable_local_memory;
-
-    if ($sql_enable_local_memory
-        && !$debug) {
+    if (!$debug
+        && is_sql_local_memory_enabled($table)) {
         global $sql_local_memory;
 
         if (array_key_exists($table, $sql_local_memory)) {
