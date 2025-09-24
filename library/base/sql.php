@@ -83,10 +83,19 @@ function reset_all_sql_connections(): void
     }
 }
 
-function sql_set_local_memory(bool|array $boolOrTables): void
+function sql_set_local_memory(bool|array|string $boolOrTables): void
 {
     global $sql_enable_local_memory;
-    $sql_enable_local_memory = $boolOrTables;
+
+    if (is_string($boolOrTables)) {
+        if (is_array($sql_enable_local_memory)) {
+            $sql_enable_local_memory[] = $boolOrTables;
+        } else {
+            $sql_enable_local_memory = array($boolOrTables);
+        }
+    } else {
+        $sql_enable_local_memory = $boolOrTables;
+    }
 }
 
 function is_sql_local_memory_enabled(?string $table): bool
