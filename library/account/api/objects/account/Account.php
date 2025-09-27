@@ -41,6 +41,7 @@ class Account implements JsonSerializable
     private AccountInstructions $instructions;
     private AccountTeam $team;
     private AccountTranslation $translation;
+    private AccountEmbeddings $embeddings;
 
     public function __construct(?int    $applicationID = null,
                                 ?int    $id = null,
@@ -62,7 +63,6 @@ class Account implements JsonSerializable
         $this->phoneNumber = new AccountPhoneNumber($this);
         $this->patreon = new AccountPatreon($this);
         $this->team = new AccountTeam($this);
-        $this->translation = new AccountTranslation($this);
 
         // Partial
         $this->email = new AccountEmail($this);
@@ -81,6 +81,8 @@ class Account implements JsonSerializable
         $this->session = new AccountSession($this);
         $this->twoFactorAuthentication = new TwoFactorAuthentication($this);
         $this->paymentProcessor = new PaymentProcessor($this);
+        $this->translation = new AccountTranslation($this);
+        $this->embeddings = new AccountEmbeddings($this);
 
         // Transform
         $this->transformLocal(

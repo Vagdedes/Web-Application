@@ -28,6 +28,8 @@ class AccountVariables
 
         TRANSLATIONS_PROCESSED_TABLE = "translations.processed",
 
+        EMBEDDINGS_PROCESSED_TABLE = "embeddings.processed",
+
         ACCOUNTS_TABLE = "account.accounts",
         ACCOUNT_IDENTIFICATION_TABLE = "account.identification",
         ACCOUNT_HISTORY_TABLE = "account.history",

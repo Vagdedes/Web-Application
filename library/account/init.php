@@ -45,6 +45,7 @@ require_once '/var/www/.structure/library/account/api/objects/correlation/Accoun
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountTransactions.php';
 require_once '/var/www/.structure/library/account/api/objects/finance/PaymentProcessor.php';
 require_once '/var/www/.structure/library/account/api/objects/finance/AccountPatreon.php';
+require_once '/var/www/.structure/library/account/api/objects/finance/AccountEmbeddings.php';
 
 // Information
 require_once '/var/www/.structure/library/account/api/objects/information/AccountInstructions.php';
