@@ -48,6 +48,11 @@ class AIModelFamily
     // Text to Speech
     public const
         OPENAI_SPEECH_TEXT = 7;
+
+    // Text to Embedding
+    public const
+        OPENAI_EMBEDDING_SMALL = 17,
+        OPENAI_EMBEDDING_LARGE = 18;
 }
 
 class AIAuthorization

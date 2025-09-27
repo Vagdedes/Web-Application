@@ -212,6 +212,32 @@ class AIModel
                 } else {
                     return $this->getImage($object);
                 }
+            case AIModelFamily::OPENAI_EMBEDDING_SMALL:
+            case AIModelFamily::OPENAI_EMBEDDING_LARGE:
+                return $this->getEmbeddings($object);
+            default:
+                return null;
+        }
+    }
+
+    // Separator
+
+    public function getEmbeddings(mixed $object): ?array
+    {
+        switch ($this->familyID) {
+            case AIModelFamily::OPENAI_EMBEDDING_SMALL:
+            case AIModelFamily::OPENAI_EMBEDDING_LARGE:
+                if (!isset($object->data)
+                    || !is_array($object->data)) {
+                    return null;
+                }
+                $embeddings = array();
+
+                foreach ($object->data as $item) {
+                    $embeddings[$item->index] = $item->embedding;
+                }
+                return $embeddings;
+
             default:
                 return null;
         }
@@ -380,6 +406,8 @@ class AIModel
             case AIModelFamily::OPENAI_VISION_PRO:
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
+            case AIModelFamily::OPENAI_EMBEDDING_SMALL:
+            case AIModelFamily::OPENAI_EMBEDDING_LARGE:
                 return (($object?->usage?->prompt_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0))
                     + (($object?->usage?->completion_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
 
