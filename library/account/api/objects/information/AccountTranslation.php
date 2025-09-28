@@ -49,7 +49,8 @@ class AccountTranslation
                 return \React\Promise\resolve($methodReply);
             }
         }
-        if (function_exists("get_key_value_pair")) {
+        if (!$force
+            && function_exists("get_key_value_pair")) {
             $keyValue = get_key_value_pair(self::getMemoryKey($hash));
 
             if (is_string($keyValue)) {

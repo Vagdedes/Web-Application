@@ -325,6 +325,11 @@ class Account implements JsonSerializable
         return $this->translation;
     }
 
+    public function getEmbeddings(): AccountEmbeddings
+    {
+        return $this->embeddings;
+    }
+
     public function getIdentification(): AccountIdentification
     {
         return $this->identification;

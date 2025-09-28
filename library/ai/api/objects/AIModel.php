@@ -4,7 +4,7 @@ class AIModel
 {
     private int $familyID, $modelID;
     private ?int $context;
-    private string $requestUrl;
+    private string $requestUrl, $name;
     private ?string $tokenizer, $requestHeaders, $postFields;
     private object $currency;
     private ?float $received_token_cost, $received_token_audio_cost, $sent_token_cost, $sent_token_audio_cost;
@@ -44,6 +44,7 @@ class AIModel
                 $this->received_token_audio_cost = null;
                 $this->sent_token_audio_cost = null;
                 $this->base64EncodeReply = false;
+                $this->name = "";
                 return;
             } else {
                 $row = $query[0];
@@ -67,6 +68,7 @@ class AIModel
             $this->received_token_audio_cost = $row->received_token_audio_cost;
             $this->sent_token_audio_cost = $row->sent_token_audio_cost;
             $this->base64EncodeReply = $row->base64_encode_reply !== null;
+            $this->name = $row->model_name;
             $pricing = get_sql_query(
                 AIDatabaseTable::AI_PRICING,
                 null,
@@ -97,6 +99,11 @@ class AIModel
     }
 
     // Separator
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
 
     public function getManager(): ?AIManager
     {

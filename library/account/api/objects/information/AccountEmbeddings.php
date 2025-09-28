@@ -34,10 +34,11 @@ class AccountEmbeddings
             : string_to_integer($textOrArray, true);
         $date = get_current_date();
 
-        if (function_exists("get_key_value_pair")) {
+        if (!$force
+            && function_exists("get_key_value_pair")) {
             $keyValue = get_key_value_pair(self::getMemoryKey($hash));
 
-            if (is_string($keyValue)) {
+            if (is_array($keyValue)) {
                 $methodReply = new MethodReply(
                     true,
                     null,
@@ -110,14 +111,12 @@ class AccountEmbeddings
         ?string      $expiration
     )
     {
-        $arguments = array(
-            "model" => $model,
-            "input" => $textOrArray
-        );
-
         $managerAI = new AIManager(
             $model,
             AIHelper::getAuthorization(AIAuthorization::OPENAI)
+        );
+        $arguments = array(
+            "input" => $textOrArray
         );
         if ($loop === null) {
             $outcome = $managerAI->getResult(
@@ -184,19 +183,17 @@ class AccountEmbeddings
                 );
             }
             if ($save) {
-                foreach ($embeddings as $embedding) {
-                    sql_insert(
-                        AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
-                        array(
-                            "embedding_hash" => $hash,
-                            "embedding_model" => $model,
-                            "objectified" => json_encode($embedding),
-                            "creation_date" => $date,
-                            "expiration_date" => $expiration,
-                            "deletion_date" => null,
-                        )
-                    );
-                }
+                sql_insert(
+                    AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
+                    array(
+                        "embedding_hash" => $hash,
+                        "embedding_model" => $model,
+                        "objectified" => json_encode($embeddings),
+                        "creation_date" => $date,
+                        "expiration_date" => $expiration,
+                        "deletion_date" => null,
+                    )
+                );
             }
             if (function_exists("set_key_value_pair")) {
                 set_key_value_pair(self::getMemoryKey($hash), $embeddings, "30 minutes");

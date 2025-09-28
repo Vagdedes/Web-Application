@@ -42,7 +42,7 @@ function load_account_page(bool $loadContents = true, ?callable $callable = null
             case "contact":
             case "exit":
             case "downloadFile":
-            case "instantLogin":
+            case "twoFactorAuthentication":
             case "profile":
                 $callable($account);
                 break;
