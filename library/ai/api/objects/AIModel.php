@@ -241,10 +241,9 @@ class AIModel
                 $embeddings = array();
 
                 foreach ($object->data as $item) {
-                    $embeddings[$item->index] = $item->embedding;
+                    $embeddings[$item->index ?? 0] = $item->embedding;
                 }
                 return $embeddings;
-
             default:
                 return null;
         }
