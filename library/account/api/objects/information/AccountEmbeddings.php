@@ -33,25 +33,6 @@ class AccountEmbeddings
             ? array_to_integer($textOrArray, true)
             : string_to_integer($textOrArray, true);
         $date = get_current_date();
-
-        if (!$force
-            && function_exists("get_key_value_pair")) {
-            $keyValue = get_key_value_pair(self::getMemoryKey($hash));
-
-            if (is_array($keyValue)) {
-                $methodReply = new MethodReply(
-                    true,
-                    null,
-                    $keyValue
-                );
-
-                if ($loop === null) {
-                    return $methodReply;
-                } else {
-                    return \React\Promise\resolve($methodReply);
-                }
-            }
-        }
         $query = get_sql_query(
             AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
             array("objectified", "id"),
@@ -85,7 +66,13 @@ class AccountEmbeddings
             $results = array();
 
             foreach ($query as $row) {
-                $results[$row->embedding_hash] = json_decode($row->objectified, true);
+                $decode = json_decode($row->objectified, true);
+
+                if (is_array($decode)) {
+                    $results[$row->embedding_hash] = $decode;
+                } else {
+                    $results[$row->embedding_hash] = array();
+                }
             }
             $methodReply = new MethodReply(
                 true,
@@ -126,6 +113,7 @@ class AccountEmbeddings
             return $this->processResult(
                 $outcome,
                 $model,
+                $textOrArray,
                 $hash,
                 $save,
                 $date,
@@ -142,6 +130,7 @@ class AccountEmbeddings
             return $outcome->then(
                 function (array $outcome) use (
                     $model,
+                    $textOrArray,
                     $hash,
                     $save,
                     $date,
@@ -150,6 +139,7 @@ class AccountEmbeddings
                     return $this->processResult(
                         $outcome,
                         $model,
+                        $textOrArray,
                         $hash,
                         $save,
                         $date,
@@ -164,12 +154,13 @@ class AccountEmbeddings
     }
 
     private function processResult(
-        array   $outcome,
-        string  $model,
-        string  $hash,
-        bool    $save,
-        string  $date,
-        ?string $expiration
+        array        $outcome,
+        string       $model,
+        string|array $textOrArray,
+        string       $hash,
+        bool         $save,
+        string       $date,
+        ?string      $expiration
     ): MethodReply
     {
         if (array_shift($outcome)) {
@@ -191,12 +182,11 @@ class AccountEmbeddings
                         "objectified" => json_encode($embeddings),
                         "creation_date" => $date,
                         "expiration_date" => $expiration,
-                        "deletion_date" => null,
+                        "actual" => (is_string($textOrArray)
+                            ? $textOrArray
+                            : json_encode($textOrArray))
                     )
                 );
-            }
-            if (function_exists("set_key_value_pair")) {
-                set_key_value_pair(self::getMemoryKey($hash), $embeddings, "30 minutes");
             }
             return new MethodReply(
                 true,
@@ -214,6 +204,10 @@ class AccountEmbeddings
 
     public function cosineSimilarity(array $vecA, array $vecB): float
     {
+        if (sizeof($vecA) !== sizeof($vecB)
+            || sizeof($vecA) === 0) {
+            return 0.0;
+        }
         $dotProduct = 0.0;
         $normA = 0.0;
         $normB = 0.0;

@@ -49,24 +49,6 @@ class AccountTranslation
                 return \React\Promise\resolve($methodReply);
             }
         }
-        if (!$force
-            && function_exists("get_key_value_pair")) {
-            $keyValue = get_key_value_pair(self::getMemoryKey($hash));
-
-            if (is_string($keyValue)) {
-                $methodReply = new MethodReply(
-                    true,
-                    null,
-                    $keyValue
-                );
-
-                if ($loop === null) {
-                    return $methodReply;
-                } else {
-                    return \React\Promise\resolve($methodReply);
-                }
-            }
-        }
         $query = get_sql_query(
             AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
             array("translation", "id"),
@@ -271,9 +253,6 @@ class AccountTranslation
                         1
                     );
                 }
-            }
-            if (function_exists("set_key_value_pair")) {
-                set_key_value_pair(self::getMemoryKey($hash), $translation, "30 minutes");
             }
             return new MethodReply(
                 true,
