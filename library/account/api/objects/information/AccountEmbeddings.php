@@ -21,16 +21,17 @@ class AccountEmbeddings
     }
 
     public function objectify(
-        string  $model,
-        string  $text,
-        ?string $expiration = null,
-        bool    $force = false,
-        bool    $save = true,
-        mixed   $loop = null): mixed
+        string       $model,
+        string|array $textOrArray,
+        ?string      $expiration = null,
+        bool         $force = false,
+        bool         $save = true,
+        mixed        $loop = null): mixed
     {
         $model = trim($model);
-        $text = trim($text);
-        $hash = array_to_integer(array($model, $text), true);
+        $hash = is_array($textOrArray)
+            ? array_to_integer($textOrArray, true)
+            : string_to_integer($textOrArray, true);
         $date = get_current_date();
 
         if (function_exists("get_key_value_pair")) {
@@ -66,50 +67,32 @@ class AccountEmbeddings
                 "DESC",
                 "id"
             ),
-            1
+            10_000
         );
 
         if ($force || empty($query)) {
-            if ($save) {
-                sql_insert(
-                    AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
-                    array(
-                        "embedding_hash" => $hash,
-                        "embedding_model" => $model,
-                        "actual" => $text,
-                        "creation_date" => $date,
-                        "expiration_date" => $expiration === null ? null : get_future_date($expiration)
-                    )
-                );
-            }
             return $this->processObjectification(
                 $model,
-                $text,
                 $hash,
+                $textOrArray,
                 $save,
                 $loop,
                 $date,
-                null
+                $expiration === null ? null : get_future_date($expiration)
             );
         } else {
-            $query = $query[0];
+            $results = array();
+
+            foreach ($query as $row) {
+                $results[$row->embedding_hash] = json_decode($row->objectified, true);
+            }
             $methodReply = new MethodReply(
                 true,
                 null,
-                $query->objectified
+                $results
             );
 
-            if ($query->objectified === null) {
-                return $this->processObjectification(
-                    $model,
-                    $text,
-                    $hash,
-                    $save,
-                    $loop,
-                    $date,
-                    $query->id
-                );
-            } else if ($loop === null) {
+            if ($loop === null) {
                 return $methodReply;
             } else {
                 return \React\Promise\resolve($methodReply);
@@ -118,16 +101,18 @@ class AccountEmbeddings
     }
 
     private function processObjectification(
-        string $model,
-        string $text,
-        string $hash,
-        bool   $save,
-        mixed  $loop,
-        string $date,
-        ?int   $id
+        string       $model,
+        string       $hash,
+        string|array $textOrArray,
+        bool         $save,
+        mixed        $loop,
+        string       $date,
+        ?string      $expiration
     )
     {
-        $arguments = array(// todo
+        $arguments = array(
+            "model" => $model,
+            "input" => $textOrArray
         );
 
         $managerAI = new AIManager(
@@ -145,7 +130,7 @@ class AccountEmbeddings
                 $hash,
                 $save,
                 $date,
-                $id
+                $expiration
             );
         } else {
             $outcome = $managerAI->getResult(
@@ -161,7 +146,7 @@ class AccountEmbeddings
                     $hash,
                     $save,
                     $date,
-                    $id
+                    $expiration
                 ) {
                     return $this->processResult(
                         $outcome,
@@ -169,7 +154,7 @@ class AccountEmbeddings
                         $hash,
                         $save,
                         $date,
-                        $id
+                        $expiration
                     );
                 },
                 function (Throwable $e) {
@@ -180,18 +165,18 @@ class AccountEmbeddings
     }
 
     private function processResult(
-        array  $outcome,
-        string $model,
-        string $hash,
-        bool   $save,
-        string $date,
-        ?int   $id
+        array   $outcome,
+        string  $model,
+        string  $hash,
+        bool    $save,
+        string  $date,
+        ?string $expiration
     ): MethodReply
     {
         if (array_shift($outcome)) {
-            $embedding = $outcome[0]->getTextOrVoice($outcome[1]);
+            $embeddings = $outcome[0]->getEmbeddings($outcome[1]);
 
-            if ($embedding === null) {
+            if ($embeddings === null) {
                 return new MethodReply(
                     false,
                     null,
@@ -199,48 +184,27 @@ class AccountEmbeddings
                 );
             }
             if ($save) {
-                if ($id === null) {
-                    set_sql_query(
+                foreach ($embeddings as $embedding) {
+                    sql_insert(
                         AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
                         array(
-                            "objectified" => $embedding
-                        ),
-                        array(
-                            array("embedding_hash", $hash),
-                            array("embedding_model", $model),
-                            array("deletion_date", null),
-                            null,
-                            array("expiration_date", "IS", null, 0),
-                            array("expiration_date", ">", $date),
-                            null
-                        ),
-                        array(
-                            "DESC",
-                            "id"
-                        ),
-                        1
-                    );
-                } else {
-                    set_sql_query(
-                        AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
-                        array(
-                            "objectified" => $embedding
-                        ),
-                        array(
-                            array("id", $id)
-                        ),
-                        null,
-                        1
+                            "embedding_hash" => $hash,
+                            "embedding_model" => $model,
+                            "objectified" => json_encode($embedding),
+                            "creation_date" => $date,
+                            "expiration_date" => $expiration,
+                            "deletion_date" => null,
+                        )
                     );
                 }
             }
             if (function_exists("set_key_value_pair")) {
-                set_key_value_pair(self::getMemoryKey($hash), $embedding, "30 minutes");
+                set_key_value_pair(self::getMemoryKey($hash), $embeddings, "30 minutes");
             }
             return new MethodReply(
                 true,
                 null,
-                $embedding
+                $embeddings
             );
         } else {
             return new MethodReply(
