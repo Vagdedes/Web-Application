@@ -69,9 +69,9 @@ class AccountEmbeddings
                 $decode = json_decode($row->objectified, true);
 
                 if (is_array($decode)) {
-                    $results[$row->embedding_hash] = $decode;
+                    $results[] = $decode;
                 } else {
-                    $results[$row->embedding_hash] = array();
+                    $results[] = array();
                 }
             }
             $methodReply = new MethodReply(
