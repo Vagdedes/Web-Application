@@ -49,7 +49,7 @@ class AccountEmbeddings
                 "DESC",
                 "id"
             ),
-            10_000
+            1
         );
 
         if ($force || empty($query)) {
@@ -63,22 +63,21 @@ class AccountEmbeddings
                 $expiration === null ? null : get_future_date($expiration)
             );
         } else {
-            $results = array();
+            $results = json_decode($query[0]->objectified, true);
 
-            foreach ($query as $row) {
-                $decode = json_decode($row->objectified, true);
-
-                if (is_array($decode)) {
-                    $results[] = $decode;
-                } else {
-                    $results[] = array();
-                }
+            if (is_array($results)) {
+                $methodReply = new MethodReply(
+                    true,
+                    null,
+                    $results
+                );
+            } else {
+                $methodReply = new MethodReply(
+                    false,
+                    null,
+                    null
+                );
             }
-            $methodReply = new MethodReply(
-                true,
-                null,
-                $results
-            );
 
             if ($loop === null) {
                 return $methodReply;
