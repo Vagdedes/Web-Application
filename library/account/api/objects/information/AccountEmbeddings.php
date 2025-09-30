@@ -7,13 +7,19 @@ class AccountEmbeddings
 
     private Account $account;
     private ?float $lastCost;
-    private ?int $lastCurrency;
+    private ?int $lastCurrency, $lastQueryId;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
         $this->lastCost = null;
         $this->lastCurrency = null;
+        $this->lastQueryId = null;
+    }
+
+    public function getLastQueryId(): ?int
+    {
+        return $this->lastQueryId;
     }
 
     public function getLastCost(): ?float
@@ -116,6 +122,7 @@ class AccountEmbeddings
                 $arguments
             );
             return $this->processResult(
+                $managerAI,
                 $outcome,
                 $model,
                 $textOrArray,
@@ -134,6 +141,7 @@ class AccountEmbeddings
             );
             return $outcome->then(
                 function (array $outcome) use (
+                    $managerAI,
                     $model,
                     $textOrArray,
                     $hash,
@@ -142,6 +150,7 @@ class AccountEmbeddings
                     $expiration
                 ) {
                     return $this->processResult(
+                        $managerAI,
                         $outcome,
                         $model,
                         $textOrArray,
@@ -159,6 +168,7 @@ class AccountEmbeddings
     }
 
     private function processResult(
+        AIManager    $managerAI,
         array        $outcome,
         string       $model,
         string|array $textOrArray,
@@ -180,6 +190,7 @@ class AccountEmbeddings
             }
             $this->lastCost = $outcome[0]->getCost($outcome[1]);
             $this->lastCurrency = $outcome[0]->getCurrency()?->id;
+            $this->lastQueryId = $managerAI->getLastId();
 
             if ($save) {
                 sql_insert(
