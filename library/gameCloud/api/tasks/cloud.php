@@ -387,7 +387,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     $added = array();
 
                     foreach ($query as $arrayKey => $row) {
-                        $hash = string_to_integer($row->announcement);
+                        $hash = string_to_integer($row->announcement, true);
 
                         if (in_array($hash, $added)) {
                             continue;
