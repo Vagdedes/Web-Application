@@ -3,7 +3,7 @@
 class AIManager
 {
 
-    private ?int $randomID;
+    private ?int $lastId;
     private int $familyID;
     private array $models, $parameters, $lastParameters;
     private string $apiKey;
@@ -25,7 +25,7 @@ class AIManager
         $this->parameters = $parameters;
         $this->lastParameters = array();
         $this->models = array();
-        $this->randomID = null;
+        $this->lastId = null;
         $this->lastInput = null;
         $this->lastPickedModel = null;
         $this->lastHash = 0;
@@ -54,11 +54,6 @@ class AIManager
     public function exists(): bool
     {
         return !empty($this->models);
-    }
-
-    public function setRandomID(int $randomID): void
-    {
-        $this->randomID = $randomID;
     }
 
     public function getLastInput(): string|array|null
@@ -99,6 +94,11 @@ class AIManager
     public function getFamilyID(): int
     {
         return $this->familyID;
+    }
+
+    public function getLastId(): ?int
+    {
+        return $this->lastId;
     }
 
     public function getHistory(int|string $hash, ?int $limit = 0): array
@@ -222,19 +222,22 @@ class AIManager
                     $reply = $received;
                 }
             }
-            sql_insert(
+            if (sql_insert(
                 AIDatabaseTable::AI_HISTORY,
                 array(
                     "model_id" => $this->lastPickedModel->getModelID(),
                     "hash" => $this->getLastHash(),
-                    "random_id" => $this->randomID,
                     "sent_parameters" => @json_encode($this->getAllParameters()),
                     "received_parameters" => $received,
                     "currency_id" => $this->lastPickedModel->getCurrency()?->id,
                     "creation_date" => get_current_date()
                 )
-            );
-            return array(true, $this->lastPickedModel, $reply, 2);
+            )) {
+                $this->lastId = get_sql_last_insert_id();
+                return array(true, $this->lastPickedModel, $reply, 0);
+            } else {
+                return array(false, $this->lastPickedModel, null, 1);
+            }
         }
 
         sql_insert(
@@ -247,7 +250,7 @@ class AIManager
                 "creation_date" => get_current_date()
             )
         );
-        return array(false, $this->lastPickedModel, null, 3);
+        return array(false, $this->lastPickedModel, null, 2);
     }
 
 }

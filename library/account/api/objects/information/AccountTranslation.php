@@ -27,14 +27,6 @@ class AccountTranslation
         return $this->lastCurrency;
     }
 
-    private function getMemoryKey(int|float|string $hash): int
-    {
-        return array_to_integer(array(
-            self::class,
-            $hash
-        ));
-    }
-
     public function translate(
         string  $defaultLanguage,
         string  $language,

@@ -16,14 +16,6 @@ class AccountEmbeddings
         $this->lastCurrency = null;
     }
 
-    private function getMemoryKey(int|float|string $hash): int
-    {
-        return array_to_integer(array(
-            self::class,
-            $hash
-        ));
-    }
-
     public function getLastCost(): ?float
     {
         return $this->lastCost;
