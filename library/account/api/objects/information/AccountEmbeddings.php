@@ -6,10 +6,14 @@ class AccountEmbeddings
     private const AI_HASH = 581928704;
 
     private Account $account;
+    private ?float $lastCost;
+    private ?int $lastCurrency;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
+        $this->lastCost = null;
+        $this->lastCurrency = null;
     }
 
     private function getMemoryKey(int|float|string $hash): int
@@ -18,6 +22,16 @@ class AccountEmbeddings
             self::class,
             $hash
         ));
+    }
+
+    public function getLastCost(): ?float
+    {
+        return $this->lastCost;
+    }
+
+    public function getLastCurrency(): ?int
+    {
+        return $this->lastCurrency;
     }
 
     public function objectify(
@@ -172,6 +186,9 @@ class AccountEmbeddings
                     null
                 );
             }
+            $this->lastCost = $outcome[0]->getCost($outcome[1]);
+            $this->lastCurrency = $outcome[0]->getCurrency()?->id;
+
             if ($save) {
                 sql_insert(
                     AccountVariables::EMBEDDINGS_PROCESSED_TABLE,

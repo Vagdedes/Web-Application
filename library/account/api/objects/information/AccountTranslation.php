@@ -7,10 +7,24 @@ class AccountTranslation
     public const AUTO_DETECT = "auto-detect";
 
     private Account $account;
+    private ?float $lastCost;
+    private ?int $lastCurrency;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
+        $this->lastCost = null;
+        $this->lastCurrency = null;
+    }
+
+    public function getLastCost(): ?float
+    {
+        return $this->lastCost;
+    }
+
+    public function getLastCurrency(): ?int
+    {
+        return $this->lastCurrency;
     }
 
     private function getMemoryKey(int|float|string $hash): int
@@ -218,6 +232,9 @@ class AccountTranslation
                     null
                 );
             }
+            $this->lastCost = $outcome[0]->getCost($outcome[1]);
+            $this->lastCurrency = $outcome[0]->getCurrency()?->id;
+
             if ($save) {
                 if ($id === null) {
                     set_sql_query(
