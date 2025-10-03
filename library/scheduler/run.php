@@ -3,6 +3,8 @@
 use React\EventLoop\Loop;
 
 ini_set('memory_limit', '-1');
+ini_set('error_log', '/var/log/apache2/error.log');
+
 require '/var/www/.structure/library/base/vendor.php';
 require '/var/www/.structure/library/base/utilities.php';
 require '/var/www/.structure/library/base/sql.php';
@@ -54,21 +56,9 @@ use ($start, $function, $argv, $uniqueRun, $scriptHash, $serverHash, &$runningId
             $callable();
         }
     } catch (Throwable $exception) {
-        $object = new stdClass();
-        $object->date = get_current_date();
-        $object->message = $exception->getMessage();
-        $object->trace = $exception->getTraceAsString();
-        $trace = json_encode($object, JSON_PRETTY_PRINT);
-        $file = fopen(
-            "/var/www/.structure/library/scheduler/errors/exception_" . string_to_integer($trace, true) . ".txt",
-            "w"
-        );
-        echo $trace . "\n";
+        error_log($exception->getMessage());
+        error_log($exception->getTraceAsString());
 
-        if ($file !== false) {
-            fwrite($file, $trace);
-            fclose($file);
-        }
         if ($runningId !== null) {
             __SchedulerDatabase::deleteSpecific($runningId);
         }
