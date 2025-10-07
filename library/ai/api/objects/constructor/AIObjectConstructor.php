@@ -5,11 +5,14 @@ class AIObjectConstructor
 
     public const
         ERROR_KEY = "error",
+        BASICS_KEY = "basics",
+        USED_KEYS = array(
+        self::ERROR_KEY,
+        self::BASICS_KEY
+    ),
         DEFAULT_INSTRUCTIONS =
         [
-            "Construct the object and return it in JSON format without markdown",
-            "If at least one non-nullable parameter with undefined default is not found, return what could be found along with the key '"
-            . self::ERROR_KEY . "' set to the value '%error%', where %error% is a description of the error",
+            self::BASICS_KEY => "Construct as much of the object in JSON format without markdown"
         ];
 
     private array $initiators, $tasks, $parents;
@@ -21,17 +24,25 @@ class AIObjectConstructor
         bool  $addDefaultInstructions = true
     )
     {
-        if (array_key_exists(self::ERROR_KEY, $initiators)) {
-            throw new InvalidArgumentException("The key '" . self::ERROR_KEY . "' is reserved and cannot be used as an initiator.");
+        foreach (self::USED_KEYS as $usedKey) {
+            if (array_key_exists($usedKey, $initiators)) {
+                throw new InvalidArgumentException("The key '" . $usedKey . "' is reserved and cannot be used as an initiator.");
+            }
         }
+        $initiators[self::ERROR_KEY] = new AIFieldObject(
+            AIField::STRING,
+            null,
+            true,
+            "The error message if the object could not be constructed"
+        );
         $this->initiators = $initiators;
 
         if (empty($tasks)) {
             $tasks = self::DEFAULT_INSTRUCTIONS;
         } else if ($addDefaultInstructions) {
-            foreach (self::DEFAULT_INSTRUCTIONS as $instruction) {
+            foreach (self::DEFAULT_INSTRUCTIONS as $instructionKey => $instruction) {
                 if (!in_array($instruction, $tasks)) {
-                    array_unshift($tasks, $instruction);
+                    $tasks[$instructionKey] = $instruction;
                 }
             }
         }
@@ -66,9 +77,6 @@ class AIObjectConstructor
         if (is_object($object)) {
             $this->lastObject = $object;
 
-            if (isset($object->{self::ERROR_KEY})) {
-                return null;
-            }
             foreach ($array as $initiator) {
                 if ($initiator instanceof AIFieldObject) {
                     $parents = $initiator->getParents();

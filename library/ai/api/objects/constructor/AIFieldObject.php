@@ -38,7 +38,7 @@ class AIFieldObject
 
     public function getMaxLength(bool $notNull = true): int|string|null
     {
-        return $this->maxLength ?? ($notNull ? "Infinity" : null);
+        return $this->maxLength ?? ($notNull ? "INFINITY" : null);
     }
 
     public function isNullable(): bool
