@@ -31,15 +31,17 @@ function get_hetzner_object_pages(string $type, string $service, mixed $argument
     if (is_object($object)) {
         $results[] = $object;
     }
-    while ($object?->meta?->pagination?->next_page !== null) {
-        $object = get_hetzner_object(
-            $type,
-            $service . "?page=" . urlencode($object?->meta?->pagination?->next_page),
-            $arguments
-        );
+    if (isset($object->meta->pagination->next_page)) {
+        while ($object?->meta?->pagination?->next_page !== null) {
+            $object = get_hetzner_object(
+                $type,
+                $service . "?page=" . urlencode($object?->meta?->pagination?->next_page),
+                $arguments
+            );
 
-        if (is_object($object)) {
-            $results[] = $object;
+            if (is_object($object)) {
+                $results[] = $object;
+            }
         }
     }
     return $results;
