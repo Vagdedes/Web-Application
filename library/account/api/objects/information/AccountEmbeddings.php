@@ -41,7 +41,8 @@ class AccountEmbeddings
         mixed        $loop = null): mixed
     {
         $model = trim($model);
-        $hash = is_array($textOrArray)
+        $isArray = is_array($textOrArray);
+        $hash = $isArray
             ? array_to_integer($textOrArray, true)
             : string_to_integer($textOrArray, true);
         $date = get_current_date();
@@ -72,7 +73,8 @@ class AccountEmbeddings
                 $save,
                 $loop,
                 $date,
-                $expiration === null ? null : get_future_date($expiration)
+                $expiration === null ? null : get_future_date($expiration),
+                $isArray
             );
         } else {
             $results = json_decode($query[0]->objectified, true);
@@ -106,13 +108,21 @@ class AccountEmbeddings
         bool         $save,
         mixed        $loop,
         string       $date,
-        ?string      $expiration
+        ?string      $expiration,
+        bool         $isArray
     )
     {
         $managerAI = new AIManager(
             $model,
             AIHelper::getAuthorization(AIAuthorization::OPENAI)
         );
+        if ($isArray) {
+            $referenceArray = $this->deduplicateWithReferences($textOrArray);
+            $textOrArray = $referenceArray[1];
+            $referenceArray = $referenceArray[0];
+        } else {
+            $referenceArray = null;
+        }
         $arguments = array(
             "input" => $textOrArray
         );
@@ -129,7 +139,8 @@ class AccountEmbeddings
                 $hash,
                 $save,
                 $date,
-                $expiration
+                $expiration,
+                $referenceArray
             );
         } else {
             $outcome = $managerAI->getResult(
@@ -147,7 +158,8 @@ class AccountEmbeddings
                     $hash,
                     $save,
                     $date,
-                    $expiration
+                    $expiration,
+                    $referenceArray
                 ) {
                     return $this->processResult(
                         $managerAI,
@@ -157,7 +169,8 @@ class AccountEmbeddings
                         $hash,
                         $save,
                         $date,
-                        $expiration
+                        $expiration,
+                        $referenceArray
                     );
                 },
                 function (Throwable $e) {
@@ -165,6 +178,28 @@ class AccountEmbeddings
                 }
             );
         }
+    }
+
+    private function deduplicateWithReferences(array $array): array
+    {
+        $valueToUniqueIndex = [];
+        $unique = [];
+        $refs = [];
+
+        foreach ($array as $i => $value) {
+            $key = (string)$value;
+            $valueToUniqueIndexValue = $valueToUniqueIndex[$key] ?? null;
+
+            if ($valueToUniqueIndexValue !== null) {
+                $refs[$i] = $valueToUniqueIndexValue;
+            } else {
+                $uIndex = sizeof($unique);
+                $valueToUniqueIndex[$key] = $uIndex;
+                $unique[] = $value;
+                $refs[$i] = $uIndex;
+            }
+        }
+        return [$refs, $unique];
     }
 
     private function processResult(
@@ -175,7 +210,8 @@ class AccountEmbeddings
         string       $hash,
         bool         $save,
         string       $date,
-        ?string      $expiration
+        ?string      $expiration,
+        ?array       $referenceArray
     ): MethodReply
     {
         if (array_shift($outcome)) {
@@ -187,6 +223,21 @@ class AccountEmbeddings
                     null,
                     null
                 );
+            }
+            if ($referenceArray !== null) {
+                $restored = [];
+                $refVals = array_values($referenceArray);
+
+                foreach ($refVals as $pos => $uniqueIndex) {
+                    if (!is_int($uniqueIndex)) {
+                        throw new InvalidArgumentException("Reference at position {$pos} is not an int.");
+                    }
+                    if (!array_key_exists($uniqueIndex, $embeddings)) {
+                        throw new InvalidArgumentException("Unique index {$uniqueIndex} not present in embeddings.");
+                    }
+                    $restored[$pos] = $embeddings[$uniqueIndex];
+                }
+                $embeddings = $restored;
             }
             $this->lastCost = $outcome[0]->getCost($outcome[1]);
             $this->lastCurrency = $outcome[0]->getCurrency()?->id;
