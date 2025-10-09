@@ -33,7 +33,7 @@ class AIObjectConstructor
             AIField::STRING,
             null,
             true,
-            "The error message if the object has missing or invalid fields"
+            "The error message if the object has missing or invalid field types"
         );
         $this->initiators = $initiators;
 
