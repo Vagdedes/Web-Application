@@ -1300,7 +1300,7 @@ class AccountTeam
         }
     }
 
-    public function restoreRole(string|int|object $role, ?string $reason = null): MethodReply
+    public function restoreRole(string|int|object $role): MethodReply
     {
         $result = $this->findTeam();
 
@@ -1310,7 +1310,8 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_RESTORE_TEAM_ROLES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to restore deleted team roles.");
         }
-        if (is_string($role) || is_int($role)) {
+        if (is_string($role)
+            || is_int($role)) {
             $role = $this->getRole($role, true);
 
             if ($role === null) {
@@ -1319,6 +1320,11 @@ class AccountTeam
         }
         if ($this->getPosition() <= $this->getRolePosition($role, true)) {
             return new MethodReply(false, "Cannot restore a deleted role with the same or higher hierarchical position.");
+        }
+        $roleSimilar = $this->getRole($role->name);
+
+        if ($roleSimilar !== null) {
+            return new MethodReply(false, "Cannot restore role with name '" . $role->name . "' as it is used for another role.");
         }
         $selfMemberID = $this->getMember()?->id;
 
