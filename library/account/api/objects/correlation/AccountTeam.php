@@ -1449,7 +1449,7 @@ class AccountTeam
             null,
             array(
                 array("team_id", $result->getObject()->id),
-                is_numeric($reference) ? array("id", $reference) : array("title", $reference),
+                is_numeric($reference) ? array("id", $reference) : array("LOWER(title)", "LOWER('" . $reference . "')"),
                 $deleted
                     ? array("deletion_date", "IS NOT", null)
                     : array("deletion_date", null)
