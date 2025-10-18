@@ -93,6 +93,9 @@ class AIObjectConstructor
                                 $value = $value->{$parent} ?? null;
                             }
                         }
+                    } else if ($initiator->isNullable()) {
+                        $oldObject = $object;
+                        $value = $initiator->getDefault();
                     } else {
                         $oldObject = $object;
                         $value = null;
