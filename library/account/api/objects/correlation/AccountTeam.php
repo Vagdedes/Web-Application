@@ -70,6 +70,7 @@ class AccountTeam
     public function setForcedTeam(object $team): void
     {
         $this->forcedTeam = $team;
+        $this->forcedTeam->title = $this->getTeamTitle();
     }
 
     public function clearCache(): void
@@ -241,7 +242,9 @@ class AccountTeam
         if ($this->forcedTeam !== null
             && $checkAgainst === null
             && ($reference === null
-                || $reference instanceof Account)) {
+                || $reference instanceof Account
+                || is_numeric($reference) && $reference == $this->forcedTeam->id
+                || is_string($reference) && $reference === $this->forcedTeam->title)) {
             if (isset($this->forcedTeam->id)) {
                 $query = $this->forcedTeam->id <= 0
                     ? null
