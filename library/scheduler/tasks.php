@@ -33,4 +33,5 @@ class __SchedulerTasks
         $account->getPaymentProcessor()->run();
         return strval($bool);
     }
+
 }
