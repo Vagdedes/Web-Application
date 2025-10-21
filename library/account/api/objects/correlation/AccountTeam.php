@@ -687,7 +687,18 @@ class AccountTeam
             if ($memberID === null) {
                 return new MethodReply(false, "Member not found.");
             }
-            return new MethodReply(true, "Member added to the team.");
+            $middleName = $account->getDetail(AccountActions::MIDDLE_NAME, null);
+            $lastName = $account->getDetail(AccountActions::LAST_NAME, null);
+            $lastIdentity = trim(
+                $account->getDetail(AccountActions::FIRST_NAME, "")
+                . ($middleName !== null ? " " . $middleName : "")
+                . ($lastName !== null ? " " . $lastName : "")
+            );
+
+            if (empty($lastIdentity)) {
+                $lastIdentity = $account->getDetail("email_address", "");
+            }
+            return new MethodReply(true, "Member '" . $lastIdentity . "' added to the team.");
         } else {
             return new MethodReply(false, "Failed to add member to the team.");
         }
