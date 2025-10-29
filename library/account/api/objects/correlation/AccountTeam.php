@@ -106,39 +106,22 @@ class AccountTeam
                 "created_by_account" => $this->account->getDetail("id"),
                 "creation_reason" => $reason
             ))) {
-            $query = get_sql_query(
-                AccountVariables::TEAM_TABLE,
-                array("id"),
-                array(
-                    array("additional_id", $this->additionalID),
-                    array("deletion_date", null),
-                    array("creation_date", $date),
-                    array("created_by_account", $this->account->getDetail("id")),
-                    array("deletion_date", null)
-                ),
-                array(
-                    "DESC",
-                    "id"
-                ),
-                1
-            );
+            $insertID = get_sql_last_insert_id();
 
-            if (empty($query)) {
+            if ($insertID === null) {
                 return new MethodReply(false, "Failed to find created team.");
             } else {
-                $query = $query[0]->id;
-
                 if (sql_insert(
                     AccountVariables::TEAM_MEMBERS_TABLE,
                     array(
-                        "team_id" => $query,
+                        "team_id" => $insertID,
                         "account_id" => $this->account->getDetail("id"),
                         "creation_date" => $date,
                     ))) {
                     if (!sql_insert(
                         AccountVariables::TEAM_NAME_CHANGES,
                         array(
-                            "team_id" => $query,
+                            "team_id" => $insertID,
                             "name" => $title,
                             "creation_date" => $date,
                         )
@@ -148,7 +131,7 @@ class AccountTeam
                     if (!sql_insert(
                         AccountVariables::TEAM_NAME_CHANGES,
                         array(
-                            "team_id" => $query,
+                            "team_id" => $insertID,
                             "name" => $description,
                             "creation_date" => $date,
                             "description" => true
@@ -682,11 +665,6 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            $memberID = $this->getMember($account)?->id;
-
-            if ($memberID === null) {
-                return new MethodReply(false, "Member not found.");
-            }
             $middleName = $account->getDetail(AccountActions::MIDDLE_NAME, null);
             $lastName = $account->getDetail(AccountActions::LAST_NAME, null);
             $lastIdentity = trim(
@@ -1249,16 +1227,16 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            $role = $this->getRole($name);
+            $insertID = get_sql_last_insert_id();
 
-            if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+            if ($insertID === null) {
+                return new MethodReply(false, "new Role ID not found.");
             }
             if (sql_insert(
                 AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
                 array(
                     "team_id" => $team,
-                    "role_id" => $role->id,
+                    "role_id" => $insertID,
                     "position" => $rookie,
                     "creation_date" => $date,
                     "created_by" => $selfMemberID
