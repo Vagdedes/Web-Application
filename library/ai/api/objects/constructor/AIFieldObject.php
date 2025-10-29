@@ -27,7 +27,7 @@ class AIFieldObject
         $this->isNullable = $isNullable;
         $this->definition = is_string($definition)
             ? $definition
-            : json_encode($definition, JSON_UNESCAPED_SLASHES);
+            : implode("\n", $definition);
         $this->enums = $enums;
         $this->default = $default;
         $this->parents = [];
