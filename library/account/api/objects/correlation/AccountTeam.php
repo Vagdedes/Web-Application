@@ -96,7 +96,7 @@ class AccountTeam
         $result = $this->findTeam($title);
 
         if ($result->isPositiveOutcome()) {
-            return new MethodReply(false, "Team with this title already exists.");
+            return new MethodReply(false, "Team with the title '" . $title . "' already exists.");
         }
         $date = get_current_date();
 
@@ -1219,7 +1219,7 @@ class AccountTeam
         $role = $this->getRole($name);
 
         if ($role !== null) {
-            return new MethodReply(false, "Role with this name already exists.");
+            return new MethodReply(false, "Role with the name '" . $name . "' already exists.");
         }
         $rookie = $this->getRookieRole();
 
@@ -1463,7 +1463,7 @@ class AccountTeam
             null,
             array(
                 array("team_id", $result->getObject()->id),
-                is_numeric($reference) ? array("id", $reference) : array("LOWER(title)", "LOWER('" . $reference . "')"),
+                is_numeric($reference) ? array("id", $reference) : array("LOWER(title)", strtolower($reference)),
                 $deleted
                     ? array("deletion_date", "IS NOT", null)
                     : array("deletion_date", null)
