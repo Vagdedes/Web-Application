@@ -436,9 +436,9 @@ class AccountTeam
                 "automatic" => $automatic
             )
         )) {
-            return new MethodReply(false, "Failed to transfer team ownership to another member.");
+            return new MethodReply(false, "Failed to transfer team ownership to the member '" . $this->getMemberIdentity($account) . "'.");
         }
-        return new MethodReply(true, "Team ownership transferred to another member.");
+        return new MethodReply(true, "Team ownership transferred to the member '" . $this->getMemberIdentity($account) . "' successfully.");
     }
 
     // Separator
@@ -614,9 +614,28 @@ class AccountTeam
                 $this->clearCache();
                 return new MethodReply(true, "You left the team '" . $this->getTeamTitle() . "'.");
             } else {
-                return new MethodReply(false, "Failed to leave team.");
+                return new MethodReply(false, "Failed to leave the team '" . $this->getTeamTitle() . "'.");
             }
         }
+    }
+
+    private function getMemberIdentity(?Account $account = null): string
+    {
+        if ($account === null) {
+            $account = $this->account;
+        }
+        $middleName = $account->getDetail(AccountActions::MIDDLE_NAME, null);
+        $lastName = $account->getDetail(AccountActions::LAST_NAME, null);
+        $lastIdentity = trim(
+            $account->getDetail(AccountActions::FIRST_NAME, "")
+            . ($middleName !== null ? " " . $middleName : "")
+            . ($lastName !== null ? " " . $lastName : "")
+        );
+
+        if (empty($lastIdentity)) {
+            $lastIdentity = $account->getDetail("email_address", "");
+        }
+        return $lastIdentity;
     }
 
     public function addMember(Account $account, ?string $reason = null, bool $multiple = true): MethodReply
@@ -671,20 +690,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            $middleName = $account->getDetail(AccountActions::MIDDLE_NAME, null);
-            $lastName = $account->getDetail(AccountActions::LAST_NAME, null);
-            $lastIdentity = trim(
-                $account->getDetail(AccountActions::FIRST_NAME, "")
-                . ($middleName !== null ? " " . $middleName : "")
-                . ($lastName !== null ? " " . $lastName : "")
-            );
-
-            if (empty($lastIdentity)) {
-                $lastIdentity = $account->getDetail("email_address", "");
-            }
-            return new MethodReply(true, "Member '" . $lastIdentity . "' added to the team.");
+            return new MethodReply(true, "Member '" . $this->getMemberIdentity($account) . "' added to the team.");
         } else {
-            return new MethodReply(false, "Failed to add member to the team.");
+            return new MethodReply(false, "Failed to add member '" . $this->getMemberIdentity($account) . "' to the team.");
         }
     }
 
@@ -731,9 +739,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Member removed from the team.");
+            return new MethodReply(true, "Member '" . $this->getMemberIdentity($account) . "' removed from the team successfully.");
         } else {
-            return new MethodReply(false, "Failed to remove member from the team.");
+            return new MethodReply(false, "Failed to remove member '" . $this->getMemberIdentity($account) . "' from the team.");
         }
     }
 
@@ -1252,7 +1260,7 @@ class AccountTeam
                     "creation_date" => $date,
                     "created_by" => $selfMemberID
                 ))) {
-                return new MethodReply(true, "Role created in the team.");
+                return new MethodReply(true, "Role '" . $name . "' created in the team.");
             } else {
                 return new MethodReply(false, "Failed to set role hierarchical position in the team.");
             }
@@ -1300,9 +1308,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Role deleted from the team.");
+            return new MethodReply(true, "Role '" . $role->title . "' deleted from the team.");
         } else {
-            return new MethodReply(false, "Failed to delete role from the team.");
+            return new MethodReply(false, "Failed to delete role '" . $role->title . "' from the team.");
         }
     }
 
@@ -1350,9 +1358,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Deleted role restored in the team.");
+            return new MethodReply(true, "Deleted role '" . $role->title . "' successfully restored in the team.");
         } else {
-            return new MethodReply(false, "Failed to restore deleted role in the team.");
+            return new MethodReply(false, "Failed to restore deleted role '" . $role->title . "' in the team.");
         }
     }
 
@@ -1522,7 +1530,8 @@ class AccountTeam
         if ($memberID === null) {
             return new MethodReply(false, "Member not found.");
         }
-        if (is_string($role) || is_int($role)) {
+        if (is_string($role)
+            || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1541,7 +1550,7 @@ class AccountTeam
         if ($trueFalse) {
             foreach ($roles as $value) {
                 if ($value->id === $role->id) {
-                    return new MethodReply(false, "Role already given to member.");
+                    return new MethodReply(false, "Role already given to the member '" . $this->getMemberIdentity($account) . "'.");
                 }
             }
             if (sql_insert(
@@ -1554,9 +1563,9 @@ class AccountTeam
                     "created_by" => $selfMemberID,
                     "creation_reason" => $reason
                 ))) {
-                return new MethodReply(true, "Role given to member.");
+                return new MethodReply(true, "Role '" . $role->title . "' given to the member '" . $this->getMemberIdentity($account) . "'.");
             } else {
-                return new MethodReply(false, "Failed to give role to member.");
+                return new MethodReply(false, "Failed to give role '" . $role->title . "' to the member '" . $this->getMemberIdentity($account) . "'.");
             }
         } else {
             if (!empty($roles)) {
@@ -1574,14 +1583,14 @@ class AccountTeam
                             null,
                             1
                         )) {
-                            return new MethodReply(true, "Role removed from member.");
+                            return new MethodReply(true, "Role '" . $role->title . "' removed from the member '" . $this->getMemberIdentity($account) . "'.");
                         } else {
-                            return new MethodReply(false, "Failed to remove role from member.");
+                            return new MethodReply(false, "Failed to remove role '" . $role->title . "' from the member '" . $this->getMemberIdentity($account) . "'.");
                         }
                     }
                 }
             }
-            return new MethodReply(false, "Role not given to member.");
+            return new MethodReply(false, "Role not given to the member '" . $this->getMemberIdentity($account) . "'.");
         }
     }
 
@@ -1738,9 +1747,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Permission added to role.");
+            return new MethodReply(true, "Permission added to the role '" . $role->title . "'.");
         } else {
-            return new MethodReply(false, "Failed to add permission to role.");
+            return new MethodReply(false, "Failed to add permission to the role '" . $role->title . "'.");
         }
     }
 
@@ -1793,9 +1802,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Permission removed from role.");
+            return new MethodReply(true, "Permission removed from the role '" . $role->title . "'.");
         } else {
-            return new MethodReply(false, "Failed to remove permission from role.");
+            return new MethodReply(false, "Failed to remove permission from the role '" . $role->title . "'.");
         }
     }
 
@@ -1888,9 +1897,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Role hierarchical position changed successfully.");
+            return new MethodReply(true, "Hierarchical position changed successfully for the role '" . $role->title . "'.");
         } else {
-            return new MethodReply(false, "Failed to change the role's hierarchical position.");
+            return new MethodReply(false, "Failed to change the hierarchical position of the role '" . $role->title . "'.");
         }
     }
 
@@ -1999,9 +2008,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Permission added to member.");
+            return new MethodReply(true, "Permission added to the member '" . $this->getMemberIdentity($account) . "'.");
         } else {
-            return new MethodReply(false, "Failed to add permission to member.");
+            return new MethodReply(false, "Failed to add permission to the member '" . $this->getMemberIdentity($account) . "'.");
         }
     }
 
@@ -2059,9 +2068,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Permission removed from member.");
+            return new MethodReply(true, "Permission removed from the member '" . $this->getMemberIdentity($account) . "'.");
         } else {
-            return new MethodReply(false, "Failed to remove permission from member.");
+            return new MethodReply(false, "Failed to remove permission from the member '" . $this->getMemberIdentity($account) . "'.");
         }
     }
 
