@@ -15,7 +15,7 @@ class AIFieldObject
         string|array $type,
         ?int         $maxLength,
         bool         $isNullable,
-        string       $definition,
+        string|array $definition,
         ?array       $enums = null,
         mixed        $default = null
     )
@@ -25,7 +25,9 @@ class AIFieldObject
             : $type;
         $this->maxLength = $maxLength;
         $this->isNullable = $isNullable;
-        $this->definition = $definition;
+        $this->definition = is_string($definition)
+            ? $definition
+            : json_encode($definition, JSON_UNESCAPED_SLASHES);
         $this->enums = $enums;
         $this->default = $default;
         $this->parents = [];
