@@ -83,7 +83,9 @@ class AccountTeam
     public function createTeam(string $title, ?string $description, ?string $reason = null): MethodReply
     {
         if (!$this->account->exists()) {
-            return new MethodReply(false, "Account not found.");
+            return new MethodReply(false, "Account with ID '"
+                . $this->account->getDetail("id", "unknown")
+                . "' not found.");
         }
         if (strlen($title) === 0) {
             return new MethodReply(false, "Title cannot be empty.");
@@ -244,7 +246,7 @@ class AccountTeam
                     );
 
                 if (empty($query)) {
-                    return new MethodReply(false, "Forced team not found.");
+                    return new MethodReply(false, "Forced team with ID '" . $this->forcedTeam->id . "' not found.");
                 } else {
                     return new MethodReply(true, "Forced team found successfully.", $query[0]);
                 }
@@ -257,7 +259,9 @@ class AccountTeam
         }
         if ($reference instanceof Account) {
             if (!$reference->exists()) {
-                return new MethodReply(false, "Account not found.");
+                return new MethodReply(false, "Account with ID '"
+                    . $reference->getDetail("id", "unknown")
+                    . "' not found.");
             }
             $query = get_sql_query(
                 AccountVariables::TEAM_MEMBERS_TABLE,
@@ -312,7 +316,7 @@ class AccountTeam
             );
 
             if (empty($query)) {
-                return new MethodReply(false, "Team not found.");
+                return new MethodReply(false, "Team with ID '" . $reference . "' not found.");
             } else {
                 return new MethodReply(true, "Team found successfully.", $query[0]);
             }
@@ -332,7 +336,7 @@ class AccountTeam
             );
 
             if (empty($query)) {
-                return new MethodReply(false, "Team not found.");
+                return new MethodReply(false, "Team with name '" . $reference . "' not found.");
             }
             $subQuery = get_sql_query(
                 AccountVariables::TEAM_TABLE,
@@ -347,7 +351,7 @@ class AccountTeam
             );
 
             if (empty($subQuery)) {
-                return new MethodReply(false, "Team not found.");
+                return new MethodReply(false, "Team with ID '" . $query[0]->team_id . "' not found.");
             } else {
                 return new MethodReply(true, "Team found successfully.", $subQuery[0]);
             }
@@ -415,7 +419,9 @@ class AccountTeam
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member not found.");
+            return new MethodReply(false, "Member with ID '"
+                . $account->getDetail("id", "unknown")
+                . "' not found.");
         }
         $team = $result->getObject()->id;
 
@@ -708,7 +714,9 @@ class AccountTeam
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member not found.");
+            return new MethodReply(false, "Member with ID '"
+                . $account->getDetail("id", "unknown")
+                . "' not found.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_MEMBERS_TABLE,
@@ -1027,7 +1035,9 @@ class AccountTeam
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member not found.");
+            return new MethodReply(false, "Member with ID '"
+                . $account->getDetail("id", "unknown")
+                . "' not found.");
         }
         if (sql_insert(
             AccountVariables::TEAM_MEMBER_POSITIONS_TABLE,
@@ -1087,7 +1097,8 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_ROLE_NAMES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change team names.");
         }
-        if (is_string($role) || is_int($role)) {
+        if (is_string($role)
+            || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1260,7 +1271,8 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to delete team roles.");
         }
-        if (is_string($role) || is_int($role)) {
+        if (is_string($role)
+            || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1597,7 +1609,8 @@ class AccountTeam
 
     public function getRolePermission(string|int|object $role, int $permissionID): MethodReply
     {
-        if (is_string($role) || is_int($role)) {
+        if (is_string($role)
+            || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1607,7 +1620,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission not found.");
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
         $query = get_sql_query(
             AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
@@ -1699,7 +1712,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission not found.");
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add permissions to roles.");
@@ -1738,7 +1751,8 @@ class AccountTeam
         if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        if (is_string($role) || is_int($role)) {
+        if (is_string($role)
+            || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1748,7 +1762,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission not found.");
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "Cannot remove permission from a role with the same or higher hierarchical position.");
@@ -1827,7 +1841,8 @@ class AccountTeam
         if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        if (is_string($role) || is_int($role)) {
+        if (is_string($role)
+            || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
@@ -1951,7 +1966,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission not found.");
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add others permissions.");
@@ -1967,7 +1982,9 @@ class AccountTeam
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member not found.");
+            return new MethodReply(false, "Member with ID '"
+                . $account->getDetail("id", "unknown")
+                . "' not found.");
         }
         if ($this->getMemberPermission($account, $permissionDef, false, false)->isPositiveOutcome()) {
             return new MethodReply(false, "Permission already given.");
@@ -2006,7 +2023,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission not found.");
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
         if ($this->getPosition() <= $this->getPosition($account)) {
             return new MethodReply(false, "Cannot remove permission from someone with the same or higher hierarchical position.");
@@ -2098,7 +2115,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission not found.");
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
         $query = get_sql_query(
             AccountVariables::TEAM_MEMBER_PERMISSIONS_TABLE,
@@ -2248,7 +2265,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission not found.");
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add default team permissions.");
@@ -2286,7 +2303,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission not found.");
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove default team permissions.");
@@ -2304,7 +2321,7 @@ class AccountTeam
         $memberID = $this->getMember()?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "Executor member with ID '" . $memberID . "' not found.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
@@ -2335,7 +2352,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission not found.");
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "'not found.");
         }
         $query = get_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
