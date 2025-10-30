@@ -83,7 +83,7 @@ class AccountTeam
     public function createTeam(string $title, ?string $description, ?string $reason = null): MethodReply
     {
         if (!$this->account->exists()) {
-            return new MethodReply(false, "Account with ID '"
+            return new MethodReply(false, "Member with ID '"
                 . $this->account->getDetail("id", "unknown")
                 . "' not found.");
         }
@@ -259,7 +259,7 @@ class AccountTeam
         }
         if ($reference instanceof Account) {
             if (!$reference->exists()) {
-                return new MethodReply(false, "Account with ID '"
+                return new MethodReply(false, "Member with ID '"
                     . $reference->getDetail("id", "unknown")
                     . "' not found.");
             }
@@ -403,7 +403,7 @@ class AccountTeam
         $otherResult = $this->findTeam($account, $result->getObject()->id);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "Account is not in this team.");
+            return new MethodReply(false, "Member is not in this team.");
         }
         $owner = $this->getOwner();
 
@@ -652,7 +652,7 @@ class AccountTeam
             return new MethodReply(false, "You cannot add yourself to a team.");
         }
         if ($account->getDetail("application_id") !== $this->account->getDetail("application_id")) {
-            return new MethodReply(false, "Accounts must be from the same application.");
+            return new MethodReply(false, "Members must be from the same application.");
         }
         $team = $result->getObject()->id;
 
@@ -660,13 +660,13 @@ class AccountTeam
             $otherResult = $this->findTeam($account, $team);
 
             if ($otherResult->isPositiveOutcome()) {
-                return new MethodReply(false, "Account is already in this team.");
+                return new MethodReply(false, "Member is already in this team.");
             }
         } else {
             $otherResult = $this->findTeam($account);
 
             if ($otherResult->isPositiveOutcome()) {
-                return new MethodReply(false, "Account is already in a team.");
+                return new MethodReply(false, "Member is already in a team.");
             }
         }
         $rookie = $this->getRookie();
@@ -706,7 +706,7 @@ class AccountTeam
         $otherResult = $this->findTeam($account, $result->getObject()->id);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "The other account is not in this team.");
+            return new MethodReply(false, "The other member is not in this team.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBERS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove members from the team.");
@@ -1004,7 +1004,7 @@ class AccountTeam
         $otherResult = $this->findTeam($account, $team);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "The other account is not in this team.");
+            return new MethodReply(false, "The other member is not in this team.");
         }
         $owner = $this->getOwner();
 
@@ -1970,7 +1970,7 @@ class AccountTeam
         $otherResult = $this->findTeam($account, $team);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "The other account is not in this team.");
+            return new MethodReply(false, "The other member is not in this team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
@@ -2027,7 +2027,7 @@ class AccountTeam
         $otherResult = $this->findTeam($account, $result->getObject()->id);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "The other account is not in this team.");
+            return new MethodReply(false, "The other member is not in this team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
