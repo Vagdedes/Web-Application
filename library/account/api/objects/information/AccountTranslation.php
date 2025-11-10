@@ -48,7 +48,8 @@ class AccountTranslation
         $hash = array_to_integer(array($language, $text), true);
         $date = get_current_date();
 
-        if ($defaultLanguage === $language) {
+        if ($defaultLanguage === $language
+            || preg_match('/^[^a-zA-Z0-9]+$/', $text)) { // Just symbols
             $methodReply = new MethodReply(
                 true,
                 null,
