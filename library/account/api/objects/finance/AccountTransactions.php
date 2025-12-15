@@ -17,7 +17,7 @@ class AccountTransactions
             $loopArray = array();
 
             switch ($transactionType) {
-                case PaymentProcessor::PAYPAL:
+                case AccountAccounts::PAYPAL_EMAIL:
                     $credential = $this->account->getAccounts()->hasAdded($transactionType);
 
                     if ($credential->isPositiveOutcome()) {
@@ -28,7 +28,7 @@ class AccountTransactions
                         }
                     }
                     break;
-                case PaymentProcessor::STRIPE:
+                case AccountAccounts::STRIPE_EMAIL:
                     $credential = $this->account->getAccounts()->hasAdded($transactionType);
 
                     if ($credential->isPositiveOutcome()) {
