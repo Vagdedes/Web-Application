@@ -1,6 +1,4 @@
 <?php
-// Administrator
-$administrator_public_server_ip_addresses_table = "administrator.publicServerIpAddresses";
 
 class AccountVariables
 {

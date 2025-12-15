@@ -26,7 +26,7 @@ class GameCloudVerification
         $this->user = $user;
     }
 
-    public function isVerified(int|string $fileID, int|string $productID, string $ipAddress): int
+    public function isVerified(int|string $fileID, string $ipAddress): int
     {
         $result = $this::ordinary_verification_value;
         $licenseID = $this->user->getLicense();
@@ -41,10 +41,6 @@ class GameCloudVerification
                 array("number", "=", $licenseID, 0),
                 array("number", "=", $fileID, 0),
                 array("number", null),
-                null,
-                null,
-                array("product_id", "=", $productID, 0),
-                array("product_id", null),
                 null,
                 null,
                 array("expiration_date", ">=", $date, 0),
@@ -82,10 +78,6 @@ class GameCloudVerification
                     array("license_id", $licenseID),
                     array("deletion_date", null),
                     null,
-                    array("product_id", "=", $productID, 0),
-                    array("product_id", null),
-                    null,
-                    null,
                     array("expiration_date", ">=", $date, 0),
                     array("expiration_date", null),
                     null
@@ -102,11 +94,10 @@ class GameCloudVerification
         return $result;
     }
 
-    public function addLicenseManagement(int|string|null $productID,
-                                         string          $type,
-                                         ?string         $reason,
-                                         ?string         $duration,
-                                         ?string         $ipAddress): bool
+    public function addLicenseManagement(string  $type,
+                                         ?string $reason,
+                                         ?string $duration,
+                                         ?string $ipAddress): bool
     {
         if (!in_array($type, $this::managed_license_types)) {
             return false;
@@ -138,9 +129,6 @@ class GameCloudVerification
                     : array("number", $licenseID),
                 array("platform_id", $platform),
                 array("deletion_date", null),
-                $productID !== null
-                    ? array("product_id", $productID)
-                    : "",
             ),
             null,
             1
@@ -151,7 +139,6 @@ class GameCloudVerification
                 ? array(
                     "license_id" => $licenseID,
                     "platform_id" => $platform,
-                    "product_id" => $productID,
                     "ip_address" => $ipAddress,
                     "reason" => $reason,
                     "creation_date" => $date,
@@ -161,7 +148,6 @@ class GameCloudVerification
                     "type" => $type,
                     "number" => $licenseID,
                     "platform_id" => $platform,
-                    "product_id" => $productID,
                     "reason" => $reason,
                     "creation_date" => $date,
                     "expiration_date" => $duration
@@ -190,7 +176,7 @@ class GameCloudVerification
         return true;
     }
 
-    public function removeLicenseManagement(int|string|null $productID, string $type): bool
+    public function removeLicenseManagement(string $type): bool
     {
         if (!in_array($type, $this::managed_license_types)) {
             return false;
@@ -212,10 +198,7 @@ class GameCloudVerification
                     ? array("license_id", $licenseID)
                     : array("number", $licenseID),
                 array("platform_id", $platform),
-                array("deletion_date", null),
-                $productID !== null
-                    ? array("product_id", $productID)
-                    : "",
+                array("deletion_date", null)
             ),
             null,
             1

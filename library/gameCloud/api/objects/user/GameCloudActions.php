@@ -9,8 +9,7 @@ class GameCloudActions
         $this->user = $user;
     }
 
-    public function addStaffAnnouncement(int|string|null  $productID,
-                                         int|string|null  $priority,
+    public function addStaffAnnouncement(int|string|null  $priority,
                                          int|string|null  $minimumVersion, int|string|null $maximumVersion,
                                          int|string|null  $cooldown, int|string|null $duration,
                                          int|string|float $announcement,
@@ -38,7 +37,6 @@ class GameCloudActions
                         "license_id" => $this->user->getLicense(),
                         "platform_id" => $this->user->getPlatform(),
                         "priority" => $priority,
-                        "product_id" => $productID,
                         "minimum_version" => $minimumVersion,
                         "maximum_version" => $maximumVersion,
                         "cooldown" => $cooldown,

@@ -30,11 +30,6 @@ class GameCloudConnection
             $this->properties = $new->getProperties();
             return;
         }
-        $allowedProducts = $purpose->allowed_products;
-
-        if ($allowedProducts !== null) {
-            $purpose->allowed_products = explode("|", $allowedProducts);
-        }
         $this->properties = $purpose;
     }
 

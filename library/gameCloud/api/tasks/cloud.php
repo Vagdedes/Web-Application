@@ -17,7 +17,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
     require_once '/var/www/.structure/library/base/requirements/account_systems.php';
     require_once '/var/www/.structure/library/base/form.php';
 
-    $productObject = null;
     $accessFailure = null;
     $fileID = null;
     $token = null;
@@ -51,7 +50,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
         if (empty($user_agent)) {
             return;
         }
-        $isTokenSearch = !is_numeric($user_agent);
     } else {
         $user_agent = get_user_agent();
 
@@ -59,11 +57,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             return;
         }
         $ipAddressModified = get_client_ip_address();
-        $isTokenSearch = !is_numeric($user_agent);
     }
-    $purposeAllowedProducts = $purpose->allowed_products;
-    $allProductsAreAllowed = $purposeAllowedProducts === null;
-
     $gameCloudUser = new GameCloudUser(null, null);
     $identification = get_form("identification", "");
 
@@ -87,10 +81,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     $accessFailure = 948302520;
                 } else {
                     $gameCloudUser->setPlatform($platformID);
-
-                    if (!$isTokenSearch) {
-                        $account = $gameCloudUser->getAccount()->getAccount();
-                    }
+                    $account = $gameCloudUser->getAccount()->getAccount();
                 }
             } else if ($requiresVerification) {
                 $accessFailure = 899453502;
@@ -103,61 +94,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
         $accessFailure = 659076543;
     }
 
-    // Product Finder
-
-    if (!$isTokenSearch) {
-        if (is_numeric($user_agent) && $user_agent > 0) {
-            $validProductObject = $account->getProduct()->find($user_agent, false, false);
-
-            if ($validProductObject->isPositiveOutcome()) {
-                $validProductObject = $validProductObject->getObject()[0];
-
-                if (($allProductsAreAllowed
-                        || in_array($validProductObject->id, $purposeAllowedProducts))
-                    && ($purpose->ignore_version !== null
-                        || array_key_exists($version, $validProductObject->supported_versions))) {
-                    $productObject = $validProductObject;
-                }
-            }
-        }
-    } else { // Token Finder
-        $download = $account->getDownloads()->find($user_agent, false);
-
-        if ($download->isPositiveOutcome()) {
-            $download = $download->getObject();
-            $account = $download->account;
-
-            if ($account->exists()) {
-                $validProductObject = $account->getProduct()->find($download->product_id, false);
-
-                if ($validProductObject->isPositiveOutcome()
-                    && ($allProductsAreAllowed || in_array($download->product_id, $purposeAllowedProducts))) {
-                    $validProductObject = $validProductObject->getObject()[0];
-
-                    if ($purpose->ignore_version !== null
-                        || array_key_exists($version, $validProductObject->supported_versions)) {
-                        $acceptedPlatforms = get_accepted_platforms(array("id", "accepted_account_id"));
-
-                        if (!empty($acceptedPlatforms)) {
-                            foreach ($acceptedPlatforms as $row) {
-                                $acceptedAccount = $account->getAccounts()->hasAdded($row->accepted_account_id, $gameCloudUser->getLicense(), 1);
-
-                                if ($acceptedAccount->isPositiveOutcome()) {
-                                    $token = $user_agent;
-                                    $productObject = $validProductObject;
-                                    $gameCloudUser->setPlatform($row->id);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if ($productObject === null
-        || $accessFailure !== null) {
+    if ($accessFailure !== null) {
         return;
     }
 
@@ -170,7 +107,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             array("id", "count"),
             array(
                 array("license_id", $gameCloudUser->getLicense()),
-                array("product_id", $productObject->id),
                 array("platform_id", $gameCloudUser->getPlatform()),
                 array("ip_address", $ipAddressModified),
                 array("cause", $cause),
@@ -223,7 +159,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     "ip_address" => $ipAddressModified,
                     "token" => $token,
                     "version" => $version,
-                    "product_id" => $productObject->id,
                     "cause" => $cause,
                     "count" => 1,
                     "date" => $date,
@@ -410,7 +345,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             if ($gameCloudUser->isValid()) {
                 $verificationResult = $gameCloudUser->getVerification()->isVerified(
                     $fileID,
-                    $productObject->id,
                     $ipAddressModified
                 );
 
@@ -497,7 +431,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                                     "version" => $version,
                                     "platform_id" => $gameCloudUser->getPlatform(),
                                     "license_id" => $gameCloudUser->getLicense(),
-                                    "product_id" => $productObject->id,
                                     "webhook_url" => $url,
                                     "details" => json_encode($details),
                                     "error" => $response
@@ -606,7 +539,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                         "version" => $version,
                         "platform_id" => $gameCloudUser->getPlatform(),
                         "license_id" => $gameCloudUser->getLicense(),
-                        "product_id" => $productObject->id,
                         "webhook_url" => $url,
                         "details" => @json_encode(
                             $details,
