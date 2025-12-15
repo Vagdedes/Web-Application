@@ -51,21 +51,6 @@ class AccountVariables
         ACCOUNT_INSTANT_COOLDOWNS_TABLE = "cooldown.instantCooldowns",
         ACCOUNT_BUFFER_COOLDOWNS_TABLE = "cooldown.bufferCooldowns",
 
-        PRODUCTS_TABLE = "product.products",
-        PRODUCT_COUPONS_TABLE = "product.coupons",
-        PRODUCT_DOWNLOADS_TABLE = "product.downloads",
-        PRODUCT_PURCHASES_TABLE = "product.purchases",
-        PRODUCT_COMPATIBILITIES_TABLE = "product.compatibilities",
-        PRODUCT_UPDATES_TABLE = "product.updates",
-        PRODUCT_TRANSACTION_SEARCH_TABLE = "product.transactionSearch",
-        PRODUCT_TRANSACTION_SEARCH_EXECUTIONS_TABLE = "product.transactionSearchExecutions",
-        PRODUCT_TIERS_TABLE = "product.tiers",
-
-        PRODUCT_GIVEAWAYS_TABLE = "giveaway.giveaways",
-        GIVEAWAY_WINNERS_TABLE = "giveaway.winners",
-
-        UNKNOWN_EMAIL_PROCESSING_TABLE = "transactions.unknownEmailProcessing",
-
         ADDED_ACCOUNTS_TABLE = "correlation.addedAccounts",
         ACCEPTED_ACCOUNTS_TABLE = "correlation.accounts",
 
@@ -73,13 +58,6 @@ class AccountVariables
 
         EMAIL_VERIFICATIONS_TABLE = "verification.emailVerifications",
         CHANGE_PASSWORD_TABLE = "verification.changePassword",
-
-        STATISTIC_TYPES_TABLE = "statistic.types",
-        STATISTIC_INTEGERS_TABLE = "statistic.integerStatistics",
-        STATISTIC_LONG_TABLE = "statistic.longStatistics",
-        STATISTIC_DOUBLE_TABLE = "statistic.doubleStatistics",
-        STATISTIC_STRING_TABLE = "statistic.stringStatistics",
-        STATISTIC_BOOLEAN_TABLE = "statistic.booleanStatistics",
 
         INSTRUCTIONS_LOCAL_TABLE = "instructions.local",
         INSTRUCTIONS_PUBLIC_TABLE = "instructions.public",

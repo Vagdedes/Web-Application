@@ -332,20 +332,6 @@ class AccountEmail
                 }
                 $platformsString .= "\r\n";
             }
-            $purchases = $account->getPurchases()->getCurrent();
-
-            if (!empty($purchases)) {
-                $platformsString .= "Purchases:\r\n";
-
-                foreach ($purchases as $row) {
-                    $products = $this->account->getProduct()->find($row->product_id, false);
-
-                    if ($products->isPositiveOutcome()) {
-                        $platformsString .= strip_tags($products->getObject()[0]->name) . "\r\n";
-                    }
-                }
-                $platformsString .= "\r\n";
-            }
             if (!empty($extra)) {
                 $platformsString .= "Extra:\r\n";
 

@@ -48,13 +48,6 @@ class GameCloudAccount
         return $this->account;
     }
 
-    public function ownsProduct(int|string $productID): bool
-    {
-        $account = $this->getAccount();
-        return $account->exists()
-            && $account->getPurchases()->owns($productID)->isPositiveOutcome();
-    }
-
     public function sendEmail(
         int|string|float $case,
         ?array           $detailsArray = null,

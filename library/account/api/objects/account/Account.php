@@ -29,7 +29,6 @@ class Account implements JsonSerializable
     private AccountPhoneNumber $phoneNumber;
     private AccountPatreon $patreon;
     private AccountFunctionality $functionality;
-    private AccountStatistics $statistics;
     private AccountRegistry $registry;
     private AccountSession $session;
     private TwoFactorAuthentication $twoFactorAuthentication;
@@ -65,7 +64,6 @@ class Account implements JsonSerializable
         $this->moderations = new AccountModerations($this);
         $this->functionality = new AccountFunctionality($this);
         $this->instructions = new AccountInstructions($this);
-        $this->statistics = new AccountStatistics($this);
 
         // Independent
         $this->registry = new AccountRegistry($this);
@@ -333,11 +331,6 @@ class Account implements JsonSerializable
     public function getFunctionality(): AccountFunctionality
     {
         return $this->functionality;
-    }
-
-    public function getStatistics(): AccountStatistics
-    {
-        return $this->statistics;
     }
 
     // Separator
