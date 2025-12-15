@@ -362,7 +362,9 @@ class AccountPermissions
 
     public function isAdministrator(): bool
     {
-        return in_array("*", $this->getAllPermissions());
+        return in_array("*", $this->getGivenPermissions())
+            || in_array("*", $this->getSystemPermissions())
+            || in_array("*", $this->getRolePermissions());
     }
 
     public function getPriority(): int
