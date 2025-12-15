@@ -7,7 +7,6 @@ function load_account_page(bool $loadContents = true, ?callable $callable = null
     $directory = $forceDirectory !== null ? $forceDirectory : get_final_directory();
     $title = unstuck_words_from_capital_letters($directory);
     $metaDescription = "Science, technology & engineering";
-    $randomNumber = rand(0, 2147483647);
 
     echo "<!DOCTYPE html>
         <html lang='en'>

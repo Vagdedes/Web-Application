@@ -14,13 +14,6 @@ require_once '/var/www/.structure/library/account/api/variables.php';
 require_once '/var/www/.structure/library/account/api/objects/account/Account.php';
 require_once '/var/www/.structure/library/account/api/objects/account/AccountRegistry.php';
 
-// Product
-require_once '/var/www/.structure/library/account/api/objects/product/AccountProductDownloads.php';
-require_once '/var/www/.structure/library/account/api/objects/product/AccountPurchases.php';
-require_once '/var/www/.structure/library/account/api/objects/product/AccountGiveaway.php';
-require_once '/var/www/.structure/library/account/api/objects/product/AccountProduct.php';
-require_once '/var/www/.structure/library/account/api/objects/product/ProductCoupon.php';
-
 // Management
 require_once '/var/www/.structure/library/account/api/objects/management/AccountModerations.php';
 require_once '/var/www/.structure/library/account/api/objects/management/AccountPermissions.php';
