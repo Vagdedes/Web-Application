@@ -1,8 +1,5 @@
 <?php
 // Administrator
-if (!isset($administrator_local_server_ip_addresses_table)) { // Already set by communication script
-    $administrator_local_server_ip_addresses_table = "administrator.localServerIpAddresses";
-}
 $administrator_public_server_ip_addresses_table = "administrator.publicServerIpAddresses";
 
 class AccountVariables
