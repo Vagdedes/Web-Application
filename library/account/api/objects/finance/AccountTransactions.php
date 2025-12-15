@@ -24,7 +24,6 @@ class AccountTransactions
                         foreach ($credential->getObject() as $credential) {
                             foreach (find_paypal_transactions_by_data_pair(array("EMAIL" => abstract_search_sql_encode($credential)), $limit) as $transactionID => $transaction) {
                                 $loopArray[$transactionID] = $transaction;
-                                $this->process($transaction);
                             }
                         }
                     }
@@ -36,7 +35,6 @@ class AccountTransactions
                         foreach ($credential->getObject() as $credential) {
                             foreach (find_stripe_transactions_by_data_pair(array("source.billing_details.email" => abstract_search_sql_encode($credential)), $limit) as $transactionID => $transaction) {
                                 $loopArray[$transactionID] = $transaction;
-                                $this->process($transaction);
                             }
                         }
                     }
@@ -50,16 +48,6 @@ class AccountTransactions
     }
 
     // Utilities
-
-    private function process(object $transaction): void
-    {
-        $paymentProcessor = new PaymentProcessor($this->account);
-        $paymentProcessor = $paymentProcessor->getSource($transaction);
-
-        if (!empty($paymentProcessor)) {
-            $this->account->getAccounts()->add($paymentProcessor[0], $paymentProcessor[1]);
-        }
-    }
 
     private function getTypes(mixed $type): array
     {

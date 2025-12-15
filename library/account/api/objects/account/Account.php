@@ -18,26 +18,21 @@ class Account implements JsonSerializable
     private AccountActions $actions;
     private AccountHistory $history;
     private AccountTransactions $transactions;
-    private AccountPurchases $purchases;
     private AccountCooldowns $cooldowns;
     private AccountAccounts $accounts;
     private AccountPermissions $permissions;
     private AccountModerations $moderations;
-    private AccountProductDownloads $downloads;
     private AccountPassword $password;
     private AccountEmail $email;
     private AccountIdentification $identification;
     private AccountNotifications $notifications;
     private AccountPhoneNumber $phoneNumber;
     private AccountPatreon $patreon;
-    private AccountProduct $product;
-    private AccountGiveaway $giveaway;
     private AccountFunctionality $functionality;
     private AccountStatistics $statistics;
     private AccountRegistry $registry;
     private AccountSession $session;
     private TwoFactorAuthentication $twoFactorAuthentication;
-    private PaymentProcessor $paymentProcessor;
     private AccountInstructions $instructions;
     private AccountTeam $team;
     private AccountTranslation $translation;
@@ -55,7 +50,6 @@ class Account implements JsonSerializable
         $this->settings = new AccountSettings($this);
         $this->history = new AccountHistory($this);
         $this->transactions = new AccountTransactions($this);
-        $this->purchases = new AccountPurchases($this);
         $this->cooldowns = new AccountCooldowns($this);
         $this->accounts = new AccountAccounts($this);
         $this->permissions = new AccountPermissions($this);
@@ -68,19 +62,15 @@ class Account implements JsonSerializable
         $this->email = new AccountEmail($this);
         $this->actions = new AccountActions($this);
         $this->password = new AccountPassword($this);
-        $this->downloads = new AccountProductDownloads($this);
-        $this->giveaway = new AccountGiveaway($this);
         $this->moderations = new AccountModerations($this);
         $this->functionality = new AccountFunctionality($this);
         $this->instructions = new AccountInstructions($this);
         $this->statistics = new AccountStatistics($this);
 
         // Independent
-        $this->product = new AccountProduct($this);
         $this->registry = new AccountRegistry($this);
         $this->session = new AccountSession($this);
         $this->twoFactorAuthentication = new TwoFactorAuthentication($this);
-        $this->paymentProcessor = new PaymentProcessor($this);
         $this->translation = new AccountTranslation($this);
         $this->embeddings = new AccountEmbeddings($this);
 
@@ -280,11 +270,6 @@ class Account implements JsonSerializable
         return $this->transactions;
     }
 
-    public function getPurchases(): AccountPurchases
-    {
-        return $this->purchases;
-    }
-
     public function getCooldowns(): AccountCooldowns
     {
         return $this->cooldowns;
@@ -293,11 +278,6 @@ class Account implements JsonSerializable
     public function getAccounts(): AccountAccounts
     {
         return $this->accounts;
-    }
-
-    public function getDownloads(): AccountProductDownloads
-    {
-        return $this->downloads;
     }
 
     public function getPermissions(): AccountPermissions
@@ -350,11 +330,6 @@ class Account implements JsonSerializable
         return $this->patreon;
     }
 
-    public function getProductGiveaway(): AccountGiveaway
-    {
-        return $this->giveaway;
-    }
-
     public function getFunctionality(): AccountFunctionality
     {
         return $this->functionality;
@@ -366,11 +341,6 @@ class Account implements JsonSerializable
     }
 
     // Separator
-
-    public function getProduct(): AccountProduct
-    {
-        return $this->product;
-    }
 
     public function getSession(): AccountSession
     {
@@ -390,11 +360,6 @@ class Account implements JsonSerializable
     public function getTeam(): AccountTeam
     {
         return $this->team;
-    }
-
-    public function getPaymentProcessor(): PaymentProcessor
-    {
-        return $this->paymentProcessor;
     }
 
     public function getInstructions(): AccountInstructions
