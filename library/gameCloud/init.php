@@ -1,5 +1,6 @@
 <?php
-require_once '/var/www/.structure/library/gameCloud/api/connect.php';
+require_once '/var/www/.structure/library/base/communication.php';
+
 require_once '/var/www/.structure/library/gameCloud/api/variables.php';
 
 require_once '/var/www/.structure/library/gameCloud/api/objects/general/GameCloudConnection.php';
