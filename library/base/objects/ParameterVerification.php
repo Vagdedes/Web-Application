@@ -12,12 +12,12 @@ class ParameterVerification
         TYPE_PHONE = 10;
     private MethodReply $outcome;
 
-    public function __construct($parameter,
+    public function __construct(mixed          $parameter,
                                 null|array|int $mustBeType = null,
-                                ?int $minSize = null, ?int $maxSize = null,
-                                ?array $mustContain = null, ?array $mustNotContain = null,
-                                ?string $mustStartWith = null, ?string $mustNotStartWith = null,
-                                ?string $mustEndWidth = null, ?string $mustNotEndWidth = null)
+                                ?int           $minSize = null, ?int $maxSize = null,
+                                ?array         $mustContain = null, ?array $mustNotContain = null,
+                                ?string        $mustStartWith = null, ?string $mustNotStartWith = null,
+                                ?string        $mustEndWidth = null, ?string $mustNotEndWidth = null)
     {
         if ($mustBeType !== null) {
             if (is_array($mustBeType)) {

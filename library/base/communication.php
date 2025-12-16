@@ -1,7 +1,6 @@
 <?php
 require_once '/var/www/.structure/library/base/utilities.php';
 require_once '/var/www/.structure/library/base/sql.php';
-require_once '/var/www/.structure/library/memory/init.php';
 $memory_private_connections_table = "memory.privateConnections";
 $private_connection_access = false;
 $current_sql_database = null;

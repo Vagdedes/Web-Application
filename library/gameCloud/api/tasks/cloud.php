@@ -15,7 +15,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
         $version = null;
     }
     require_once '/var/www/.structure/library/base/requirements/account_systems.php';
-    require_once '/var/www/.structure/library/base/form.php';
 
     $accessFailure = null;
     $fileID = null;

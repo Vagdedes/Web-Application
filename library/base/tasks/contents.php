@@ -1,10 +1,9 @@
 <?php
 require '/var/www/.structure/library/base/form.php';
-require '/var/www/.structure/library/base/requirements/account_systems.php';
-require '/var/www/.structure/library/finance/init.php';
 $path = get_form_get("path");
 
 if (!empty($path)) {
+    require '/var/www/.structure/library/base/requirements/account_systems.php';
     $account = new Account();
     $session = $account->getSession()->find();
 
@@ -33,11 +32,7 @@ if (!empty($path)) {
             $contents = private_file_get_contents($url);
 
             if (json_decode($contents)) {
-                if (isset($_GET["download"])) {
-                    copy_and_send_file_download($contents, AccountProductDownloads::DOWNLOADS_PATH);
-                } else {
-                    header('Content-type: Application/JSON');
-                }
+                header('Content-type: Application/JSON');
             }
             echo $contents;
         }
