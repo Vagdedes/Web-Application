@@ -7,7 +7,7 @@ function create_temporary_file(string $contents): ?string
     if (!@file_put_contents($path, $contents)) {
         return null;
     }
-    $verify = @file_get_contents($path);
+    $verify = timed_file_get_contents($path, 3);
 
     if ($verify === false) {
         return null;

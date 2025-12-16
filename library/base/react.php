@@ -29,7 +29,7 @@ function get_react_http(
             if ($value instanceof CURLFile) {
                 $filePath = $value->getFilename();
                 $fileName = basename($filePath);
-                $fileContent = file_get_contents($filePath);
+                $fileContent = timed_file_get_contents($filePath, 3);
 
                 $bodyContent .= "--$boundary\r\n";
                 $bodyContent .= "Content-Disposition: form-data; name=\"$key\"; filename=\"$fileName\"\r\n";
@@ -41,7 +41,7 @@ function get_react_http(
                         $bodyContent .= "--$boundary\r\n";
                         $bodyContent .= "Content-Disposition: form-data; name=\"$key\"; filename=\"" . basename($file) . "\"\r\n";
                         $bodyContent .= "Content-Type: application/octet-stream\r\n\r\n";
-                        $bodyContent .= file_get_contents($file) . "\r\n";
+                        $bodyContent .= timed_file_get_contents($file, 3) . "\r\n";
                     }
                 }
             } else {

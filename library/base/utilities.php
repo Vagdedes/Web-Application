@@ -648,7 +648,7 @@ function unstuck_words_from_capital_letters(string $word): string
 function get_keys_from_file(string $file, int $amount = 1, bool $custom = false): ?array
 {
     global $keys_from_file_directory;
-    $contents = @file_get_contents(($custom ? "" : $keys_from_file_directory) . $file);
+    $contents = timed_file_get_contents(($custom ? "" : $keys_from_file_directory) . $file, 3);
 
     if ($contents !== false) {
         $keys = explode("\n", $contents);

@@ -60,7 +60,7 @@ if (!empty($path)) {
 
         foreach ($includedFiles as $arrayKey => $file) {
             unset($includedFiles[$arrayKey]);
-            $contents = @file_get_contents($file);
+            $contents = timed_file_get_contents($file, 3);
 
             if (!empty($contents) && $file !== __FILE__) {
                 $contents = substr($contents, 5); // Remove: <?php

@@ -8,8 +8,8 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
         $recentDate = date('Y-m-d', strtotime("-$startDays day")) . "T29:59:59Z";
         $pastDate = date('Y-m-d', strtotime("-$endDays day")) . "T00:00:00Z";
 
-        $existingSuccessfulTransactions = get_all_paypal_transactions(10000, null, false);
-        $existingFailedTransactions = get_failed_paypal_transactions(0, get_past_date("181 days"));
+        $existingSuccessfulTransactions = get_all_paypal_transactions(10_000, null, false);
+        $existingFailedTransactions = get_failed_paypal_transactions(100_000, get_past_date("181 days"));
 
         // Completed
         for ($i = 0; $i < 2; $i++) {
@@ -23,7 +23,8 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
             foreach (array("Success", "Pending", "Processing") as $status) {
                 $transactions = search_paypal_transactions("CURRENCYCODE=EUR&STARTDATE=$pastDate&ENDDATE=$recentDate&TRANSACTIONCLASS=Received&STATUS=$status");
 
-                if (is_array($transactions) && !empty($transactions)) {
+                if (is_array($transactions)
+                    && !empty($transactions)) {
                     foreach ($transactions as $key => $transactionID) {
                         if (str_contains($key, "L_TRANSACTIONID")
                             && !in_array($transactionID, $existingSuccessfulTransactions)
@@ -42,7 +43,8 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
                 $pastDate = date('Y-m-d', strtotime("-180 days")) . "T00:00:00Z";
                 $transactions = search_paypal_transactions("CURRENCYCODE=EUR&STARTDATE=$pastDate&ENDDATE=$recentDate&TRANSACTIONCLASS=Received&STATUS=Reversed");
 
-                if (is_array($transactions) && !empty($transactions)) {
+                if (is_array($transactions)
+                    && !empty($transactions)) {
                     foreach ($transactions as $key => $transactionID) {
                         if (str_contains($key, "L_TRANSACTIONID")) {
                             if (in_array($transactionID, $existingFailedTransactions)) {
@@ -100,46 +102,38 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
             }
 
             // Suspended
-            $transactions = get_all_paypal_transactions(1000);
+            $transactions = get_all_paypal_transactions(1_000);
 
             if (!empty($transactions)) {
-                $continue = true;
+                $suspendedTransactions = identify_paypal_suspended_transactions($transactions);
 
-                if (!empty($existingFailedTransactions)) {
-                    foreach ($existingFailedTransactions as $failedTransactionID) {
-                        unset($transactions[$failedTransactionID]);
-                        $continue = false;
-                    }
-                }
-                if ($continue || !empty($transactions)) {
-                    $suspendedTransactions = identify_paypal_suspended_transactions($transactions);
+                if (!empty($suspendedTransactions)) {
+                    foreach ($suspendedTransactions as $transactionID => $transactionRefundInformation) {
+                        $transaction = $transactions[$transactionID];
 
-                    if (!empty($suspendedTransactions)) {
-                        foreach ($suspendedTransactions as $transactionID => $transactionRefundInformation) {
-                            $transaction = $transactions[$transactionID];
+                        if (isset($transaction->AMT)
+                            && isset($transaction->CURRENCYCODE)
+                            && !in_array($transactionID, $existingFailedTransactions)) {
+                            $partialRefund = $transactionRefundInformation[1] !== true;
+                            $refundAmount = $transaction->AMT;
 
-                            if (isset($transaction->AMT) && isset($transaction->CURRENCYCODE)) {
-                                $partialRefund = $transactionRefundInformation[1] !== true;
-                                $refundAmount = $transaction->AMT;
+                            if ($partialRefund) { // Refund Fees
+                                $refundAmount -= $transaction->FEEAMT ?? 0;
+                            }
 
-                                if ($partialRefund) { // Refund Fees
-                                    $refundAmount -= $transaction->FEEAMT ?? 0;
-                                }
-
-                                if ($refundAmount > 0.0
-                                    && refund_paypal_transaction(
-                                        $transactionID,
-                                        $partialRefund,
-                                        $refundAmount,
-                                        $transaction->CURRENCYCODE,
-                                        $transactionRefundInformation[0]
-                                    ) === true
-                                    && process_failed_paypal_transaction(
-                                        $transactionID,
-                                        false
-                                    )) {
-                                    $processedData = true;
-                                }
+                            if ($refundAmount > 0.0
+                                && refund_paypal_transaction(
+                                    $transactionID,
+                                    $partialRefund,
+                                    $refundAmount,
+                                    $transaction->CURRENCYCODE,
+                                    $transactionRefundInformation[0]
+                                ) === true
+                                && process_failed_paypal_transaction(
+                                    $transactionID,
+                                    false
+                                )) {
+                                $processedData = true;
                             }
                         }
                     }
@@ -156,8 +150,8 @@ function is_successful_paypal_transaction(int|string $transaction): bool
 {
     $transaction = get_paypal_transaction_details($transaction);
     if (is_array($transaction)
-        && isset($transaction["PAYMENTSTATUS"])
-        && isset($transaction["ACK"])
+        && array_key_exists("PAYMENTSTATUS", $transaction)
+        && array_key_exists("ACK", $transaction)
         && $transaction["ACK"] === "Success") {
         switch ($transaction["PAYMENTSTATUS"]) {
             case "Completed":
@@ -176,10 +170,9 @@ function process_successful_paypal_transaction(int|string $transactionID): bool
     $transaction = get_paypal_transaction_details($transactionID);
 
     if (is_array($transaction)
-        && isset($transaction["PAYMENTSTATUS"])
-        && isset($transaction["ACK"])
+        && array_key_exists("PAYMENTSTATUS", $transaction)
+        && array_key_exists("ACK", $transaction)
         && $transaction["ACK"] === "Success") {
-
         switch ($transaction["PAYMENTSTATUS"]) {
             case "Completed":
             case "Pending":

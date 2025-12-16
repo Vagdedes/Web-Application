@@ -7,8 +7,6 @@ $memory_reserved_keys = array(
 $memory_permissions = 0644;
 $memory_starting_bytes = 2;
 
-$memory_reserved_names = array("cooldowns", "limits", "keyValuePairs");
-
 $memory_performance_metrics_table = "memory.performanceMetrics";
 $memory_processes_table = "memory.processes";
 

@@ -16,7 +16,7 @@ function convert_base64_ogg_to_base64_mp3(string $base64): ?string
     // 4.
     shell_exec("ffmpeg -y -i " . escapeshellarg($oldFile) . " -f mp3 " . escapeshellarg($newFile));
     // 5.
-    $newData = file_get_contents($newFile);
+    $newData = timed_file_get_contents($newFile, 3);
 
     if ($newData === false) {
         return null;
@@ -45,7 +45,7 @@ function convert_base64_ogg_to_base64_wav(string $base64): ?string
     // 4.
     shell_exec("ffmpeg -y -i " . escapeshellarg($oldFile) . " -acodec pcm_s16le -ac 2 -ar 44100 " . escapeshellarg($newFile));
     // 5.
-    $newData = @file_get_contents($newFile);
+    $newData = timed_file_get_contents($newFile, 3);
 
     if ($newData === false) {
         return null;
@@ -74,7 +74,7 @@ function convert_base64_mp4_to_base64_wav(string $base64): ?string
     // 4.
     shell_exec("ffmpeg -y -i " . escapeshellarg($oldFile) . " -acodec pcm_s16le -ac 2 -ar 44100 " . escapeshellarg($newFile));
     // 5.
-    $newData = @file_get_contents($newFile);
+    $newData = timed_file_get_contents($newFile, 3);
 
     if ($newData === false) {
         return null;
@@ -103,7 +103,7 @@ function convert_base64_mp4_to_base64_mp3(string $base64): ?string
     // 4.
     shell_exec("ffmpeg -y -i " . escapeshellarg($oldFile) . " -f mp3 " . escapeshellarg($newFile));
     // 5.
-    $newData = @file_get_contents($newFile);
+    $newData = timed_file_get_contents($newFile, 3);
 
     if ($newData === false) {
         return null;
