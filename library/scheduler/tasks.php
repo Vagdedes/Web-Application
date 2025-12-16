@@ -26,7 +26,7 @@ class __SchedulerTasks
     {
         require_once '/var/www/.structure/library/paypal/init.php';
         require_once '/var/www/.structure/library/stripe/init.php';
-        $bool = update_paypal_storage(0, $pastDays, true);
+        $bool = update_paypal_storage(0, $pastDays, true, true);
         $bool |= update_stripe_storage();
         return strval($bool);
     }

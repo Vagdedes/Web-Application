@@ -1,6 +1,11 @@
 <?php
 
-function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures): bool
+function update_paypal_storage(
+    int  $startDays,
+    int  $endDays,
+    bool $checkFailures,
+    bool $checkSuspended
+): bool
 {
     $processedData = false;
 
@@ -102,38 +107,40 @@ function update_paypal_storage(int $startDays, int $endDays, bool $checkFailures
             }
 
             // Suspended
-            $transactions = get_all_paypal_transactions(1_000);
+            if ($checkSuspended) {
+                $transactions = get_all_paypal_transactions(1_000);
 
-            if (!empty($transactions)) {
-                $suspendedTransactions = identify_paypal_suspended_transactions($transactions);
+                if (!empty($transactions)) {
+                    $suspendedTransactions = identify_paypal_suspended_transactions($transactions);
 
-                if (!empty($suspendedTransactions)) {
-                    foreach ($suspendedTransactions as $transactionID => $transactionRefundInformation) {
-                        $transaction = $transactions[$transactionID];
+                    if (!empty($suspendedTransactions)) {
+                        foreach ($suspendedTransactions as $transactionID => $transactionRefundInformation) {
+                            $transaction = $transactions[$transactionID];
 
-                        if (isset($transaction->AMT)
-                            && isset($transaction->CURRENCYCODE)
-                            && !in_array($transactionID, $existingFailedTransactions)) {
-                            $partialRefund = $transactionRefundInformation[1] !== true;
-                            $refundAmount = $transaction->AMT;
+                            if (isset($transaction->AMT)
+                                && isset($transaction->CURRENCYCODE)
+                                && !in_array($transactionID, $existingFailedTransactions)) {
+                                $partialRefund = $transactionRefundInformation[1] !== true;
+                                $refundAmount = $transaction->AMT;
 
-                            if ($partialRefund) { // Refund Fees
-                                $refundAmount -= $transaction->FEEAMT ?? 0;
-                            }
+                                if ($partialRefund) { // Refund Fees
+                                    $refundAmount -= $transaction->FEEAMT ?? 0;
+                                }
 
-                            if ($refundAmount > 0.0
-                                && refund_paypal_transaction(
-                                    $transactionID,
-                                    $partialRefund,
-                                    $refundAmount,
-                                    $transaction->CURRENCYCODE,
-                                    $transactionRefundInformation[0]
-                                ) === true
-                                && process_failed_paypal_transaction(
-                                    $transactionID,
-                                    false
-                                )) {
-                                $processedData = true;
+                                if ($refundAmount > 0.0
+                                    && refund_paypal_transaction(
+                                        $transactionID,
+                                        $partialRefund,
+                                        $refundAmount,
+                                        $transaction->CURRENCYCODE,
+                                        $transactionRefundInformation[0]
+                                    ) === true
+                                    && process_failed_paypal_transaction(
+                                        $transactionID,
+                                        false
+                                    )) {
+                                    $processedData = true;
+                                }
                             }
                         }
                     }

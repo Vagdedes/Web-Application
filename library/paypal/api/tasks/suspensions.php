@@ -28,7 +28,8 @@ function identify_paypal_suspended_transactions(object|array $transactions): arr
                 $array = array();
 
                 foreach ($transactions as $transactionID => $transaction) {
-                    if (is_string($transactionID) && is_object($transaction)) {
+                    if (is_string($transactionID)
+                        && is_object($transaction)) {
                         foreach ($suspendedLicenses as $suspendedLicense) {
                             $suspendedTransactionKey = trim($suspendedLicense->transaction_key);
 
@@ -85,7 +86,7 @@ function identify_paypal_suspended_transactions(object|array $transactions): arr
                 return $array;
             }
         }
-        return $transactions;
+        return array();
     }
     return identify_paypal_suspended_transactions(array($transactions));
 }
