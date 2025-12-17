@@ -933,12 +933,6 @@ class AccountTeam
             global $min_32bit_Integer;
             return $min_32bit_Integer;
         }
-        $memberID = $this->getMember($account)?->id;
-
-        if ($memberID === null) {
-            global $min_32bit_Integer;
-            return $min_32bit_Integer;
-        }
         $owner = $this->getOwner();
 
         if ($owner === null) {
@@ -949,6 +943,12 @@ class AccountTeam
             && $owner->account->getDetail("id") === $account->getDetail("id")) {
             global $max_32bit_Integer;
             return $max_32bit_Integer;
+        }
+        $memberID = $this->getMember($account)?->id;
+
+        if ($memberID === null) {
+            global $min_32bit_Integer;
+            return $min_32bit_Integer;
         }
         $query = get_sql_query(
             AccountVariables::TEAM_MEMBER_POSITIONS_TABLE,
@@ -1384,7 +1384,10 @@ class AccountTeam
                 array("team_id", $result->getObject()->id),
                 array("deletion_date", null)
             ),
-            null,
+            array(
+                "DESC",
+                "id"
+            ),
             self::MAX_MEMBERS
         );
 
@@ -1425,7 +1428,10 @@ class AccountTeam
                 array("member_id", $memberID),
                 array("deletion_date", null)
             ),
-            null,
+            array(
+                "DESC",
+                "id"
+            ),
             self::MAX_ROLES
         );
 
@@ -1822,7 +1828,8 @@ class AccountTeam
             global $min_32bit_Integer;
             return $min_32bit_Integer;
         }
-        if (is_string($role) || is_int($role)) {
+        if (is_string($role)
+            || is_int($role)) {
             $role = $this->getRole($role, $deleted);
 
             if ($role === null) {
