@@ -1813,6 +1813,10 @@ class AccountTeam
 
     public function getRolePosition(string|int|object $role, bool $deleted = false): int
     {
+        if (is_object($role)) {
+            global $min_32bit_Integer;
+            return $role->last_position ?? $min_32bit_Integer;
+        }
         $result = $this->findTeam();
 
         if (!$result->isPositiveOutcome()) {
@@ -1872,7 +1876,7 @@ class AccountTeam
             return new MethodReply(false, "Cannot change the hierarchical position of a role to the your hierarchical position or a higher hierarchical position.");
         }
         $selfMemberID = $this->getMember()?->id;
-        
+
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
         }
