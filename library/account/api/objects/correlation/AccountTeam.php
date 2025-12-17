@@ -73,11 +73,13 @@ class AccountTeam
     {
         $this->forcedTeam = $team;
         $this->forcedTeam->title = $this->getTeamTitle();
+        $this->forcedTeamResult = array();
     }
 
     public function clearCache(): void
     {
         $this->forcedTeam = null;
+        $this->forcedTeamResult = array();
     }
 
     // Separator
@@ -951,58 +953,26 @@ class AccountTeam
             global $max_32bit_Integer;
             return $max_32bit_Integer;
         }
-        $memberID = $this->getMember($account)?->id;
+        global $min_32bit_Integer;
+        $member = $this->getMember($account)?->id;
 
-        if ($memberID === null) {
-            global $min_32bit_Integer;
+        if ($member === null) {
             return $min_32bit_Integer;
         }
-        $query = get_sql_query(
-            AccountVariables::TEAM_MEMBER_POSITIONS_TABLE,
-            array("position"),
-            array(
-                array("team_id", $result->getObject()->id),
-                array("member_id", $memberID),
-            ),
-            array(
-                "DESC",
-                "id"
-            ),
-            1
-        );
+        $max = $member->last_position ?? $min_32bit_Integer;
         $roles = $this->getMemberRoles($account);
 
-        if (empty($query)) {
-            if (empty($roles)) {
-                global $min_32bit_Integer;
-                return $min_32bit_Integer;
-            } else {
-                $max = null;
-
-                foreach ($roles as $role) {
-                    $position = $this->getRolePosition($role);
-
-                    if ($max === null || $position > $max) {
-                        $max = $position;
-                    }
-                }
-                return $max;
-            }
+        if (empty($roles)) {
+            return $max;
         } else {
-            if (empty($roles)) {
-                return $query[0]->position;
-            } else {
-                $max = $query[0]->position;
+            foreach ($roles as $role) {
+                $position = $this->getRolePosition($role);
 
-                foreach ($roles as $role) {
-                    $position = $this->getRolePosition($role);
-
-                    if ($position > $max) {
-                        $max = $position;
-                    }
+                if ($position > $max) {
+                    $max = $position;
                 }
-                return max($query[0]->position, $max);
             }
+            return $max;
         }
     }
 
@@ -1060,17 +1030,31 @@ class AccountTeam
                 . $account->getDetail("id", "unknown")
                 . "' not found.");
         }
-        if (sql_insert(
-            AccountVariables::TEAM_MEMBER_POSITIONS_TABLE,
+        if (set_sql_query(
+            AccountVariables::TEAM_MEMBERS_TABLE,
             array(
-                "team_id" => $team,
-                "member_id" => $memberID,
-                "position" => $position,
-                "creation_date" => get_current_date(),
-                "created_by" => $selfMemberID,
-                "creation_reason" => $reason
-            ))) {
-            return new MethodReply(true, "Team hierarchical position of member has changed.");
+                "last_position" => $position
+            ),
+            array(
+                array("id", $memberID)
+            ),
+            null,
+            1
+        )) {
+            if (sql_insert(
+                AccountVariables::TEAM_MEMBER_POSITIONS_TABLE,
+                array(
+                    "team_id" => $team,
+                    "member_id" => $memberID,
+                    "position" => $position,
+                    "creation_date" => get_current_date(),
+                    "created_by" => $selfMemberID,
+                    "creation_reason" => $reason
+                ))) {
+                return new MethodReply(true, "Team hierarchical position of member has changed.");
+            } else {
+                return new MethodReply(false, "Failed to change hierarchical position history of member.");
+            }
         } else {
             return new MethodReply(false, "Failed to change hierarchical position of member.");
         }
@@ -1844,23 +1828,8 @@ class AccountTeam
                 return $min_32bit_Integer;
             }
         }
-        $query = get_sql_query(
-            AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
-            array("position"),
-            array(
-                array("role_id", $role->id),
-            ),
-            array(
-                "DESC",
-                "id"
-            ),
-            1
-        );
-        if (empty($query)) {
-            global $min_32bit_Integer;
-            return $min_32bit_Integer;
-        }
-        return $query[0]->position;
+        global $min_32bit_Integer;
+        return $role->last_position ?? $min_32bit_Integer;
     }
 
     public function adjustRolePosition(string|int|object $role, int $position, ?string $reason = null): MethodReply
@@ -1903,21 +1872,35 @@ class AccountTeam
             return new MethodReply(false, "Cannot change the hierarchical position of a role to the your hierarchical position or a higher hierarchical position.");
         }
         $selfMemberID = $this->getMember()?->id;
-
+        
         if ($selfMemberID === null) {
             return new MethodReply(false, "Executor member not found.");
         }
-        if (sql_insert(
-            AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
+        if (set_sql_query(
+            AccountVariables::TEAM_ROLES_TABLE,
             array(
-                "team_id" => $role->team_id,
-                "role_id" => $role->id,
-                "position" => $position,
-                "creation_date" => get_current_date(),
-                "created_by" => $selfMemberID,
-                "creation_reason" => $reason
-            ))) {
-            return new MethodReply(true, "Hierarchical position changed successfully for the role '" . $role->title . "'.");
+                "last_position" => $position
+            ),
+            array(
+                array("id", $role->id)
+            ),
+            null,
+            1
+        )) {
+            if (sql_insert(
+                AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
+                array(
+                    "team_id" => $role->team_id,
+                    "role_id" => $role->id,
+                    "position" => $position,
+                    "creation_date" => get_current_date(),
+                    "created_by" => $selfMemberID,
+                    "creation_reason" => $reason
+                ))) {
+                return new MethodReply(true, "Hierarchical position changed successfully for the role '" . $role->title . "'.");
+            } else {
+                return new MethodReply(false, "Failed to change the hierarchical position history of the role '" . $role->title . "'.");
+            }
         } else {
             return new MethodReply(false, "Failed to change the hierarchical position of the role '" . $role->title . "'.");
         }
