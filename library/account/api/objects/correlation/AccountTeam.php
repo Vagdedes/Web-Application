@@ -821,7 +821,7 @@ class AccountTeam
 
     // Separator
 
-    public function getOwner(): ?object
+    public function getOwner(bool $idOnly = false): object|int|string|null
     {
         $result = $this->findTeam();
 
@@ -842,6 +842,9 @@ class AccountTeam
         );
 
         if (empty($query)) {
+            if ($idOnly) {
+                return $result->getObject()?->created_by_account;
+            }
             $owner = $this->account->getNew(
                 $result->getObject()?->created_by_account
             );
@@ -861,6 +864,9 @@ class AccountTeam
 
             if (empty($query)) {
                 return null;
+            }
+            if ($idOnly) {
+                return $query[0]->account_id;
             }
             $query = $query[0];
             $query->account = $this->account->getNew($query->account_id);
