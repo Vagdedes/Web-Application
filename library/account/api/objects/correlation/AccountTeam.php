@@ -236,7 +236,7 @@ class AccountTeam
                 || is_string($reference) && $reference === $this->forcedTeam->title)) {
             if (isset($this->forcedTeam->id)) {
                 if (sizeof($this->forcedTeamResult) === 2
-                    && microtime(true) - $this->forcedTeamResult[1] <= 5.0) {
+                    && microtime(true) - $this->forcedTeamResult[1] < 10.0) {
                     return new MethodReply(true, "Forced team found successfully.", $this->forcedTeamResult[0]);
                 }
                 $query = $this->forcedTeam->id <= 0
