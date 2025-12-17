@@ -12,8 +12,7 @@ function get_memory_segment_limit(): int
 
 function get_memory_segment_ids(): array
 {
-    global $memory_reserved_keys;
-    $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
+    $memoryBlock = new IndividualMemoryBlock(IndividualMemoryBlock::MEMORY_RESERVED_KEYS[0]);
     $array = $memoryBlock->get();
 
     if (is_array($array)) {
@@ -42,7 +41,7 @@ function get_memory_segment_ids(): array
 
             // Separator
 
-            $memoryDifferenceBlock = new IndividualMemoryBlock($memory_reserved_keys[1]);
+            $memoryDifferenceBlock = new IndividualMemoryBlock(IndividualMemoryBlock::MEMORY_RESERVED_KEYS[1]);
             $difference = $memoryDifferenceBlock->get();
 
             if (is_numeric($difference)) {
@@ -115,20 +114,30 @@ function clear_memory_segments(array $segments, int $deleteBlocksRegardless = 0)
 
 class IndividualMemoryBlock
 {
+
+    public const
+        MEMORY_RESERVED_KEYS = array(
+        0 => 0xff1, // Reserved for caching memory segment ids
+        1 => 0xff2 // Reserved for caching memory segment id difference
+    );
+
+    private const
+        MEMORY_PERMISSIONS = 0644,
+        MEMORY_STARTING_BYTES = 2;
+
     private mixed $originalKey;
     private int $key;
     private bool $modify;
 
     public function __construct(mixed $key)
     {
-        global $memory_reserved_keys;
         $this->originalKey = $key;
         $this->key = is_integer($key)
             ? $key
             : (is_object($key) || is_array($key)
                 ? array_to_integer($key)
                 : string_to_integer($key));
-        $this->modify = !in_array($this->key, $memory_reserved_keys);
+        $this->modify = !in_array($this->key, self::MEMORY_RESERVED_KEYS);
     }
 
     public function getObject(): ?object
@@ -203,8 +212,6 @@ class IndividualMemoryBlock
         if (!$force && !$this->modify) {
             return false;
         }
-        global $memory_starting_bytes;
-
         $object = new stdClass();
         $object->key = $this->originalKey;
         $object->value = $value;
@@ -220,7 +227,7 @@ class IndividualMemoryBlock
         $bytesSize = $this->getBlockSize($block); // check default
 
         if (!$block) {
-            $bytesSize = max($objectToTextLength, $memory_starting_bytes);
+            $bytesSize = max($objectToTextLength, self::MEMORY_STARTING_BYTES);
             $block = $this->createBlock($bytesSize); // open default
 
             if (!$block) {
@@ -250,7 +257,7 @@ class IndividualMemoryBlock
                 return false;
             }
         } else if ($objectToTextLength < $bytesSize) {
-            $bytesSize = max($objectToTextLength, $memory_starting_bytes);
+            $bytesSize = max($objectToTextLength, self::MEMORY_STARTING_BYTES);
 
             if (!shmop_delete($block)) {
                 return false;
@@ -280,10 +287,8 @@ class IndividualMemoryBlock
 
     private function clearSegmentsIdCache(): void
     {
-        global $memory_reserved_keys;
-
-        if ($this->key !== $memory_reserved_keys[0]) {
-            $memoryBlock = new IndividualMemoryBlock($memory_reserved_keys[0]);
+        if ($this->key !== self::MEMORY_RESERVED_KEYS[0]) {
+            $memoryBlock = new IndividualMemoryBlock(self::MEMORY_RESERVED_KEYS[0]);
             $block = $memoryBlock->getBlock();
 
             if ($block) {
@@ -299,21 +304,18 @@ class IndividualMemoryBlock
 
     private function createBlock(int $bytes): mixed
     {
-        global $memory_permissions;
-        return @shmop_open($this->key, "c", $memory_permissions, $bytes);
+        return @shmop_open($this->key, "c", self::MEMORY_PERMISSIONS, $bytes);
     }
 
     private function getBlockSize(mixed $block): int
     {
         if (!$block) {
-            global $memory_starting_bytes;
-            return $memory_starting_bytes;
+            return self::MEMORY_STARTING_BYTES;
         } else {
             $size = shmop_size($block);
 
             if (!$size) {
-                global $memory_starting_bytes;
-                return $memory_starting_bytes;
+                return self::MEMORY_STARTING_BYTES;
             } else {
                 return $size;
             }
