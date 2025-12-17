@@ -45,6 +45,7 @@ class AccountTeam
     private Account $account;
     private ?int $additionalID;
     private ?object $forcedTeam;
+    private array $forcedTeamResult;
     private bool $permissions;
 
     public function __construct(Account $account)
@@ -53,6 +54,7 @@ class AccountTeam
         $this->additionalID = self::DEFAULT_ADDITIONAL_ID;
         $this->forcedTeam = null;
         $this->permissions = true;
+        $this->forcedTeamResult = array();
     }
 
     // Separator
@@ -231,6 +233,10 @@ class AccountTeam
                 || is_numeric($reference) && $reference == $this->forcedTeam->id
                 || is_string($reference) && $reference === $this->forcedTeam->title)) {
             if (isset($this->forcedTeam->id)) {
+                if (sizeof($this->forcedTeamResult) === 2
+                    && microtime(true) - $this->forcedTeamResult[1] <= 5.0) {
+                    return new MethodReply(true, "Forced team found successfully.", $this->forcedTeamResult[0]);
+                }
                 $query = $this->forcedTeam->id <= 0
                     ? null
                     : get_sql_query(
@@ -248,6 +254,7 @@ class AccountTeam
                 if (empty($query)) {
                     return new MethodReply(false, "Forced team with ID '" . $this->forcedTeam->id . "' not found.");
                 } else {
+                    $this->forcedTeamResult = array($query[0], microtime(true));
                     return new MethodReply(true, "Forced team found successfully.", $query[0]);
                 }
             } else {
