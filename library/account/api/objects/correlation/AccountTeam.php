@@ -1,7 +1,9 @@
 <?php
 
-class AccountTeam
+class AccountTeam // todo add cache for getMember method
 {
+
+    private const MEMORY_CACHE_SECONDS = 10.0;
 
     public const
         DEFAULT_ADDITIONAL_ID = null,
@@ -236,7 +238,7 @@ class AccountTeam
                 || is_string($reference) && $reference === $this->forcedTeam->title)) {
             if (isset($this->forcedTeam->id)) {
                 if (sizeof($this->forcedTeamResult) === 2
-                    && microtime(true) - $this->forcedTeamResult[1] < 10.0) {
+                    && microtime(true) - $this->forcedTeamResult[1] <= self::MEMORY_CACHE_SECONDS) {
                     return new MethodReply(true, "Forced team found successfully.", $this->forcedTeamResult[0]);
                 }
                 $query = $this->forcedTeam->id <= 0
