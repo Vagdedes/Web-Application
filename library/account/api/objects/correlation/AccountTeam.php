@@ -1,9 +1,9 @@
 <?php
 
-class AccountTeam // todo add cache for getMember method
+class AccountTeam
 {
 
-    private const MEMORY_CACHE_SECONDS = 10.0;
+    private const MEMORY_CACHE_SECONDS = 5.0;
 
     public const
         DEFAULT_ADDITIONAL_ID = null,
