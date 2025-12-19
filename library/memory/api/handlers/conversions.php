@@ -10,7 +10,7 @@ function build_memory_key(string $parent, string $child): string
     return $parent . $child;
 }
 
-function manipulate_memory_date(mixed $cooldown, int $maxTime = 86400)
+function manipulate_memory_date(mixed $cooldown, int $maxTime = 86_400)
 {
     if ($cooldown === null) {
         return false;

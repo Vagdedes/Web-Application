@@ -5,7 +5,7 @@ function has_memory_limit(mixed $key, int|string $countLimit, int|string|null $f
     $key = manipulate_memory_key($key);
 
     if ($key !== false) {
-        $futureTime = manipulate_memory_date($futureTime, 60 * 15);
+        $futureTime = manipulate_memory_date($futureTime);
 
         if ($futureTime !== null) {
             $memoryBlock = new IndividualMemoryBlock($key);
@@ -35,7 +35,7 @@ function has_memory_cooldown(mixed $key, int|string|null $futureTime = null,
     $key = manipulate_memory_key($key);
 
     if ($key !== false) {
-        $futureTime = manipulate_memory_date($futureTime, 60 * 30);
+        $futureTime = manipulate_memory_date($futureTime);
 
         if ($futureTime !== null) {
             $memoryBlock = new IndividualMemoryBlock($key);
@@ -77,7 +77,7 @@ function set_key_value_pair(mixed $key, mixed $value = null, int|string|null $fu
     $key = manipulate_memory_key($key);
 
     if ($key !== false) {
-        $futureTime = manipulate_memory_date($futureTime, 60 * 3);
+        $futureTime = manipulate_memory_date($futureTime);
 
         if ($futureTime !== null) {
             $memoryBlock = new IndividualMemoryBlock($key);
