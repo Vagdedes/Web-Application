@@ -1,9 +1,9 @@
 <?php
 require '/var/www/.structure/library/base/form.php';
+require '/var/www/.structure/library/base/requirements/account_systems.php';
 $path = get_form_get("path");
 
 if (!empty($path)) {
-    require '/var/www/.structure/library/base/requirements/account_systems.php';
     $account = new Account();
     $session = $account->getSession()->find();
 
