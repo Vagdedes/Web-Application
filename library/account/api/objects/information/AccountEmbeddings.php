@@ -274,20 +274,21 @@ class AccountEmbeddings
 
     public function cosineSimilarity(array $vecA, array $vecB): float
     {
-        if (sizeof($vecA) !== sizeof($vecB)
-            || sizeof($vecA) === 0) {
-            return 0.0;
-        }
+        $len = count($vecA);
+        if ($len !== count($vecB) || $len === 0) return 0.0;
+
         $dotProduct = 0.0;
         $normA = 0.0;
         $normB = 0.0;
 
-        for ($i = 0; $i < sizeof($vecA); $i++) {
+        for ($i = 0; $i < $len; $i++) {
             $dotProduct += $vecA[$i] * $vecB[$i];
-            $normA += $vecA[$i] ** 2;
-            $normB += $vecB[$i] ** 2;
+            $normA += $vecA[$i] * $vecA[$i];
+            $normB += $vecB[$i] * $vecB[$i];
         }
-        return $dotProduct / (sqrt($normA) * sqrt($normB));
+
+        $denom = sqrt($normA) * sqrt($normB);
+        return $denom == 0.0 ? 0.0 : $dotProduct / $denom;
     }
 
 }
