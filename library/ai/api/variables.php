@@ -20,6 +20,7 @@ class AIModelFamily
     public const
         CHAT_GPT = 1,
         CHAT_GPT_OLD = 8,
+        CHAT_GPT_OLDEST = 9,
         CHAT_GPT_PRO = 2,
         CHAT_GPT_NANO = 16,
         CHAT_GPT_NANO_OLD = 19;
