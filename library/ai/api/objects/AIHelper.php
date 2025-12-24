@@ -31,6 +31,21 @@ class AIHelper
         }
     }
 
+    public static function supportsVerbosity(int|AIModel $modelFamily): bool
+    {
+        if ($modelFamily instanceof AIModel) {
+            $modelFamily = $modelFamily->getFamilyID();
+        }
+        switch ($modelFamily) {
+            case AIModelFamily::CHAT_GPT:
+            case AIModelFamily::CHAT_GPT_PRO:
+            case AIModelFamily::CHAT_GPT_NANO:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public static function getTokens(string $reference, string|array $context, bool $model = false): int
     {
         if (is_array($context)) {

@@ -194,23 +194,6 @@ class AIModel
     public function getRightAiInformation(mixed $object, bool $multiple = false): mixed
     {
         switch ($this->familyID) {
-            case AIModelFamily::CHAT_GPT:
-            case AIModelFamily::CHAT_GPT_PRO:
-            case AIModelFamily::CHAT_GPT_NANO:
-            case AIModelFamily::OPENAI_VISION:
-            case AIModelFamily::OPENAI_VISION_PRO:
-            case AIModelFamily::OPENAI_VISION_NANO:
-            case AIModelFamily::OPENAI_SOUND:
-            case AIModelFamily::OPENAI_SOUND_PRO:
-            case AIModelFamily::OPENAI_SPEECH:
-            case AIModelFamily::OPENAI_SPEECH_PRO:
-            case AIModelFamily::OPENAI_SPEECH_OLD:
-            case AIModelFamily::OPENAI_SPEECH_TEXT:
-                if ($multiple) {
-                    return $this->getTextsOrVoices($object);
-                } else {
-                    return $this->getTextOrVoice($object);
-                }
             case AIModelFamily::GPT_IMAGE_1:
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
@@ -223,7 +206,11 @@ class AIModel
             case AIModelFamily::OPENAI_EMBEDDING_LARGE:
                 return $this->getEmbeddings($object);
             default:
-                return null;
+                if ($multiple) {
+                    return $this->getTextsOrVoices($object);
+                } else {
+                    return $this->getTextOrVoice($object);
+                }
         }
     }
 
@@ -254,13 +241,6 @@ class AIModel
     public function getTextOrVoice(mixed $object): ?string
     {
         switch ($this->familyID) {
-            case AIModelFamily::CHAT_GPT:
-            case AIModelFamily::CHAT_GPT_PRO:
-            case AIModelFamily::CHAT_GPT_NANO:
-            case AIModelFamily::OPENAI_VISION:
-            case AIModelFamily::OPENAI_VISION_PRO:
-            case AIModelFamily::OPENAI_VISION_NANO:
-                return ($object?->choices[0] ?? null)?->message?->content;
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
                 $content = ($object?->choices[0] ?? null)?->message?->content;
@@ -277,28 +257,13 @@ class AIModel
             case AIModelFamily::OPENAI_SPEECH_TEXT:
                 return $object;
             default:
-                return null;
+                return ($object?->choices[0] ?? null)?->message?->content;
         }
     }
 
     public function getTextsOrVoices(mixed $object): array
     {
         switch ($this->familyID) {
-            case AIModelFamily::CHAT_GPT:
-            case AIModelFamily::CHAT_GPT_PRO:
-            case AIModelFamily::CHAT_GPT_NANO:
-            case AIModelFamily::OPENAI_VISION:
-            case AIModelFamily::OPENAI_VISION_PRO:
-            case AIModelFamily::OPENAI_VISION_NANO:
-                $array = $object?->choices;
-                $texts = array();
-
-                if (!empty($array)) {
-                    foreach ($array as $item) {
-                        $texts[] = $item?->message?->content;
-                    }
-                }
-                return $texts;
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
                 $array = $object?->choices;
@@ -327,7 +292,15 @@ class AIModel
                     $object
                 );
             default:
-                return array();
+                $array = $object?->choices;
+                $texts = array();
+
+                if (!empty($array)) {
+                    foreach ($array as $item) {
+                        $texts[] = $item?->message?->content;
+                    }
+                }
+                return $texts;
         }
     }
 
@@ -404,24 +377,6 @@ class AIModel
     public function getCost(mixed $object): ?float
     {
         switch ($this->familyID) {
-            case AIModelFamily::CHAT_GPT:
-            case AIModelFamily::CHAT_GPT_PRO:
-            case AIModelFamily::CHAT_GPT_NANO:
-            case AIModelFamily::OPENAI_VISION:
-            case AIModelFamily::OPENAI_VISION_PRO:
-            case AIModelFamily::OPENAI_VISION_NANO:
-            case AIModelFamily::OPENAI_SOUND:
-            case AIModelFamily::OPENAI_SOUND_PRO:
-            case AIModelFamily::OPENAI_EMBEDDING_SMALL:
-            case AIModelFamily::OPENAI_EMBEDDING_LARGE:
-                return (($object?->usage?->prompt_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0))
-                    + (($object?->usage?->completion_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
-
-                    + (($object?->usage?->prompt_tokens_details?->reasoning_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0))
-                    + (($object?->usage?->completion_tokens_details?->reasoning_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
-
-                    + (($object?->usage?->prompt_tokens_details?->audio_tokens ?? 0.0) * ($this->sent_token_audio_cost ?? 0.0))
-                    + (($object?->usage?->completion_tokens_details?->audio_tokens ?? 0.0) * ($this->received_token_audio_cost ?? 0.0));
             case AIModelFamily::GPT_IMAGE_1:
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
@@ -462,7 +417,14 @@ class AIModel
                 }
                 return $price;
             default:
-                return null;
+                return (($object?->usage?->prompt_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0))
+                    + (($object?->usage?->completion_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
+
+                    + (($object?->usage?->prompt_tokens_details?->reasoning_tokens ?? 0.0) * ($this->sent_token_cost ?? 0.0))
+                    + (($object?->usage?->completion_tokens_details?->reasoning_tokens ?? 0.0) * ($this->received_token_cost ?? 0.0))
+
+                    + (($object?->usage?->prompt_tokens_details?->audio_tokens ?? 0.0) * ($this->sent_token_audio_cost ?? 0.0))
+                    + (($object?->usage?->completion_tokens_details?->audio_tokens ?? 0.0) * ($this->received_token_audio_cost ?? 0.0));
         }
     }
 
