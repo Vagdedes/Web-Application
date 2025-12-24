@@ -22,7 +22,6 @@ class AIHelper
             $modelFamily = $modelFamily->getFamilyID();
         }
         switch ($modelFamily) {
-            case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::CHAT_GPT_NANO:

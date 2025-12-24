@@ -21,7 +21,7 @@ class AIModelFamily
         CHAT_GPT = 1,
         CHAT_GPT_PRO = 2,
         CHAT_GPT_NANO = 16,
-        OPENAI_OMNI_MINI = 14;
+        CHAT_GPT_NANO_OLD = 19;
 
     // Text to Image
     public const
@@ -31,8 +31,9 @@ class AIModelFamily
 
     // Image And Text to Text
     public const
-        OPENAI_VISION_PRO = 8,
-        OPENAI_VISION = 9;
+        OPENAI_VISION_PRO = self::CHAT_GPT_PRO,
+        OPENAI_VISION_NANO = self::CHAT_GPT_NANO,
+        OPENAI_VISION = self::CHAT_GPT;
 
     // Audio And Text to Text Or Audio
     public const

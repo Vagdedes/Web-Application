@@ -197,9 +197,9 @@ class AIModel
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::CHAT_GPT_NANO:
-            case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
+            case AIModelFamily::OPENAI_VISION_NANO:
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
             case AIModelFamily::OPENAI_SPEECH:
@@ -257,9 +257,9 @@ class AIModel
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::CHAT_GPT_NANO:
-            case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
+            case AIModelFamily::OPENAI_VISION_NANO:
                 return ($object?->choices[0] ?? null)?->message?->content;
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
@@ -287,9 +287,9 @@ class AIModel
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::CHAT_GPT_NANO:
-            case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
+            case AIModelFamily::OPENAI_VISION_NANO:
                 $array = $object?->choices;
                 $texts = array();
 
@@ -407,9 +407,9 @@ class AIModel
             case AIModelFamily::CHAT_GPT:
             case AIModelFamily::CHAT_GPT_PRO:
             case AIModelFamily::CHAT_GPT_NANO:
-            case AIModelFamily::OPENAI_OMNI_MINI:
             case AIModelFamily::OPENAI_VISION:
             case AIModelFamily::OPENAI_VISION_PRO:
+            case AIModelFamily::OPENAI_VISION_NANO:
             case AIModelFamily::OPENAI_SOUND:
             case AIModelFamily::OPENAI_SOUND_PRO:
             case AIModelFamily::OPENAI_EMBEDDING_SMALL:
