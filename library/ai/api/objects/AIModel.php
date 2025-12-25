@@ -194,7 +194,7 @@ class AIModel
     public function getRightAiInformation(mixed $object, bool $multiple = false): mixed
     {
         switch ($this->familyID) {
-            case AIModelFamily::GPT_IMAGE_1:
+            case AIModelFamily::GPT_IMAGE:
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
                 if ($multiple) {
@@ -307,7 +307,7 @@ class AIModel
     public function getImage(mixed $object): ?string
     {
         switch ($this->familyID) {
-            case AIModelFamily::GPT_IMAGE_1:
+            case AIModelFamily::GPT_IMAGE:
                 return ($object?->data[0] ?? null)?->b64_json;
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
@@ -320,7 +320,7 @@ class AIModel
     public function getImages(mixed $object): array
     {
         switch ($this->familyID) {
-            case AIModelFamily::GPT_IMAGE_1:
+            case AIModelFamily::GPT_IMAGE:
                 $array = $object?->b64_json;
                 $images = array();
 
@@ -377,7 +377,7 @@ class AIModel
     public function getCost(mixed $object): ?float
     {
         switch ($this->familyID) {
-            case AIModelFamily::GPT_IMAGE_1:
+            case AIModelFamily::GPT_IMAGE:
             case AIModelFamily::DALL_E_3:
             case AIModelFamily::DALL_E_2:
                 if (!($object instanceof AIManager)) {

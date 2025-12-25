@@ -9,7 +9,7 @@ class AIHelper
             $modelFamily = $modelFamily->getFamilyID();
         }
         switch ($modelFamily) {
-            case AIModelFamily::GPT_IMAGE_1:
+            case AIModelFamily::GPT_IMAGE:
                 return true;
             default:
                 return false;
