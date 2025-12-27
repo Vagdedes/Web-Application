@@ -362,7 +362,8 @@ class AccountPermissions
 
     public function isAdministrator(): bool
     {
-        return in_array("*", $this->getGivenPermissions())
+        return is_private_connection()
+            || in_array("*", $this->getGivenPermissions())
             || in_array("*", $this->getSystemPermissions())
             || in_array("*", $this->getRolePermissions());
     }
