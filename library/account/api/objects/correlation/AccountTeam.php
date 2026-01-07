@@ -941,27 +941,24 @@ class AccountTeam
         $result = $this->findTeam($account);
 
         if (!$result->isPositiveOutcome()) {
-            global $min_32bit_Integer;
-            return $min_32bit_Integer;
+            return 0;
         }
         $owner = $this->getOwner();
 
         if ($owner === null) {
-            global $min_32bit_Integer;
-            return $min_32bit_Integer;
+            return 0;
         }
         if ($setOwnerToMax
             && $owner->account->getDetail("id") === $account->getDetail("id")) {
             global $max_32bit_Integer;
             return $max_32bit_Integer;
         }
-        global $min_32bit_Integer;
         $member = $this->getMember($account)?->id;
 
         if ($member === null) {
-            return $min_32bit_Integer;
+            return 0;
         }
-        $max = $member->last_position ?? $min_32bit_Integer;
+        $max = $member->last_position ?? 0;
         $roles = $this->getMemberRoles($account);
 
         if (empty($roles)) {
@@ -1223,8 +1220,7 @@ class AccountTeam
         $rookie = $this->getRookieRole();
 
         if ($rookie === null) {
-            global $min_32bit_Integer;
-            $rookie = $min_32bit_Integer;
+            $rookie = 0;
         } else {
             $rookie = $this->getRolePosition($rookie);
         }
@@ -1813,29 +1809,17 @@ class AccountTeam
         }
     }
 
-    public function getRolePosition(string|int|object $role, bool $deleted = false): int
+    public function getRolePosition(string|int|object|null $role, bool $deleted = false, bool $redundant = true): int
     {
+        if ($role === null) {
+            return 0;
+        }
         if (is_object($role)) {
-            global $min_32bit_Integer;
-            return $role->last_position ?? $min_32bit_Integer;
+            return $role->last_position ?? ($redundant
+                ? $this->getRolePosition($this->getRookieRole(), $deleted, false)
+                : 0);
         }
-        $result = $this->findTeam();
-
-        if (!$result->isPositiveOutcome()) {
-            global $min_32bit_Integer;
-            return $min_32bit_Integer;
-        }
-        if (is_string($role)
-            || is_int($role)) {
-            $role = $this->getRole($role, $deleted);
-
-            if ($role === null) {
-                global $min_32bit_Integer;
-                return $min_32bit_Integer;
-            }
-        }
-        global $min_32bit_Integer;
-        return $role->last_position ?? $min_32bit_Integer;
+        return $this->getRolePosition($this->getRole($role, $deleted), $deleted);
     }
 
     public function adjustRolePosition(string|int|object $role, int $position, ?string $reason = null): MethodReply
