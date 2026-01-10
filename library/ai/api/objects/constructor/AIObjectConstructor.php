@@ -123,12 +123,16 @@ class AIObjectConstructor
                                     $oldObject->{$parent} = null;
                                 }
                             } else {
+                                $maxLength = $initiator->getMaxLength(false);
+
                                 if ($strict) {
-                                    if (strlen($value) > $initiator->getMaxLength()) {
+                                    if ($maxLength !== null
+                                        && strlen($value) > $maxLength) {
                                         return null;
                                     }
-                                } else if (strlen($value) > $initiator->getMaxLength()) {
-                                    $oldObject->{$parent} = substr($value, 0, $initiator->getMaxLength());
+                                } else if ($maxLength !== null
+                                    && strlen($value) > $maxLength) {
+                                    $oldObject->{$parent} = substr($value, 0, $maxLength);
                                 }
                             }
                             break;
@@ -140,12 +144,16 @@ class AIObjectConstructor
                                     $oldObject->{$parent} = null;
                                 }
                             } else {
+                                $maxLength = $initiator->getMaxLength(false);
+
                                 if ($strict) {
-                                    if (strlen($value) > $initiator->getMaxLength()) {
+                                    if ($maxLength !== null
+                                        && strlen($value) > $maxLength) {
                                         return null;
                                     }
-                                } else if (strlen($value) > $initiator->getMaxLength()) {
-                                    $oldObject->{$parent} = substr($value, 0, $initiator->getMaxLength());
+                                } else if ($maxLength !== null
+                                    && strlen($value) > $maxLength) {
+                                    $oldObject->{$parent} = substr($value, 0, $maxLength);
                                 }
                             }
                             break;
@@ -174,12 +182,16 @@ class AIObjectConstructor
                                     $value = array();
                                 }
                             }
+                            $maxLength = $initiator->getMaxLength(false);
+
                             if ($strict) {
-                                if (sizeof($value) > $initiator->getMaxLength()) {
+                                if ($maxLength !== null
+                                    && sizeof($value) > $maxLength) {
                                     return null;
                                 }
-                            } else if (sizeof($value) > $initiator->getMaxLength()) {
-                                $oldObject->{$parent} = array_slice($value, 0, $initiator->getMaxLength());
+                            } else if ($maxLength !== null
+                                && sizeof($value) > $maxLength) {
+                                $oldObject->{$parent} = array_slice($value, 0, $maxLength);
                             }
                             if (!empty($value)) {
                                 switch ($initiator->getType()) {
@@ -195,12 +207,16 @@ class AIObjectConstructor
                                                     unset($oldObject->{$parent}[$key]);
                                                 }
                                             } else {
+                                                $maxLength = $initiator->getMaxLength(false);
+
                                                 if ($strict) {
-                                                    if (strlen($val) > $initiator->getMaxLength()) {
+                                                    if ($maxLength !== null
+                                                        && strlen($val) > $maxLength) {
                                                         return null;
                                                     }
-                                                } else if (strlen($val) > $initiator->getMaxLength()) {
-                                                    $oldObject->{$parent}[$key] = substr($val, 0, $initiator->getMaxLength());
+                                                } else if ($maxLength !== null
+                                                    && strlen($val) > $maxLength) {
+                                                    $oldObject->{$parent}[$key] = substr($val, 0, $maxLength);
                                                 }
                                             }
                                         }
