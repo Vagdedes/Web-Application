@@ -249,12 +249,12 @@ class AccountEmbeddings
                     array(
                         "embedding_hash" => $hash,
                         "embedding_model" => $model,
-                        "objectified" => json_encode($embeddings),
+                        "objectified" => @json_encode($embeddings),
                         "creation_date" => $date,
                         "expiration_date" => $expiration,
                         "actual" => (is_string($textOrArray)
                             ? $textOrArray
-                            : json_encode($textOrArray))
+                            : @json_encode($textOrArray))
                     )
                 );
             }

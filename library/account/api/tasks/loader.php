@@ -16,7 +16,7 @@ function load_account_page(?callable $callable = null, ?string $forceDirectory =
     <body>";
 
     if (has_memory_limit(array(get_client_ip_address(), "website"), 60, "1 minute")) {
-        echo json_encode("Please stop refreshing the page so frequently.");
+        echo @json_encode("Please stop refreshing the page so frequently.");
     } else {
         $account = new Account();
         $account = $account->getSession()->find()->getObject();

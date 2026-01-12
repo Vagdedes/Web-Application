@@ -211,7 +211,7 @@ class HetznerAction
                 get_hetzner_object(
                     HetznerConnectionType::POST,
                     "servers",
-                    json_encode($object)
+                    @json_encode($object)
                 )
             );
         }

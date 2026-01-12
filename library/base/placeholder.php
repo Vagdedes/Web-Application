@@ -34,7 +34,7 @@ class InformationPlaceholder
         } else if (is_object($input)) {
             $object = new stdClass();
 
-            foreach (json_decode(json_encode($input), true) as $key => $value) {
+            foreach (@json_decode(@json_encode($input), true) as $key => $value) {
                 $object->{$key} = $this->build($value);
             }
             return $object;
@@ -51,7 +51,7 @@ class InformationPlaceholder
     public function setAll(array|object $array): void
     {
         if (is_object($array)) {
-            $array = json_decode(json_encode($array), true);
+            $array = @json_decode(@json_encode($array), true);
         }
         foreach ($array as $key => $value) {
             if (is_string($key)) {
@@ -80,7 +80,7 @@ class InformationPlaceholder
     public function addAll(array|object $array, bool $defaults = true): void
     {
         if (is_object($array)) {
-            $array = json_decode(json_encode($array), true);
+            $array = @json_decode(@json_encode($array), true);
         }
         foreach ($array as $key => $value) {
             $this->add($key, $value);

@@ -367,7 +367,7 @@ class AccountEmail
                         "email_address" => $email,
                         "subject" => $subject,
                         "information" => $info,
-                        "extra" => $extra !== null ? json_encode($extra) : null,
+                        "extra" => $extra !== null ? @json_encode($extra) : null,
                         "creation_date" => get_current_date()
                     )
                 );

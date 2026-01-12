@@ -37,7 +37,7 @@ class AccountHistory
             && $this->add(
                 "staff_intervention",
                 null,
-                is_array($lastUsed) ? json_encode($lastUsed) : $lastUsed
+                is_array($lastUsed) ? @json_encode($lastUsed) : $lastUsed
             );
     }
 

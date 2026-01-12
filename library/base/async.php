@@ -130,7 +130,7 @@ class PhpAsync
                         set_sql_query(
                             self::SQL_TABLE,
                             array(
-                                "debug_result" => json_encode($result, JSON_PRETTY_PRINT),
+                                "debug_result" => @json_encode($result, JSON_PRETTY_PRINT),
                             ),
                             array(
                                 array("id", $row->id),

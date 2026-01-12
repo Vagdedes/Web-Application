@@ -200,7 +200,7 @@ function mark_successful_stripe_transaction(int|string $transactionID, object $t
                 array(
                     "transaction_id" => $transactionID,
                     "creation_date" => get_current_date(),
-                    "details" => json_encode($transaction)
+                    "details" => @json_encode($transaction)
                 )
             ) == true;
     }

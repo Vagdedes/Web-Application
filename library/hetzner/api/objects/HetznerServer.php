@@ -108,7 +108,7 @@ class HetznerServer
                         get_hetzner_object(
                             HetznerConnectionType::POST,
                             "servers/" . $this->identifier . "/actions/change_type",
-                            json_encode($object)
+                            @json_encode($object)
                         )
                     )) {
                         $count--;
@@ -159,7 +159,7 @@ class HetznerServer
                         get_hetzner_object(
                             HetznerConnectionType::POST,
                             "servers/" . $this->identifier . "/actions/change_type",
-                            json_encode($object)
+                            @json_encode($object)
                         )
                     )) {
                         $count--;
@@ -194,7 +194,7 @@ class HetznerServer
                 get_hetzner_object(
                     HetznerConnectionType::POST,
                     "servers/" . $this->identifier . "/actions/rebuild",
-                    json_encode($object)
+                    @json_encode($object)
                 )
             )) {
                 $this->blockingAction = true;
