@@ -14,6 +14,7 @@ class Account implements JsonSerializable
 
     private object $object;
     private bool $exists;
+    private ?array $transformData;
     private AccountSettings $settings;
     private AccountActions $actions;
     private AccountHistory $history;
@@ -42,9 +43,26 @@ class Account implements JsonSerializable
                                 ?string $email = null,
                                 ?string $username = null,
                                 ?string $identification = null,
-                                bool    $checkDeletion = true,
+                                bool $checkDeletion = true,
                                 ?string $attemptCreation = null)
     {
+        // Transform
+        $this->def($applicationID);
+
+        if ($id !== null) {
+            $this->object->id = $id;
+        } else if ($email !== null) {
+            $this->object->email_address = $email;
+        }
+        $this->transformData = array(
+            "id" => $id,
+            "email" => $email,
+            "username" => $username,
+            "identification" => $identification,
+            "check_deletion" => $checkDeletion,
+            "attempt_creation" => $attemptCreation
+        );
+
         // Dependent
         $this->settings = new AccountSettings($this);
         $this->history = new AccountHistory($this);
@@ -71,17 +89,21 @@ class Account implements JsonSerializable
         $this->twoFactorAuthentication = new TwoFactorAuthentication($this);
         $this->translation = new AccountTranslation($this);
         $this->embeddings = new AccountEmbeddings($this);
+    }
 
-        // Transform
-        $this->transformLocal(
-            $applicationID,
-            $id,
-            $email,
-            $username,
-            $identification,
-            $checkDeletion,
-            $attemptCreation
-        );
+    private function transformFirstTime(): void
+    {
+        if ($this->transformData !== null) {
+            $this->transformLocal(
+                $this->getDetail("application_id", null, false),
+                $this->transformData["id"],
+                $this->transformData["email"],
+                $this->transformData["username"],
+                $this->transformData["identification"],
+                $this->transformData["check_deletion"],
+                $this->transformData["attempt_creation"]
+            );
+        }
     }
 
     private function transformLocal(?int    $applicationID = null,
@@ -92,6 +114,7 @@ class Account implements JsonSerializable
                                     bool    $checkDeletion = true,
                                     ?string $attemptCreation = null): void
     {
+        $this->transformData = null;
         $hasID = $id !== null;
         $hasUsername = $username !== null;
         $hasIdentification = $identification !== null;
@@ -164,12 +187,14 @@ class Account implements JsonSerializable
         }
     }
 
-    public function transform(?int    $id = null,
-                              ?string $email = null,
-                              ?string $username = null,
-                              ?string $identification = null,
-                              bool    $checkDeletion = true,
-                              ?string $attemptCreation = null): self
+    public function transform(
+        ?int    $id = null,
+        ?string $email = null,
+        ?string $username = null,
+        ?string $identification = null,
+        bool    $checkDeletion = true,
+        ?string $attemptCreation = null
+    ): self
     {
         $this->transformLocal(
             $this->getDetail("application_id"),
@@ -214,17 +239,25 @@ class Account implements JsonSerializable
 
     public function exists(): bool
     {
+        $this->transformFirstTime();
         return $this->exists;
     }
 
-    public function getDetail(string $detail, string $def = null): mixed
+    public function getDetail(string $detail, string $def = null, bool $recursive = true): mixed
     {
-        return $this->object->{$detail} ?? $def;
+        if (isset($this->object->{$detail})) {
+            return $this->object->{$detail};
+        } else if ($recursive) {
+            $this->transformFirstTime();
+            return $this->getDetail($detail, $def, false);
+        } else {
+            return $this->object->{$detail} = $def;
+        }
     }
 
     public function setDetail(string $detail, mixed $value): MethodReply
     {
-        if ($this->object->{$detail} !== $value) {
+        if ($this->getDetail($detail) !== $value) {
             if (!set_sql_query(
                 AccountVariables::ACCOUNTS_TABLE,
                 array($detail => $value),
@@ -243,6 +276,7 @@ class Account implements JsonSerializable
 
     public function getObject(): ?object
     {
+        $this->transformFirstTime();
         return $this->object;
     }
 
@@ -377,7 +411,7 @@ class Account implements JsonSerializable
 
     public final function jsonSerialize(): array|object
     {
-        $object = $this->object;
+        $object = $this->getObject();
         unset($object->password);
         unset($object->deletion_date);
         unset($object->deletion_reason);
