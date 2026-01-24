@@ -12,7 +12,7 @@ class __SchedulerTasks
 
     public static function big_manage_schedulers(): mixed
     {
-        require_once '/var/www/.structure/library/bigmanage/init.php';
+        require_once '/var/www/.structure/library/idealistic_office/init.php';
         return BigManageCombinedScheduler::run();
     }
 
