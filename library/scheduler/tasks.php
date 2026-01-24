@@ -13,7 +13,7 @@ class __SchedulerTasks
     public static function big_manage_schedulers(): mixed
     {
         require_once '/var/www/.structure/library/idealistic_office/init.php';
-        return BigManageCombinedScheduler::run();
+        return IdealisticOfficeCombinedScheduler::run();
     }
 
     public static function hetzner_maintain_network(): mixed

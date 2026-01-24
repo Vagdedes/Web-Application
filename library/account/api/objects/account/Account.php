@@ -10,7 +10,7 @@ class Account implements JsonSerializable
 
         IGNORE_APPLICATION_ID = -1,
         DEFAULT_APPLICATION_ID = null,
-        BIGMANAGE_APPLICATION_ID = 0;
+        IDEALISTIC_OFFICE_APPLICATION_ID = 0;
 
     private object $object;
     private bool $exists;

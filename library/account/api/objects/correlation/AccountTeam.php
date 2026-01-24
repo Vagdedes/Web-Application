@@ -7,7 +7,7 @@ class AccountTeam
 
     public const
         DEFAULT_ADDITIONAL_ID = null,
-        BIGMANAGE_ADDITIONAL_ID = 0,
+        IDEALISTIC_OFFICE_ADDITIONAL_ID = 0,
 
         // Members
         PERMISSION_ADD_TEAM_MEMBERS = 1,
