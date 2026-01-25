@@ -12,7 +12,7 @@ class AccountSettings
     public function get(string $option, mixed $default): MethodReply
     {
         if (!$this->account->exists()) {
-            return new MethodReply(false, "No account found.");
+            return new MethodReply(false, "No account found.", $default);
         }
         $query = get_sql_query(
             AccountVariables::ACCOUNT_SETTINGS_TABLE,
@@ -32,7 +32,7 @@ class AccountSettings
     public function isEnabled(string $option, mixed $default = null): bool
     {
         if (!$this->account->exists()) {
-            return false;
+            return $default;
         }
         $option = $this->get($option, $default)->getObject();
         return $option !== null && $option !== false;
