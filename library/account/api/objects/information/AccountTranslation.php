@@ -42,11 +42,18 @@ class AccountTranslation
         bool    $save = true,
         mixed   $loop = null): mixed
     {
+        $text = trim($text);
+
+        if (is_numeric($text)
+            || strlen($text) < 50 && is_numeric(str_replace(" ", "", $text))) {
+            return new MethodReply(
+                true,
+                null,
+                $text
+            );
+        }
         $defaultLanguage = strtolower(trim($defaultLanguage));
         $language = strtolower(trim($language));
-        $text = trim($text);
-        $hash = array_to_integer(array($language, $text), true);
-        $date = get_current_date();
 
         if ($defaultLanguage === $language
             || preg_match('/^[^a-zA-Z0-9]+$/', $text)) { // Just symbols
@@ -62,6 +69,8 @@ class AccountTranslation
                 return \React\Promise\resolve($methodReply);
             }
         }
+        $hash = array_to_integer(array($language, $text), true);
+        $date = get_current_date();
         $query = get_sql_query(
             AccountVariables::TRANSLATIONS_PROCESSED_TABLE,
             array("translation", "id"),
