@@ -11,8 +11,11 @@ class TwoFactorAuthentication
         $this->account = $account;
     }
 
-    public function initiate(Account $account, bool $code = false): MethodReply
+    public function initiate(?Account $account, bool $code = false): MethodReply
     {
+        if ($account === null) {
+            $account = $this->account;
+        }
         $accountID = $account->getDetail("id");
         $ipAddress = get_client_ip_address();
         $array = empty($ipAddress) ? null : get_sql_query(
