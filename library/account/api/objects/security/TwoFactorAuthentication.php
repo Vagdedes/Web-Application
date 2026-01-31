@@ -16,6 +16,9 @@ class TwoFactorAuthentication
         if ($account === null) {
             $account = $this->account;
         }
+        if (!$account->exists()) {
+            return new MethodReply(false, "Account does not exist.");
+        }
         $accountID = $account->getDetail("id");
         $ipAddress = get_client_ip_address();
         $array = empty($ipAddress) ? null : get_sql_query(
