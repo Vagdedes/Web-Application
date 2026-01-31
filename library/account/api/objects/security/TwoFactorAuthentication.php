@@ -144,10 +144,10 @@ class TwoFactorAuthentication
                 )) {
                     return new MethodReply(false, "Failed to interact with the database.");
                 }
-                if (!$this->account->getHistory()->add("instant_log_in")) {
-                    return new MethodReply(false, "Failed to update user history.");
-                }
                 if ($createSession) {
+                    if (!$this->account->getHistory()->add("instant_log_in")) {
+                        return new MethodReply(false, "Failed to update user history.");
+                    }
                     $session = $this->account->getSession()->create();
 
                     if (!$session->isPositiveOutcome()) {
