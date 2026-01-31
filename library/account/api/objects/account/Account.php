@@ -43,7 +43,7 @@ class Account implements JsonSerializable
                                 ?string $email = null,
                                 ?string $username = null,
                                 ?string $identification = null,
-                                bool $checkDeletion = true,
+                                bool    $checkDeletion = true,
                                 ?string $attemptCreation = null)
     {
         // Transform
