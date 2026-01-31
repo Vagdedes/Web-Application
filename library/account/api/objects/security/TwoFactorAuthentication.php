@@ -110,8 +110,16 @@ class TwoFactorAuthentication
         }
     }
 
-    public function verify(?string $token, ?string $code = null, bool $createSession = true): MethodReply
+    public function verify(
+        ?string $token,
+        ?string $code = null,
+        bool    $createSession = true,
+        bool    $compareAccounts = true
+    ): MethodReply
     {
+        if ($compareAccounts && !$this->account->exists()) {
+            return new MethodReply(false, "Account does not exist.");
+        }
         $hasCode = $code !== null;
 
         if ($hasCode
@@ -135,9 +143,14 @@ class TwoFactorAuthentication
 
             if (!empty($query)) {
                 $object = $query[0];
+                $accountID = $this->account->getDetail("id");
 
                 if (!$this->account->transform($object->account_id)->exists()) {
                     return new MethodReply(false, "Failed to find account.");
+                }
+                if ($compareAccounts
+                    && $accountID !== $this->account->getDetail("id")) {
+                    return new MethodReply(false, "Failed to authenticate user.");
                 }
                 if (!set_sql_query(
                     AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
