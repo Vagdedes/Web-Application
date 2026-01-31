@@ -2,6 +2,8 @@
 
 class TwoFactorAuthentication
 {
+    public const CODE_LENGTH = 32;
+
     private Account $account;
 
     public function __construct(Account $account)
@@ -50,7 +52,7 @@ class TwoFactorAuthentication
                 $key = $this->account->getSession()->createKey();
 
                 if ($code) {
-                    $credential = random_string(32);
+                    $credential = random_string(self::CODE_LENGTH);
                 } else {
                     $credential = random_string(AccountSession::session_token_length);
 
@@ -102,11 +104,12 @@ class TwoFactorAuthentication
         }
     }
 
-    public function verify(?string $token, ?string $code = null): MethodReply
+    public function verify(?string $token, ?string $code = null, bool $createSession = true): MethodReply
     {
         $hasCode = $code !== null;
 
-        if ($hasCode || strlen($token) === AccountSession::session_token_length) {
+        if ($hasCode
+            || strlen($token) === AccountSession::session_token_length) {
             $date = get_current_date();
             $query = get_sql_query(
                 AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
@@ -144,10 +147,12 @@ class TwoFactorAuthentication
                 if (!$this->account->getHistory()->add("instant_log_in")) {
                     return new MethodReply(false, "Failed to update user history.");
                 }
-                $session = $this->account->getSession()->create();
+                if ($createSession) {
+                    $session = $this->account->getSession()->create();
 
-                if (!$session->isPositiveOutcome()) {
-                    return new MethodReply(false, $session->getMessage());
+                    if (!$session->isPositiveOutcome()) {
+                        return new MethodReply(false, $session->getMessage());
+                    }
                 }
                 return new MethodReply(true, "Successfully verified account.");
             }
