@@ -471,14 +471,16 @@ function sql_store_cache(string           $table,
     foreach ($columns as $key => $column) {
         $columns[$key] = array($table, $column, $hash, $time);
     }
+    $limit = 15_800;
     $store = @json_encode($query, JSON_UNESCAPED_UNICODE);
 
-    if (is_string($store)) {
+    if (is_string($store)
+        && strlen($store) <= $limit) {
         $store = properly_sql_encode($store, true);
     } else {
         return false;
     }
-    if (strlen($store) <= 15_800) {
+    if (strlen($store) <= $limit) {
         load_sql_database(SqlDatabaseCredentials::MEMORY);
         $retrieverTable = "memory.queryCacheRetriever";
         $trackerTable = "memory.queryCacheTracker";
