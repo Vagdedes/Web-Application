@@ -22,13 +22,15 @@ function load_previous_sql_database(): void
         global $current_sql_database;
         $current_sql_database = $previous_sql_database;
         $previous_sql_database = null;
-        set_sql_credentials($current_sql_database[0],
+        set_sql_credentials(
+            $current_sql_database[0],
             $current_sql_database[1],
             $current_sql_database[2],
             null,
             null,
             null,
-            true);
+            true
+        );
     } else {
         load_sql_database();
     }
@@ -76,7 +78,6 @@ function private_file_get_contents(
         )
     );
     load_previous_sql_database();
-
     return post_file_get_contents(
         $url,
         array_merge(
@@ -113,7 +114,6 @@ function is_private_connection(): bool
                 null,
                 1
             );
-            load_previous_sql_database();
 
             if (!empty($query)) {
                 $private_connection_access = true;
@@ -124,8 +124,10 @@ function is_private_connection(): bool
                         array("expiration", "<", time())
                     )
                 );
+                load_previous_sql_database();
                 return true;
             }
+            load_previous_sql_database();
         }
         return false;
     }
