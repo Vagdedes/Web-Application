@@ -149,11 +149,13 @@ class HetznerAction
 
         if (!empty($query)) {
             foreach ($query as $page) {
-                foreach ($page->networks as $network) {
-                    $array[$network->id] = new HetznerNetwork(
-                        $network->id,
-                        $network->servers
-                    );
+                if (is_array($page?->networks)) {
+                    foreach ($page->networks as $network) {
+                        $array[$network->id] = new HetznerNetwork(
+                            $network->id,
+                            $network->servers
+                        );
+                    }
                 }
             }
         }
