@@ -1606,7 +1606,7 @@ class AccountTeam
             $rookie = null;
 
             foreach ($roles as $role) {
-                $position = $this->getRolePosition($role);
+                $position = $role->last_position ?? 0;
 
                 if ($min === null || $position < $min) {
                     $min = $position;
@@ -1814,12 +1814,16 @@ class AccountTeam
         if ($role === null) {
             return 0;
         }
-        if (is_object($role)) {
-            return $role->last_position ?? ($redundant
-                ? $this->getRolePosition($this->getRookieRole(), $deleted, false)
-                : 0);
+        if (!is_object($role)) {
+            $role = $this->getRole($role, $deleted);
         }
-        return $this->getRolePosition($this->getRole($role, $deleted), $deleted);
+        if (is_object($role)
+            && isset($role->last_position)) {
+            return $role->last_position;
+        }
+        return $redundant
+            ? $this->getRolePosition($this->getRookieRole(), $deleted, false)
+            : 0;
     }
 
     public function adjustRolePosition(string|int|object $role, int $position, ?string $reason = null): MethodReply
