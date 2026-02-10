@@ -59,13 +59,13 @@ function has_sql_connections(): bool
 
 function is_sql_usable(): bool
 {
-    $hash = SqlDatabaseFields::$sql_credentials[8] ?? null;
+    $conn = create_sql_connection();
 
-    if ($hash !== null) {
-        $conn = SqlDatabaseFields::$sql_connections[$hash] ?? null;
-        return $conn instanceof mysqli
-            && $conn->ping()
-            && !empty($conn->thread_id);
+    if ($conn instanceof mysqli) {
+        try {
+            return $conn->ping();
+        } catch (Throwable $ignored) {
+        }
     }
     return false;
 }
@@ -184,7 +184,6 @@ function create_sql_connection(): ?mysqli
             try {
                 SqlDatabaseFields::$sql_connections[$hash] = mysqli_init();
                 SqlDatabaseFields::$sql_connections[$hash]->options(MYSQLI_OPT_CONNECT_TIMEOUT, 1);
-
                 SqlDatabaseFields::$sql_connections[$hash]->real_connect(
                     SqlDatabaseFields::$sql_credentials[0],
                     SqlDatabaseFields::$sql_credentials[1],
@@ -197,10 +196,14 @@ function create_sql_connection(): ?mysqli
             } catch (Throwable $ignored) {
             }
         }
-        return SqlDatabaseFields::$sql_connections[$hash];
-    } else {
-        return null;
+        $object = SqlDatabaseFields::$sql_connections[$hash];
+
+        if ($object instanceof mysqli
+            && $object->connect_error === null) {
+            return $object;
+        }
     }
+    return null;
 }
 
 function close_sql_connection(bool $clear = false): bool
@@ -488,11 +491,14 @@ function sql_store_cache(string           $table,
 
 function properly_sql_encode(string $string, bool $partial = false): ?string
 {
-    create_sql_connection();
-    $text = SqlDatabaseFields::$sql_connections[SqlDatabaseFields::$sql_credentials[8]]
-        ?->real_escape_string($partial ? $string : htmlspecialchars($string));
+    try {
+        $text = create_sql_connection()?->real_escape_string($partial ? $string : htmlspecialchars($string));
 
-    if ($text == null) {
+        if ($text == null) {
+            $text = $partial ? $string : htmlspecialchars($string);
+        }
+    } catch (Throwable $e) {
+        log_sql_error(null, $e->getMessage());
         $text = $partial ? $string : htmlspecialchars($string);
     }
     return $text;
@@ -633,7 +639,7 @@ function sql_query(string $command, bool $buffer = true): mysqli_result|bool
     $sqlConnection = create_sql_connection();
 
     try {
-        $query = $sqlConnection->query(
+        $query = $sqlConnection?->query(
             $command,
             $buffer
                 ? MYSQLI_STORE_RESULT
@@ -641,20 +647,21 @@ function sql_query(string $command, bool $buffer = true): mysqli_result|bool
         );
 
         if (!$query) {
-            log_sql_error($command, $sqlConnection->error);
+            if ($sqlConnection === null) {
+                $query = false;
+            } else {
+                log_sql_error($command, $sqlConnection->error . " (Code: " . $sqlConnection->errno . ")");
+            }
         }
     } catch (Throwable $e) {
-        log_sql_error($command, $e->getMessage());
+        log_sql_error($command, $e->getMessage(), $e->getTraceAsString());
         $query = false;
     }
     return $query;
 }
 
-function log_sql_error(?string $query, mixed $error): void
+function log_sql_error(?string $query, mixed $error, ?string $exception = null): void
 {
-    if (!is_sql_usable()) {
-        return;
-    }
     if (is_object($error)
         || is_array($error)) {
         $error = @json_encode($error);
@@ -669,7 +676,11 @@ function log_sql_error(?string $query, mixed $error): void
     if ($error !== null) {
         error_log($error);
     }
-    error_log(@json_encode(debug_backtrace()));
+    if ($exception !== null) {
+        error_log($exception);
+    } else {
+        error_log(@json_encode(debug_backtrace()));
+    }
 }
 
 // Insert
