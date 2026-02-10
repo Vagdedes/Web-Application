@@ -31,9 +31,7 @@ function set_sql_credentials(
     ?string         $database = null,
     int|string      $port = null,
     mixed           $socket = null,
-    bool            $exit = false,
-    string|int|null $duration = null,
-    bool            $showErrors = false
+    string|int|null $duration = null
 ): void
 {
     SqlDatabaseFields::$sql_credentials = array(
@@ -43,10 +41,8 @@ function set_sql_credentials(
         $database,
         $port,
         $socket,
-        $exit, // todo remove
         $duration,
-        $duration === null ? null : get_future_date($duration),
-        $showErrors // todo remove
+        $duration === null ? null : get_future_date($duration)
     );
     SqlDatabaseFields::$sql_credentials[] = string_to_integer(@json_encode(SqlDatabaseFields::$sql_credentials));
 }
@@ -63,7 +59,7 @@ function has_sql_connections(): bool
 
 function is_sql_usable(): bool
 {
-    $hash = SqlDatabaseFields::$sql_credentials[10] ?? null;
+    $hash = SqlDatabaseFields::$sql_credentials[8] ?? null;
 
     if ($hash !== null) {
         $conn = SqlDatabaseFields::$sql_connections[$hash] ?? null;
@@ -172,18 +168,18 @@ function is_sql_local_memory_enabled(?string $table): bool
     }
 }
 
-function create_sql_connection(): ?object
+function create_sql_connection(): ?mysqli
 {
-    $hash = SqlDatabaseFields::$sql_credentials[10] ?? null;
+    $hash = SqlDatabaseFields::$sql_credentials[8] ?? null;
 
     if ($hash !== null) {
-        $expired = SqlDatabaseFields::$sql_credentials[8] !== null
-            && SqlDatabaseFields::$sql_credentials[8] < time();
+        $expired = SqlDatabaseFields::$sql_credentials[7] !== null
+            && SqlDatabaseFields::$sql_credentials[7] < time();
 
         if ($expired
             || !array_key_exists($hash, SqlDatabaseFields::$sql_connections)) {
             if ($expired) {
-                SqlDatabaseFields::$sql_credentials[8] = get_future_date(SqlDatabaseFields::$sql_credentials[7]);
+                SqlDatabaseFields::$sql_credentials[7] = get_future_date(SqlDatabaseFields::$sql_credentials[6]);
             }
             try {
                 SqlDatabaseFields::$sql_connections[$hash] = mysqli_init();
@@ -210,7 +206,7 @@ function create_sql_connection(): ?object
 function close_sql_connection(bool $clear = false): bool
 {
     if (!empty(SqlDatabaseFields::$sql_credentials)) {
-        $hash = SqlDatabaseFields::$sql_credentials[10];
+        $hash = SqlDatabaseFields::$sql_credentials[8];
         $result = SqlDatabaseFields::$sql_connections[$hash]->close();
         unset(SqlDatabaseFields::$sql_connections[$hash]);
 
@@ -421,7 +417,7 @@ function sql_store_cache(string           $table,
     foreach ($columns as $key => $column) {
         $columns[$key] = array($table, $column, $hash, $time);
     }
-    $limit = 15_800;
+    $limit = 15_250;
     $store = @json_encode($query, JSON_UNESCAPED_UNICODE);
 
     if (is_string($store)
@@ -493,7 +489,7 @@ function sql_store_cache(string           $table,
 function properly_sql_encode(string $string, bool $partial = false): ?string
 {
     create_sql_connection();
-    $text = SqlDatabaseFields::$sql_connections[SqlDatabaseFields::$sql_credentials[10]]
+    $text = SqlDatabaseFields::$sql_connections[SqlDatabaseFields::$sql_credentials[8]]
         ?->real_escape_string($partial ? $string : htmlspecialchars($string));
 
     if ($text == null) {
@@ -635,36 +631,25 @@ function get_sql_query(string $table, ?array $select = null, ?array $where = nul
 /**
  * @throws Exception
  */
-function sql_query(string $command, bool $buffer = true): mixed
+function sql_query(string $command, bool $buffer = true): mysqli_result|bool
 {
     $sqlConnection = create_sql_connection();
-    $show_sql_errors = SqlDatabaseFields::$sql_credentials[9];
 
-    if ($show_sql_errors) {
+    try {
         $query = $sqlConnection->query(
             $command,
             $buffer
                 ? MYSQLI_STORE_RESULT
                 : MYSQLI_USE_RESULT
         );
-    } else {
-        error_reporting(0);
 
-        try {
-            $query = $sqlConnection->query(
-                $command,
-                $buffer
-                    ? MYSQLI_STORE_RESULT
-                    : MYSQLI_USE_RESULT
-            );
-        } catch (Exception $e) {
-            $query = false;
+        if (!$query) {
+            $query = true;
+            log_sql_error($command, $sqlConnection->error);
         }
-        error_reporting(E_ALL);
-    }
-    if (!$query) {
-        $query = $command;
-        log_sql_error($query, $sqlConnection->error);
+    } catch (Exception $e) {
+        log_sql_error($command, $e->getMessage());
+        $query = false;
     }
     return $query;
 }
