@@ -31,7 +31,7 @@ class __SchedulerDatabase
                 "expiration_time" => time() + 60
             )
         )) {
-            return get_sql_connection()?->insert_id;
+            return create_sql_connection()?->insert_id;
         } else {
             return null;
         }

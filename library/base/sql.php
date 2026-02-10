@@ -43,10 +43,10 @@ function set_sql_credentials(
         $database,
         $port,
         $socket,
-        $exit,
+        $exit, // todo remove
         $duration,
         $duration === null ? null : get_future_date($duration),
-        $showErrors
+        $showErrors // todo remove
     );
     SqlDatabaseFields::$sql_credentials[] = string_to_integer(@json_encode(SqlDatabaseFields::$sql_credentials));
 }
@@ -72,17 +72,6 @@ function is_sql_usable(): bool
             && !empty($conn->thread_id);
     }
     return false;
-}
-
-function get_sql_connection(): ?object
-{
-    $hash = SqlDatabaseFields::$sql_credentials[10] ?? null;
-
-    if ($hash !== null) {
-        return SqlDatabaseFields::$sql_connections[$hash] ?? null;
-    } else {
-        return null;
-    }
 }
 
 function get_sql_last_insert_id(): ?int
@@ -196,35 +185,20 @@ function create_sql_connection(): ?object
             if ($expired) {
                 SqlDatabaseFields::$sql_credentials[8] = get_future_date(SqlDatabaseFields::$sql_credentials[7]);
             }
-            SqlDatabaseFields::$sql_connections[$hash] = mysqli_init();
-            SqlDatabaseFields::$sql_connections[$hash]->options(MYSQLI_OPT_CONNECT_TIMEOUT, 1);
+            try {
+                SqlDatabaseFields::$sql_connections[$hash] = mysqli_init();
+                SqlDatabaseFields::$sql_connections[$hash]->options(MYSQLI_OPT_CONNECT_TIMEOUT, 1);
 
-            if (SqlDatabaseFields::$sql_credentials[9]) {
                 SqlDatabaseFields::$sql_connections[$hash]->real_connect(
                     SqlDatabaseFields::$sql_credentials[0],
                     SqlDatabaseFields::$sql_credentials[1],
                     SqlDatabaseFields::$sql_credentials[2],
                     SqlDatabaseFields::$sql_credentials[3],
                     SqlDatabaseFields::$sql_credentials[4],
-                    SqlDatabaseFields::$sql_credentials[5]);
-            } else {
-                error_reporting(0);
-                SqlDatabaseFields::$sql_connections[$hash]->real_connect(
-                    SqlDatabaseFields::$sql_credentials[0],
-                    SqlDatabaseFields::$sql_credentials[1],
-                    SqlDatabaseFields::$sql_credentials[2],
-                    SqlDatabaseFields::$sql_credentials[3],
-                    SqlDatabaseFields::$sql_credentials[4],
-                    SqlDatabaseFields::$sql_credentials[5]);
-                error_reporting(E_ALL); // In rare occasions, this would be something, but it's recommended to keep it to E_ALL
-            }
-            SqlDatabaseFields::$sql_connections[$hash]->set_charset("utf8mb4");
-
-            if (!SqlDatabaseFields::$sql_connections[$hash]
-                || SqlDatabaseFields::$sql_connections[$hash]->connect_error) {
-                if (SqlDatabaseFields::$sql_credentials[6]) {
-                    exit();
-                }
+                    SqlDatabaseFields::$sql_credentials[5]
+                );
+                SqlDatabaseFields::$sql_connections[$hash]->set_charset("utf8mb4");
+            } catch (Throwable $ignored) {
             }
         }
         return SqlDatabaseFields::$sql_connections[$hash];
@@ -736,7 +710,7 @@ function sql_insert(string $table, array $pairs): mixed
     $result = sql_query("INSERT INTO $table ($columnsArray) VALUES ($valuesArray);");
 
     if ($result) {
-        SqlDatabaseFields::$sql_last_insert_id = get_sql_connection()?->insert_id;
+        SqlDatabaseFields::$sql_last_insert_id = create_sql_connection()?->insert_id;
 
         if (!is_numeric(SqlDatabaseFields::$sql_last_insert_id)
             || SqlDatabaseFields::$sql_last_insert_id == 0) {
@@ -771,7 +745,7 @@ function multiple_sql_insert(string $table, array $columns, array $rows): mixed
     $result = sql_query("INSERT INTO $table ($columnsArray) VALUES $valuesArray;");
 
     if ($result) {
-        SqlDatabaseFields::$sql_last_insert_id = get_sql_connection()?->insert_id;
+        SqlDatabaseFields::$sql_last_insert_id = create_sql_connection()?->insert_id;
 
         if (!is_numeric(SqlDatabaseFields::$sql_last_insert_id)
             || SqlDatabaseFields::$sql_last_insert_id == 0) {
