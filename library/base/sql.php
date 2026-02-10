@@ -628,9 +628,6 @@ function get_sql_query(string $table, ?array $select = null, ?array $where = nul
     return $array;
 }
 
-/**
- * @throws Exception
- */
 function sql_query(string $command, bool $buffer = true): mysqli_result|bool
 {
     $sqlConnection = create_sql_connection();
@@ -644,10 +641,9 @@ function sql_query(string $command, bool $buffer = true): mysqli_result|bool
         );
 
         if (!$query) {
-            $query = true;
             log_sql_error($command, $sqlConnection->error);
         }
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         log_sql_error($command, $e->getMessage());
         $query = false;
     }
@@ -678,7 +674,7 @@ function log_sql_error(?string $query, mixed $error): void
 
 // Insert
 
-function sql_insert(string $table, array $pairs): mixed
+function sql_insert(string $table, array $pairs): mysqli_result|bool
 {
     $columnsArray = array();
     $valuesArray = array();
@@ -706,7 +702,7 @@ function sql_insert(string $table, array $pairs): mixed
     return $result;
 }
 
-function multiple_sql_insert(string $table, array $columns, array $rows): mixed
+function multiple_sql_insert(string $table, array $columns, array $rows): mysqli_result|bool
 {
     $columnsArray = array();
     $valuesArray = array();
@@ -741,7 +737,7 @@ function multiple_sql_insert(string $table, array $columns, array $rows): mixed
     return $result;
 }
 
-function sql_insert_multiple(string $table, array $columns, array $values): mixed
+function sql_insert_multiple(string $table, array $columns, array $values): mysqli_result|bool
 {
     $columnsArray = array();
     $valuesArray = array();
@@ -770,7 +766,7 @@ function sql_insert_multiple(string $table, array $columns, array $values): mixe
 
 // Set
 
-function set_sql_query(string $table, array $what, ?array $where = null, string|array|null $order = null, int $limit = 0): mixed
+function set_sql_query(string $table, array $what, ?array $where = null, string|array|null $order = null, int $limit = 0): mysqli_result|bool
 {
     $query = "UPDATE " . $table . " SET ";
     $counter = 0;
@@ -823,7 +819,7 @@ function set_sql_query(string $table, array $what, ?array $where = null, string|
 
 // Delete
 
-function delete_sql_query(string $table, array $where, string|array|null $order = null, int $limit = 0): mixed
+function delete_sql_query(string $table, array $where, string|array|null $order = null, int $limit = 0): mysqli_result|bool
 {
     $columnsQuery = sql_query("SELECT * FROM " . $table . " LIMIT 1;");
     $query = "DELETE FROM " . $table . " WHERE " . sql_build_where($where);
