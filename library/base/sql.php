@@ -140,20 +140,20 @@ function sql_set_local_memory(bool|array|string $boolOrTables): void
         } else {
             __SqlDatabaseFields::$sql_enable_local_memory = array($boolOrTables);
         }
-        load_sql_database(SqlDatabaseCredentials::MEMORY);
+        load_sql_database(__SqlDatabaseServers::MEMORY);
         $loadRecentQueries(__SqlDatabaseFields::$sql_enable_local_memory);
         load_previous_sql_database();
     } else {
         __SqlDatabaseFields::$sql_enable_local_memory = $boolOrTables;
 
         if ($boolOrTables === true) {
-            load_sql_database(SqlDatabaseCredentials::MEMORY);
+            load_sql_database(__SqlDatabaseServers::MEMORY);
             $loadRecentQueries(null);
             load_previous_sql_database();
         } else if ($boolOrTables === false) {
             __SqlDatabaseFields::$sql_local_memory = array();
         } else {
-            load_sql_database(SqlDatabaseCredentials::MEMORY);
+            load_sql_database(__SqlDatabaseServers::MEMORY);
             $loadRecentQueries($boolOrTables);
             load_previous_sql_database();
         }
@@ -351,7 +351,7 @@ function sql_clear_cache(string $table, array $columns): bool
     if (!in_array(" * ", $columns)) {
         $columns[] = " * ";
     }
-    load_sql_database(SqlDatabaseCredentials::MEMORY);
+    load_sql_database(__SqlDatabaseServers::MEMORY);
     $query = sql_query(
         "SELECT id, hash FROM " . $trackerTable
         . " WHERE table_name = '$table' and column_name IN('" . implode("', '", $columns) . "');",
@@ -438,7 +438,7 @@ function sql_store_cache(string           $table,
         return false;
     }
     if (strlen($store) <= $limit) {
-        load_sql_database(SqlDatabaseCredentials::MEMORY);
+        load_sql_database(__SqlDatabaseServers::MEMORY);
         $retrieverTable = "memory.queryCacheRetriever";
         $trackerTable = "memory.queryCacheTracker";
 
@@ -593,7 +593,7 @@ function get_sql_query(string $table, ?array $select = null, ?array $where = nul
     }
 
     if (__SqlDatabaseFields::$sql_global_memory) {
-        load_sql_database(SqlDatabaseCredentials::MEMORY);
+        load_sql_database(__SqlDatabaseServers::MEMORY);
         $cache = sql_query(
             "SELECT results, last_access_time FROM memory.queryCacheRetriever "
             . "WHERE table_name = '$table' and hash = '$hash' "

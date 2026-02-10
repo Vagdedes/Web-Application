@@ -3,7 +3,7 @@
 function running_memory_process(string|int $tracker, bool $time = true, bool $hash = true): bool
 {
     global $memory_processes_table;
-    load_sql_database(SqlDatabaseCredentials::MEMORY);
+    load_sql_database(__SqlDatabaseServers::MEMORY);
     $query = get_sql_query(
         $memory_processes_table,
         array("running", "next_repetition"),
@@ -26,7 +26,7 @@ function start_memory_process(string|int $tracker, bool $forceful = false, bool 
     if ($hash) {
         $tracker = string_to_integer($tracker, true);
     }
-    load_sql_database(SqlDatabaseCredentials::MEMORY);
+    load_sql_database(__SqlDatabaseServers::MEMORY);
     $query = get_sql_query(
         $memory_processes_table,
         array("running", "next_repetition"),
@@ -74,7 +74,7 @@ function start_memory_process(string|int $tracker, bool $forceful = false, bool 
 function end_memory_process(string|int $tracker, bool $hash = true): void
 {
     global $memory_processes_table;
-    load_sql_database(SqlDatabaseCredentials::MEMORY);
+    load_sql_database(__SqlDatabaseServers::MEMORY);
     set_sql_query(
         $memory_processes_table,
         array(

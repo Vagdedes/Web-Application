@@ -14,7 +14,7 @@ function performance_metrics_store(mixed $name): void
 
     if ($memory_metrics_performance_time > 0.0) {
         global $memory_performance_metrics_table;
-        load_sql_database(SqlDatabaseCredentials::MEMORY);
+        load_sql_database(__SqlDatabaseServers::MEMORY);
         sql_insert(
             $memory_performance_metrics_table,
             array(
