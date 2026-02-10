@@ -39,9 +39,7 @@ $loop = Loop::get();
 $loop->addPeriodicTimer($refreshSeconds, function ()
 use ($start, $function, $argv, $uniqueRun, $scriptHash, $serverHash, &$runningId, $callable) {
     try {
-        if (time() - $start > 60
-            || has_sql_connections()
-            && !is_sql_usable()) {
+        if (time() - $start > 60) {
             exit();
         } else if ($uniqueRun) {
             if (!__SchedulerDatabase::isRunning($scriptHash)) {
