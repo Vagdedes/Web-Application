@@ -77,7 +77,8 @@ class AccountEmbeddings
                 $isArray
             );
         } else {
-            $results = unpack("f*", $query[0]->objectified);
+            $raw = unpack("f*", $query[0]->objectified);
+            $results = array_chunk(array_values($raw), 3072);
 
             if (is_array($results)) {
                 $methodReply = new MethodReply(
@@ -224,6 +225,7 @@ class AccountEmbeddings
                     null
                 );
             }
+
             if ($referenceArray !== null) {
                 $restored = [];
                 $refVals = array_values($referenceArray);
@@ -244,17 +246,18 @@ class AccountEmbeddings
             $this->lastQueryId = $managerAI->getLastId();
 
             if ($save) {
+                $flatEmbeddings = array_merge(...$embeddings);
                 sql_insert(
                     AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
                     array(
                         "embedding_hash" => $hash,
                         "embedding_model" => $model,
-                        "objectified" => pack("f*", ...$embeddings),
+                        "objectified" => pack("f*", ...$flatEmbeddings),
                         "creation_date" => $date,
                         "expiration_date" => $expiration,
                         "actual" => (is_string($textOrArray)
                             ? $textOrArray
-                            : pack("f*", ...$textOrArray))
+                            : json_encode($textOrArray))
                     )
                 );
             }
