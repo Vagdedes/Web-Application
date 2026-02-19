@@ -287,11 +287,10 @@ class AccountEmbeddings
         return $dot;
     }
 
-    public function cosineSimilarityString(string $vecA, string $vecB): float
+    public function cosineSimilarityString(array $vecA, string $vecB): float
     {
-        $arrayA = unpack("f*", $vecA);
         $arrayB = unpack("f*", $vecB);
-        $return = $this->cosineSimilarity($arrayA, $arrayB);
+        $return = $this->cosineSimilarity($vecA, $arrayB);
         unset($arrayA, $arrayB);
         return $return;
     }
@@ -316,11 +315,10 @@ class AccountEmbeddings
         return $denom == 0.0 ? 0.0 : $dotProduct / $denom;
     }
 
-    public function fullCosineSimilarityString(string $vecA, string $vecB): float
+    public function fullCosineSimilarityString(array $vecA, string $vecB): float
     {
-        $arrayA = unpack("f*", $vecA);
         $arrayB = unpack("f*", $vecB);
-        $return = $this->fullCosineSimilarity($arrayA, $arrayB);
+        $return = $this->fullCosineSimilarity($vecA, $arrayB);
         unset($arrayA, $arrayB);
         return $return;
     }
