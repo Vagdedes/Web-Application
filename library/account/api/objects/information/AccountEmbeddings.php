@@ -8,6 +8,7 @@ class AccountEmbeddings
     private Account $account;
     private ?float $lastCost;
     private ?int $lastCurrency, $lastQueryId;
+    private VectorMath $vectorMath;
 
     public function __construct(Account $account)
     {
@@ -15,6 +16,7 @@ class AccountEmbeddings
         $this->lastCost = null;
         $this->lastCurrency = null;
         $this->lastQueryId = null;
+        $this->vectorMath = new VectorMath();
     }
 
     public function getLastQueryId(): ?int
@@ -294,10 +296,7 @@ class AccountEmbeddings
 
     public function cosineSimilarityString(array $vecA, string $vecB): float
     {
-        $arrayB = unpack("f*", $vecB);
-        $return = $this->cosineSimilarity($vecA, $arrayB);
-        unset($arrayA, $arrayB);
-        return $return;
+        return $this->vectorMath->cosineSimilarityMixed($vecA, $vecB);
     }
 
     public function fullCosineSimilarity(array $vecA, array $vecB): float
@@ -322,10 +321,7 @@ class AccountEmbeddings
 
     public function fullCosineSimilarityString(array $vecA, string $vecB): float
     {
-        $arrayB = unpack("f*", $vecB);
-        $return = $this->fullCosineSimilarity($vecA, $arrayB);
-        unset($arrayA, $arrayB);
-        return $return;
+        return $this->vectorMath->fullCosineSimilarityMixed($vecA, $vecB);
     }
 
 }
