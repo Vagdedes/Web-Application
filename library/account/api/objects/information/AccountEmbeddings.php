@@ -291,16 +291,16 @@ class AccountEmbeddings
     {
         $len = count($vecA);
 
-        if ($len !== count($vecB)) {
+        if ($len !== count($vecB) ) {
             return 0.0;
         }
         $dotProduct = 0.0;
         $normA = 0.0;
         $normB = 0.0;
 
-        for ($i = 0; $i < $len; $i++) {
-            $dotProduct += $vecA[$i] * $vecB[$i];
-            $normA += $vecA[$i] * $vecA[$i];
+        foreach ($vecA as $i => $valA) {
+            $dotProduct += $valA * $vecB[$i];
+            $normA += $valA * $valA;
             $normB += $vecB[$i] * $vecB[$i];
         }
         $denom = sqrt($normA) * sqrt($normB);
