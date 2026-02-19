@@ -38,7 +38,8 @@ class AccountEmbeddings
         ?string      $expiration = null,
         bool         $force = false,
         bool         $save = true,
-        mixed        $loop = null): mixed
+        mixed        $loop = null
+    ): mixed
     {
         $model = trim($model);
         $isArray = is_array($textOrArray);
@@ -48,7 +49,7 @@ class AccountEmbeddings
         $date = get_current_date();
         $query = get_sql_query(
             AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
-            array("objectified", "id"),
+            array("objectified", "id", "dimension_count"),
             array(
                 array("embedding_hash", $hash),
                 array("embedding_model", $model),
@@ -78,7 +79,7 @@ class AccountEmbeddings
             );
         } else {
             $raw = unpack("f*", $query[0]->objectified);
-            $results = array_chunk(array_values($raw), 3072);
+            $results = array_chunk(array_values($raw), $query[0]->dimension_count);
 
             if (is_array($results)) {
                 $methodReply = new MethodReply(
@@ -257,7 +258,8 @@ class AccountEmbeddings
                         "expiration_date" => $expiration,
                         "actual" => (is_string($textOrArray)
                             ? $textOrArray
-                            : json_encode($textOrArray))
+                            : json_encode($textOrArray)),
+                        "dimension_count" => count($embeddings[0])
                     )
                 );
             }
