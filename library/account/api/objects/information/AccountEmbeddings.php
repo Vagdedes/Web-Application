@@ -77,7 +77,7 @@ class AccountEmbeddings
                 $isArray
             );
         } else {
-            $results = json_decode($query[0]->objectified, true);
+            $results = unpack("f*", $query[0]->objectified);
 
             if (is_array($results)) {
                 $methodReply = new MethodReply(
@@ -249,12 +249,12 @@ class AccountEmbeddings
                     array(
                         "embedding_hash" => $hash,
                         "embedding_model" => $model,
-                        "objectified" => @json_encode($embeddings),
+                        "objectified" => pack("f*", $embeddings),
                         "creation_date" => $date,
                         "expiration_date" => $expiration,
                         "actual" => (is_string($textOrArray)
                             ? $textOrArray
-                            : @json_encode($textOrArray))
+                            : pack("f*", $textOrArray))
                     )
                 );
             }
@@ -287,11 +287,20 @@ class AccountEmbeddings
         return $dot;
     }
 
+    public function cosineSimilarityString(string $vecA, string $vecB): float
+    {
+        $arrayA = unpack("f*", $vecA);
+        $arrayB = unpack("f*", $vecB);
+        $return = $this->cosineSimilarity($arrayA, $arrayB);
+        unset($arrayA, $arrayB);
+        return $return;
+    }
+
     public function fullCosineSimilarity(array $vecA, array $vecB): float
     {
         $len = count($vecA);
 
-        if ($len !== count($vecB) ) {
+        if ($len !== count($vecB)) {
             return 0.0;
         }
         $dotProduct = 0.0;
@@ -305,6 +314,15 @@ class AccountEmbeddings
         }
         $denom = sqrt($normA) * sqrt($normB);
         return $denom == 0.0 ? 0.0 : $dotProduct / $denom;
+    }
+
+    public function fullCosineSimilarityString(string $vecA, string $vecB): float
+    {
+        $arrayA = unpack("f*", $vecA);
+        $arrayB = unpack("f*", $vecB);
+        $return = $this->fullCosineSimilarity($arrayA, $arrayB);
+        unset($arrayA, $arrayB);
+        return $return;
     }
 
 }
