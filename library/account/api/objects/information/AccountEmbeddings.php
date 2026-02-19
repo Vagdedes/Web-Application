@@ -276,7 +276,22 @@ class AccountEmbeddings
     {
         $len = count($vecA);
 
-        if ($len !== count($vecB) || $len === 0) {
+        if ($len !== count($vecB)) {
+            return 0.0;
+        }
+        $dot = 0.0;
+
+        foreach ($vecA as $i => $valA) {
+            $dot += $valA * $vecB[$i];
+        }
+        return $dot;
+    }
+
+    public function fullCosineSimilarity(array $vecA, array $vecB): float
+    {
+        $len = count($vecA);
+
+        if ($len !== count($vecB)) {
             return 0.0;
         }
         $dotProduct = 0.0;
