@@ -7,10 +7,28 @@ class VectorMath
     public function __construct()
     {
         if (self::$ffi === null) {
-            self::$ffi = \FFI::cdef("
-                float cblas_sdot(const int N, const float *X, const int incX, const float *Y, const int incY);
-                float cblas_snrm2(const int N, const float *X, const int incX);
-            ", "libopenblas.so.3");
+            $headers = "
+                float cblas_sdot(const int N, const void *X, const int incX, const void *Y, const int incY);
+                float cblas_snrm2(const int N, const void *X, const int incX);
+            ";
+            $candidates = [
+                'libopenblas.so.3',
+                'libopenblas.so.0',
+                'libopenblas.so',
+                '/usr/lib/aarch64-linux-gnu/libopenblas.so.0', // ARM fallback
+                '/usr/lib/x86_64-linux-gnu/libopenblas.so.3',  // x86 fallback
+            ];
+
+            foreach ($candidates as $lib) {
+                try {
+                    self::$ffi = \FFI::cdef($headers, $lib);
+                    return; // Success, exit loop
+                } catch (\FFI\Exception $e) {
+                    continue; // Failed, try the next one
+                }
+            }
+
+            throw new \RuntimeException("Failed to load OpenBLAS library on this architecture.");
         }
     }
 
