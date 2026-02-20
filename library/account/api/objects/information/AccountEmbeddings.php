@@ -265,15 +265,14 @@ class AccountEmbeddings
             $this->lastQueryId = $managerAI->getLastId();
 
             if ($save) {
-                $flatEmbeddings = array_merge(...$embeddings);
                 sql_insert(
                     AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
                     array(
                         "embedding_hash" => $hash,
                         "embedding_model" => $model,
                         "objectified" => $isOneEmbedding
-                            ? pack("f*", ...$flatEmbeddings)
-                            : @json_encode($flatEmbeddings),
+                            ? pack("f*", $embeddings[0])
+                            : @json_encode($embeddings),
                         "creation_date" => $date,
                         "expiration_date" => $expiration,
                         "actual" => ($isOneEmbedding
