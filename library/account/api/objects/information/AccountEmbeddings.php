@@ -3,7 +3,9 @@
 class AccountEmbeddings
 {
 
-    private const AI_HASH = 581928704;
+    private const
+        AI_HASH = 581928704,
+        MAX_DIMENSIONS = 1536;
 
     private Account $account;
     private ?float $lastCost;
@@ -51,7 +53,7 @@ class AccountEmbeddings
         $date = get_current_date();
         $query = get_sql_query(
             AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
-            array("objectified", "id", "dimension_count"),
+            array("objectified", "id", "is_multiple"),
             array(
                 array("embedding_hash", $hash),
                 array("embedding_model", $model),
@@ -80,8 +82,11 @@ class AccountEmbeddings
                 $isArray
             );
         } else {
-            $raw = unpack("f*", $query[0]->objectified);
-            $results = array_chunk(array_values($raw), $query[0]->dimension_count);
+            if ($query[0]->is_multiple) {
+                $results = @json_decode($query[0]->objectified, true);
+            } else {
+                $results = unpack("f*", $query[0]->objectified);
+            }
 
             if (is_array($results)) {
                 $methodReply = new MethodReply(
@@ -121,9 +126,14 @@ class AccountEmbeddings
             AIHelper::getAuthorization(AIAuthorization::OPENAI)
         );
         if ($isArray) {
-            $referenceArray = $this->deduplicateWithReferences($textOrArray);
-            $textOrArray = $referenceArray[1];
-            $referenceArray = $referenceArray[0];
+            if (sizeof($textOrArray) === 1) {
+                $textOrArray = $textOrArray[0];
+                $referenceArray = null;
+            } else {
+                $referenceArray = $this->deduplicateWithReferences($textOrArray);
+                $textOrArray = $referenceArray[1];
+                $referenceArray = $referenceArray[0];
+            }
         } else {
             $referenceArray = null;
         }
@@ -221,7 +231,7 @@ class AccountEmbeddings
         if (array_shift($outcome)) {
             $embeddings = $outcome[0]->getEmbeddings($outcome[1]);
 
-            if ($embeddings === null) {
+            if (empty($embeddings)) {
                 return new MethodReply(
                     false,
                     null,
@@ -235,7 +245,7 @@ class AccountEmbeddings
 
                 foreach ($refVals as $pos => $uniqueIndex) {
                     if (!is_int($uniqueIndex)) {
-                        throw new InvalidArgumentException("Reference at position {$pos} is not an int.");
+                        throw new InvalidArgumentException("Reference at position '" . $pos . "' is not an int.");
                     }
                     if (!array_key_exists($uniqueIndex, $embeddings)) {
                         throw new InvalidArgumentException("Unique index {$uniqueIndex} not present in embeddings.");
@@ -244,6 +254,12 @@ class AccountEmbeddings
                 }
                 $embeddings = $restored;
             }
+            foreach ($embeddings as $key => $embedding) {
+                if (sizeof($embedding) > self::MAX_DIMENSIONS) {
+                    $embeddings[$key] = array_slice($embedding, 0, self::MAX_DIMENSIONS);
+                }
+            }
+            $isOneEmbedding = is_string($textOrArray);
             $this->lastCost = $outcome[0]->getCost($outcome[1]);
             $this->lastCurrency = $outcome[0]->getCurrency()?->id;
             $this->lastQueryId = $managerAI->getLastId();
@@ -255,13 +271,15 @@ class AccountEmbeddings
                     array(
                         "embedding_hash" => $hash,
                         "embedding_model" => $model,
-                        "objectified" => pack("f*", ...$flatEmbeddings),
+                        "objectified" => $isOneEmbedding
+                            ? pack("f*", ...$flatEmbeddings)
+                            : @json_encode($flatEmbeddings),
                         "creation_date" => $date,
                         "expiration_date" => $expiration,
-                        "actual" => (is_string($textOrArray)
+                        "actual" => ($isOneEmbedding
                             ? $textOrArray
-                            : json_encode($textOrArray)),
-                        "dimension_count" => count($embeddings[0])
+                            : @json_encode($textOrArray)),
+                        "is_multiple" => !$isOneEmbedding
                     )
                 );
             }
