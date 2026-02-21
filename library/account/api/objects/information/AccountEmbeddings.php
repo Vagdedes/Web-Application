@@ -311,7 +311,12 @@ class AccountEmbeddings
         return $dot;
     }
 
-    public function cosineSimilarityString(array $vecA, string $vecB): float
+    public function cosineSimilarityString(string $vecA, string $vecB): float
+    {
+        return $this->vectorMath->dotProductBinary($vecA, $vecB, self::MAX_DIMENSIONS);
+    }
+
+    public function cosineSimilarityStringMixed(array $vecA, string $vecB): float
     {
         return $this->vectorMath->cosineSimilarityMixed($vecA, $vecB);
     }
@@ -336,7 +341,12 @@ class AccountEmbeddings
         return $denom == 0.0 ? 0.0 : $dotProduct / $denom;
     }
 
-    public function fullCosineSimilarityString(array $vecA, string $vecB): float
+    public function fullCosineSimilarityString(string $vecA, string $vecB): float
+    {
+        return $this->vectorMath->fullCosineSimilarityBinary($vecA, $vecB, self::MAX_DIMENSIONS);
+    }
+
+    public function fullCosineSimilarityStringMixed(array $vecA, string $vecB): float
     {
         return $this->vectorMath->fullCosineSimilarityMixed($vecA, $vecB);
     }
