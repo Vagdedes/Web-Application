@@ -32,13 +32,13 @@ class VectorMath
         }
     }
 
-    public function dotProductBinary(string $vecA, string $vecB, int $len = 3072): float
+    public function dotProductBinary(string $vecA, string $vecB, int $len = 1536): float
     {
         // incX/incY = 1 means we process every element consecutively
         return self::$ffi->cblas_sdot($len, $vecA, 1, $vecB, 1);
     }
 
-    public function fullCosineSimilarityBinary(string $vecA, string $vecB, int $len = 3072): float
+    public function fullCosineSimilarityBinary(string $vecA, string $vecB, int $len = 1536): float
     {
         $dot = self::$ffi->cblas_sdot($len, $vecA, 1, $vecB, 1);
 
