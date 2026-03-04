@@ -323,11 +323,11 @@ class AccountInstructions
         if (empty($array)) {
             return array();
         } else {
-            $isArray = is_array($allow);
+            $isArray = is_array($allow)
+                && !empty($allow);
 
             foreach ($array as $arrayKey => $row) {
-                if (!$isArray
-                    || (sizeof($allow) === 0 ? $row->default_use !== null : in_array($row->id, $allow))) {
+                if (!$isArray || in_array($row->id, $allow)) {
                     $array[$arrayKey] = $row;
                 } else {
                     unset($array[$arrayKey]);
@@ -379,11 +379,11 @@ class AccountInstructions
         if (empty($array)) {
             return array();
         } else {
-            $isArray = is_array($allow);
+            $isArray = is_array($allow)
+                && !empty($allow);
 
             foreach ($array as $arrayKey => $row) {
-                if (!$isArray
-                    || (sizeof($allow) === 0 ? $row->default_use !== null : in_array($row->id, $allow))) {
+                if (!$isArray || in_array($row->id, $allow)) {
                     $doc = $this->getURLData($arrayKey, $row, $refresh);
 
                     if ($doc !== null) {
