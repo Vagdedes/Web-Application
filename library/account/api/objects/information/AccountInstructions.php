@@ -20,8 +20,7 @@ class AccountInstructions
         $replacements;
     private array
         $extra,
-        $deleteExtra,
-        $containsCache;
+        $deleteExtra;
     private ?AIManager $managerAI;
 
     public function __construct(Account $account)
@@ -29,7 +28,6 @@ class AccountInstructions
         $this->account = $account;
         $this->extra = array();
         $this->deleteExtra = array();
-        $this->containsCache = array();
         $this->replacements = array();
         $this->localInstructions = null;
         $this->publicInstructions = null;
@@ -272,7 +270,7 @@ class AccountInstructions
             && $row->information_expiration > get_current_date()) {
             return $row->information_value;
         } else if ($refresh || $row->information_value === null) {
-            $html = timed_file_get_contents($row->information_url, 5);
+            $html = timed_file_get_contents($row->information_url, 3);
 
             if ($html !== false) {
                 $doc = get_raw_google_doc($html);
@@ -282,8 +280,6 @@ class AccountInstructions
                 }
 
                 if (!empty($doc)) {
-                    $containsKeywords = null;
-
                     if (!empty($this->replacements)) {
                         foreach ($this->replacements as $replace) {
                             $doc = str_replace(
@@ -293,43 +289,13 @@ class AccountInstructions
                             );
                         }
                     }
-                    if ($row->auto_contains !== null
-                        && $this?->managerAI !== null
-                        && $this?->managerAI->exists()) {
-                        $result = $this->managerAI->getResult(
-                            self::AI_HASH,
-                            array(
-                                "messages" => array(
-                                    array(
-                                        "role" => "system",
-                                        "content" => "From the user's text write only the " . $row->auto_contains . " most important keywords separated"
-                                            . " by the | character without spaces in between and a maximum total length of"
-                                            . " 4000 characters. Do not combine multiple words together, instead separate"
-                                            . " them by using the | character. For example: keyword1|keyword2|keyword3"
-                                    ),
-                                    array(
-                                        "role" => "user",
-                                        "content" => $doc
-                                    )
-                                )
-                            )
-                        );
-
-                        if ($result[0]) {
-                            $containsKeywords = $result[1]->getTextOrVoice($result[2]);
-                        }
-                    }
                     $expiration = get_future_date($row->information_duration);
-                    $containsKeywords = empty($containsKeywords)
-                        ? null
-                        : $row->information_url . "|" . strtolower($containsKeywords);
 
                     if (set_sql_query(
                         AccountVariables::INSTRUCTIONS_PUBLIC_TABLE,
                         array(
                             "information_value" => $doc,
-                            "information_expiration" => $expiration,
-                            "contains" => $containsKeywords
+                            "information_expiration" => $expiration
                         ),
                         array(
                             array("id", $row->id)
@@ -339,9 +305,7 @@ class AccountInstructions
                     )) {
                         $row->information_value = $doc;
                         $row->information_expiration = $expiration;
-                        $row->contains = $this->calculateRawContains($containsKeywords);
                         $this->publicInstructions[$arrayKey] = $row;
-                        unset($this->containsCache[$arrayKey]);
                     }
                     return $doc;
                 }
@@ -427,7 +391,7 @@ class AccountInstructions
         }
     }
 
-    public function getPublic(?array $allow = null, ?string $userInput = null, bool $refresh = true): array
+    public function getPublic(?array $allow = null, bool $refresh = true): array
     {
         if ($this->publicInstructions === null) {
             $this->publicInstructions = $this->calculateContains(get_sql_query(
@@ -453,27 +417,11 @@ class AccountInstructions
             return array();
         } else {
             $isArray = is_array($allow);
-            $hasUserInput = $userInput !== null;
-
-            if ($hasUserInput) {
-                $userInput = explode(" ", $userInput);
-            }
 
             foreach ($array as $arrayKey => $row) {
                 if (!$isArray
                     || (sizeof($allow) === 0 ? $row->default_use !== null : in_array($row->id, $allow))) {
-                    if (!$hasUserInput || empty($row->contains)) {
-                        $doc = $this->getURLData($arrayKey, $row, $refresh);
-                    } else {
-                        $doc = null;
-
-                        foreach ($userInput as $input) {
-                            if ($this->equals($arrayKey, $row, $input)) {
-                                $doc = $this->getURLData($arrayKey, $row, $refresh);
-                                break;
-                            }
-                        }
-                    }
+                    $doc = $this->getURLData($arrayKey, $row, $refresh);
 
                     if ($doc !== null) {
                         $row->information_value = $doc;
@@ -506,26 +454,4 @@ class AccountInstructions
         }
     }
 
-    private function equals(mixed $arrayKey, object $row, string $word): bool
-    {
-        $word = strtolower($word);
-        $hasKey = array_key_exists($arrayKey, $this->containsCache);
-
-        if ($hasKey
-            && in_array($word, $this->containsCache[$arrayKey])) {
-            return true;
-        }
-
-        foreach ($row->contains as $contains) {
-            if ($word == $contains) {
-                if ($hasKey) {
-                    $this->containsCache[$arrayKey][] = $word;
-                } else {
-                    $this->containsCache[$arrayKey] = array($word);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
 }
