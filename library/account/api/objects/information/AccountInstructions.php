@@ -3,9 +3,7 @@
 class AccountInstructions
 {
 
-    private const
-        AI_HASH = 596802337,
-        keepDatabaseKeys = [
+    private const keepDatabaseKeys = [
         "priority",
         "information",
         "information_url",
@@ -52,24 +50,6 @@ class AccountInstructions
     public function setAI(?AIManager $chatAI): void
     {
         $this->managerAI = $chatAI;
-    }
-
-    private function calculateRawContains(?string $text): array
-    {
-        return $text === null
-            ? array()
-            : explode("|", $text);
-    }
-
-    private function calculateContains(array $array): array
-    {
-        if (!empty($array)) {
-            foreach ($array as $arrayKey => $row) {
-                $row->contains = $this->calculateRawContains($row->contains);
-                $array[$arrayKey] = $row;
-            }
-        }
-        return $array;
     }
 
     // Separator
@@ -318,10 +298,10 @@ class AccountInstructions
 
     // Separator
 
-    public function getLocal(?array $allow = null, ?string $userInput = null): array
+    public function getLocal(?array $allow = null): array
     {
         if ($this->localInstructions === null) {
-            $this->localInstructions = $this->calculateContains(get_sql_query(
+            $this->localInstructions = get_sql_query(
                 AccountVariables::INSTRUCTIONS_LOCAL_TABLE,
                 null,
                 array(
@@ -335,7 +315,7 @@ class AccountInstructions
                     "DESC",
                     "priority"
                 )
-            ));
+            );
             $this->cacheReplacements();
         }
         $array = $this->localInstructions;
@@ -348,24 +328,7 @@ class AccountInstructions
             foreach ($array as $arrayKey => $row) {
                 if (!$isArray
                     || (sizeof($allow) === 0 ? $row->default_use !== null : in_array($row->id, $allow))) {
-                    if ($userInput === null || empty($row->contains)) {
-                        $continue = true;
-                    } else {
-                        $continue = false;
-
-                        foreach ($row->contains as $contains) {
-                            if (str_contains($userInput, $contains)) {
-                                $continue = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if ($continue) {
-                        $array[$arrayKey] = $row;
-                    } else {
-                        unset($array[$arrayKey]);
-                    }
+                    $array[$arrayKey] = $row;
                 } else {
                     unset($array[$arrayKey]);
                 }
@@ -394,7 +357,7 @@ class AccountInstructions
     public function getPublic(?array $allow = null, bool $refresh = true): array
     {
         if ($this->publicInstructions === null) {
-            $this->publicInstructions = $this->calculateContains(get_sql_query(
+            $this->publicInstructions = get_sql_query(
                 AccountVariables::INSTRUCTIONS_PUBLIC_TABLE,
                 null,
                 array(
@@ -408,7 +371,7 @@ class AccountInstructions
                     "DESC",
                     "priority"
                 )
-            ));
+            );
             $this->cacheReplacements();
         }
         $array = $this->publicInstructions;
