@@ -1,0 +1,21 @@
+<?php
+
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+
+function generate_qr_code(
+    string $text,
+    string $outputType = QRCode::OUTPUT_IMAGE_PNG,
+    bool   $base64 = true
+): string
+{
+    $options = new QROptions([
+        'version' => QRCode::VERSION_AUTO,
+        'outputType' => $outputType,
+        'eccLevel' => QRCode::ECC_L, // Low error correction (7%) to keep the byte size minimal
+        'scale' => 5,             // Pixel size of each module
+        'imageBase64' => $base64,       // If true, returns 'data:image/png;base64,...'
+    ]);
+
+    return (new QRCode($options))->render($text);
+}
