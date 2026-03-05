@@ -16,6 +16,5 @@ function generate_qr_code(
         'scale' => 5,
         'imageBase64' => $base64,
     ]);
-
     return (new QRCode($options))->render($text);
 }
