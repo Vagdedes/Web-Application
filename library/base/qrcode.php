@@ -12,9 +12,9 @@ function generate_qr_code(
     $options = new QROptions([
         'version' => QRCode::VERSION_AUTO,
         'outputType' => $outputType,
-        'eccLevel' => QRCode::ECC_L, // Low error correction (7%) to keep the byte size minimal
-        'scale' => 5,             // Pixel size of each module
-        'imageBase64' => $base64,       // If true, returns 'data:image/png;base64,...'
+        'eccLevel' => QRCode::ECC_L,
+        'scale' => 5,
+        'imageBase64' => $base64,
     ]);
 
     return (new QRCode($options))->render($text);
