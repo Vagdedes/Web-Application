@@ -15,12 +15,12 @@ class AIObjectConstructor
             self::BASICS_KEY => "Construct as much of the object in JSON format without markdown"
         ];
 
-    private array $initiators, $tasks, $parents;
+    private array $initiators, $instructions, $parents;
     private ?object $lastObject;
 
     public function __construct(
         array $initiators,
-        array $tasks = [],
+        array $instructions = [],
         bool  $addDefaultInstructions = true
     )
     {
@@ -37,16 +37,16 @@ class AIObjectConstructor
         );
         $this->initiators = $initiators;
 
-        if (empty($tasks)) {
-            $tasks = self::DEFAULT_INSTRUCTIONS;
+        if (empty($instructions)) {
+            $instructions = self::DEFAULT_INSTRUCTIONS;
         } else if ($addDefaultInstructions) {
             foreach (self::DEFAULT_INSTRUCTIONS as $instructionKey => $instruction) {
-                if (!in_array($instruction, $tasks)) {
-                    $tasks[$instructionKey] = $instruction;
+                if (!in_array($instruction, $instructions)) {
+                    $instructions[$instructionKey] = $instruction;
                 }
             }
         }
-        $this->tasks = $tasks;
+        $this->instructions = $instructions;
         $this->parents = array();
         $this->lastObject = null;
     }
@@ -54,7 +54,7 @@ class AIObjectConstructor
     public function build(): ?string
     {
         $object = new stdClass();
-        $object->tasks = $this->tasks;
+        $object->instructions = $this->instructions;
         $object->object = $this->prepare($this->initiators);
         return @json_encode($object) ?? null;
     }
