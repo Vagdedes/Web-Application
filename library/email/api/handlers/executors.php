@@ -395,8 +395,10 @@ function insert_new_email(string $email, bool $test): bool
 }
 
 function get_email_execution_insert_details(int|string|float $planID,
-                                            int|string|null  $rowID, $title, ?string $contents,
-                                            ?string          $currentDate, ?string $cooldown,
+                                            int|string|null  $rowID, $title,
+                                            ?string          $contents,
+                                            ?string          $currentDate,
+                                            ?string          $cooldown,
                                             mixed            $error = null): array
 {
     $array = array(
@@ -404,12 +406,12 @@ function get_email_execution_insert_details(int|string|float $planID,
         "email_id" => $rowID,
         "title" => $title,
         "contents" => $contents,
-        "creation_date" => $currentDate,
-        "cooldown_expiration_date" => $cooldown
+        "creation_date" => $currentDate
     );
 
     if ($error !== null) {
         $array["error"] = $error;
+        $array["cooldown_expiration_date"] = $cooldown;
     }
     return $array;
 }

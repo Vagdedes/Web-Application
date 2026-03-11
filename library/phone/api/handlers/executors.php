@@ -319,20 +319,22 @@ function insert_new_phone_number(int|string $number, bool $test): bool
 }
 
 function get_phone_execution_insert_details(int|string|float $planID,
-                                            int|string|null  $rowID, ?string $contents,
-                                            ?string          $currentDate, ?string $cooldown,
+                                            int|string|null  $rowID,
+                                            ?string          $contents,
+                                            ?string          $currentDate,
+                                            ?string          $cooldown,
                                             mixed            $error = null): array
 {
     $array = array(
         "plan_id" => $planID,
         "phone_id" => $rowID,
         "contents" => $contents,
-        "creation_date" => $currentDate,
-        "cooldown_expiration_date" => $cooldown
+        "creation_date" => $currentDate
     );
 
     if ($error !== null) {
         $array["error"] = $error;
+        $array["cooldown_expiration_date"] = $cooldown;
     }
     return $array;
 }

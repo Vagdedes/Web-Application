@@ -372,20 +372,22 @@ function insert_new_webhook_url(string $webhookPointer, bool $test): bool
 }
 
 function get_discord_webhook_execution_insert_details(int|string|float $planID,
-                                                      int|string|null  $rowID, mixed $object,
-                                                      ?string          $currentDate, ?string $cooldown,
+                                                      int|string|null  $rowID,
+                                                      mixed            $object,
+                                                      ?string          $currentDate,
+                                                      ?string          $cooldown,
                                                       mixed            $error = null): array
 {
     $array = array(
         "plan_id" => $planID,
         "webhook_id" => $rowID,
         "object" => $object !== null ? json_encode($object) : null,
-        "creation_date" => $currentDate,
-        "cooldown_expiration_date" => $cooldown
+        "creation_date" => $currentDate
     );
 
     if ($error !== null) {
         $array["error"] = $error;
+        $array["cooldown_expiration_date"] = $cooldown;
     }
     return $array;
 }
