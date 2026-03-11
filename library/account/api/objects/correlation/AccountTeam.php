@@ -1595,7 +1595,7 @@ class AccountTeam
         }
     }
 
-    private function getRookieRole(): ?object
+    public function getRookieRole(): ?object
     {
         $roles = $this->getTeamRoles();
 
