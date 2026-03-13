@@ -276,7 +276,7 @@ class AccountEmbeddings
                         "embedding_model" => $model,
                         ($isOneEmbedding ? "objectified_single" : "objectified") =>
                             $isOneEmbedding
-                                ? pack("f*", $embeddings[0])
+                                ? pack("f*", ...$embeddings[0])
                                 : @json_encode($embeddings),
                         "creation_date" => $date,
                         "expiration_date" => $expiration,
