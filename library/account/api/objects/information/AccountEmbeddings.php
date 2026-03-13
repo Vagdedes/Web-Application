@@ -53,7 +53,11 @@ class AccountEmbeddings
         $date = get_current_date();
         $query = get_sql_query(
             AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
-            array("objectified", "id", "is_multiple"),
+            array(
+                $isArray ? "objectified" : "objectified_single",
+                "id",
+                "is_multiple"
+            ),
             array(
                 array("embedding_hash", $hash),
                 array("embedding_model", $model),
@@ -85,7 +89,7 @@ class AccountEmbeddings
             if ($query[0]->is_multiple) {
                 $results = @json_decode($query[0]->objectified, true);
             } else {
-                $results = unpack("f*", $query[0]->objectified);
+                $results = unpack("f*", $query[0]->objectified_single);
             }
 
             if (is_array($results)) {
@@ -270,9 +274,10 @@ class AccountEmbeddings
                     array(
                         "embedding_hash" => $hash,
                         "embedding_model" => $model,
-                        "objectified" => $isOneEmbedding
-                            ? pack("f*", $embeddings[0])
-                            : @json_encode($embeddings),
+                        ($isOneEmbedding ? "objectified_single" : "objectified") =>
+                            $isOneEmbedding
+                                ? pack("f*", $embeddings[0])
+                                : @json_encode($embeddings),
                         "creation_date" => $date,
                         "expiration_date" => $expiration,
                         "actual" => ($isOneEmbedding
