@@ -136,15 +136,16 @@ class AccountTeam
                     )) {
                         return new MethodReply(false, "Failed to add team title.");
                     }
-                    if (!sql_insert(
-                        AccountVariables::TEAM_NAME_CHANGES,
-                        array(
-                            "team_id" => $insertID,
-                            "name" => $description,
-                            "creation_date" => $date,
-                            "description" => true
-                        )
-                    )) {
+                    if ($description !== null
+                        && !sql_insert(
+                            AccountVariables::TEAM_NAME_CHANGES,
+                            array(
+                                "team_id" => $insertID,
+                                "name" => $description,
+                                "creation_date" => $date,
+                                "description" => true
+                            )
+                        )) {
                         return new MethodReply(false, "Failed to add team description.");
                     }
                     return new MethodReply(true, "Team created as '" . $title . "'.");
