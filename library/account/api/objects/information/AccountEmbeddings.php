@@ -96,7 +96,7 @@ class AccountEmbeddings
                 $methodReply = new MethodReply(
                     true,
                     null,
-                    array($results)
+                    array(array_values($results))
                 );
             } else {
                 $methodReply = new MethodReply(
