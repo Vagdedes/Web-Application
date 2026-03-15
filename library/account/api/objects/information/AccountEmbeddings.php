@@ -86,7 +86,9 @@ class AccountEmbeddings
                 $isArray
             );
         } else {
-            if ($query[0]->is_multiple !== null) {
+            $multiple = $query[0]->is_multiple !== null;
+
+            if ($multiple) {
                 $results = @json_decode($query[0]->objectified, true);
             } else {
                 $results = unpack("f*", $query[0]->objectified_single);
@@ -96,7 +98,9 @@ class AccountEmbeddings
                 $methodReply = new MethodReply(
                     true,
                     null,
-                    array(array_values($results))
+                    $multiple
+                        ? $results
+                        : array(array_values($results))
                 );
             } else {
                 $methodReply = new MethodReply(
