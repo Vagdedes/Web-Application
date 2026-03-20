@@ -89,20 +89,20 @@ class AccountTeam
     public function createTeam(string $title, ?string $description, ?string $reason = null): MethodReply
     {
         if (!$this->account->exists()) {
-            return new MethodReply(false, "Member with ID '"
+            return new MethodReply(false, "We couldn't find your account (ID: "
                 . $this->account->getDetail("id", "unknown")
-                . "' not found.");
+                . ").");
         }
         if (strlen($title) === 0) {
-            return new MethodReply(false, "Title cannot be empty.");
+            return new MethodReply(false, "Please provide a team title.");
         }
         if (strlen($title) > 128) {
-            return new MethodReply(false, "Title cannot be longer than 128 characters.");
+            return new MethodReply(false, "The team title is too long. Please keep it under 128 characters.");
         }
         $result = $this->findTeam($title);
 
         if ($result->isPositiveOutcome()) {
-            return new MethodReply(false, "Team with the title '" . $title . "' already exists.");
+            return new MethodReply(false, "A team named '" . $title . "' already exists. Please choose a different name.");
         }
         $date = get_current_date();
 
@@ -117,7 +117,7 @@ class AccountTeam
             $insertID = get_sql_last_insert_id();
 
             if ($insertID === null) {
-                return new MethodReply(false, "Failed to find created team.");
+                return new MethodReply(false, "We created the team, but couldn't retrieve its new ID.");
             } else {
                 if (sql_insert(
                     AccountVariables::TEAM_MEMBERS_TABLE,
@@ -134,7 +134,7 @@ class AccountTeam
                             "creation_date" => $date,
                         )
                     )) {
-                        return new MethodReply(false, "Failed to add team title.");
+                        return new MethodReply(false, "We couldn't save the new team's title.");
                     }
                     if ($description !== null
                         && !sql_insert(
@@ -146,15 +146,15 @@ class AccountTeam
                                 "description" => true
                             )
                         )) {
-                        return new MethodReply(false, "Failed to add team description.");
+                        return new MethodReply(false, "We couldn't save the new team's description.");
                     }
-                    return new MethodReply(true, "Team created as '" . $title . "'.");
+                    return new MethodReply(true, "Your team '" . $title . "' has been successfully created!");
                 } else {
-                    return new MethodReply(false, "Failed to add member to the team.");
+                    return new MethodReply(false, "We couldn't add you as a member to the new team.");
                 }
             }
         } else {
-            return new MethodReply(false, "Failed to create team.");
+            return new MethodReply(false, "We ran into an issue while trying to create the team.");
         }
     }
 
@@ -240,7 +240,7 @@ class AccountTeam
             if (isset($this->forcedTeam->id)) {
                 if (sizeof($this->forcedTeamResult) === 2
                     && microtime(true) - $this->forcedTeamResult[1] <= self::MEMORY_CACHE_SECONDS) {
-                    return new MethodReply(true, "Forced team found successfully.", $this->forcedTeamResult[0]);
+                    return new MethodReply(true, "We found the requested team.", $this->forcedTeamResult[0]);
                 }
                 $query = $this->forcedTeam->id <= 0
                     ? null
@@ -257,13 +257,13 @@ class AccountTeam
                     );
 
                 if (empty($query)) {
-                    return new MethodReply(false, "Forced team with ID '" . $this->forcedTeam->id . "' not found.");
+                    return new MethodReply(false, "We couldn't find the requested team (ID: " . $this->forcedTeam->id . ").");
                 } else {
                     $this->forcedTeamResult = array($query[0], microtime(true));
-                    return new MethodReply(true, "Forced team found successfully.", $query[0]);
+                    return new MethodReply(true, "We found the requested team.", $query[0]);
                 }
             } else {
-                return new MethodReply(false, "Forced team ID not set.");
+                return new MethodReply(false, "The requested team's ID is missing.");
             }
         }
         if ($reference === null) {
@@ -271,9 +271,9 @@ class AccountTeam
         }
         if ($reference instanceof Account) {
             if (!$reference->exists()) {
-                return new MethodReply(false, "Member with ID '"
+                return new MethodReply(false, "We couldn't find the member account (ID: "
                     . $reference->getDetail("id", "unknown")
-                    . "' not found.");
+                    . ").");
             }
             $query = get_sql_query(
                 AccountVariables::TEAM_MEMBERS_TABLE,
@@ -309,11 +309,11 @@ class AccountTeam
                     if (!empty($subQuery)) {
                         $subQuery = $subQuery[0];
                         $this->setForcedTeam($subQuery);
-                        return new MethodReply(true, "Team successfully found.", $subQuery);
+                        return new MethodReply(true, "Team located successfully.", $subQuery);
                     }
                 }
             }
-            return new MethodReply(false, "Team not found.");
+            return new MethodReply(false, "We couldn't find that team.");
         } else if (is_numeric($reference)) {
             $query = get_sql_query(
                 AccountVariables::TEAM_TABLE,
@@ -328,9 +328,9 @@ class AccountTeam
             );
 
             if (empty($query)) {
-                return new MethodReply(false, "Team with ID '" . $reference . "' not found.");
+                return new MethodReply(false, "We couldn't find a team with the ID '" . $reference . "'.");
             } else {
-                return new MethodReply(true, "Team found successfully.", $query[0]);
+                return new MethodReply(true, "Team located successfully.", $query[0]);
             }
         } else {
             $query = get_sql_query(
@@ -348,7 +348,7 @@ class AccountTeam
             );
 
             if (empty($query)) {
-                return new MethodReply(false, "Team with name '" . $reference . "' not found.");
+                return new MethodReply(false, "We couldn't find a team named '" . $reference . "'.");
             }
             $subQuery = get_sql_query(
                 AccountVariables::TEAM_TABLE,
@@ -363,9 +363,9 @@ class AccountTeam
             );
 
             if (empty($subQuery)) {
-                return new MethodReply(false, "Team with ID '" . $query[0]->team_id . "' not found.");
+                return new MethodReply(false, "We located the team name, but couldn't find the team data (ID: " . $query[0]->team_id . ").");
             } else {
-                return new MethodReply(true, "Team found successfully.", $subQuery[0]);
+                return new MethodReply(true, "Team located successfully.", $subQuery[0]);
             }
         }
     }
@@ -380,10 +380,10 @@ class AccountTeam
         $owner = $this->getOwner();
 
         if ($owner === null) {
-            return new MethodReply(false, "Owner not found.");
+            return new MethodReply(false, "We couldn't identify the owner of this team.");
         }
         if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-            return new MethodReply(false, "Must be the owner to delete this team.");
+            return new MethodReply(false, "Only the team owner has permission to delete this team.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_TABLE,
@@ -399,9 +399,9 @@ class AccountTeam
             1
         )) {
             $this->clearCache();
-            return new MethodReply(true, "Team deleted successfully.");
+            return new MethodReply(true, "The team has been deleted successfully.");
         } else {
-            return new MethodReply(false, "Failed to delete team.");
+            return new MethodReply(false, "We ran into an issue while trying to delete the team.");
         }
     }
 
@@ -415,25 +415,25 @@ class AccountTeam
         $otherResult = $this->findTeam($account, $result->getObject()->id);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "Member is not in this team.");
+            return new MethodReply(false, "That member isn't currently part of this team.");
         }
         $owner = $this->getOwner();
 
         if ($owner === null) {
-            return new MethodReply(false, "Owner not found or user not in a team.");
+            return new MethodReply(false, "We couldn't verify the current owner of the team.");
         }
         if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-            return new MethodReply(false, "You must be the owner of this team to transfer it.");
+            return new MethodReply(false, "Only the current team owner can transfer ownership.");
         }
         if ($owner->account->getDetail("id") === $account->getDetail("id")) {
-            return new MethodReply(false, "You already own this team.");
+            return new MethodReply(false, "You are already the owner of this team.");
         }
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member with ID '"
+            return new MethodReply(false, "We couldn't locate the account profile for the new owner (ID: "
                 . $account->getDetail("id", "unknown")
-                . "' not found.");
+                . ").");
         }
         $team = $result->getObject()->id;
 
@@ -448,9 +448,9 @@ class AccountTeam
                 "automatic" => $automatic
             )
         )) {
-            return new MethodReply(false, "Failed to transfer team ownership to the member '" . $this->getMemberIdentity($account) . "'.");
+            return new MethodReply(false, "We failed to transfer ownership to '" . $this->getMemberIdentity($account) . "'.");
         }
-        return new MethodReply(true, "Team ownership transferred to the member '" . $this->getMemberIdentity($account) . "' successfully.");
+        return new MethodReply(true, "You've successfully transferred team ownership to '" . $this->getMemberIdentity($account) . "'.");
     }
 
     // Separator
@@ -498,21 +498,21 @@ class AccountTeam
             return $result;
         }
         if (strlen($name) === 0) {
-            return new MethodReply(false, "Title cannot be empty.");
+            return new MethodReply(false, "Please provide a valid team title.");
         }
         if (strlen($name) > 128) {
-            return new MethodReply(false, "Title cannot be longer than 128 characters.");
+            return new MethodReply(false, "The team title is too long. Please keep it under 128 characters.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_NAME)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to change team title.");
+            return new MethodReply(false, "You don't have permission to change the team's title.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if ($this->getTeamTitle() === $name) {
-            return new MethodReply(false, "Team title is already set to this value.");
+            return new MethodReply(false, "The team is already using that title.");
         }
         if (sql_insert(
             AccountVariables::TEAM_NAME_CHANGES,
@@ -523,9 +523,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Team title updated to '" . $name . "'.");
+            return new MethodReply(true, "The team title has been updated to '" . $name . "'.");
         } else {
-            return new MethodReply(false, "Failed to update team title to '" . $name . "'.");
+            return new MethodReply(false, "We ran into an issue while trying to update the title to '" . $name . "'.");
         }
     }
 
@@ -538,22 +538,22 @@ class AccountTeam
         }
         if ($description !== null) {
             if (strlen($description) === 0) {
-                return new MethodReply(false, "Description cannot be empty.");
+                return new MethodReply(false, "Please provide a team description.");
             }
             if (strlen($description) > 512) {
-                return new MethodReply(false, "Description cannot be longer than 512 characters.");
+                return new MethodReply(false, "The description is too long. Please keep it under 512 characters.");
             }
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_DESCRIPTION)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to change team description.");
+            return new MethodReply(false, "You don't have permission to change the team's description.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if ($this->getTeamDescription() === $description) {
-            return new MethodReply(false, "Team description is already set to this value.");
+            return new MethodReply(false, "The team is already using that description.");
         }
         if (sql_insert(
             AccountVariables::TEAM_NAME_CHANGES,
@@ -565,9 +565,9 @@ class AccountTeam
                 "creation_reason" => $reason,
                 "description" => true
             ))) {
-            return new MethodReply(true, "Team description updated to '" . $description . "'.");
+            return new MethodReply(true, "The team description has been successfully updated.");
         } else {
-            return new MethodReply(false, "Failed to update team description to '" . $description . "'.");
+            return new MethodReply(false, "We ran into an issue while trying to update the description.");
         }
     }
 
@@ -588,18 +588,18 @@ class AccountTeam
             $memberID = $this->getMember()?->id;
 
             if ($memberID === null) {
-                return new MethodReply(false, "Member not found.");
+                return new MethodReply(false, "We couldn't verify your membership in this team.");
             }
             $owner = $this->getOwner();
 
             if ($owner === null) {
-                return new MethodReply(false, "Owner not found.");
+                return new MethodReply(false, "We couldn't identify the current team owner.");
             }
             if ($owner->account->getDetail("id") === $this->account->getDetail("id")) {
                 $newOwner = $this->getCoOwner($owner);
 
                 if ($newOwner === null) {
-                    return new MethodReply(false, "New owner not found.");
+                    return new MethodReply(false, "As the owner, you must transfer ownership to someone else before leaving.");
                 }
                 $adjust = $this->transferTeamOwnership(
                     $newOwner->account,
@@ -624,9 +624,9 @@ class AccountTeam
                 1
             )) {
                 $this->clearCache();
-                return new MethodReply(true, "You left the team '" . $this->getTeamTitle() . "'.");
+                return new MethodReply(true, "You have successfully left the team '" . $this->getTeamTitle() . "'.");
             } else {
-                return new MethodReply(false, "Failed to leave the team '" . $this->getTeamTitle() . "'.");
+                return new MethodReply(false, "We encountered a problem while trying to remove you from the team.");
             }
         }
     }
@@ -658,13 +658,13 @@ class AccountTeam
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADD_TEAM_MEMBERS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to add members to the team.");
+            return new MethodReply(false, "You don't have permission to add new members to this team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You cannot add yourself to a team.");
+            return new MethodReply(false, "You can't add yourself to the team.");
         }
         if ($account->getDetail("application_id") !== $this->account->getDetail("application_id")) {
-            return new MethodReply(false, "Members must be from the same application.");
+            return new MethodReply(false, "Team members must belong to the same application.");
         }
         $team = $result->getObject()->id;
 
@@ -672,24 +672,24 @@ class AccountTeam
             $otherResult = $this->findTeam($account, $team);
 
             if ($otherResult->isPositiveOutcome()) {
-                return new MethodReply(false, "Member is already in this team.");
+                return new MethodReply(false, "That member is already a part of this team.");
             }
         } else {
             $otherResult = $this->findTeam($account);
 
             if ($otherResult->isPositiveOutcome()) {
-                return new MethodReply(false, "Member is already in a team.");
+                return new MethodReply(false, "That member is already in a team.");
             }
         }
         $rookie = $this->getRookie();
 
         if ($rookie === null) {
-            return new MethodReply(false, "Rookie not found.");
+            return new MethodReply(false, "We couldn't determine the base rank for new members.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         $date = get_current_date();
 
@@ -702,9 +702,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Member '" . $this->getMemberIdentity($account) . "' added to the team.");
+            return new MethodReply(true, "'" . $this->getMemberIdentity($account) . "' has been added to the team.");
         } else {
-            return new MethodReply(false, "Failed to add member '" . $this->getMemberIdentity($account) . "' to the team.");
+            return new MethodReply(false, "We ran into an issue adding '" . $this->getMemberIdentity($account) . "' to the team.");
         }
     }
 
@@ -718,25 +718,25 @@ class AccountTeam
         $otherResult = $this->findTeam($account, $result->getObject()->id);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "The other member is not in this team.");
+            return new MethodReply(false, "That user is not a member of this team.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_REMOVE_TEAM_MEMBERS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to remove members from the team.");
+            return new MethodReply(false, "You don't have permission to remove members from this team.");
         }
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You cannot remove yourself from a team.");
+            return new MethodReply(false, "You can't remove yourself using this action. Please use the 'Leave Team' option instead.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member with ID '"
+            return new MethodReply(false, "We couldn't locate the profile for member ID '"
                 . $account->getDetail("id", "unknown")
-                . "' not found.");
+                . "'.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_MEMBERS_TABLE,
@@ -751,9 +751,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Member '" . $this->getMemberIdentity($account) . "' removed from the team successfully.");
+            return new MethodReply(true, "'" . $this->getMemberIdentity($account) . "' has been removed from the team.");
         } else {
-            return new MethodReply(false, "Failed to remove member '" . $this->getMemberIdentity($account) . "' from the team.");
+            return new MethodReply(false, "We couldn't remove '" . $this->getMemberIdentity($account) . "' from the team.");
         }
     }
 
@@ -1005,48 +1005,48 @@ class AccountTeam
         $otherResult = $this->findTeam($account, $team);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "The other member is not in this team.");
+            return new MethodReply(false, "That user is not a member of this team.");
         }
         $owner = $this->getOwner();
 
         if ($owner === null) {
-            return new MethodReply(false, "Owner not found.");
+            return new MethodReply(false, "We couldn't identify the current team owner.");
         }
         $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
 
         if (!$owner
             && $account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You cannot change your own hierarchical level in the team.");
+            return new MethodReply(false, "You can't alter your own rank within the team.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to change others positions.");
+            return new MethodReply(false, "You don't have permission to adjust member ranks.");
         }
         $userPosition = $this->getPosition();
 
         if (!$owner
             && $userPosition <= $position) {
-            return new MethodReply(false, "Cannot change the hierarchical level to the your or a higher hierarchical level level.");
+            return new MethodReply(false, "You can't promote a member to a rank equal to or higher than your own.");
         }
         if (!$owner
             && $userPosition <= $this->getPosition($account)) {
-            return new MethodReply(false, "Cannot change the hierarchical level of a member with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't modify the rank of a member who is at or above your own level.");
         }
         global $max_32bit_Integer;
 
         if ($position >= $max_32bit_Integer) {
-            return new MethodReply(false, "Cannot change the hierarchical level to the highest possible level.");
+            return new MethodReply(false, "You cannot set a member's rank to the absolute maximum value.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member with ID '"
+            return new MethodReply(false, "We couldn't locate the profile for member ID '"
                 . $account->getDetail("id", "unknown")
-                . "' not found.");
+                . "'.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_MEMBERS_TABLE,
@@ -1069,12 +1069,12 @@ class AccountTeam
                     "created_by" => $selfMemberID,
                     "creation_reason" => $reason
                 ))) {
-                return new MethodReply(true, "Team hierarchical level of member has changed.");
+                return new MethodReply(true, "The member's rank has been successfully updated.");
             } else {
-                return new MethodReply(false, "Failed to change hierarchical level history of member.");
+                return new MethodReply(false, "We updated the rank but failed to save the history record.");
             }
         } else {
-            return new MethodReply(false, "Failed to change hierarchical level of member.");
+            return new MethodReply(false, "We couldn't update the member's rank.");
         }
     }
 
@@ -1118,23 +1118,23 @@ class AccountTeam
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_ROLE_NAMES)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to change team names.");
+            return new MethodReply(false, "You don't have permission to rename team roles.");
         }
         if (is_string($role)
             || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+                return new MethodReply(false, "We couldn't find that role.");
             }
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot change a role's name with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't rename a role that is ranked equal to or higher than your own.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if (sql_insert(
             AccountVariables::TEAM_ROLE_NAME_CHANGES,
@@ -1155,12 +1155,12 @@ class AccountTeam
                 null,
                 1
             )) {
-                return new MethodReply(true, "Team role's title updated to '" . $name . "'.");
+                return new MethodReply(true, "The role title has been updated to '" . $name . "'.");
             } else {
-                return new MethodReply(false, "Failed to fully update the team role's title.");
+                return new MethodReply(false, "We saved the history but failed to fully update the role title.");
             }
         } else {
-            return new MethodReply(false, "Failed to update the team role's title to '" . $name . "'.");
+            return new MethodReply(false, "We encountered an issue updating the role title to '" . $name . "'.");
         }
     }
 
@@ -1172,22 +1172,22 @@ class AccountTeam
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CHANGE_TEAM_ROLE_DESCRIPTIONS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to change team names.");
+            return new MethodReply(false, "You don't have permission to edit role descriptions.");
         }
         if (is_string($role) || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+                return new MethodReply(false, "We couldn't find that role.");
             }
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot change a role's name with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't edit the description of a role that is ranked equal to or higher than your own.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if (sql_insert(
             AccountVariables::TEAM_ROLE_NAME_CHANGES,
@@ -1209,12 +1209,12 @@ class AccountTeam
                 null,
                 1
             )) {
-                return new MethodReply(true, "Team role's description updated to '" . $description . "'.");
+                return new MethodReply(true, "The role description has been successfully updated.");
             } else {
-                return new MethodReply(false, "Failed to fully update the team role's description.");
+                return new MethodReply(false, "We saved the history but failed to fully update the role description.");
             }
         } else {
-            return new MethodReply(false, "Failed to update the team role's description to '" . $description . "'.");
+            return new MethodReply(false, "We ran into a problem updating the role description.");
         }
     }
 
@@ -1226,15 +1226,15 @@ class AccountTeam
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_CREATE_TEAM_ROLES)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to create team roles.");
+            return new MethodReply(false, "You don't have permission to create new team roles.");
         }
         if (strlen($name) === 0) {
-            return new MethodReply(false, "Role name cannot be empty.");
+            return new MethodReply(false, "Please provide a name for the role.");
         }
         $role = $this->getRole($name);
 
         if ($role !== null) {
-            return new MethodReply(false, "Role with the name '" . $name . "' already exists.");
+            return new MethodReply(false, "A role named '" . $name . "' already exists.");
         }
         $rookie = $this->getRookieRole();
 
@@ -1246,7 +1246,7 @@ class AccountTeam
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         $date = get_current_date();
         $team = $result->getObject()->id;
@@ -1263,7 +1263,7 @@ class AccountTeam
             $insertID = get_sql_last_insert_id();
 
             if ($insertID === null) {
-                return new MethodReply(false, "new Role ID not found.");
+                return new MethodReply(false, "Role created, but we couldn't retrieve its new ID.");
             }
             if (sql_insert(
                 AccountVariables::TEAM_ROLE_POSITIONS_TABLE,
@@ -1274,12 +1274,12 @@ class AccountTeam
                     "creation_date" => $date,
                     "created_by" => $selfMemberID
                 ))) {
-                return new MethodReply(true, "Role '" . $name . "' created in the team.");
+                return new MethodReply(true, "The role '" . $name . "' has been successfully created.");
             } else {
-                return new MethodReply(false, "Failed to set role hierarchical level in the team.");
+                return new MethodReply(false, "The role was created, but we failed to assign its initial rank.");
             }
         } else {
-            return new MethodReply(false, "Failed to create role in the team.");
+            return new MethodReply(false, "We ran into an issue while trying to create the role.");
         }
     }
 
@@ -1291,23 +1291,23 @@ class AccountTeam
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_DELETE_TEAM_ROLES)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to delete team roles.");
+            return new MethodReply(false, "You don't have permission to delete team roles.");
         }
         if (is_string($role)
             || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+                return new MethodReply(false, "We couldn't find that role.");
             }
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot delete a role with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't delete a role that is ranked equal to or higher than your own.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_ROLES_TABLE,
@@ -1322,9 +1322,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Role '" . $role->title . "' deleted from the team.");
+            return new MethodReply(true, "The role '" . $role->title . "' has been deleted.");
         } else {
-            return new MethodReply(false, "Failed to delete role '" . $role->title . "' from the team.");
+            return new MethodReply(false, "We couldn't delete the role '" . $role->title . "'.");
         }
     }
 
@@ -1336,28 +1336,28 @@ class AccountTeam
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_RESTORE_TEAM_ROLES)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to restore deleted team roles.");
+            return new MethodReply(false, "You don't have permission to restore deleted team roles.");
         }
         if (is_string($role)
             || is_int($role)) {
             $role = $this->getRole($role, true);
 
             if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+                return new MethodReply(false, "We couldn't find that role.");
             }
         }
         if ($this->getPosition() <= $this->getRolePosition($role, true)) {
-            return new MethodReply(false, "Cannot restore a deleted role with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't restore a role that would be ranked equal to or higher than your own.");
         }
         $roleSimilar = $this->getRole($role->name);
 
         if ($roleSimilar !== null) {
-            return new MethodReply(false, "Cannot restore role with name '" . $role->name . "' as it is used for another role.");
+            return new MethodReply(false, "You can't restore the role '" . $role->name . "' because another active role is now using that name.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_ROLES_TABLE,
@@ -1372,9 +1372,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Deleted role '" . $role->title . "' successfully restored in the team.");
+            return new MethodReply(true, "The role '" . $role->title . "' has been successfully restored.");
         } else {
-            return new MethodReply(false, "Failed to restore deleted role '" . $role->title . "' in the team.");
+            return new MethodReply(false, "We ran into an issue restoring the role '" . $role->title . "'.");
         }
     }
 
@@ -1527,43 +1527,43 @@ class AccountTeam
             return $result;
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to change roles of members.");
+            return new MethodReply(false, "You don't have permission to modify member roles.");
         }
         $position = $this->getPosition();
 
         if ($this->account->getDetail("id") !== $account->getDetail("id")
             && $position <= $this->getPosition($account)) {
-            return new MethodReply(false, "Cannot change the role of a member with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't modify the roles of a member ranked equal to or higher than your own.");
         }
         $team = $result->getObject()->id;
         $otherResult = $this->findTeam($account, $team);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "The other member is not in this team.");
+            return new MethodReply(false, "That user is not a member of this team.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member not found.");
+            return new MethodReply(false, "We couldn't locate the member's profile.");
         }
         if (is_string($role)
             || is_int($role)) {
             $role = $this->getRole($role);
 
             if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+                return new MethodReply(false, "We couldn't find that role.");
             }
         }
         if ($position <= $this->getRolePosition($role)) {
             if ($trueFalse) {
-                return new MethodReply(false, "Cannot give a role with the same or higher hierarchical level.");
+                return new MethodReply(false, "You can't assign a role that is ranked equal to or higher than your own.");
             } else {
-                return new MethodReply(false, "Cannot remove a role with the same or higher hierarchical level.");
+                return new MethodReply(false, "You can't remove a role that is ranked equal to or higher than your own.");
             }
         }
         $roles = $this->getMemberRoles($account);
@@ -1571,7 +1571,7 @@ class AccountTeam
         if ($trueFalse) {
             foreach ($roles as $value) {
                 if ($value->id === $role->id) {
-                    return new MethodReply(false, "Role already given to the member '" . $this->getMemberIdentity($account) . "'.");
+                    return new MethodReply(false, "'" . $this->getMemberIdentity($account) . "' already has this role.");
                 }
             }
             if (sql_insert(
@@ -1584,9 +1584,9 @@ class AccountTeam
                     "created_by" => $selfMemberID,
                     "creation_reason" => $reason
                 ))) {
-                return new MethodReply(true, "Role '" . $role->title . "' given to the member '" . $this->getMemberIdentity($account) . "'.");
+                return new MethodReply(true, "'" . $this->getMemberIdentity($account) . "' has been granted the role '" . $role->title . "'.");
             } else {
-                return new MethodReply(false, "Failed to give role '" . $role->title . "' to the member '" . $this->getMemberIdentity($account) . "'.");
+                return new MethodReply(false, "We failed to assign the role '" . $role->title . "' to '" . $this->getMemberIdentity($account) . "'.");
             }
         } else {
             if (!empty($roles)) {
@@ -1604,14 +1604,14 @@ class AccountTeam
                             null,
                             1
                         )) {
-                            return new MethodReply(true, "Role '" . $role->title . "' removed from the member '" . $this->getMemberIdentity($account) . "'.");
+                            return new MethodReply(true, "The role '" . $role->title . "' has been removed from '" . $this->getMemberIdentity($account) . "'.");
                         } else {
-                            return new MethodReply(false, "Failed to remove role '" . $role->title . "' from the member '" . $this->getMemberIdentity($account) . "'.");
+                            return new MethodReply(false, "We couldn't remove the role '" . $role->title . "' from '" . $this->getMemberIdentity($account) . "'.");
                         }
                     }
                 }
             }
-            return new MethodReply(false, "Role not given to the member '" . $this->getMemberIdentity($account) . "'.");
+            return new MethodReply(false, "'" . $this->getMemberIdentity($account) . "' does not currently have this role.");
         }
     }
 
@@ -1644,13 +1644,13 @@ class AccountTeam
             $role = $this->getRole($role);
 
             if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+                return new MethodReply(false, "We couldn't find that role.");
             }
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
+            return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
         $query = get_sql_query(
             AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
@@ -1667,12 +1667,12 @@ class AccountTeam
         );
 
         if (empty($query)) {
-            return new MethodReply(false, "Permission not given.");
+            return new MethodReply(false, "This permission has not been granted.");
         } else {
             $query = $query[0];
             return $query->deletion_date === null
-                ? new MethodReply(true, "Permission already given.", $query)
-                : new MethodReply(false, "Permission given and removed.");
+                ? new MethodReply(true, "This permission is already active.", $query)
+                : new MethodReply(false, "This permission was previously granted and then removed.");
         }
     }
 
@@ -1736,17 +1736,17 @@ class AccountTeam
             $role = $this->getRole($role);
 
             if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+                return new MethodReply(false, "We couldn't find that role.");
             }
         }
         if ($permissionID === self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS) {
             $owner = $this->getOwner();
 
             if ($owner === null) {
-                return new MethodReply(false, "Owner not found.");
+                return new MethodReply(false, "We couldn't verify the current owner of the team.");
             }
             if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-                return new MethodReply(false, "Cannot give the role permission to manage permissions as you are not the owner of the team.");
+                return new MethodReply(false, "Only the team owner can assign permissions to manage other permissions.");
             }
         }
         $outcome = $this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS);
@@ -1757,18 +1757,18 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
+            return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot add permission to a role with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't add permissions to a role ranked equal to or higher than your own.");
         }
         if ($this->getRolePermission($role, $permissionDef)->isPositiveOutcome()) {
-            return new MethodReply(false, "Permission already given.");
+            return new MethodReply(false, "This permission has already been granted to the role.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if (sql_insert(
             AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
@@ -1780,9 +1780,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Permission added to the role '" . $role->title . "'.");
+            return new MethodReply(true, "Permission has been added to the role '" . $role->title . "'.");
         } else {
-            return new MethodReply(false, "Failed to add permission to the role '" . $role->title . "'.");
+            return new MethodReply(false, "We encountered an error adding the permission to the role '" . $role->title . "'.");
         }
     }
 
@@ -1798,17 +1798,17 @@ class AccountTeam
             $role = $this->getRole($role);
 
             if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+                return new MethodReply(false, "We couldn't find that role.");
             }
         }
         if ($permissionID === self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS) {
             $owner = $this->getOwner();
 
             if ($owner === null) {
-                return new MethodReply(false, "Owner not found.");
+                return new MethodReply(false, "We couldn't verify the current owner of the team.");
             }
             if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-                return new MethodReply(false, "Cannot remove the role permission to manage permissions as you are not the owner of the team.");
+                return new MethodReply(false, "Only the team owner can remove permissions that manage other permissions.");
             }
         }
         $outcome = $this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS);
@@ -1819,20 +1819,20 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
+            return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot remove permission from a role with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't remove permissions from a role ranked equal to or higher than your own.");
         }
         $permissionResult = $this->getRolePermission($role, $permissionDef);
 
         if (!$permissionResult->isPositiveOutcome()) {
-            return new MethodReply(false, "Permission not given.");
+            return new MethodReply(false, "That permission is not currently assigned to the role.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_ROLE_PERMISSIONS_TABLE,
@@ -1847,9 +1847,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Permission removed from the role '" . $role->title . "'.");
+            return new MethodReply(true, "Permission has been removed from the role '" . $role->title . "'.");
         } else {
-            return new MethodReply(false, "Failed to remove permission from the role '" . $role->title . "'.");
+            return new MethodReply(false, "We encountered an error removing the permission from the role '" . $role->title . "'.");
         }
     }
 
@@ -1882,37 +1882,37 @@ class AccountTeam
             $role = $this->getRole($role);
 
             if ($role === null) {
-                return new MethodReply(false, "Role not found.");
+                return new MethodReply(false, "We couldn't find that role.");
             }
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_POSITIONS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to change positions of roles.");
+            return new MethodReply(false, "You don't have permission to change role ranks.");
         }
         global $max_32bit_Integer;
 
         if ($position >= $max_32bit_Integer) {
-            return new MethodReply(false, "Cannot change the hierarchical level to the highest possible level.");
+            return new MethodReply(false, "You can't set a role's rank to the absolute maximum value.");
         }
         $owner = $this->getOwner();
 
         if ($owner === null) {
-            return new MethodReply(false, "Owner not found.");
+            return new MethodReply(false, "We couldn't verify the current owner of the team.");
         }
         $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
         $userPosition = $this->getPosition();
 
         if (!$owner
             && $userPosition <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot change the hierarchical level of a role with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't change the rank of a role that is ranked equal to or higher than your own.");
         }
         if (!$owner
             && $userPosition <= $position) {
-            return new MethodReply(false, "Cannot change the hierarchical level of a role to the your hierarchical level or a higher hierarchical level.");
+            return new MethodReply(false, "You can't promote a role to a rank equal to or higher than your own.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_ROLES_TABLE,
@@ -1935,12 +1935,12 @@ class AccountTeam
                     "created_by" => $selfMemberID,
                     "creation_reason" => $reason
                 ))) {
-                return new MethodReply(true, "hierarchical level changed successfully for the role '" . $role->title . "'.");
+                return new MethodReply(true, "The rank for the role '" . $role->title . "' has been successfully updated.");
             } else {
-                return new MethodReply(false, "Failed to change the hierarchical level history of the role '" . $role->title . "'.");
+                return new MethodReply(false, "We updated the rank but failed to save the history record for the role '" . $role->title . "'.");
             }
         } else {
-            return new MethodReply(false, "Failed to change the hierarchical level of the role '" . $role->title . "'.");
+            return new MethodReply(false, "We ran into an error trying to update the rank for the role '" . $role->title . "'.");
         }
     }
 
@@ -2016,41 +2016,41 @@ class AccountTeam
             $owner = $this->getOwner();
 
             if ($owner === null) {
-                return new MethodReply(false, "Owner not found.");
+                return new MethodReply(false, "We couldn't verify the current owner of the team.");
             }
             if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-                return new MethodReply(false, "Cannot give the member permission to manage permissions as you are not the owner of the team.");
+                return new MethodReply(false, "Only the team owner can assign permissions to manage other permissions.");
             }
         }
         $team = $result->getObject()->id;
         $otherResult = $this->findTeam($account, $team);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "The other member is not in this team.");
+            return new MethodReply(false, "That user is not a member of this team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
+            return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
         if ($this->account->getDetail("id") !== $account->getDetail("id")
             && $this->getPosition() <= $this->getPosition($account)) {
-            return new MethodReply(false, "Cannot add permission to someone with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't assign permissions to someone ranked equal to or higher than yourself.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member with ID '"
+            return new MethodReply(false, "We couldn't locate the profile for member ID '"
                 . $account->getDetail("id", "unknown")
-                . "' not found.");
+                . "'.");
         }
         if ($this->getMemberPermission($account, $permissionDef, false, false)->isPositiveOutcome()) {
-            return new MethodReply(false, "Permission already given.");
+            return new MethodReply(false, "This permission has already been assigned.");
         }
         if (sql_insert(
             AccountVariables::TEAM_MEMBER_PERMISSIONS_TABLE,
@@ -2062,9 +2062,9 @@ class AccountTeam
                 "created_by" => $selfMemberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Permission added to the member '" . $this->getMemberIdentity($account) . "'.");
+            return new MethodReply(true, "Permission has been added for '" . $this->getMemberIdentity($account) . "'.");
         } else {
-            return new MethodReply(false, "Failed to add permission to the member '" . $this->getMemberIdentity($account) . "'.");
+            return new MethodReply(false, "We encountered an error adding the permission for '" . $this->getMemberIdentity($account) . "'.");
         }
     }
 
@@ -2087,40 +2087,40 @@ class AccountTeam
             $owner = $this->getOwner();
 
             if ($owner === null) {
-                return new MethodReply(false, "Owner not found.");
+                return new MethodReply(false, "We couldn't verify the current owner of the team.");
             }
             if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-                return new MethodReply(false, "Cannot remove the member permission to manage permissions as you are not the owner of the team.");
+                return new MethodReply(false, "Only the team owner can remove permissions that manage other permissions.");
             }
         }
         $otherResult = $this->findTeam($account, $result->getObject()->id);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "The other member is not in this team.");
+            return new MethodReply(false, "That user is not a member of this team.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
+            return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
         if ($this->account->getDetail("id") !== $account->getDetail("id")
             && $this->getPosition() <= $this->getPosition($account)) {
-            return new MethodReply(false, "Cannot remove permission from someone with the same or higher hierarchical level.");
+            return new MethodReply(false, "You can't remove permissions from someone ranked equal to or higher than yourself.");
         }
         $permissionResult = $this->getMemberPermission($account, $permissionDef, false, false);
 
         if (!$permissionResult->isPositiveOutcome()) {
-            return new MethodReply(false, "Permission not given.");
+            return new MethodReply(false, "This permission is not currently assigned to the member.");
         }
         $object = $permissionResult->getObject();
 
         if ($object === null) {
-            return new MethodReply(false, "Permission object not found.");
+            return new MethodReply(false, "We couldn't retrieve the permission data.");
         }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if (set_sql_query(
             AccountVariables::TEAM_MEMBER_PERMISSIONS_TABLE,
@@ -2135,9 +2135,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Permission removed from the member '" . $this->getMemberIdentity($account) . "'.");
+            return new MethodReply(true, "Permission has been removed from '" . $this->getMemberIdentity($account) . "'.");
         } else {
-            return new MethodReply(false, "Failed to remove permission from the member '" . $this->getMemberIdentity($account) . "'.");
+            return new MethodReply(false, "We ran into an error removing the permission from '" . $this->getMemberIdentity($account) . "'.");
         }
     }
 
@@ -2159,21 +2159,21 @@ class AccountTeam
         $owner = $this->getOwner();
 
         if ($owner === null) {
-            return new MethodReply(false, "Owner not found.");
+            return new MethodReply(false, "We couldn't identify the current team owner.");
         }
         if ($owner->account->getDetail("id") === $account->getDetail("id")) {
-            return new MethodReply(true, "As an owner you already have all permissions.");
+            return new MethodReply(true, "As the owner, you already hold all permissions.");
         }
         if (!$this->permissions) {
-            return new MethodReply(true, "Permission system is currently disabled.");
+            return new MethodReply(true, "The permission system is currently disabled.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID);
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
+            return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
         if ($checkTeam && $this->getTeamPermission($permissionID)->isPositiveOutcome()) {
-            return new MethodReply(true, "Permission '" . $permissionDef->name . "' is already given to all members.");
+            return new MethodReply(true, "The permission '" . $permissionDef->name . "' is granted globally to the whole team.");
         }
         if ($checkRoles) {
             $roles = $this->getMemberRoles($account);
@@ -2183,7 +2183,7 @@ class AccountTeam
                     $rolePermission = $this->getRolePermission($role, $permissionID);
 
                     if ($rolePermission->isPositiveOutcome()) {
-                        return new MethodReply(true, "Permission '" . $permissionDef->name . "' is already given to one of user's roles.");
+                        return new MethodReply(true, "The permission '" . $permissionDef->name . "' is granted via one of the user's roles.");
                     }
                 }
             }
@@ -2191,7 +2191,7 @@ class AccountTeam
         $memberID = $this->getMember($account)?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Member not found.");
+            return new MethodReply(false, "We couldn't find the member profile.");
         }
         $query = get_sql_query(
             AccountVariables::TEAM_MEMBER_PERMISSIONS_TABLE,
@@ -2209,12 +2209,12 @@ class AccountTeam
         );
 
         if (empty($query)) {
-            return new MethodReply(false, "Permission '" . $permissionDef->name . "' not given.");
+            return new MethodReply(false, "The permission '" . $permissionDef->name . "' is not granted.");
         } else {
             $query = $query[0];
             return $query->deletion_date === null
-                ? new MethodReply(true, "Permission '" . $permissionDef->name . "' already given.", $query)
-                : new MethodReply(false, "Permission '" . $permissionDef->name . "' given and removed.");
+                ? new MethodReply(true, "The permission '" . $permissionDef->name . "' is currently active.", $query)
+                : new MethodReply(false, "The permission '" . $permissionDef->name . "' was previously assigned but has been removed.");
         }
     }
 
@@ -2343,10 +2343,10 @@ class AccountTeam
             $owner = $this->getOwner();
 
             if ($owner === null) {
-                return new MethodReply(false, "Owner not found.");
+                return new MethodReply(false, "We couldn't verify the current owner of the team.");
             }
             if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-                return new MethodReply(false, "Cannot give the team permission to manage permissions as you are not the owner of the team.");
+                return new MethodReply(false, "Only the team owner can grant the team permission to manage other permissions.");
             }
         }
         $outcome = $this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS);
@@ -2357,15 +2357,15 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
+            return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
         $memberID = $this->getMember()?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Executor member not found.");
+            return new MethodReply(false, "We couldn't verify your membership in this team.");
         }
         if ($this->getTeamPermission($permissionDef)->isPositiveOutcome()) {
-            return new MethodReply(false, "Permission already given.");
+            return new MethodReply(false, "This permission is already assigned to the entire team.");
         }
         if (sql_insert(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
@@ -2376,9 +2376,9 @@ class AccountTeam
                 "created_by" => $memberID,
                 "creation_reason" => $reason
             ))) {
-            return new MethodReply(true, "Permission added to the whole team.");
+            return new MethodReply(true, "The permission has been granted to the entire team.");
         } else {
-            return new MethodReply(false, "Failed to add permission to the whole team.");
+            return new MethodReply(false, "We encountered an error granting the permission to the team.");
         }
     }
 
@@ -2392,16 +2392,16 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
+            return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
         if ($permissionID === self::PERMISSION_ADJUST_TEAM_PERMISSIONS) {
             $owner = $this->getOwner();
 
             if ($owner === null) {
-                return new MethodReply(false, "Owner not found.");
+                return new MethodReply(false, "We couldn't verify the current owner of the team.");
             }
             if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-                return new MethodReply(false, "Cannot remove the team permission to manage permissions as you are not the owner of the team.");
+                return new MethodReply(false, "Only the team owner can revoke the team permission to manage other permissions.");
             }
         }
         $outcome = $this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS);
@@ -2412,17 +2412,17 @@ class AccountTeam
         $permissionResult = $this->getTeamPermission($permissionDef);
 
         if (!$permissionResult->isPositiveOutcome()) {
-            return new MethodReply(false, "Permission not given.");
+            return new MethodReply(false, "This permission is not currently assigned to the team.");
         }
         $object = $permissionResult->getObject();
 
         if ($object === null) {
-            return new MethodReply(false, "Permission object not found.");
+            return new MethodReply(false, "We couldn't retrieve the permission data.");
         }
         $memberID = $this->getMember()?->id;
 
         if ($memberID === null) {
-            return new MethodReply(false, "Executor member with ID '" . $memberID . "' not found.");
+            return new MethodReply(false, "We couldn't verify your membership (ID: " . $memberID . ").");
         }
         if (set_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
@@ -2437,9 +2437,9 @@ class AccountTeam
             null,
             1
         )) {
-            return new MethodReply(true, "Permission removed from the whole team.");
+            return new MethodReply(true, "The permission has been revoked from the team.");
         } else {
-            return new MethodReply(false, "Failed to remove permission from the whole team.");
+            return new MethodReply(false, "We encountered an error removing the permission from the team.");
         }
     }
 
@@ -2453,7 +2453,7 @@ class AccountTeam
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "'not found.");
+            return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
         $query = get_sql_query(
             AccountVariables::TEAM_PERMISSIONS_TABLE,
@@ -2470,12 +2470,12 @@ class AccountTeam
         );
 
         if (empty($query)) {
-            return new MethodReply(false, "Permission not given.");
+            return new MethodReply(false, "This permission is not granted to the team.");
         } else {
             $query = $query[0];
             return $query->deletion_date === null
-                ? new MethodReply(true, "Permission given.", $query)
-                : new MethodReply(false, "Permission given and removed.");
+                ? new MethodReply(true, "The permission is active.", $query)
+                : new MethodReply(false, "The permission was previously granted but has been removed.");
         }
     }
 
