@@ -1016,7 +1016,7 @@ class AccountTeam
 
         if (!$owner
             && $account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You cannot change your own hierarchical position in the team.");
+            return new MethodReply(false, "You cannot change your own hierarchical level in the team.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_POSITIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to change others positions.");
@@ -1025,16 +1025,16 @@ class AccountTeam
 
         if (!$owner
             && $userPosition <= $position) {
-            return new MethodReply(false, "Cannot change the hierarchical position to the your or a higher hierarchical position level.");
+            return new MethodReply(false, "Cannot change the hierarchical level to the your or a higher hierarchical level level.");
         }
         if (!$owner
             && $userPosition <= $this->getPosition($account)) {
-            return new MethodReply(false, "Cannot change the hierarchical position of a member with the same or higher hierarchical position.");
+            return new MethodReply(false, "Cannot change the hierarchical level of a member with the same or higher hierarchical level.");
         }
         global $max_32bit_Integer;
 
         if ($position >= $max_32bit_Integer) {
-            return new MethodReply(false, "Cannot change the hierarchical position to the highest possible level.");
+            return new MethodReply(false, "Cannot change the hierarchical level to the highest possible level.");
         }
         $selfMemberID = $this->getMember()?->id;
 
@@ -1069,12 +1069,12 @@ class AccountTeam
                     "created_by" => $selfMemberID,
                     "creation_reason" => $reason
                 ))) {
-                return new MethodReply(true, "Team hierarchical position of member has changed.");
+                return new MethodReply(true, "Team hierarchical level of member has changed.");
             } else {
-                return new MethodReply(false, "Failed to change hierarchical position history of member.");
+                return new MethodReply(false, "Failed to change hierarchical level history of member.");
             }
         } else {
-            return new MethodReply(false, "Failed to change hierarchical position of member.");
+            return new MethodReply(false, "Failed to change hierarchical level of member.");
         }
     }
 
@@ -1129,7 +1129,7 @@ class AccountTeam
             }
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot change a role's name with the same or higher hierarchical position.");
+            return new MethodReply(false, "Cannot change a role's name with the same or higher hierarchical level.");
         }
         $selfMemberID = $this->getMember()?->id;
 
@@ -1182,7 +1182,7 @@ class AccountTeam
             }
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot change a role's name with the same or higher hierarchical position.");
+            return new MethodReply(false, "Cannot change a role's name with the same or higher hierarchical level.");
         }
         $selfMemberID = $this->getMember()?->id;
 
@@ -1276,7 +1276,7 @@ class AccountTeam
                 ))) {
                 return new MethodReply(true, "Role '" . $name . "' created in the team.");
             } else {
-                return new MethodReply(false, "Failed to set role hierarchical position in the team.");
+                return new MethodReply(false, "Failed to set role hierarchical level in the team.");
             }
         } else {
             return new MethodReply(false, "Failed to create role in the team.");
@@ -1302,7 +1302,7 @@ class AccountTeam
             }
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot delete a role with the same or higher hierarchical position.");
+            return new MethodReply(false, "Cannot delete a role with the same or higher hierarchical level.");
         }
         $selfMemberID = $this->getMember()?->id;
 
@@ -1347,7 +1347,7 @@ class AccountTeam
             }
         }
         if ($this->getPosition() <= $this->getRolePosition($role, true)) {
-            return new MethodReply(false, "Cannot restore a deleted role with the same or higher hierarchical position.");
+            return new MethodReply(false, "Cannot restore a deleted role with the same or higher hierarchical level.");
         }
         $roleSimilar = $this->getRole($role->name);
 
@@ -1531,14 +1531,15 @@ class AccountTeam
         }
         $position = $this->getPosition();
 
-        if ($position <= $this->getPosition($account)) {
-            return new MethodReply(false, "Cannot change the role of a member with the same or higher hierarchical position.");
+        if ($this->account->getDetail("id") !== $account->getDetail("id")
+            && $position <= $this->getPosition($account)) {
+            return new MethodReply(false, "Cannot change the role of a member with the same or higher hierarchical level.");
         }
         $team = $result->getObject()->id;
         $otherResult = $this->findTeam($account, $team);
 
         if (!$otherResult->isPositiveOutcome()) {
-            return new MethodReply(false, "");
+            return new MethodReply(false, "The other member is not in this team.");
         }
         $selfMemberID = $this->getMember()?->id;
 
@@ -1560,9 +1561,9 @@ class AccountTeam
         }
         if ($position <= $this->getRolePosition($role)) {
             if ($trueFalse) {
-                return new MethodReply(false, "Cannot give a role with the same or higher hierarchical position.");
+                return new MethodReply(false, "Cannot give a role with the same or higher hierarchical level.");
             } else {
-                return new MethodReply(false, "Cannot remove a role with the same or higher hierarchical position.");
+                return new MethodReply(false, "Cannot remove a role with the same or higher hierarchical level.");
             }
         }
         $roles = $this->getMemberRoles($account);
@@ -1747,7 +1748,7 @@ class AccountTeam
             return new MethodReply(false, "Missing permission to add permissions to roles.");
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot add permission to a role with the same or higher hierarchical position.");
+            return new MethodReply(false, "Cannot add permission to a role with the same or higher hierarchical level.");
         }
         if ($this->getRolePermission($role, $permissionDef)->isPositiveOutcome()) {
             return new MethodReply(false, "Permission already given.");
@@ -1794,7 +1795,7 @@ class AccountTeam
             return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot remove permission from a role with the same or higher hierarchical position.");
+            return new MethodReply(false, "Cannot remove permission from a role with the same or higher hierarchical level.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove permissions from roles.");
@@ -1866,7 +1867,7 @@ class AccountTeam
         global $max_32bit_Integer;
 
         if ($position >= $max_32bit_Integer) {
-            return new MethodReply(false, "Cannot change the hierarchical position to the highest possible level.");
+            return new MethodReply(false, "Cannot change the hierarchical level to the highest possible level.");
         }
         $owner = $this->getOwner();
 
@@ -1878,11 +1879,11 @@ class AccountTeam
 
         if (!$owner
             && $userPosition <= $this->getRolePosition($role)) {
-            return new MethodReply(false, "Cannot change the hierarchical position of a role with the same or higher hierarchical position.");
+            return new MethodReply(false, "Cannot change the hierarchical level of a role with the same or higher hierarchical level.");
         }
         if (!$owner
             && $userPosition <= $position) {
-            return new MethodReply(false, "Cannot change the hierarchical position of a role to the your hierarchical position or a higher hierarchical position.");
+            return new MethodReply(false, "Cannot change the hierarchical level of a role to the your hierarchical level or a higher hierarchical level.");
         }
         $selfMemberID = $this->getMember()?->id;
 
@@ -1910,12 +1911,12 @@ class AccountTeam
                     "created_by" => $selfMemberID,
                     "creation_reason" => $reason
                 ))) {
-                return new MethodReply(true, "Hierarchical position changed successfully for the role '" . $role->title . "'.");
+                return new MethodReply(true, "hierarchical level changed successfully for the role '" . $role->title . "'.");
             } else {
-                return new MethodReply(false, "Failed to change the hierarchical position history of the role '" . $role->title . "'.");
+                return new MethodReply(false, "Failed to change the hierarchical level history of the role '" . $role->title . "'.");
             }
         } else {
-            return new MethodReply(false, "Failed to change the hierarchical position of the role '" . $role->title . "'.");
+            return new MethodReply(false, "Failed to change the hierarchical level of the role '" . $role->title . "'.");
         }
     }
 
@@ -1996,8 +1997,9 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to add others permissions.");
         }
-        if ($this->getPosition() <= $this->getPosition($account)) {
-            return new MethodReply(false, "Cannot add permission to someone with the same or higher hierarchical position.");
+        if ($this->account->getDetail("id") !== $account->getDetail("id")
+            && $this->getPosition() <= $this->getPosition($account)) {
+            return new MethodReply(false, "Cannot add permission to someone with the same or higher hierarchical level.");
         }
         $selfMemberID = $this->getMember()?->id;
 
@@ -2050,8 +2052,9 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
-        if ($this->getPosition() <= $this->getPosition($account)) {
-            return new MethodReply(false, "Cannot remove permission from someone with the same or higher hierarchical position.");
+        if ($this->account->getDetail("id") !== $account->getDetail("id")
+            && $this->getPosition() <= $this->getPosition($account)) {
+            return new MethodReply(false, "Cannot remove permission from someone with the same or higher hierarchical level.");
         }
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
             return new MethodReply(false, "Missing permission to remove others permissions.");
