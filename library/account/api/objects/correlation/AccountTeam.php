@@ -36,7 +36,10 @@ class AccountTeam
         PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS = 15,
 
         // Grouping
-        PERMISSION_ADJUST_TEAM_MEMBER_ROLES = 13;
+        PERMISSION_ADJUST_TEAM_MEMBER_ROLES = 13,
+
+        // Management
+        PERMISSION_MANAGE_PERMISSIONS = 91;
 
     private const
         MAX_TEAMS = 100,
@@ -1980,8 +1983,23 @@ class AccountTeam
         if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You cannot add permissions to yourself.");
+        $outcome = $this->getMemberPermission(
+            $this->account,
+            self::PERMISSION_MANAGE_PERMISSIONS
+        );
+
+        if (!$outcome->isPositiveOutcome()) {
+            return $outcome;
+        }
+        if ($permissionID === self::PERMISSION_MANAGE_PERMISSIONS) {
+            $owner = $this->getOwner();
+
+            if ($owner === null) {
+                return new MethodReply(false, "Owner not found.");
+            }
+            if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
+                return new MethodReply(false, "Cannot give the permission to manage permissions as you are not the owner of the team.");
+            }
         }
         $team = $result->getObject()->id;
         $otherResult = $this->findTeam($account, $team);
@@ -2039,8 +2057,23 @@ class AccountTeam
         if (!$result->isPositiveOutcome()) {
             return $result;
         }
-        if ($account->getDetail("id") === $this->account->getDetail("id")) {
-            return new MethodReply(false, "You cannot remove your own permissions.");
+        $outcome = $this->getMemberPermission(
+            $this->account,
+            self::PERMISSION_MANAGE_PERMISSIONS
+        );
+
+        if (!$outcome->isPositiveOutcome()) {
+            return $outcome;
+        }
+        if ($permissionID === self::PERMISSION_MANAGE_PERMISSIONS) {
+            $owner = $this->getOwner();
+
+            if ($owner === null) {
+                return new MethodReply(false, "Owner not found.");
+            }
+            if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
+                return new MethodReply(false, "Cannot remove the permission to manage permissions as you are not the owner of the team.");
+            }
         }
         $otherResult = $this->findTeam($account, $result->getObject()->id);
 
