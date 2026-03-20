@@ -36,10 +36,7 @@ class AccountTeam
         PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS = 15,
 
         // Grouping
-        PERMISSION_ADJUST_TEAM_MEMBER_ROLES = 13,
-
-        // Management
-        PERMISSION_MANAGE_PERMISSIONS = 91;
+        PERMISSION_ADJUST_TEAM_MEMBER_ROLES = 13;
 
     private const
         MAX_TEAMS = 100,
@@ -1742,13 +1739,25 @@ class AccountTeam
                 return new MethodReply(false, "Role not found.");
             }
         }
+        if ($permissionID === self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS) {
+            $owner = $this->getOwner();
+
+            if ($owner === null) {
+                return new MethodReply(false, "Owner not found.");
+            }
+            if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
+                return new MethodReply(false, "Cannot give the role permission to manage permissions as you are not the owner of the team.");
+            }
+        }
+        $outcome = $this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS);
+
+        if (!$outcome->isPositiveOutcome()) {
+            return $outcome;
+        }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
-        }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to add permissions to roles.");
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "Cannot add permission to a role with the same or higher hierarchical level.");
@@ -1792,6 +1801,21 @@ class AccountTeam
                 return new MethodReply(false, "Role not found.");
             }
         }
+        if ($permissionID === self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS) {
+            $owner = $this->getOwner();
+
+            if ($owner === null) {
+                return new MethodReply(false, "Owner not found.");
+            }
+            if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
+                return new MethodReply(false, "Cannot remove the role permission to manage permissions as you are not the owner of the team.");
+            }
+        }
+        $outcome = $this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS);
+
+        if (!$outcome->isPositiveOutcome()) {
+            return $outcome;
+        }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
@@ -1799,9 +1823,6 @@ class AccountTeam
         }
         if ($this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "Cannot remove permission from a role with the same or higher hierarchical level.");
-        }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_ROLE_PERMISSIONS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to remove permissions from roles.");
         }
         $permissionResult = $this->getRolePermission($role, $permissionDef);
 
@@ -1985,20 +2006,20 @@ class AccountTeam
         }
         $outcome = $this->getMemberPermission(
             $this->account,
-            self::PERMISSION_MANAGE_PERMISSIONS
+            self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS
         );
 
         if (!$outcome->isPositiveOutcome()) {
             return $outcome;
         }
-        if ($permissionID === self::PERMISSION_MANAGE_PERMISSIONS) {
+        if ($permissionID === self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS) {
             $owner = $this->getOwner();
 
             if ($owner === null) {
                 return new MethodReply(false, "Owner not found.");
             }
             if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-                return new MethodReply(false, "Cannot give the permission to manage permissions as you are not the owner of the team.");
+                return new MethodReply(false, "Cannot give the member permission to manage permissions as you are not the owner of the team.");
             }
         }
         $team = $result->getObject()->id;
@@ -2011,9 +2032,6 @@ class AccountTeam
 
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
-        }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to add others permissions.");
         }
         if ($this->account->getDetail("id") !== $account->getDetail("id")
             && $this->getPosition() <= $this->getPosition($account)) {
@@ -2059,20 +2077,20 @@ class AccountTeam
         }
         $outcome = $this->getMemberPermission(
             $this->account,
-            self::PERMISSION_MANAGE_PERMISSIONS
+            self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS
         );
 
         if (!$outcome->isPositiveOutcome()) {
             return $outcome;
         }
-        if ($permissionID === self::PERMISSION_MANAGE_PERMISSIONS) {
+        if ($permissionID === self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS) {
             $owner = $this->getOwner();
 
             if ($owner === null) {
                 return new MethodReply(false, "Owner not found.");
             }
             if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
-                return new MethodReply(false, "Cannot remove the permission to manage permissions as you are not the owner of the team.");
+                return new MethodReply(false, "Cannot remove the member permission to manage permissions as you are not the owner of the team.");
             }
         }
         $otherResult = $this->findTeam($account, $result->getObject()->id);
@@ -2088,9 +2106,6 @@ class AccountTeam
         if ($this->account->getDetail("id") !== $account->getDetail("id")
             && $this->getPosition() <= $this->getPosition($account)) {
             return new MethodReply(false, "Cannot remove permission from someone with the same or higher hierarchical level.");
-        }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_PERMISSIONS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to remove others permissions.");
         }
         $permissionResult = $this->getMemberPermission($account, $permissionDef, false, false);
 
@@ -2323,13 +2338,26 @@ class AccountTeam
             return $result;
         }
         $team = $result->getObject()->id;
+
+        if ($permissionID === self::PERMISSION_ADJUST_TEAM_PERMISSIONS) {
+            $owner = $this->getOwner();
+
+            if ($owner === null) {
+                return new MethodReply(false, "Owner not found.");
+            }
+            if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
+                return new MethodReply(false, "Cannot give the team permission to manage permissions as you are not the owner of the team.");
+            }
+        }
+        $outcome = $this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS);
+
+        if (!$outcome->isPositiveOutcome()) {
+            return $outcome;
+        }
         $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
 
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
-        }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to add default team permissions.");
         }
         $memberID = $this->getMember()?->id;
 
@@ -2366,8 +2394,20 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
         }
-        if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS)->isPositiveOutcome()) {
-            return new MethodReply(false, "Missing permission to remove default team permissions.");
+        if ($permissionID === self::PERMISSION_ADJUST_TEAM_PERMISSIONS) {
+            $owner = $this->getOwner();
+
+            if ($owner === null) {
+                return new MethodReply(false, "Owner not found.");
+            }
+            if ($owner->account->getDetail("id") !== $this->account->getDetail("id")) {
+                return new MethodReply(false, "Cannot remove the team permission to manage permissions as you are not the owner of the team.");
+            }
+        }
+        $outcome = $this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_PERMISSIONS);
+
+        if (!$outcome->isPositiveOutcome()) {
+            return $outcome;
         }
         $permissionResult = $this->getTeamPermission($permissionDef);
 
