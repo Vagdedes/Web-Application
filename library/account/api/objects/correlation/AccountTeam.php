@@ -757,6 +757,26 @@ class AccountTeam
         }
     }
 
+    public function getSortedLevels(): array
+    {
+        $members = $this->getMembers();
+        $levels = [];
+
+        if (!empty($members)) {
+            foreach ($members as $member) {
+                $levels[] = $this->getPosition($member->account);
+            }
+        }
+        $uniqueLevels = array_unique($levels);
+        rsort($uniqueLevels, SORT_NUMERIC);
+        $hierarchy = [];
+
+        foreach ($uniqueLevels as $index => $levelValue) {
+            $hierarchy[$levelValue] = $index + 1;
+        }
+        return $hierarchy;
+    }
+
     public function getMembers(): array
     {
         $result = $this->findTeam();
@@ -783,12 +803,10 @@ class AccountTeam
             foreach ($query as $value) {
                 if (!array_key_exists($value->account_id, $new)) {
                     $value->account = $this->account->getNew($value->account_id);
-                    $new[$value->account_id] = $value;
-                }
-            }
-            foreach ($new as $key => $value) {
-                if (!$value->account->exists()) {
-                    unset($new[$key]);
+
+                    if ($value->account->exists()) {
+                        $new[$value->account_id] = $value;
+                    }
                 }
             }
             return $new;
