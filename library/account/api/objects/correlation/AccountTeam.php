@@ -2152,8 +2152,13 @@ class AccountTeam
         if (!$this->permissions) {
             return new MethodReply(true, "Permission system disabled.");
         }
+        $permissionDef = $this->getPermissionDefinition($permissionID);
+
+        if ($permissionDef === null) {
+            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
+        }
         if ($checkTeam && $this->getTeamPermission($permissionID)->isPositiveOutcome()) {
-            return new MethodReply(true, "Permission given to all members.");
+            return new MethodReply(true, "Permission '" . $permissionDef->name . "' is already given to all members.");
         }
         if ($checkRoles) {
             $roles = $this->getMemberRoles($account);
@@ -2163,7 +2168,7 @@ class AccountTeam
                     $rolePermission = $this->getRolePermission($role, $permissionID);
 
                     if ($rolePermission->isPositiveOutcome()) {
-                        return new MethodReply(true, "Permission given to one of user's roles.");
+                        return new MethodReply(true, "Permission '" . $permissionDef->name . "' is already given to one of user's roles.");
                     }
                 }
             }
@@ -2173,18 +2178,13 @@ class AccountTeam
         if ($memberID === null) {
             return new MethodReply(false, "Member not found.");
         }
-        $permissionDef = $this->getPermissionDefinition($permissionID)?->id;
-
-        if ($permissionDef === null) {
-            return new MethodReply(false, "Permission with ID '" . $permissionID . "' not found.");
-        }
         $query = get_sql_query(
             AccountVariables::TEAM_MEMBER_PERMISSIONS_TABLE,
             null,
             array(
                 array("team_id", $result->getObject()->id),
                 array("member_id", $memberID),
-                array("permission_id", $permissionDef),
+                array("permission_id", $permissionDef->id),
             ),
             array(
                 "DESC",
@@ -2194,12 +2194,12 @@ class AccountTeam
         );
 
         if (empty($query)) {
-            return new MethodReply(false, "Permission not given.");
+            return new MethodReply(false, "Permission '" . $permissionDef->name . "' not given.");
         } else {
             $query = $query[0];
             return $query->deletion_date === null
-                ? new MethodReply(true, "Permission given.", $query)
-                : new MethodReply(false, "Permission given and removed.");
+                ? new MethodReply(true, "Permission '" . $permissionDef->name . "' already given.", $query)
+                : new MethodReply(false, "Permission '" . $permissionDef->name . "' given and removed.");
         }
     }
 
