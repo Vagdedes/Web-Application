@@ -2147,10 +2147,10 @@ class AccountTeam
             return new MethodReply(false, "Owner not found.");
         }
         if ($owner->account->getDetail("id") === $account->getDetail("id")) {
-            return new MethodReply(true, "Owner has all permissions.");
+            return new MethodReply(true, "As an owner you already have all permissions.");
         }
         if (!$this->permissions) {
-            return new MethodReply(true, "Permission system disabled.");
+            return new MethodReply(true, "Permission system is currently disabled.");
         }
         $permissionDef = $this->getPermissionDefinition($permissionID);
 
