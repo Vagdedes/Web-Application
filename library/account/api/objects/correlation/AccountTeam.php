@@ -767,6 +767,13 @@ class AccountTeam
                 $levels[] = $this->getPosition($member->account);
             }
         }
+        $roles = $this->getTeamRoles();
+
+        if (!empty($roles)) {
+            foreach ($roles as $role) {
+                $levels[] = $this->getRolePosition($role);
+            }
+        }
         $uniqueLevels = array_unique($levels);
         rsort($uniqueLevels, SORT_NUMERIC);
         $hierarchy = [];
