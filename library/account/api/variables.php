@@ -29,9 +29,6 @@ class AccountVariables
         ACCOUNT_IDENTIFICATION_TABLE = "account.identification",
         ACCOUNT_HISTORY_TABLE = "account.history",
 
-        ACCOUNT_NOTIFICATIONS_TABLE = "notification.notifications",
-        ACCOUNT_NOTIFICATION_TYPES_TABLE = "notification.types",
-
         ROLE_PERMISSIONS_TABLE = "management.permissions",
         ROLES_TABLE = "management.roles",
         FUNCTIONALITIES_TABLE = "management.functionalities",

@@ -27,7 +27,6 @@ require_once '/var/www/.structure/library/account/api/objects/management/Account
 
 // Communication
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountEmail.php';
-require_once '/var/www/.structure/library/account/api/objects/communication/AccountNotifications.php';
 require_once '/var/www/.structure/library/account/api/objects/communication/AccountPhoneNumber.php';
 
 // Correlation
