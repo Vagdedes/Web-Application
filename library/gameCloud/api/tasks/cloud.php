@@ -113,10 +113,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 array("access_failure", $accessFailure),
                 array("date", ">=", $pastDate)
             ),
-            array(
-                "DESC",
-                "id"
-            ),
+            null,
             1
         );
 
@@ -257,8 +254,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
             }
             if (sizeof($found) < sizeof($all)) {
                 if ($gameCloudUser->getPlatform() === 2) {
-                    if (has_builtbybit_resource_ownership(11196, $gameCloudUser->getLicense())
-                        || has_builtbybit_resource_ownership(20142, $gameCloudUser->getLicense())) {
+                    if (has_builtbybit_resource_ownership(11196, $gameCloudUser->getLicense(), false)) {
                         if (!in_array($all[0], $found)) {
                             $found[] = $all[0];
                         }
@@ -356,197 +352,6 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                 }
             } else {
                 echo "false";
-            }
-        } else if ($data == "discordWebhooks") {
-            $split = explode($separator, $value, 13);
-            $url = null;
-
-            switch ($split[0]) { // Webhook version
-                case 2:
-                    $url = $split[1] ?? null;
-                    $color = $split[2] ?? null;
-                    $server = $split[3] ?? null;
-                    $player = $split[4] ?? null;
-                    $uuid = $split[5] ?? null;
-                    $coordinateX = $split[6] ?? null;
-                    $coordinateY = $split[7] ?? null;
-                    $coordinateZ = $split[8] ?? null;
-                    $type = $split[9] ?? null;
-                    $information = str_replace($line, " | ", $split[10] ?? null);
-                    $title = (!empty($server) && $server != "NULL" ? " (" . $server . ")" : "");
-
-                    if (!empty($player)
-                        && is_uuid($uuid)
-                        && is_numeric($coordinateX)
-                        && is_numeric($coordinateY)
-                        && is_numeric($coordinateZ)
-                        && !empty($information)) {
-                        $details = array(
-                            array("name" => $player,
-                                "value" => "``$uuid``",
-                                "inline" => true),
-                            array("name" => "X, Y, Z",
-                                "value" => "``$coordinateX``**,** ``$coordinateY``**,** ``$coordinateZ``",
-                                "inline" => true),
-                            array("name" => $type,
-                                "value" => "``$information``",
-                                "inline" => false)
-                        );
-                        $response = has_memory_limit(
-                            "game-cloud=" . $data . "=" . string_to_integer($url, true),
-                            30,
-                            "1 minute"
-                        ) ? true
-                            : send_discord_webhook(
-                                $url,
-                                null,
-                                $color,
-                                "Spartan AntiCheat",
-                                null,
-                                get_minecraft_head_image($uuid, 64),
-                                $title,
-                                null,
-                                null,
-                                null,
-                                "https://vagdedes.com/.images/spartan/logo.png",
-                                $details
-                            );
-
-                        if ($response === true) {
-                            echo "true";
-                        } else {
-                            if (!has_memory_cooldown(GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE, "15 minutes")) {
-                                delete_sql_query(
-                                    GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE,
-                                    array(
-                                        array("creation_date", "<", get_past_date("31 days"))
-                                    )
-                                );
-                            }
-                            sql_insert(
-                                GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE,
-                                array(
-                                    "creation_date" => $date,
-                                    "version" => $version,
-                                    "platform_id" => $gameCloudUser->getPlatform(),
-                                    "license_id" => $gameCloudUser->getLicense(),
-                                    "webhook_url" => $url,
-                                    "details" => json_encode($details),
-                                    "error" => $response
-                                )
-                            );
-                            echo "false";
-                        }
-                    } else {
-                        echo "false";
-                    }
-                    break;
-                default:
-                    echo "false";
-                    break;
-            }
-        } else if ($data == "advancedDiscordWebhook") {
-            if ($gameCloudUser->getPlatform() === 2) {
-                if (!has_builtbybit_resource_ownership(64165, $gameCloudUser->getLicense())) {
-                    echo "false";
-                    return;
-                }
-            } else if ($gameCloudUser->getPlatform() === 3) {
-                $buyer = get_polymart_buyer_details(
-                    0,  // todo
-                    $gameCloudUser->getLicense()
-                );
-
-                if ($buyer === null) {
-                    echo "false";
-                    return;
-                }
-            }
-            $url = urldecode(get_form("webhook_url", ""));
-            $avatarURL = urldecode(get_form("avatar_url", ""));
-            $color = urldecode(get_form("color", ""));
-            $author = urldecode(get_form("author", ""));
-            $authorURL = urldecode(get_form("author_url", ""));
-            $authorIconURL = urldecode(get_form("author_icon_url", ""));
-            $title = urldecode(get_form("title", ""));
-            $titleURL = urldecode(get_form("title_url", ""));
-            $description = urldecode(get_form("description", ""));
-            $footer = urldecode(get_form("footer", ""));
-            $footerIconURL = urldecode(get_form("footer_icon_url", ""));
-            $content = urldecode(get_form("content", ""));
-            $fields = urldecode(get_form("fields", ""));
-            $fields = json_decode($fields, true);
-
-            if (!is_array($fields)) {
-                $fields = array();
-            }
-            if (true
-                && $gameCloudUser->getPlatform() !== 2
-                && $gameCloudUser->getPlatform() !== 3
-                && has_memory_cooldown(
-                    "game-cloud=" . $data . "=" . string_to_integer($url, true),
-                    "30 seconds",
-                )) {
-                echo "The free edition has a 30 seconds cooldown, consider purchasing the premium edition: https://builtbybit.com/resources/64165";
-                return;
-            }
-            $response = send_discord_webhook(
-                $url,
-                $avatarURL,
-                $color,
-                $author,
-                $authorURL,
-                $authorIconURL,
-                $title,
-                $titleURL,
-                $description,
-                $footer,
-                $footerIconURL,
-                $fields,
-                $content
-            );
-
-            if ($response === true) {
-                echo "true";
-            } else {
-                if (!has_memory_cooldown(GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE, "15 minutes")) {
-                    delete_sql_query(
-                        GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE,
-                        array(
-                            array("creation_date", "<", get_past_date("31 days"))
-                        )
-                    );
-                }
-                $details = new stdClass();
-                $details->fields = $fields;
-                $details->description = $description;
-                $details->footer = $footer;
-                $details->footer_icon_url = $footerIconURL;
-                $details->title = $title;
-                $details->title_url = $titleURL;
-                $details->author = $author;
-                $details->author_url = $authorURL;
-                $details->author_icon_url = $authorIconURL;
-                $details->color = $color;
-                $details->avatar_url = $avatarURL;
-                $details->webhook_url = $url;
-                $details->content = $content;
-                sql_insert(
-                    GameCloudVariables::FAILED_DISCORD_WEBHOOKS_TABLE,
-                    array(
-                        "creation_date" => $date,
-                        "version" => $version,
-                        "platform_id" => $gameCloudUser->getPlatform(),
-                        "license_id" => $gameCloudUser->getLicense(),
-                        "webhook_url" => $url,
-                        "details" => @json_encode(
-                            $details,
-                            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-                        ),
-                        "error" => $response
-                    )
-                );
-                echo $response;
             }
         }
     }

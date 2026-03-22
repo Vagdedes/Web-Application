@@ -80,8 +80,8 @@ function get_builtbybit_resource_ownerships(
 function has_builtbybit_resource_ownership(
     int|string $resource,
     int|string $member,
-    bool       $default = true,
-    int        $maxExecutionTime = 25
+    bool       $checkExpiration = true,
+    bool       $default = true
 ): bool
 {
     $time = time();
@@ -119,7 +119,8 @@ function has_builtbybit_resource_ownership(
             $object = $ownerships[$member] ?? null;
 
             if ($object !== null) {
-                $default = $object->active
+                $default = !$checkExpiration
+                    || $object->active
                     && ($object->expiration_date === null
                         || $object->expiration_date > time_to_date(time()));
                 break;

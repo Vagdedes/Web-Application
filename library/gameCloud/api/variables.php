@@ -8,7 +8,6 @@ class GameCloudVariables
         IP_MANAGEMENT_TABLE = "gameCloud.managedIpAddresses",
         CONNECTION_COUNT_TABLE = "gameCloud.connectionCount",
         ACCEPTED_PURPOSES_TABLE = "gameCloud.acceptedPurposes",
-        FAILED_DISCORD_WEBHOOKS_TABLE = "gameCloud.failedDiscordWebhooks",
         ACCEPTED_PLATFORMS_TABLE = "gameCloud.acceptedPlatforms",
         STAFF_ANNOUNCEMENTS_TABLE = "gameCloud.staffAnnouncements";
 }
