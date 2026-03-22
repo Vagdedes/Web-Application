@@ -26,7 +26,6 @@ class Account implements JsonSerializable
     private AccountPassword $password;
     private AccountEmail $email;
     private AccountIdentification $identification;
-    private AccountNotifications $notifications;
     private AccountPhoneNumber $phoneNumber;
     private AccountPatreon $patreon;
     private AccountFunctionality $functionality;
@@ -70,7 +69,6 @@ class Account implements JsonSerializable
         $this->cooldowns = new AccountCooldowns($this);
         $this->accounts = new AccountAccounts($this);
         $this->permissions = new AccountPermissions($this);
-        $this->notifications = new AccountNotifications($this);
         $this->phoneNumber = new AccountPhoneNumber($this);
         $this->patreon = new AccountPatreon($this);
         $this->team = new AccountTeam($this);
@@ -345,11 +343,6 @@ class Account implements JsonSerializable
     public function getIdentification(): AccountIdentification
     {
         return $this->identification;
-    }
-
-    public function getNotifications(): AccountNotifications
-    {
-        return $this->notifications;
     }
 
     public function getPhoneNumber(): AccountPhoneNumber
