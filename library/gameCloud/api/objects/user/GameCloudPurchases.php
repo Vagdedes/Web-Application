@@ -48,7 +48,7 @@ class GameCloudPurchases
             ),
             array(
                 array("email_address", $email),
-                array("data_directory", $dataDirectory),
+                array("data_directory", strtolower($dataDirectory)),
                 array("deletion_date", null),
                 null,
                 array("expiration_date", "IS", null, 0),

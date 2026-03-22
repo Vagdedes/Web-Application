@@ -199,7 +199,7 @@ if (true && in_array($action, array("get", "add"))) { // Toggle database inserti
                     foreach ($all as $edition) {
                         $db = $gameCloudUser->getPurchases()->getFromDatabase(
                             $email,
-                            $data . $edition
+                            $edition
                         );
 
                         if ($db === true) {
