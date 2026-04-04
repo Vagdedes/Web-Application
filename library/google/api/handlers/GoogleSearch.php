@@ -5,17 +5,16 @@ class GoogleNewsClient
     private ?string $apiKey, $searchEngineId;
     private string $baseUrl = 'https://www.googleapis.com/customsearch/v1';
 
-    public function __construct()
+    public function __construct(?string $searchEngineId)
     {
-        $credentials = get_keys_from_file("google_search_credentials", 2);
+        $this->searchEngineId = $searchEngineId;
+        $credentials = get_keys_from_file("google_search_business_credentials", 1);
 
         if ($credentials === null) {
             $this->apiKey = null;
-            $this->searchEngineId = null;
             return;
         }
         $this->apiKey = $credentials[0];
-        $this->searchEngineId = $credentials[1];
     }
 
     private function isValid(): bool
