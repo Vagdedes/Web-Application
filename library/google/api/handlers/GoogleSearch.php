@@ -2,6 +2,8 @@
 
 class GoogleNewsClient
 {
+    private const MAX_RESULTS = 10;
+
     private ?string $apiKey, $searchEngineId;
     private string $baseUrl = 'https://www.googleapis.com/customsearch/v1';
 
@@ -30,8 +32,9 @@ class GoogleNewsClient
      * @param int $num The number of results (max 10).
      * @return GoogleSearchResult[]
      */
-    public function fetchNews(string $query, int $num = 5, int $timeoutSeconds = 10): array
+    public function fetchNews(string $query, int $num = self::MAX_RESULTS / 2, int $timeoutSeconds = 10): array
     {
+        $num = min(max($num, 1), self::MAX_RESULTS);
         $params = [
             'q' => $query,
             'key' => $this->apiKey,
