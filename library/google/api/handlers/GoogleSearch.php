@@ -43,22 +43,22 @@ class GoogleSearch
      *
      * @param string $query The search term.
      * @param int $num The number of results (max 10).
-     * @return GoogleSearchResult[]
+     * @return GoogleSearchResult[]|false
      */
-    public function fetch(string $query, int $num = self::MAX_RESULTS / 2, int $timeoutSeconds = 10): array
+    public function fetch(string $query, int $num = self::MAX_RESULTS / 2, int $timeoutSeconds = 10): array|false
     {
         if (!$this->isValid()) {
             error_log("Google Search API credentials are not properly configured.");
-            return [];
+            return false;
         }
         if (!$this->isQueryValid($query)) {
             error_log("Invalid query for Google Search: " . $query);
-            return [];
+            return false;
         }
         if ($num <= 0
             || $num > self::MAX_RESULTS) {
             error_log("Invalid number of results requested: " . $num . ". Must be between 1 and " . self::MAX_RESULTS . ".");
-            return [];
+            return false;
         }
         $params = [
             'q' => $query,
@@ -81,7 +81,7 @@ class GoogleSearch
         if ($response === false
             || $httpCode !== 200) {
             error_log("Google API Error. HTTP Code: " . $httpCode);
-            return [];
+            return false;
         }
         $decodedResponse = json_decode($response, true);
         $items = $decodedResponse['items'] ?? [];
