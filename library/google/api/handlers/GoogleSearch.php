@@ -32,7 +32,7 @@ class GoogleNewsClient
      * @param int $num The number of results (max 10).
      * @return GoogleSearchResult[]
      */
-    public function fetchNews(string $query, int $num = self::MAX_RESULTS / 2, int $timeoutSeconds = 10): array
+    public function fetch(string $query, int $num = self::MAX_RESULTS / 2, int $timeoutSeconds = 10): array
     {
         $num = min(max($num, 1), self::MAX_RESULTS);
         $params = [
