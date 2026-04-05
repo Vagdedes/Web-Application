@@ -32,7 +32,7 @@ class GoogleSearch
         $this->apiKey = $credentials[0];
     }
 
-    private function isValid(): bool
+    public function isValid(): bool
     {
         return $this->apiKey !== null
             && $this->searchEngineId !== null;
@@ -55,7 +55,11 @@ class GoogleSearch
             error_log("Invalid query for Google Search: " . $query);
             return [];
         }
-        $num = min(max($num, 1), self::MAX_RESULTS);
+        if ($num <= 0
+            || $num > self::MAX_RESULTS) {
+            error_log("Invalid number of results requested: " . $num . ". Must be between 1 and " . self::MAX_RESULTS . ".");
+            return [];
+        }
         $params = [
             'q' => $query,
             'key' => $this->apiKey,
