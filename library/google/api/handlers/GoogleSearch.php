@@ -34,6 +34,9 @@ class GoogleNewsClient
      */
     public function fetch(string $query, int $num = self::MAX_RESULTS / 2, int $timeoutSeconds = 10): array
     {
+        if (!$this->isValid()) {
+            return [];
+        }
         $num = min(max($num, 1), self::MAX_RESULTS);
         $params = [
             'q' => $query,
