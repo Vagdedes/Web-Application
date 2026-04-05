@@ -2,7 +2,10 @@
 
 class GoogleNewsClient
 {
-    private const MAX_RESULTS = 10;
+    private const
+        MAX_RESULTS = 10,
+        MAX_QUERY_LENGTH = 2048,
+        MAX_QUERY_WORDS = 32;
 
     private ?string $apiKey, $searchEngineId;
     private string $baseUrl = 'https://www.googleapis.com/customsearch/v1';
@@ -25,6 +28,14 @@ class GoogleNewsClient
             && $this->searchEngineId !== null;
     }
 
+    public function isQueryValid(string $query): bool
+    {
+        $len = strlen($query);
+        return $len > 0
+            && $len <= self::MAX_QUERY_LENGTH
+            && sizeof(explode(" ", $query, self::MAX_QUERY_WORDS + 1)) <= self::MAX_QUERY_WORDS;
+    }
+
     /**
      * Fetches the news and returns an array of GoogleNewsResult objects.
      *
@@ -35,6 +46,11 @@ class GoogleNewsClient
     public function fetch(string $query, int $num = self::MAX_RESULTS / 2, int $timeoutSeconds = 10): array
     {
         if (!$this->isValid()) {
+            error_log("Google Search API credentials are not properly configured.");
+            return [];
+        }
+        if (!$this->isQueryValid($query)) {
+            error_log("Invalid query for Google Search: " . $query);
             return [];
         }
         $num = min(max($num, 1), self::MAX_RESULTS);
