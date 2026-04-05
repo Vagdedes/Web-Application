@@ -1,11 +1,21 @@
 <?php
 
-class GoogleNewsClient
+class GoogleSearch
 {
-    private const
+    public const
         MAX_RESULTS = 10,
         MAX_QUERY_LENGTH = 2048,
         MAX_QUERY_WORDS = 32;
+
+    public static function isQueryValid(string $query): bool
+    {
+        $len = strlen($query);
+        return $len > 0
+            && $len <= self::MAX_QUERY_LENGTH
+            && sizeof(explode(" ", $query, self::MAX_QUERY_WORDS + 1)) <= self::MAX_QUERY_WORDS;
+    }
+
+    // Separator
 
     private ?string $apiKey, $searchEngineId;
     private string $baseUrl = 'https://www.googleapis.com/customsearch/v1';
@@ -26,14 +36,6 @@ class GoogleNewsClient
     {
         return $this->apiKey !== null
             && $this->searchEngineId !== null;
-    }
-
-    public function isQueryValid(string $query): bool
-    {
-        $len = strlen($query);
-        return $len > 0
-            && $len <= self::MAX_QUERY_LENGTH
-            && sizeof(explode(" ", $query, self::MAX_QUERY_WORDS + 1)) <= self::MAX_QUERY_WORDS;
     }
 
     /**
