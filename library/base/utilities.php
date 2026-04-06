@@ -657,7 +657,7 @@ function get_keys_from_file(string $file, int $amount = 1, bool $custom = false)
     $contents = timed_file_get_contents(($custom ? "" : $keys_from_file_directory) . $file, 3);
 
     if ($contents !== false) {
-        $keys = explode("\n", $contents);
+        $keys = explode("\n", trim($contents));
         return sizeof($keys) != $amount ? null : $keys;
     } else {
         return null;
