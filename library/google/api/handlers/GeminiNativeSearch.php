@@ -3,7 +3,7 @@
 class GeminiNativeSearch
 {
     private ?string $apiKey;
-    private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash:generateContent';
+    private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
     public function __construct()
     {
@@ -37,7 +37,7 @@ class GeminiNativeSearch
                 ['parts' => [['text' => $promptContext]]]
             ],
             'tools' => [
-                ['googleSearch' => new stdClass()]
+                ['google_search' => new stdClass()] // Updated from googleSearch
             ],
             'generationConfig' => [
                 'temperature' => 0.2
