@@ -5,6 +5,7 @@ require_once '/var/www/.structure/library/google/api/objects/GoogleSearchSummary
 
 require_once '/var/www/.structure/library/google/api/handlers/GoogleSearch.php';
 require_once '/var/www/.structure/library/google/api/handlers/GeminiNativeSearch.php';
+require_once '/var/www/.structure/library/google/api/handlers/SerperDevGoogleSearch.php';
 
 
 require_once '/var/www/.structure/library/google/api/tasks/analytics.php';
