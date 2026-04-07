@@ -23,7 +23,7 @@ class GoogleSearch
     public function __construct(?string $searchEngineId)
     {
         $this->searchEngineId = trim($searchEngineId);
-        $credentials = get_keys_from_file("google_search_business_credentials", 1);
+        $credentials = get_keys_from_file("google_search_business_credentials", 2);
 
         if ($credentials === null) {
             $this->apiKey = null;

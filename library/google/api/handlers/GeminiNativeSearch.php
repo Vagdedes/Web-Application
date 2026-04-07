@@ -3,17 +3,17 @@
 class GeminiNativeSearch
 {
     private ?string $apiKey;
-    private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash:generateContent';
 
     public function __construct()
     {
-        $credentials = get_keys_from_file("google_search_business_credentials", 1);
+        $credentials = get_keys_from_file("google_search_business_credentials", 2);
 
         if ($credentials === null) {
             $this->apiKey = null;
             return;
         }
-        $this->apiKey = trim($credentials[0]);
+        $this->apiKey = $credentials[1];
     }
 
     public function isValid(): bool
@@ -31,6 +31,7 @@ class GeminiNativeSearch
         }
         $requestUrl = $this->baseUrl . '?key=' . $this->apiKey;
         $promptContext = "Search the live web for the latest news regarding: {$topic}. Summarize the most important updates into one concise paragraph. Be highly factual.";
+
         $payload = json_encode([
             'contents' => [
                 ['parts' => [['text' => $promptContext]]]
@@ -42,7 +43,6 @@ class GeminiNativeSearch
                 'temperature' => 0.2
             ]
         ]);
-
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $requestUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -73,8 +73,11 @@ class GeminiNativeSearch
                 ];
             }
         }
-
-        return new GoogleSearchSummary($summaryText, $rawSources);
+        $usage = $decoded['usageMetadata'] ?? [];
+        $inTokens = $usage['promptTokenCount'] ?? 0;
+        $outTokens = $usage['candidatesTokenCount'] ?? 0;
+        $tokenCost = ($inTokens / 1000000 * 0.075) + ($outTokens / 1000000 * 0.30);
+        $totalCost = $tokenCost + 0.014;
+        return new GoogleSearchSummary($summaryText, $rawSources, $totalCost);
     }
-
 }
