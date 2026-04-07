@@ -21,7 +21,11 @@ class GeminiNativeSearch
         return $this->apiKey !== null;
     }
 
-    public function fetchAndSummarize(string $topic, int $timeoutSeconds = 15): GoogleSearchSummary|string
+    public function fetchAndSummarize(
+        string $topic,
+        string $language,
+        int    $timeoutSeconds = 15
+    ): GoogleSearchSummary|string
     {
         if (!$this->isValid()) {
             return "Gemini API credentials are not properly configured.";
@@ -30,14 +34,14 @@ class GeminiNativeSearch
             return "Invalid query for Gemini Search.";
         }
         $requestUrl = $this->baseUrl . '?key=' . $this->apiKey;
-        $promptContext = "Search the live web for the latest news regarding: {$topic}. Summarize the most important updates into one concise paragraph. Be highly factual.";
+        $promptContext = "Search the live web for the latest news regarding: {$topic}. Summarize the most important updates into one concise paragraph in {$language}. Be highly factual.";
 
         $payload = json_encode([
             'contents' => [
                 ['parts' => [['text' => $promptContext]]]
             ],
             'tools' => [
-                ['google_search' => new stdClass()] // Updated from googleSearch
+                ['google_search' => new stdClass()]
             ],
             'generationConfig' => [
                 'temperature' => 0.2
@@ -76,7 +80,7 @@ class GeminiNativeSearch
         $usage = $decoded['usageMetadata'] ?? [];
         $inTokens = $usage['promptTokenCount'] ?? 0;
         $outTokens = $usage['candidatesTokenCount'] ?? 0;
-        $tokenCost = ($inTokens / 1000000 * 0.075) + ($outTokens / 1000000 * 0.30);
+        $tokenCost = ($inTokens / 1_000_000 * 0.075) + ($outTokens / 1_000_000 * 0.3);
         $totalCost = $tokenCost + 0.014;
         return new GoogleSearchSummary($summaryText, $rawSources, $totalCost);
     }
