@@ -55,6 +55,7 @@ class GeminiNativeSearch
         curl_setopt($ch, CURLOPT_TIMEOUT, $timeoutSeconds);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V6);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json'
         ]);
