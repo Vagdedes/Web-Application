@@ -34,8 +34,9 @@ class GeminiNativeSearch
             return "Invalid query for Gemini Search.";
         }
         $requestUrl = $this->baseUrl . '?key=' . $this->apiKey;
-        $promptContext = "Search the live web for the latest news regarding: {$topic}. Summarize the most important updates into one concise paragraph in {$language}. Be highly factual.";
-
+        $promptContext = "Search the live web for the latest news regarding: {$topic}. " .
+            "CRITICAL INSTRUCTION: You are strictly limited to executing exactly ONE (1) search query. Do not perform multiple searches. " .
+            "Summarize the most important updates into one concise paragraph in {$language}. Be highly factual.";
         $payload = json_encode([
             'contents' => [
                 ['parts' => [['text' => $promptContext]]]
@@ -47,6 +48,7 @@ class GeminiNativeSearch
                 'temperature' => 0.2
             ]
         ]);
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $requestUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -67,7 +69,8 @@ class GeminiNativeSearch
         $decoded = json_decode($response, true);
         $summaryText = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? 'No summary generated.';
         $rawSources = [];
-        $groundingChunks = $decoded['candidates'][0]['groundingMetadata']['groundingChunks'] ?? [];
+        $groundingMetadata = $decoded['candidates'][0]['groundingMetadata'] ?? [];
+        $groundingChunks = $groundingMetadata['groundingChunks'] ?? [];
 
         foreach ($groundingChunks as $chunk) {
             if (isset($chunk['web']['uri'])) {
@@ -81,7 +84,11 @@ class GeminiNativeSearch
         $inTokens = $usage['promptTokenCount'] ?? 0;
         $outTokens = $usage['candidatesTokenCount'] ?? 0;
         $tokenCost = ($inTokens / 1_000_000 * 0.075) + ($outTokens / 1_000_000 * 0.3);
-        $totalCost = $tokenCost + 0.014;
+        $webSearchQueries = $groundingMetadata['webSearchQueries'] ?? [];
+        $searchCount = count($webSearchQueries);
+        $groundingCost = $searchCount * 0.014;
+        $totalCost = $tokenCost + $groundingCost;
         return new GoogleSearchSummary($summaryText, $rawSources, $totalCost);
     }
+
 }
