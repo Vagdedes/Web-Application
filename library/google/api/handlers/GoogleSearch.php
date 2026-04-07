@@ -77,6 +77,7 @@ class GoogleSearch
 
         if ($response === false
             || $httpCode !== 200) {
+            error_log($response);
             return "Google API Error. HTTP Code: " . $httpCode;
         }
         $decodedResponse = json_decode($response, true);
