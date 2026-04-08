@@ -5,7 +5,8 @@ class SerperDevGoogleSearch
     public const
         MAX_RESULTS = 100,
         MAX_QUERY_LENGTH = 2048,
-        MAX_QUERY_WORDS = 100;
+        MAX_QUERY_WORDS = 100,
+        US_DOLLAR_COST_PER_QUERY = 0.001;
 
     public static function isQueryValid(string $query): bool
     {
@@ -108,10 +109,17 @@ class SerperDevGoogleSearch
                     'snippet' => $organic['snippet'] ?? '',
                 ];
                 $results[] = new GoogleSearchResult($item);
-                if (count($results) >= $num) break;
+
+                if (count($results) >= $num) {
+                    break;
+                }
             }
+        }
+
+        if (empty($results)) {
+            return "No results found for query: " . $query;
         }
         return $results;
     }
-    
+
 }

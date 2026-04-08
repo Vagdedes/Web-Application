@@ -82,6 +82,10 @@ class GoogleSearch
         }
         $decodedResponse = json_decode($response, true);
         $items = $decodedResponse['items'] ?? [];
+
+        if (empty($items)) {
+            return "No results found for query: " . $query;
+        }
         $results = [];
 
         foreach ($items as $item) {

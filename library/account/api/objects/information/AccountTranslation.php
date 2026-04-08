@@ -42,6 +42,13 @@ class AccountTranslation
         bool    $save = true,
         mixed   $loop = null): mixed
     {
+        if (empty($text)) {
+            return new MethodReply(
+                true,
+                null,
+                $text
+            );
+        }
         $text = trim($text);
 
         if (is_numeric($text)
