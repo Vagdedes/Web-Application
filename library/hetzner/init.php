@@ -1,6 +1,7 @@
 <?php
 // Dependency
 require_once '/var/www/.structure/library/cloudflare/init.php';
+require_once '/var/www/.structure/library/email/init.php';
 
 // Abstract
 require_once '/var/www/.structure/library/hetzner/api/objects/abstract/HetznerAbstractServer.php';

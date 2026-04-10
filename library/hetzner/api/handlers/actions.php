@@ -2,45 +2,34 @@
 
 class HetznerAction
 {
-
     private static ?int $defaultImage = null;
     private static ?CloudflareDomain $defaultDomain = null;
 
     private static function date(string $time = "now"): string
     {
-        $dateTime = new DateTime($time);
-        return urlencode($dateTime->format(DateTime::ATOM));
+        return urlencode((new DateTimeImmutable($time))->format(DateTimeInterface::ATOM));
     }
 
     public static function executedAction(array|object|bool|null $query): bool
     {
-        if (is_array($query)) {
-            return !empty($query)
-                && ($query[0]?->action?->error?->code !== null
-                    || $query[0]?->action?->error?->message !== null);
-        } else {
-            return is_object($query)
-                && ($query?->action?->error?->code !== null
-                    || $query?->action?->error?->message !== null);
-        }
+        $action = is_array($query) ? ($query[0]?->action ?? null) : ($query?->action ?? null);
+        return isset($action->error->code) || isset($action->error->message);
     }
 
     // Separator
 
-    public static function getDefaultImage(): ?string
+    public static function getDefaultImage(): ?int
     {
         if (self::$defaultImage !== null) {
             return self::$defaultImage;
         }
-        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "images");
 
-        if (!empty($query)) {
-            foreach ($query as $page) {
-                foreach ($page->images as $image) {
-                    if ($image->description == HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME) {
-                        self::$defaultImage = $image->id;
-                        return self::$defaultImage;
-                    }
+        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "images") ?: [];
+
+        foreach ($query as $page) {
+            foreach ($page->images ?? [] as $image) {
+                if ($image->description === HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME) {
+                    return self::$defaultImage = $image->id;
                 }
             }
         }
@@ -52,18 +41,14 @@ class HetznerAction
         if (self::$defaultDomain !== null) {
             return self::$defaultDomain;
         }
-        global $backup_domain;
-        $domain = explode(".", $backup_domain);
-        $size = sizeof($domain);
 
-        if ($size >= 2) {
-            self::$defaultDomain = new CloudflareDomain(
-                $domain[$size - 2] . "." . $domain[$size - 1]
-            );
-            return self::$defaultDomain;
-        } else {
-            return null;
+        global $backup_domain;
+        $parts = explode(".", $backup_domain ?? "");
+
+        if (count($parts) >= 2) {
+            return self::$defaultDomain = new CloudflareDomain(implode(".", array_slice($parts, -2)));
         }
+        return null;
     }
 
     // Separator
@@ -71,92 +56,75 @@ class HetznerAction
     public static function getServers(?array $networks): array
     {
         if (empty($networks)) {
-            return array();
+            return [];
         }
-        $array = array();
-        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "servers");
 
-        if (!empty($query)) {
-            foreach ($query as $page) {
-                $servers = $page?->servers;
+        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "servers") ?: [];
+        $array = [];
 
-                if ($servers == null) {
-                    continue;
+        foreach ($query as $page) {
+            foreach ($page->servers ?? [] as $server) {
+                $serverID = $server->id;
+
+                $metricsUrl = sprintf(
+                    "servers/%s/metrics?type=cpu&start=%s&end=%s&step=%d",
+                    $serverID,
+                    self::date("-" . HetznerVariables::CPU_METRICS_PAST_SECONDS . " seconds"),
+                    self::date(),
+                    HetznerVariables::CPU_METRICS_PAST_SECONDS
+                );
+
+                $metricsData = get_hetzner_object(HetznerConnectionType::GET, $metricsUrl);
+
+                if (empty($metricsData)) {
+                    return [];
                 }
-                foreach ($servers as $server) {
-                    $serverID = $server->id;
-                    $metrics = get_hetzner_object(
-                        HetznerConnectionType::GET,
-                        "servers/" . $serverID . "/metrics"
-                        . "?type=cpu"
-                        . "&start=" . self::date("-" . HetznerVariables::CPU_METRICS_PAST_SECONDS . " seconds")
-                        . "&end=" . self::date()
-                        . "&step=" . HetznerVariables::CPU_METRICS_PAST_SECONDS
+
+                $metrics = $metricsData->metrics?->time_series?->cpu?->values[0][1] ?? 0.0;
+
+                foreach ($networks as $network) {
+                    if (!$network->isServerIncluded($serverID) || !HetznerComparison::shouldConsiderServer($server->name)) {
+                        continue;
+                    }
+
+                    $type = $server->server_type;
+                    $isArm = strtolower($type->architecture) === "arm";
+                    $serverClass = $isArm ? HetznerArmServer::class : HetznerX86Server::class;
+
+                    $serverInstance = new $serverClass(
+                        strtolower($type->name),
+                        $type->cores,
+                        $type->memory,
+                        $type->disk
                     );
 
-                    if (empty($metrics)) {
-                        return array();
-                    } else {
-                        $metrics = $metrics?->metrics?->time_series?->cpu?->values[0][1] ?? null;
-
-                        foreach ($networks as $network) {
-                            if ($network->isServerIncluded($serverID)) {
-                                $name = $server->name;
-
-                                if (HetznerComparison::shouldConsiderServer($name)) {
-                                    $object = new HetznerServer(
-                                        $name,
-                                        $server->public_net->ipv4->ip,
-                                        $serverID,
-                                        $metrics === null ? 0.0 : $metrics,
-                                        strtolower($server->server_type->architecture) == "x86"
-                                            ? new HetznerX86Server(
-                                            strtolower($server->server_type->name),
-                                            $server->server_type->cores,
-                                            $server->server_type->memory,
-                                            $server->server_type->disk
-                                        ) : new HetznerArmServer(
-                                            strtolower($server->server_type->name),
-                                            $server->server_type->cores,
-                                            $server->server_type->memory,
-                                            $server->server_type->disk
-                                        ),
-                                        new HetznerServerLocation(
-                                            $server->datacenter->location->name
-                                        ),
-                                        $network,
-                                        $server->primary_disk_size,
-                                        $server->locked,
-                                        $server->image->status == "available"
-                                        && $server->image->description == HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME
-                                    );
-                                    $array[$serverID] = $object;
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    $array[$serverID] = new HetznerServer(
+                        $server->name,
+                        $server->public_net->ipv4->ip,
+                        $serverID,
+                        $metrics,
+                        $serverInstance,
+                        new HetznerServerLocation($server->datacenter->location->name),
+                        $network,
+                        $server->primary_disk_size,
+                        $server->locked,
+                        $server->image->status === "available" && $server->image->description === HetznerVariables::HETZNER_DEFAULT_IMAGE_NAME
+                    );
+                    break;
                 }
             }
         }
         return $array;
     }
 
-    public static function getNetworks(): ?array
+    public static function getNetworks(): array
     {
-        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "networks");
-        $array = array();
+        $query = get_hetzner_object_pages(HetznerConnectionType::GET, "networks") ?: [];
+        $array = [];
 
-        if (!empty($query)) {
-            foreach ($query as $page) {
-                if (is_array($page?->networks)) {
-                    foreach ($page->networks as $network) {
-                        $array[$network->id] = new HetznerNetwork(
-                            $network->id,
-                            $network->servers
-                        );
-                    }
-                }
+        foreach ($query as $page) {
+            foreach ($page->networks ?? [] as $network) {
+                $array[$network->id] = new HetznerNetwork($network->id, $network->servers);
             }
         }
         return $array;
@@ -173,51 +141,36 @@ class HetznerAction
     ): bool
     {
         $image = self::getDefaultImage();
-
-        if ($image !== null) {
-            $object = new stdClass();
-
-            while (true) {
-                $object->name = HetznerVariables::HETZNER_SERVER_NAME_PATTERN . random_number();
-
-                foreach ($servers as $server) {
-                    if ($server->name == $object->name) {
-                        $object->name = null;
-                        break;
-                    }
-                }
-
-                if ($object->name !== null) {
-                    break;
-                }
-            }
-
-            $object->location = $location->getName();
-
-            $object->image = $image;
-
-            $object->start_after_create = true;
-
-            $object->networks = array(
-                $network->getIdentifier()
-            );
-
-            if ($serverType instanceof HetznerArmServer) {
-                global $HETZNER_ARM_SERVERS;
-                $object->server_type = $HETZNER_ARM_SERVERS[$level]->getName();
-            } else {
-                global $HETZNER_X86_SERVERS;
-                $object->server_type = $HETZNER_X86_SERVERS[$level]->getName();
-            }
-            return self::executedAction(
-                get_hetzner_object(
-                    HetznerConnectionType::POST,
-                    "servers",
-                    @json_encode($object)
-                )
-            );
+        if ($image === null) {
+            return false;
         }
-        return false;
+
+        $existingNames = array_column($servers, 'name');
+
+        do {
+            $name = HetznerVariables::HETZNER_SERVER_NAME_PATTERN . random_int(100000, 999999);
+        } while (in_array($name, $existingNames, true));
+
+        $globalServers = $serverType instanceof HetznerArmServer ? $GLOBALS['HETZNER_ARM_SERVERS'] : $GLOBALS['HETZNER_X86_SERVERS'];
+
+        $payload = [
+            'name' => $name,
+            'location' => $location->getName(),
+            'image' => $image,
+            'start_after_create' => true,
+            'networks' => [$network->getIdentifier()],
+            'server_type' => $globalServers[$level]->getName()
+        ];
+
+        try {
+            $json = json_encode($payload, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return false;
+        }
+
+        return self::executedAction(
+            get_hetzner_object(HetznerConnectionType::POST, "servers", $json)
+        );
     }
 
     // Separator
@@ -227,57 +180,41 @@ class HetznerAction
         $quit = false;
 
         foreach ($servers as $server) {
-            if (!($server instanceof HetznerServer)) {
-                continue;
-            }
-            if ($server->isBlockingAction()) { // Wait for all processes to finish
+            if ($server instanceof HetznerServer && $server->isBlockingAction()) {
                 $server->removeDnsRecords();
                 $quit = true;
             }
         }
+
         if ($quit) {
             return true;
         }
-        $size = sizeof($servers);
 
-        if ($size > 1) {
-            $image = self::getDefaultImage();
-
-            if ($image !== null) {
-                foreach ($servers as $server) {
-                    if (!($server instanceof HetznerServer)) {
-                        continue;
-                    }
-                    if (!$server->isUpdated()
-                        && $server->update($image)) { // Updates servers one by one
-                        $server->removeDnsRecords();
-                        return true;
-                    }
+        if (count($servers) > 1 && ($image = self::getDefaultImage()) !== null) {
+            foreach ($servers as $server) {
+                if ($server instanceof HetznerServer && !$server->isUpdated() && $server->update($image)) {
+                    $server->removeDnsRecords();
+                    return true;
                 }
             }
         }
+
         $grow = false;
-
-        // Upgrade/Downgrade/Add/Delete Server/s
-
         $requiresChange = false;
-        $toChange = array();
+        $toChange = [];
 
         foreach ($servers as $server) {
-            if (!($server instanceof HetznerServer)) {
-                continue;
-            }
+            if (!$server instanceof HetznerServer) continue;
+
             $server->completeDnsRecords();
 
             if ($server->shouldUpgrade()) {
                 if ($server->isBlockingAction()) {
                     return false;
-                } else {
-                    $requiresChange = true;
-
-                    if ($server->canUpgrade()) {
-                        $toChange[] = $server;
-                    }
+                }
+                $requiresChange = true;
+                if ($server->canUpgrade()) {
+                    $toChange[] = $server;
                 }
             }
         }
@@ -286,33 +223,23 @@ class HetznerAction
             if (!empty($toChange)) {
                 $grow |= HetznerComparison::findLeastLevelServer($toChange)->upgrade($servers);
             } else {
-                foreach ($servers as $server) {
-                    if (!($server instanceof HetznerServer)) {
-                        continue;
-                    }
-                    $grow |= HetznerAction::addNewServerBasedOn(
-                        $servers,
-                        $server->location,
-                        $server->network,
-                        $server->type,
-                        0
-                    );
-                }
+                services_self_email(
+                    "scaler@system.local",
+                    "Hetzner Action: Add Server Required",
+                    "Load thresholds exceeded, but no servers can be upgraded in-place. A new server needs to be provisioned manually."
+                );
             }
-        } else if (sizeof($servers) > 1) {
+        } elseif (count($servers) > 1) {
             foreach ($servers as $server) {
-                if (!($server instanceof HetznerServer)) {
-                    continue;
-                }
+                if (!$server instanceof HetznerServer) continue;
+
                 if ($server->shouldDowngrade($servers)) {
                     if ($server->isBlockingAction()) {
                         return false;
-                    } else {
-                        $requiresChange = true;
-
-                        if ($server->canDowngrade()) {
-                            $toChange[] = $server;
-                        }
+                    }
+                    $requiresChange = true;
+                    if ($server->canDowngrade()) {
+                        $toChange[] = $server;
                     }
                 }
             }
@@ -322,14 +249,17 @@ class HetznerAction
                     $grow |= HetznerComparison::findLeastLevelServer($toChange)->downgrade($servers);
                 } else {
                     $server = HetznerComparison::findLeastLevelServer($toChange, true);
-
                     if ($server !== null) {
-                        $grow |= $server->remove();
+                        services_self_email(
+                            "scaler@system.local",
+                            "Hetzner Action: Remove Server Suggested",
+                            sprintf("Traffic is low. Consider manually deleting server '%s' (%s) to reduce costs.", $server->name, $server->id)
+                        );
                     }
                 }
             }
         }
-        return $grow;
-    }
 
+        return (bool)$grow;
+    }
 }
