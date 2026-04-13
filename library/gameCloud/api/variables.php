@@ -3,7 +3,6 @@
 class GameCloudVariables
 {
     public const
-        PURCHASES_TABLE = "gameCloud.purchases",
         LICENSE_MANAGEMENT_TABLE = "gameCloud.managedLicenses",
         IP_MANAGEMENT_TABLE = "gameCloud.managedIpAddresses",
         CONNECTION_COUNT_TABLE = "gameCloud.connectionCount",

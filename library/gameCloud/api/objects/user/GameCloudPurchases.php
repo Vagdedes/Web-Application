@@ -9,66 +9,6 @@ class GameCloudPurchases
         $this->user = $user;
     }
 
-    public function addToDatabase(
-        string  $email,
-        string  $dataDirectory,
-        bool    $trueFalse,
-        ?string $expirationTime = null,
-        ?string $justification = null
-    ): bool
-    {
-        if (sql_insert(
-            GameCloudVariables::PURCHASES_TABLE,
-            array(
-                "platform_id" => $this->user->getPlatform(),
-                "license_id" => $this->user->getLicense(),
-                "email_address" => $email,
-                "data_directory" => $dataDirectory,
-                "true_false" => $trueFalse,
-                "creation_date" => get_current_date(),
-                "creation_reason" => $justification,
-                "expiration_date" => $expirationTime !== null ? get_future_date($expirationTime) : null
-            )
-        )) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public function getFromDatabase(
-        string $email,
-        string $dataDirectory
-    ): ?bool
-    {
-        $query = get_sql_query(
-            GameCloudVariables::PURCHASES_TABLE,
-            array(
-                "true_false"
-            ),
-            array(
-                array("email_address", $email),
-                array("data_directory", strtolower($dataDirectory)),
-                array("deletion_date", null),
-                null,
-                array("expiration_date", "IS", null, 0),
-                array("expiration_date", ">", get_current_date()),
-                null,
-            ),
-            array(
-                "DESC",
-                "id"
-            ),
-            1
-        );
-
-        if (empty($query)) {
-            return null;
-        } else {
-            return $query[0]->true_false !== null;
-        }
-    }
-
     public function hasPayPalTransaction(
         ?string                     $email,
         int|float|string|array|null $amount,
