@@ -12,7 +12,7 @@ class AIObjectConstructor
     ),
         DEFAULT_INSTRUCTIONS =
         [
-            self::BASICS_KEY => "Construct as much of the object in JSON format without markdown"
+            self::BASICS_KEY => "Output strictly in raw JSON without markdown. ONLY populate keys where you have explicit, undeniable evidence from the current user prompt. Omit all other keys entirely. NEVER guess, assume, or hallucinate data just to fill the object."
         ];
 
     private array $initiators, $instructions, $parents;
