@@ -12,7 +12,7 @@ class AIObjectConstructor
     ),
         DEFAULT_INSTRUCTIONS =
         [
-            self::BASICS_KEY => "Construct as much of the object in JSON format without markdown"
+            self::BASICS_KEY => "Construct the object strictly in valid JSON format without markdown wrappers. CRITICAL: Only extract information explicitly defined in the prompt. DO NOT guess, infer, or hallucinate values. If a field's value is missing or unclear, you MUST set its value to null."
         ];
 
     private array $initiators, $instructions, $parents;
