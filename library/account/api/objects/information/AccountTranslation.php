@@ -253,7 +253,7 @@ class AccountTranslation
             }
             $this->lastCost = $outcome[0]->getCost($outcome[1]);
             $this->lastCurrency = $outcome[0]->getCurrency()?->id;
-            $this->lastQueryId = $managerAI->getLastId();
+            $this->lastQueryId = $managerAI->getLastQueryId();
 
             if ($save) {
                 if ($id === null) {

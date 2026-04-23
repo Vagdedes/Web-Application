@@ -270,7 +270,7 @@ class AccountEmbeddings
             $isOneEmbedding = is_string($textOrArray);
             $this->lastCost = $outcome[0]->getCost($outcome[1]);
             $this->lastCurrency = $outcome[0]->getCurrency()?->id;
-            $this->lastQueryId = $managerAI->getLastId();
+            $this->lastQueryId = $managerAI->getLastQueryId();
 
             if ($save) {
                 sql_insert(

@@ -3,7 +3,7 @@
 class AIManager
 {
 
-    private ?int $lastId;
+    private ?int $lastQueryId;
     private int $familyID;
     private array $models, $parameters, $lastParameters;
     private string $apiKey;
@@ -25,7 +25,7 @@ class AIManager
         $this->parameters = $parameters;
         $this->lastParameters = array();
         $this->models = array();
-        $this->lastId = null;
+        $this->lastQueryId = null;
         $this->lastInput = null;
         $this->lastPickedModel = null;
         $this->lastHash = 0;
@@ -96,9 +96,9 @@ class AIManager
         return $this->familyID;
     }
 
-    public function getLastId(): ?int
+    public function getLastQueryId(): ?int
     {
-        return $this->lastId;
+        return $this->lastQueryId;
     }
 
     public function getHistory(int|string $hash, ?int $limit = 0): array
@@ -233,7 +233,7 @@ class AIManager
                     "creation_date" => get_current_date()
                 )
             )) {
-                $this->lastId = get_sql_last_insert_id();
+                $this->lastQueryId = get_sql_last_insert_id();
                 return array(true, $this->lastPickedModel, $reply, 0);
             } else {
                 return array(false, $this->lastPickedModel, null, 1);
