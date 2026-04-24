@@ -273,15 +273,19 @@ class AccountEmbeddings
             $this->lastQueryId = $managerAI->getLastQueryId();
 
             if ($save) {
+                $embedding = $isOneEmbedding
+                    ? pack("f*", ...$embeddings[0])
+                    : @json_encode($embeddings);
+
+                if (empty($embedding)) {
+                    throw new InvalidArgumentException("Failed to encode embedding for storage.");
+                }
                 sql_insert(
                     AccountVariables::EMBEDDINGS_PROCESSED_TABLE,
                     array(
                         "embedding_hash" => $hash,
                         "embedding_model" => $model,
-                        ($isOneEmbedding ? "objectified_single" : "objectified") =>
-                            $isOneEmbedding
-                                ? pack("f*", ...$embeddings[0])
-                                : @json_encode($embeddings),
+                        ($isOneEmbedding ? "objectified_single" : "objectified") => $embedding,
                         "creation_date" => $date,
                         "expiration_date" => $expiration,
                         "actual" => ($isOneEmbedding
