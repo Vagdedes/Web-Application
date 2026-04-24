@@ -131,7 +131,10 @@ class AccountEmbeddings
     {
         $managerAI = new AIManager(
             $model,
-            AIHelper::getAuthorization(AIAuthorization::OPENAI)
+            AIHelper::getAuthorization(AIAuthorization::OPENAI),
+            array(
+                "dimensions" => self::MAX_DIMENSIONS
+            )
         );
         if ($isArray) {
             if (sizeof($textOrArray) === 1) {
@@ -261,11 +264,6 @@ class AccountEmbeddings
                     $restored[$pos] = $embeddings[$uniqueIndex];
                 }
                 $embeddings = $restored;
-            }
-            foreach ($embeddings as $key => $embedding) {
-                if (sizeof($embedding) > self::MAX_DIMENSIONS) {
-                    $embeddings[$key] = array_slice($embedding, 0, self::MAX_DIMENSIONS);
-                }
             }
             $isOneEmbedding = is_string($textOrArray);
             $this->lastCost = $outcome[0]->getCost($outcome[1]);

@@ -32,13 +32,13 @@ class VectorMath
         }
     }
 
-    public function dotProductBinary(string $vecA, string $vecB, int $len = 1536): float
+    public function dotProductBinary(string $vecA, string $vecB, int $len): float
     {
         // incX/incY = 1 means we process every element consecutively
         return self::$ffi->cblas_sdot($len, $vecA, 1, $vecB, 1);
     }
 
-    public function fullCosineSimilarityBinary(string $vecA, string $vecB, int $len = 1536): float
+    public function fullCosineSimilarityBinary(string $vecA, string $vecB, int $len): float
     {
         $dot = self::$ffi->cblas_sdot($len, $vecA, 1, $vecB, 1);
 
@@ -62,4 +62,29 @@ class VectorMath
         $binA = pack("f*", ...$vecA);
         return $this->fullCosineSimilarityBinary($binA, $vecB, count($vecA));
     }
+
+    public function normalizeBinaryVector(string $binaryString): string
+    {
+        $floats = unpack("f*", $binaryString);
+
+        if (empty($floats)) {
+            return $binaryString;
+        }
+        $sumOfSquares = 0.0;
+
+        foreach ($floats as $value) {
+            $sumOfSquares += ($value * $value);
+        }
+        $magnitude = sqrt($sumOfSquares);
+
+        if ($magnitude === 0.0) {
+            return $binaryString;
+        }
+        foreach ($floats as &$value) {
+            $value = $value / $magnitude;
+        }
+        unset($value);
+        return pack("f*", ...array_values($floats));
+    }
+
 }
