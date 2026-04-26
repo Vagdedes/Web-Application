@@ -37,8 +37,14 @@ class GoogleSearchResult
         return $this->source;
     }
 
-    public function toString(): string
+    public function toString(): ?string
     {
+        if ($this->title === null
+            && $this->link === null
+            && $this->snippet === null
+            && $this->source === null) {
+            return null;
+        }
         return "Source: " . ($this->source ?? 'Unknown') .
             " | Title: " . ($this->title ?? 'No Title') .
             " | Summary: " . ($this->snippet ?? 'No Snippet') .
