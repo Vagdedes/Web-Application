@@ -63,7 +63,7 @@ class TwoFactorAuthentication
                     $credential = random_string(AccountSession::session_token_length);
 
                     if (strlen($key) !== AccountSession::session_token_length) {
-                        $key = $this->account->getSession()->createKey(true);
+                        $key = $this->account->getSession()->refreshKey();
                     }
                 }
 

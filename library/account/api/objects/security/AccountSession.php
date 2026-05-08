@@ -6,7 +6,7 @@ class AccountSession
     private ?int $customKey, $type;
 
     private const
-        session_key_name = "vagdedes_account_session",
+        session_key_name = "1brpfgiovljnklabu21p_account_session",
         session_account_refresh_expiration = "2 days",
         session_account_total_expiration = "15 days",
         session_max_creation_tries = 100;
@@ -94,7 +94,6 @@ class AccountSession
         if ($this->isCustom()) {
             return $this->customKey;
         } else if ($force) {
-            $this->deleteKey();
             $key = random_string(self::session_token_length);
             add_cookie(self::session_key_name, $key, self::session_cookie_expiration); // Create new cookie with strict requirements
             return $key;
@@ -109,9 +108,9 @@ class AccountSession
         }
     }
 
-    public function deleteKey(): bool
+    public function refreshKey(): bool
     {
-        return $this->isCustom() || delete_all_cookies();
+        return $this->createKey(true);
     }
 
     public function find(bool $checkIpAddress = true): MethodReply
@@ -164,7 +163,7 @@ class AccountSession
                 );
             }
         } else { // Delete session cookie if key is at incorrect length
-            $this->deleteKey();
+            $this->refreshKey();
         }
         return new MethodReply(
             false,
@@ -192,7 +191,7 @@ class AccountSession
                 $key = $this->createKey();
 
                 if (strlen($key) !== self::session_token_length) { // Check if length of key is correct
-                    $this->deleteKey();
+                    $this->refreshKey();
                     continue;
                 }
                 $key = string_to_integer($key, true);
@@ -248,11 +247,11 @@ class AccountSession
                 )) { // Insert information into the database
                     return new MethodReply(true, "Session created successfully.");
                 } else {
-                    $this->deleteKey();
+                    $this->refreshKey();
                     return new MethodReply(false, "Failed to create session in the database.");
                 }
             } else {
-                $this->deleteKey();
+                $this->refreshKey();
             }
         }
         return new MethodReply(false, "Failed to find available session.");
@@ -262,7 +261,7 @@ class AccountSession
     {
         $key = $this->createKey();
         $hasCustomKey = $this->isCustom();
-        $this->deleteKey();
+        $this->refreshKey();
 
         if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
             $key = $hasCustomKey
