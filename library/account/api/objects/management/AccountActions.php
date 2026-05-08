@@ -81,6 +81,7 @@ class AccountActions
                 }
             }
         } else {
+            $this->account->getSession()->delete();
             $session = $this->account->getSession()->create(false);
 
             if (!$session->isPositiveOutcome()) {

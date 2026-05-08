@@ -108,7 +108,7 @@ class AccountSession
         }
     }
 
-    public function refreshKey(): bool
+    public function refreshKey(): string
     {
         return $this->createKey(true);
     }
@@ -156,10 +156,10 @@ class AccountSession
                     null,
                     1
                 ); // Extend expiration date of session
+                $this->account->transform($object->account_id);
                 return new MethodReply(
                     true,
-                    "Account session found successfully.",
-                    $this->account->exists() ? $this->account->getNew(0) : $this->account
+                    "Account session found successfully."
                 );
             }
         } else { // Delete session cookie if key is at incorrect length
@@ -167,12 +167,11 @@ class AccountSession
         }
         return new MethodReply(
             false,
-            "Account session not found.",
-            $this->account->exists() ? $this->account->getNew(0) : $this->account
+            "Account session not found."
         );
     }
 
-    public function create(bool $allowMultiple): MethodReply
+    public function create(bool $allowMultiple, ?string $key = null): MethodReply
     {
         $punishment = $this->account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
@@ -183,15 +182,16 @@ class AccountSession
         $date = get_current_date();
         $hasCustomKey = $this->isCustom();
 
+        if ($key === null) {
+            $key = $this->createKey();
+        }
         for ($count = 0; $count < self::session_max_creation_tries; $count++) { // Loop until a free session key is found
             if ($hasCustomKey) {
                 $key = $this->customKey;
                 $array = null;
             } else {
-                $key = $this->createKey();
-
                 if (strlen($key) !== self::session_token_length) { // Check if length of key is correct
-                    $this->refreshKey();
+                    $key = $this->refreshKey();
                     continue;
                 }
                 $key = string_to_integer($key, true);
@@ -245,6 +245,10 @@ class AccountSession
                         "expiration_date" => get_future_date(self::session_account_refresh_expiration),
                     )
                 )) { // Insert information into the database
+                    if ($this->account->exists()
+                        && !$this->account->getHistory()->add("instant_log_in")) {
+                        return new MethodReply(false, "Failed to update user history.");
+                    }
                     return new MethodReply(true, "Session created successfully.");
                 } else {
                     $this->refreshKey();

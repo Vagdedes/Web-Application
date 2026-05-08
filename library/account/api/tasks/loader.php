@@ -19,7 +19,7 @@ function load_account_page(?callable $callable = null, ?string $forceDirectory =
         echo @json_encode("Please stop refreshing the page so frequently.");
     } else {
         $account = new Account();
-        $account = $account->getSession()->find()->getObject();
+        $account->getSession()->find();
         $callable($account);
     }
     echo "</body></html>";

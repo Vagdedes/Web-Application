@@ -113,13 +113,9 @@ class TwoFactorAuthentication
     public function verify(
         ?string $token,
         ?string $code = null,
-        ?bool   $createSessionIfNotNullAllowMultiple = null,
         bool    $compareAccounts = true
     ): MethodReply
     {
-        if ($compareAccounts && !$this->account->exists()) {
-            return new MethodReply(false, "Account does not exist.");
-        }
         $hasCode = $code !== null;
 
         if ($hasCode
@@ -163,17 +159,7 @@ class TwoFactorAuthentication
                 )) {
                     return new MethodReply(false, "Failed to interact with the database.");
                 }
-                if ($createSessionIfNotNullAllowMultiple !== null) {
-                    if (!$this->account->getHistory()->add("instant_log_in")) {
-                        return new MethodReply(false, "Failed to update user history.");
-                    }
-                    $session = $this->account->getSession()->create($createSessionIfNotNullAllowMultiple);
-
-                    if (!$session->isPositiveOutcome()) {
-                        return new MethodReply(false, $session->getMessage());
-                    }
-                }
-                return new MethodReply(true, "Successfully verified account.");
+                return new MethodReply(true, "Successfully verified two factor authentication code.");
             }
         }
         return new MethodReply(

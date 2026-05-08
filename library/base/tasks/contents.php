@@ -8,12 +8,12 @@ if (!empty($path)) {
     $session = $account->getSession()->find();
 
     if ($session->isPositiveOutcome()) {
-        if ($session->getObject()->getPermissions()->hasPermission(
+        if ($account->getPermissions()->hasPermission(
             "view.path." . str_replace("/", ".", $path)
         )) {
             set_communication_key(
                 "session_account_id",
-                $session->getObject()->getDetail("id")
+                $account->getDetail("id")
             );
             unset($_GET["path"]);
             $domain = get_form_get("domain");
