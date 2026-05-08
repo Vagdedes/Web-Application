@@ -142,26 +142,26 @@ class AccountSession
 
             if (!empty($array)) { // Check if session exists
                 $object = $array[0];
-                $account = $this->account->getNew($object->account_id);
-
-                if ($account->exists()) { // Check if session account exists
-                    $maxTime = strtotime($object->creation_date) + strtotime(self::session_account_total_expiration);
-                    set_sql_query(
-                        AccountVariables::SESSIONS_TABLE,
-                        array(
-                            "expiration_date" => min(
-                                get_future_date(self::session_account_refresh_expiration),
-                                date('Y-m-d H:i:s', $maxTime)
-                            )
-                        ),
-                        array(
-                            array("id", $object->id)
-                        ),
-                        null,
-                        1
-                    ); // Extend expiration date of session
-                    return new MethodReply(true, "Account session found successfully.", $account);
-                }
+                $maxTime = strtotime($object->creation_date) + strtotime(self::session_account_total_expiration);
+                set_sql_query(
+                    AccountVariables::SESSIONS_TABLE,
+                    array(
+                        "expiration_date" => min(
+                            get_future_date(self::session_account_refresh_expiration),
+                            date('Y-m-d H:i:s', $maxTime)
+                        )
+                    ),
+                    array(
+                        array("id", $object->id)
+                    ),
+                    null,
+                    1
+                ); // Extend expiration date of session
+                return new MethodReply(
+                    true,
+                    "Account session found successfully.",
+                    $this->account->exists() ? $this->account->getNew(0) : $this->account
+                );
             }
         } else { // Delete session cookie if key is at incorrect length
             $this->deleteKey();
@@ -173,7 +173,7 @@ class AccountSession
         );
     }
 
-    public function create(): MethodReply
+    public function create(bool $allowMultiple): MethodReply
     {
         $punishment = $this->account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
@@ -185,17 +185,18 @@ class AccountSession
         $hasCustomKey = $this->isCustom();
 
         for ($count = 0; $count < self::session_max_creation_tries; $count++) { // Loop until a free session key is found
-            $key = $this->createKey();
+            if ($hasCustomKey) {
+                $key = $this->customKey;
+                $array = null;
+            } else {
+                $key = $this->createKey();
 
-            if (!$hasCustomKey && strlen($key) !== self::session_token_length) { // Check if length of key is correct
-                $this->deleteKey();
-                continue;
-            }
-            $key = $hasCustomKey
-                ? $this->customKey
-                : string_to_integer($key, true);
-            $array = $hasCustomKey ? null
-                : get_sql_query(
+                if (strlen($key) !== self::session_token_length) { // Check if length of key is correct
+                    $this->deleteKey();
+                    continue;
+                }
+                $key = string_to_integer($key, true);
+                $array = get_sql_query(
                     AccountVariables::SESSIONS_TABLE,
                     array("id"),
                     array(
@@ -204,9 +205,10 @@ class AccountSession
                     null,
                     1
                 );
+            }
 
             if (empty($array)) { // Check if session does not exist
-                if (!$this->account->getSettings()->isEnabled("two_factor_authentication")) {
+                if (!$allowMultiple) {
                     $array = get_sql_query(
                         AccountVariables::SESSIONS_TABLE,
                         array("id"),
@@ -258,42 +260,39 @@ class AccountSession
 
     public function delete(): MethodReply
     {
-        if ($this->account->exists()) {
-            $key = $this->createKey();
-            $hasCustomKey = $this->isCustom();
-            $this->deleteKey();
+        $key = $this->createKey();
+        $hasCustomKey = $this->isCustom();
+        $this->deleteKey();
 
-            if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
-                $key = $hasCustomKey
-                    ? $this->customKey
-                    : string_to_integer($key, true);
-                $date = get_current_date();
-                $array = get_sql_query(
+        if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
+            $key = $hasCustomKey
+                ? $this->customKey
+                : string_to_integer($key, true);
+            $date = get_current_date();
+            $array = get_sql_query(
+                AccountVariables::SESSIONS_TABLE,
+                array("id"),
+                array(
+                    array("type", $this->type),
+                    array("token", $key),
+                    array("expiration_date", ">", $date)
+                )
+            );
+            $this->account->getHistory()->add("log_out");
+
+            if (!empty($array)) { // Check if session exists
+                set_sql_query(
                     AccountVariables::SESSIONS_TABLE,
-                    array("id"),
                     array(
-                        array("type", $this->type),
-                        array("token", $key),
-                        array("expiration_date", ">", $date)
-                    )
-                );
-
-                $this->account->getHistory()->add("log_out");
-
-                if (!empty($array)) { // Check if session exists
-                    set_sql_query(
-                        AccountVariables::SESSIONS_TABLE,
-                        array(
-                            "expiration_date" => $date
-                        ),
-                        array(
-                            array("id", $array[0]->id)
-                        ),
-                        null,
-                        1
-                    ); // Delete session from database
-                    return new MethodReply(true, "You have been logged out.");
-                }
+                        "expiration_date" => $date
+                    ),
+                    array(
+                        array("id", $array[0]->id)
+                    ),
+                    null,
+                    1
+                ); // Delete session from database
+                return new MethodReply(true, "You have been logged out.");
             }
         }
         return new MethodReply(false, "You are not logged in.");

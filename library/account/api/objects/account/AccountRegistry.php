@@ -111,7 +111,7 @@ class AccountRegistry
                 return new MethodReply(false, $message);
             }
         }
-        $session = $this->account->getSession()->create();
+        $session = $this->account->getSession()->create(false);
 
         if (!$session->isPositiveOutcome()) {
             return new MethodReply(false, $session->getMessage());

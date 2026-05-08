@@ -16,7 +16,7 @@ class AccountActions
         $this->account = $account;
     }
 
-    public function logIn(?string $password = null, ?string $twoFactorCode = null): MethodReply
+    public function logIn(bool $allowMultiple, ?string $password = null, ?string $twoFactorCode = null): MethodReply
     {
         if ($password !== null) {
             $parameter = new ParameterVerification($password, null, 8);
@@ -70,10 +70,18 @@ class AccountActions
         if (!$this->account->getHistory()->add("log_in")) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $session = $this->account->getSession()->find();
+        if ($allowMultiple) {
+            $session = $this->account->getSession()->find();
 
-        if (!$session->isPositiveOutcome()) {
-            $session = $this->account->getSession()->create();
+            if (!$session->isPositiveOutcome()) {
+                $session = $this->account->getSession()->create(true);
+
+                if (!$session->isPositiveOutcome()) {
+                    return new MethodReply(false, $session->getMessage());
+                }
+            }
+        } else {
+            $session = $this->account->getSession()->create(false);
 
             if (!$session->isPositiveOutcome()) {
                 return new MethodReply(false, $session->getMessage());

@@ -113,7 +113,7 @@ class TwoFactorAuthentication
     public function verify(
         ?string $token,
         ?string $code = null,
-        bool    $createSession = true,
+        ?bool   $createSessionIfNotNullAllowMultiple = null,
         bool    $compareAccounts = true
     ): MethodReply
     {
@@ -163,11 +163,11 @@ class TwoFactorAuthentication
                 )) {
                     return new MethodReply(false, "Failed to interact with the database.");
                 }
-                if ($createSession) {
+                if ($createSessionIfNotNullAllowMultiple !== null) {
                     if (!$this->account->getHistory()->add("instant_log_in")) {
                         return new MethodReply(false, "Failed to update user history.");
                     }
-                    $session = $this->account->getSession()->create();
+                    $session = $this->account->getSession()->create($createSessionIfNotNullAllowMultiple);
 
                     if (!$session->isPositiveOutcome()) {
                         return new MethodReply(false, $session->getMessage());
