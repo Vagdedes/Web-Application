@@ -3,7 +3,7 @@
 class Account implements JsonSerializable
 {
 
-    // Application IDs required in: accounts, accepted-accounts, products, product-giveaways, roles, moderations, statistics
+    // Application IDs required in: accounts, accepted-accounts, products, roles, moderations
     public const
         EMPTY_PASSWORD = "",
         SYSTEM_ACCOUNT_ID = 3544,
