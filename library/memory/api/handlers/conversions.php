@@ -10,7 +10,7 @@ function build_memory_key(string $parent, string $child): string
     return $parent . $child;
 }
 
-function manipulate_memory_date(mixed $cooldown, int $maxTime = 86_400)
+function manipulate_memory_date(mixed $cooldown, float $maxTime = 86_400)
 {
     if ($cooldown === null) {
         return false;
@@ -22,7 +22,7 @@ function manipulate_memory_date(mixed $cooldown, int $maxTime = 86_400)
             return null;
         }
     } else if (is_numeric($cooldown)) {
-        $cooldown = time() + min($cooldown, $maxTime);
+        $cooldown = microtime(true) + min($cooldown, $maxTime);
     } else {
         $cooldown = strtotime("+" . $cooldown);
 
@@ -30,7 +30,7 @@ function manipulate_memory_date(mixed $cooldown, int $maxTime = 86_400)
             return null;
         }
     }
-    return min($cooldown, time() + $maxTime);
+    return min($cooldown, microtime(true) + $maxTime);
 }
 
 function map_to_string(array $array): string

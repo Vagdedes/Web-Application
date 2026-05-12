@@ -162,7 +162,7 @@ class IndividualMemoryBlock
             $object = @unserialize($value);
 
             if (isset($object->expiration)
-                && ($object->expiration === false || $object->expiration >= time())) {
+                && ($object->expiration === false || $object->expiration >= microtime(true))) {
                 return $object;
             } else {
                 $object->invalid = 2;
