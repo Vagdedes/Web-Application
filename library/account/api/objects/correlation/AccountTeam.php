@@ -959,7 +959,7 @@ class AccountTeam
 
     // Separator
 
-    public function getPosition(?Account $account = null, bool $setOwnerToMax = true): int
+    public function getPosition(?Account $account = null): int
     {
         if ($account === null) {
             $account = $this->account;
@@ -974,8 +974,7 @@ class AccountTeam
         if ($owner === null) {
             return 0;
         }
-        if ($setOwnerToMax
-            && $owner->account->getDetail("id") === $account->getDetail("id")) {
+        if ($owner->account->getDetail("id") === $account->getDetail("id")) {
             global $max_32bit_Integer;
             return (int)round($max_32bit_Integer / 2.0);
         }
