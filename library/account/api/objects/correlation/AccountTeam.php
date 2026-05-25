@@ -977,7 +977,7 @@ class AccountTeam
         if ($setOwnerToMax
             && $owner->account->getDetail("id") === $account->getDetail("id")) {
             global $max_32bit_Integer;
-            return $max_32bit_Integer;
+            return (int)round($max_32bit_Integer / 2.0);
         }
         $member = $this->getMember($account)?->id;
 
@@ -1135,7 +1135,15 @@ class AccountTeam
                 return new MethodReply(false, "We couldn't find that role.");
             }
         }
-        if ($this->getPosition() <= $this->getRolePosition($role)) {
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$owner
+            && $this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "You can't rename a role that is ranked equal to or higher than your own.");
         }
         $selfMemberID = $this->getMember()?->id;
@@ -1188,7 +1196,15 @@ class AccountTeam
                 return new MethodReply(false, "We couldn't find that role.");
             }
         }
-        if ($this->getPosition() <= $this->getRolePosition($role)) {
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$owner
+            && $this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "You can't edit the description of a role that is ranked equal to or higher than your own.");
         }
         $selfMemberID = $this->getMember()?->id;
@@ -1308,7 +1324,15 @@ class AccountTeam
                 return new MethodReply(false, "We couldn't find that role.");
             }
         }
-        if ($this->getPosition() <= $this->getRolePosition($role)) {
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$owner
+            && $this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "You can't delete a role that is ranked equal to or higher than your own.");
         }
         $selfMemberID = $this->getMember()?->id;
@@ -1353,7 +1377,15 @@ class AccountTeam
                 return new MethodReply(false, "We couldn't find that role.");
             }
         }
-        if ($this->getPosition() <= $this->getRolePosition($role, true)) {
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$owner
+            && $this->getPosition() <= $this->getRolePosition($role, true)) {
             return new MethodReply(false, "You can't restore a role that would be ranked equal to or higher than your own.");
         }
         $roleSimilar = $this->getRole($role->name);
@@ -1536,9 +1568,16 @@ class AccountTeam
         if (!$this->getMemberPermission($this->account, self::PERMISSION_ADJUST_TEAM_MEMBER_ROLES)->isPositiveOutcome()) {
             return new MethodReply(false, "You don't have permission to modify member roles.");
         }
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
         $position = $this->getPosition();
 
-        if ($this->account->getDetail("id") !== $account->getDetail("id")
+        if (!$owner
+            && $this->account->getDetail("id") !== $account->getDetail("id")
             && $position <= $this->getPosition($account)) {
             return new MethodReply(false, "You can't modify the roles of a member ranked equal to or higher than your own.");
         }
@@ -1766,7 +1805,15 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
-        if ($this->getPosition() <= $this->getRolePosition($role)) {
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$owner
+            && $this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "You can't add permissions to a role ranked equal to or higher than your own.");
         }
         if ($this->getRolePermission($role, $permissionDef)->isPositiveOutcome()) {
@@ -1828,7 +1875,15 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
-        if ($this->getPosition() <= $this->getRolePosition($role)) {
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$owner
+            && $this->getPosition() <= $this->getRolePosition($role)) {
             return new MethodReply(false, "You can't remove permissions from a role ranked equal to or higher than your own.");
         }
         $permissionResult = $this->getRolePermission($role, $permissionDef);
@@ -2040,7 +2095,15 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
-        if ($this->account->getDetail("id") !== $account->getDetail("id")
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$owner
+            && $this->account->getDetail("id") !== $account->getDetail("id")
             && $this->getPosition() <= $this->getPosition($account)) {
             return new MethodReply(false, "You can't assign permissions to someone ranked equal to or higher than yourself.");
         }
@@ -2110,7 +2173,15 @@ class AccountTeam
         if ($permissionDef === null) {
             return new MethodReply(false, "We couldn't locate permission ID '" . $permissionID . "'.");
         }
-        if ($this->account->getDetail("id") !== $account->getDetail("id")
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$owner
+            && $this->account->getDetail("id") !== $account->getDetail("id")
             && $this->getPosition() <= $this->getPosition($account)) {
             return new MethodReply(false, "You can't remove permissions from someone ranked equal to or higher than yourself.");
         }
