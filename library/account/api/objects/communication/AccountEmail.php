@@ -24,14 +24,24 @@ class AccountEmail
         $this->suffix = $suffix;
     }
 
-    public function setTemporaryEmail(?string $email): void
+    public function setTemporaryEmail(?string $email): bool
     {
+        if ($email !== null && !is_email($email)) {
+            return false;
+        }
         $this->temporaryEmail = $email;
+        $this->account->setDetail("temporary_email_address", $email);
+        return true;
     }
 
     private function getEmailAddress(): ?string
     {
         return $this->temporaryEmail ?? $this->account->getDetail("email_address");
+    }
+
+    public function getTemporaryEmailAddress(): ?string
+    {
+        return $this->temporaryEmail ?? $this->account->getDetail("temporary_email_address");
     }
 
     public function requestVerification(
