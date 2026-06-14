@@ -10,9 +10,15 @@ class AccountRegistry
         $this->account = $account;
     }
 
-    public function create(?string $email, ?string $password = null, ?string $name = null,
-                           ?string $firstName = null, ?string $middleName = null, ?string $lastName = null,
-                           ?string $discordWebhook = null): MethodReply
+    public function create(
+        ?string $email,
+        ?string $password = null,
+        ?string $name = null,
+        ?string $firstName = null,
+        ?string $middleName = null,
+        ?string $lastName = null,
+        ?string $discordWebhook = null
+    ): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::REGISTER_ACCOUNT);
@@ -20,10 +26,14 @@ class AccountRegistry
         if (!$functionality->isPositiveOutcome()) {
             return new MethodReply(false, $functionality->getMessage());
         }
-        $parameter = new ParameterVerification($email, ParameterVerification::TYPE_EMAIL, 5, 384);
+        $hasEmail = $email !== null;
 
-        if (!$parameter->getOutcome()->isPositiveOutcome()) {
-            return new MethodReply(false, $parameter->getOutcome()->getMessage());
+        if ($hasEmail) {
+            $parameter = new ParameterVerification($email, ParameterVerification::TYPE_EMAIL, 5, 384);
+
+            if (!$parameter->getOutcome()->isPositiveOutcome()) {
+                return new MethodReply(false, $parameter->getOutcome()->getMessage());
+            }
         }
         if ($password !== null) {
             $parameter = new ParameterVerification($password, null, 8, 64);
@@ -34,6 +44,10 @@ class AccountRegistry
         }
         $hasName = !empty($name);
 
+        if (!$hasName
+            && !$hasEmail) {
+            return new MethodReply(false, "You must provide either a name or an email address.");
+        }
         if ($hasName) {
             $parameter = new ParameterVerification($name, null, 2, 20);
 
@@ -41,20 +55,22 @@ class AccountRegistry
                 return new MethodReply(false, $parameter->getOutcome()->getMessage());
             }
         }
-        $email = strtolower($email);
+        if ($hasEmail) {
+            $email = strtolower($email);
 
-        if ($this->account->transform(null, $email)->exists()) {
-            $message = "Account with this email already exists.";
+            if ($this->account->transform(null, $email)->exists()) {
+                $message = "Account with this email already exists.";
 
-            if ($this->account->getEmail()->isVerified()) {
-                return new MethodReply(false, $message);
-            } else {
-                $timePassed = time() - strtotime($this->account->getDetail("creation_date"));
-
-                if ($timePassed < (60 * 60 * 24)) {
+                if ($this->account->getEmail()->isVerified()) {
                     return new MethodReply(false, $message);
                 } else {
-                    $this->account->getActions()->deleteAccount(false);
+                    $timePassed = time() - strtotime($this->account->getDetail("creation_date"));
+
+                    if ($timePassed < (60 * 60 * 24)) {
+                        return new MethodReply(false, $message);
+                    } else {
+                        $this->account->getActions()->deleteAccount(false);
+                    }
                 }
             }
         }
@@ -99,16 +115,18 @@ class AccountRegistry
             return new MethodReply(false, "Failed to find newly created account.");
         }
 
-        if (!$this->account->getHistory()->add("register", null, $email)) {
+        if (!$this->account->getHistory()->add("register", null, $email ?? $name)) {
             return new MethodReply(false, "Failed to update user history.");
         }
-        $emailVerification = $this->account->getEmail()->initiateVerification($email, $this->account->getSession()->isCustom());
+        if ($hasEmail) {
+            $emailVerification = $this->account->getEmail()->initiateVerification($email, $this->account->getSession()->isCustom());
 
-        if (!$emailVerification->isPositiveOutcome()) {
-            $message = $emailVerification->getMessage();
+            if (!$emailVerification->isPositiveOutcome()) {
+                $message = $emailVerification->getMessage();
 
-            if ($message !== null) {
-                return new MethodReply(false, $message);
+                if ($message !== null) {
+                    return new MethodReply(false, $message);
+                }
             }
         }
         $session = $this->account->getSession()->create(false);

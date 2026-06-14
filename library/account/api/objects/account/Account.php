@@ -143,7 +143,7 @@ class Account implements JsonSerializable
             } else {
                 $runQuery = true;
 
-                if ($attemptCreation !== null && $hasEmail) {
+                if ($attemptCreation !== null) {
                     $this->def($applicationID);
                     $this->getRegistry()->create(
                         $email,
