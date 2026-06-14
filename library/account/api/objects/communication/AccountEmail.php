@@ -256,7 +256,7 @@ class AccountEmail
         $email = $this->account->getDetail("email_address");
 
         if ($email === null) {
-            return $this->account->getDetail("id") == Account::SYSTEM_ACCOUNT_ID;
+            return true;
         } else {
             return !empty(get_sql_query(
                 AccountVariables::EMAIL_VERIFICATIONS_TABLE,
