@@ -4,13 +4,14 @@ class AccountEmail
 {
     private Account $account;
     private bool $run;
-    private ?string $suffix;
+    private ?string $suffix, $temporaryEmail;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
         $this->run = true;
         $this->suffix = null;
+        $this->temporaryEmail = null;
     }
 
     public function setToRun(bool $run): void
@@ -21,6 +22,16 @@ class AccountEmail
     public function setSuffix(?string $suffix): void
     {
         $this->suffix = $suffix;
+    }
+
+    public function setTemporaryEmail(?string $email): void
+    {
+        $this->temporaryEmail = $email;
+    }
+
+    private function getEmailAddress(): ?string
+    {
+        return $this->temporaryEmail ?? $this->account->getDetail("email_address");
     }
 
     public function requestVerification(
@@ -39,7 +50,7 @@ class AccountEmail
         if (!$functionalityOutcome->isPositiveOutcome()) {
             return new MethodReply(false, $functionalityOutcome->getMessage());
         }
-        $currentEmail = $this->account->getDetail("email_address");
+        $currentEmail = $this->getEmailAddress();
 
         if ($currentEmail !== null
             && $email === strtolower($currentEmail)) {
@@ -127,7 +138,7 @@ class AccountEmail
             }
         }
         $email = $object->email_address;
-        $oldEmail = $account->getDetail("email_address");
+        $oldEmail = $account->getEmail()->getEmailAddress();
 
         if ($oldEmail != $email
             && !empty(get_sql_query(
@@ -184,7 +195,7 @@ class AccountEmail
             if ($this->isVerified()) {
                 return new MethodReply(true, "Your email address is already verified.");
             }
-            $email = $this->account->getDetail("email_address");
+            $email = $this->getEmailAddress();
 
             if ($email === null) {
                 return new MethodReply(false, "You do not have an email address set.");
@@ -253,7 +264,7 @@ class AccountEmail
 
     public function isVerified(): bool
     {
-        $email = $this->account->getDetail("email_address");
+        $email = $this->getEmailAddress();
 
         if ($email === null) {
             return true;
@@ -282,7 +293,7 @@ class AccountEmail
         bool   $unsubscribe = true
     ): bool
     {
-        $email = $this->account->getDetail("email_address");
+        $email = $this->getEmailAddress();
 
         if ($email === null) {
             return false;
