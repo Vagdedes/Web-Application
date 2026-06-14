@@ -26,32 +26,36 @@ class AccountEmail
 
     public function setTemporaryEmailAddress(?string $email): bool
     {
-        if ($email !== null && !is_email($email)) {
+        if ($email !== null
+            && !is_email($email)) {
             return false;
         }
         $this->temporaryEmail = $email;
-        $query = get_sql_query(
-            AccountVariables::ACCOUNTS_TABLE,
-            array("id"),
-            array(
-                array("temporary_email_address", $email)
-            ),
-            null,
-            100
-        );
 
-        if (!empty($query)) {
-            foreach ($query as $row) {
-                $account = $this->account->getNew(
-                    $row->id,
-                    null,
-                    null,
-                    null,
-                    false
-                );
+        if ($email !== null) {
+            $query = get_sql_query(
+                AccountVariables::ACCOUNTS_TABLE,
+                array("id"),
+                array(
+                    array("temporary_email_address", $email)
+                ),
+                null,
+                100
+            );
 
-                if ($account->exists()) {
-                    $account->setDetail("temporary_email_address", null);
+            if (!empty($query)) {
+                foreach ($query as $row) {
+                    $account = $this->account->getNew(
+                        $row->id,
+                        null,
+                        null,
+                        null,
+                        false
+                    );
+
+                    if ($account->exists()) {
+                        $account->setDetail("temporary_email_address", null);
+                    }
                 }
             }
         }
