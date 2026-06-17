@@ -8,7 +8,7 @@ function add_cookie(int|string $name, mixed $value, int|string $time): bool
         'domain' => "." . get_domain(false),
         'secure' => true,
         'httponly' => true,
-        'samesite' => 'Lax'
+        'samesite' => 'None'
     ]);
 }
 
@@ -20,7 +20,7 @@ function delete_cookie(int|string $name): bool
         'domain' => "." . get_domain(false),
         'secure' => true,
         'httponly' => true,
-        'samesite' => 'Lax'
+        'samesite' => 'None'
     ]);
 }
 
