@@ -7,11 +7,11 @@ class AccountSession
 
     private const
         session_key_name = "1brpfgiovljnklabu21p_account_session",
-        session_account_refresh_expiration = "2 days",
-        session_account_total_expiration = "15 days",
         session_max_creation_tries = 100;
 
     public const
+        session_account_refresh_expiration = "2 days",
+        session_account_total_expiration = "15 days",
         session_token_length = 128,
         session_cookie_expiration = 86400 * 3;
 

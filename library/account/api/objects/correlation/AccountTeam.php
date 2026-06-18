@@ -158,19 +158,24 @@ class AccountTeam
         }
     }
 
-    public function getAllTeams(): array
+    public function getAllTeams(?string $lastAccessTime = null, int $limit = -1): array
     {
         return get_sql_query(
             AccountVariables::TEAM_TABLE,
             null,
             array(
                 array("additional_id", $this->additionalID),
-                array("deletion_date", null)
+                array("deletion_date", null),
+                $lastAccessTime === null ? "" : null,
+                $lastAccessTime === null ? "" : array("last_accessed_date", ">", $lastAccessTime, 0),
+                $lastAccessTime === null ? "" : array("last_accessed_date", null),
+                $lastAccessTime === null ? "" : null
             ),
             array(
                 "DESC",
                 "id"
-            )
+            ),
+            $limit
         );
     }
 
