@@ -111,6 +111,7 @@ class AccountTeam
             array(
                 "additional_id" => $this->additionalID,
                 "creation_date" => $date,
+                "last_accessed_date" => $date,
                 "created_by_account" => $this->account->getDetail("id"),
                 "creation_reason" => $reason
             ))) {
@@ -167,7 +168,7 @@ class AccountTeam
                 array("additional_id", $this->additionalID),
                 array("deletion_date", null),
                 $lastAccessTime === null ? "" : null,
-                $lastAccessTime === null ? "" : array("last_accessed_date", ">", $lastAccessTime, 0),
+                $lastAccessTime === null ? "" : array("last_accessed_date", "<=", $lastAccessTime, 0),
                 $lastAccessTime === null ? "" : array("last_accessed_date", null),
                 $lastAccessTime === null ? "" : null
             ),
@@ -265,6 +266,17 @@ class AccountTeam
                     return new MethodReply(false, "We couldn't find the requested team (ID: " . $this->forcedTeam->id . ").");
                 } else {
                     $this->forcedTeamResult = array($query[0], microtime(true));
+                    set_sql_query(
+                        AccountVariables::TEAM_TABLE,
+                        array(
+                            "last_accessed_date" => get_current_date()
+                        ),
+                        array(
+                            array("id", $query[0]->id)
+                        ),
+                        null,
+                        1
+                    );
                     return new MethodReply(true, "We found the requested team.", $query[0]);
                 }
             } else {
@@ -314,6 +326,17 @@ class AccountTeam
                     if (!empty($subQuery)) {
                         $subQuery = $subQuery[0];
                         $this->setForcedTeam($subQuery);
+                        set_sql_query(
+                            AccountVariables::TEAM_TABLE,
+                            array(
+                                "last_accessed_date" => get_current_date()
+                            ),
+                            array(
+                                array("id", $subQuery->id)
+                            ),
+                            null,
+                            1
+                        );
                         return new MethodReply(true, "Team located successfully.", $subQuery);
                     }
                 }
@@ -335,6 +358,17 @@ class AccountTeam
             if (empty($query)) {
                 return new MethodReply(false, "We couldn't find a team with the ID '" . $reference . "'.");
             } else {
+                set_sql_query(
+                    AccountVariables::TEAM_TABLE,
+                    array(
+                        "last_accessed_date" => get_current_date()
+                    ),
+                    array(
+                        array("id", $query[0]->id)
+                    ),
+                    null,
+                    1
+                );
                 return new MethodReply(true, "Team located successfully.", $query[0]);
             }
         } else {
@@ -370,6 +404,17 @@ class AccountTeam
             if (empty($subQuery)) {
                 return new MethodReply(false, "We located the team name, but couldn't find the team data (ID: " . $query[0]->team_id . ").");
             } else {
+                set_sql_query(
+                    AccountVariables::TEAM_TABLE,
+                    array(
+                        "last_accessed_date" => get_current_date()
+                    ),
+                    array(
+                        array("id", $subQuery[0]->id)
+                    ),
+                    null,
+                    1
+                );
                 return new MethodReply(true, "Team located successfully.", $subQuery[0]);
             }
         }
