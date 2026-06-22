@@ -3,6 +3,8 @@
 class AccountRegistry
 {
 
+    public const MAX_USERNAME_LENGTH = 512;
+
     private Account $account;
     private int $usernameLength;
 
@@ -14,7 +16,7 @@ class AccountRegistry
 
     public function setUsernameLength(int $length): void
     {
-        $this->usernameLength = max(2, min($length, 512));
+        $this->usernameLength = max(2, min($length, self::MAX_USERNAME_LENGTH));
     }
 
     public function create(
