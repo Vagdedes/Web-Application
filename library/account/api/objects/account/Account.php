@@ -62,7 +62,6 @@ class Account implements JsonSerializable
             "check_deletion" => $checkDeletion,
             "attempt_creation" => $attemptCreation
         );
-        $this->creationAttempt = null;
 
         // Dependent
         $this->settings = new AccountSettings($this);
@@ -213,6 +212,7 @@ class Account implements JsonSerializable
         $this->exists = false;
         $this->object = new stdClass();
         $this->object->application_id = $applicationID;
+        $this->creationAttempt = null;
     }
 
     public function getNew(?int    $id = null,
