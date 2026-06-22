@@ -113,7 +113,8 @@ class TwoFactorAuthentication
     public function verify(
         ?string $token,
         ?string $code = null,
-        bool    $compareAccounts = true
+        bool    $compareAccounts = true,
+        bool    $transformAccount = false
     ): MethodReply
     {
         $hasCode = $code !== null;
@@ -158,6 +159,9 @@ class TwoFactorAuthentication
                     )
                 )) {
                     return new MethodReply(false, "Failed to interact with the database.");
+                }
+                if ($transformAccount) {
+                    $this->account->transform($object->account_id);
                 }
                 return new MethodReply(true, "Successfully verified two factor authentication code.");
             }
