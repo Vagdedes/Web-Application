@@ -4,10 +4,17 @@ class AccountRegistry
 {
 
     private Account $account;
+    private int $usernameLength;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
+        $this->usernameLength = 20;
+    }
+
+    public function setUsernameLength(int $length): void
+    {
+        $this->usernameLength = max(2, min($length, 512));
     }
 
     public function create(
@@ -49,7 +56,7 @@ class AccountRegistry
             return new MethodReply(false, "You must provide either a name or an email address.");
         }
         if ($hasName) {
-            $parameter = new ParameterVerification($name, null, 2, 20);
+            $parameter = new ParameterVerification($name, null, 2, $this->usernameLength);
 
             if (!$parameter->getOutcome()->isPositiveOutcome()) {
                 return new MethodReply(false, $parameter->getOutcome()->getMessage());
