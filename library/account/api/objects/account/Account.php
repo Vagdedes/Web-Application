@@ -36,6 +36,7 @@ class Account implements JsonSerializable
     private AccountTeam $team;
     private AccountTranslation $translation;
     private AccountEmbeddings $embeddings;
+    private ?MethodReply $creationAttempt;
 
     public function __construct(?int    $applicationID = null,
                                 ?int    $id = null,
@@ -61,6 +62,7 @@ class Account implements JsonSerializable
             "check_deletion" => $checkDeletion,
             "attempt_creation" => $attemptCreation
         );
+        $this->creationAttempt = null;
 
         // Dependent
         $this->settings = new AccountSettings($this);
@@ -145,7 +147,7 @@ class Account implements JsonSerializable
 
                 if ($attemptCreation !== null) {
                     $this->def($applicationID);
-                    $this->getRegistry()->create(
+                    $this->creationAttempt = $this->getRegistry()->create(
                         $email,
                         $attemptCreation === self::EMPTY_PASSWORD ? null : $attemptCreation,
                         $hasUsername ? $username : null
@@ -239,6 +241,11 @@ class Account implements JsonSerializable
     {
         $this->transformFirstTime();
         return $this->exists;
+    }
+
+    public function getCreationAttempt(): ?MethodReply
+    {
+        return $this->creationAttempt;
     }
 
     public function getDetail(string $detail, string $def = null, bool $recursive = true): mixed
