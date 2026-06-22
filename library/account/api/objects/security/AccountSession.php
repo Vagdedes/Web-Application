@@ -267,7 +267,8 @@ class AccountSession
         $hasCustomKey = $this->isCustom();
         $this->refreshKey();
 
-        if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
+        if ($hasCustomKey
+            || strlen($key) === self::session_token_length) { // Check if length of key is correct
             $key = $hasCustomKey
                 ? $this->customKey
                 : string_to_integer($key, true);
@@ -284,7 +285,7 @@ class AccountSession
             $this->account->getHistory()->add("log_out");
 
             if (!empty($array)) { // Check if session exists
-                set_sql_query(
+                if (set_sql_query(
                     AccountVariables::SESSIONS_TABLE,
                     array(
                         "expiration_date" => $date
@@ -294,11 +295,14 @@ class AccountSession
                     ),
                     null,
                     1
-                ); // Delete session from database
-                return new MethodReply(true, "You have been logged out.");
+                )) { // Delete session from database
+                    return new MethodReply(true, "You have been logged out.");
+                } else {
+                    return new MethodReply(false, "Failed to delete session from the database.");
+                }
             }
         }
-        return new MethodReply(false, "You are not logged in.");
+        return new MethodReply(true, "You are not logged in.");
     }
 
     public function getLastKnown(): ?object
