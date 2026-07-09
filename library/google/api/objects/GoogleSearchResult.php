@@ -17,22 +17,22 @@ class GoogleSearchResult
             ?? parse_url($this->link, PHP_URL_HOST) ?? null;
     }
 
-    public function getTitle(): string
+    public function getTitle(): ?string
     {
         return $this->title;
     }
 
-    public function getLink(): string
+    public function getLink(): ?string
     {
         return $this->link;
     }
 
-    public function getSnippet(): string
+    public function getSnippet(): ?string
     {
         return $this->snippet;
     }
 
-    public function getSource(): string
+    public function getSource(): ?string
     {
         return $this->source;
     }
