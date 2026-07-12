@@ -109,7 +109,11 @@ class AccountActions
         return $session;
     }
 
-    public function deleteAccount(bool $permanently = false, array $databases = ["account"]): MethodReply
+    public function deleteAccount(
+        bool  $permanently = false,
+        array $databases = ["account"],
+        array $columns = ["account_id"]
+    ): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::DELETE_ACCOUNT);
 
@@ -131,12 +135,14 @@ class AccountActions
                     )) {
                         foreach ($tables as $table) {
                             if ($table !== AccountVariables::ACCOUNTS_TABLE) {
-                                delete_sql_query(
-                                    $table,
-                                    array(
-                                        array("account_id", $accountID)
-                                    )
-                                );
+                                foreach ($columns as $column) {
+                                    delete_sql_query(
+                                        $table,
+                                        array(
+                                            array($column, $accountID)
+                                        )
+                                    );
+                                }
                             }
                         }
                     }
