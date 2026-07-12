@@ -109,7 +109,7 @@ class AccountActions
         return $session;
     }
 
-    public function deleteAccount(bool $permanently = false): MethodReply
+    public function deleteAccount(bool $permanently = false, array $databases = ["account"]): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::DELETE_ACCOUNT);
 
@@ -117,31 +117,32 @@ class AccountActions
             return new MethodReply(false, $functionality->getMessage());
         }
         if ($permanently) {
-            $tables = get_sql_database_tables("account");
+            foreach ($databases as $database) {
+                $tables = get_sql_database_tables($database);
 
-            if (!empty($tables)) {
-                $accountID = $this->account->getDetail("id");
+                if (!empty($tables)) {
+                    $accountID = $this->account->getDetail("id");
 
-                if (delete_sql_query(
-                    AccountVariables::ACCOUNTS_TABLE,
-                    array(
-                        array("id", $accountID)
-                    )
-                )) {
-                    foreach ($tables as $table) {
-                        if ($table !== AccountVariables::ACCOUNTS_TABLE) {
-                            delete_sql_query($table,
-                                array(
-                                    array("account_id", $accountID)
-                                )
-                            );
+                    if (delete_sql_query(
+                        AccountVariables::ACCOUNTS_TABLE,
+                        array(
+                            array("id", $accountID)
+                        )
+                    )) {
+                        foreach ($tables as $table) {
+                            if ($table !== AccountVariables::ACCOUNTS_TABLE) {
+                                delete_sql_query(
+                                    $table,
+                                    array(
+                                        array("account_id", $accountID)
+                                    )
+                                );
+                            }
                         }
                     }
-                    return new MethodReply(true, "User successfully deleted permanently.");
                 }
-                return new MethodReply(false, "Failed to delete account.");
             }
-            return new MethodReply(false, "Failed to find database tables.");
+            return new MethodReply(true, "User successfully deleted permanently.");
         } else {
             if (!set_sql_query(
                 AccountVariables::ACCOUNTS_TABLE,
