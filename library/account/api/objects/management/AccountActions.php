@@ -45,10 +45,6 @@ class AccountActions
         }
         $twoFactor = $this->account->getSettings()->isEnabled("two_factor_authentication");
 
-        if (!$twoFactor && $this->account->getSession()->isCustom()) {
-            $object = $this->account->getSession()->getLastKnown();
-            $twoFactor = $object === null || $object->account_id != $this->account->getDetail("id");
-        }
         if ($twoFactor) {
             if (empty($twoFactorCode)) {
                 $twoFactor = $this->account->getTwoFactorAuthentication()->initiate(
@@ -89,7 +85,6 @@ class AccountActions
             }
         }
         $functionality->addInstantCooldown(AccountFunctionality::LOG_IN, self::log_in_out_cooldown);
-        $this->account->refresh();
         return new MethodReply(true, "Successfully logged in.");
     }
 

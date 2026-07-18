@@ -93,8 +93,6 @@ class AccountRegistry
                 array("id"),
                 array(
                     array("application_id", $applicationID),
-                    array("type", $this->account->getSession()->getType()),
-                    array("custom_id", $this->account->getSession()->getCustomKey()),
                     array("deletion_date", null),
                     array("creation_date", ">", get_past_date("1 day")),
                 ),
@@ -106,8 +104,6 @@ class AccountRegistry
         if (!sql_insert(
             AccountVariables::ACCOUNTS_TABLE,
             array(
-                "type" => $this->account->getSession()->getType(),
-                "custom_id" => $this->account->getSession()->getCustomKey(),
                 "email_address" => $email,
                 "password" => $password === null ? null : encrypt_password($password),
                 "name" => $name,

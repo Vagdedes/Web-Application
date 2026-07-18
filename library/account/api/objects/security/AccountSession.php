@@ -3,7 +3,6 @@
 class AccountSession
 {
     private Account $account;
-    private ?int $customKey, $type;
 
     private const
         session_key_name = "1brpfgiovljnklabu21p_account_session",
@@ -18,31 +17,11 @@ class AccountSession
     public function __construct(Account $account)
     {
         $this->account = $account;
-        $this->type = null;
-        $this->customKey = null;
-    }
-
-    public function setCustomKey(int|string|null $type, int|string|null $customKey): void
-    {
-        $this->type = $type === null ? null :
-            (is_numeric($type) ? $type : string_to_integer($type, true));
-        $this->customKey = $customKey === null ? null :
-            (is_numeric($customKey) ? $customKey : string_to_integer($this->customKey, true));
     }
 
     public function isCustom(): bool
     {
-        return $this->type !== null && $this->customKey !== null;
-    }
-
-    public function getType(): ?int
-    {
-        return $this->type;
-    }
-
-    public function getCustomKey(): ?int
-    {
-        return $this->customKey;
+        return false;
     }
 
     public function getAlive(?array $select = null, int $limit = 0): array
@@ -91,12 +70,9 @@ class AccountSession
 
     public function createKey(bool $force = false): string
     {
-        if ($this->isCustom()) {
-            return $this->customKey;
-        } else if ($force) {
+        if ($force) {
             $key = random_string(self::session_token_length);
             add_cookie(self::session_key_name, $key, self::session_cookie_expiration); // Create new cookie with strict requirements
-            return $key;
         } else {
             $key = get_cookie(self::session_key_name);
 
@@ -104,8 +80,8 @@ class AccountSession
                 $key = random_string(self::session_token_length);
                 add_cookie(self::session_key_name, $key, self::session_cookie_expiration); // Create new cookie with strict requirements
             }
-            return $key;
         }
+        return $key;
     }
 
     public function refreshKey(): string
@@ -116,18 +92,14 @@ class AccountSession
     public function find(bool $checkIpAddress = true): MethodReply
     {
         $key = $this->createKey();
-        $hasCustomKey = $this->isCustom();
 
-        if ($hasCustomKey || strlen($key) === self::session_token_length) { // Check if length of key is correct
+        if (strlen($key) === self::session_token_length) { // Check if length of key is correct
             $date = get_current_date();
-            $key = $hasCustomKey
-                ? $this->customKey
-                : string_to_integer($key, true);
+            $key = string_to_integer($key, true);
             $array = get_sql_query(
                 AccountVariables::SESSIONS_TABLE,
                 array("id", "account_id", "ip_address", "creation_date"),
                 array(
-                    array("type", $this->type),
                     array("token", $key),
                     array("expiration_date", ">", $date),
                     $checkIpAddress ? array("ip_address", get_client_ip_address()) : ""
@@ -180,31 +152,25 @@ class AccountSession
             return new MethodReply(false, $punishment->getMessage());
         }
         $date = get_current_date();
-        $hasCustomKey = $this->isCustom();
 
         if ($key === null) {
             $key = $this->createKey();
         }
         for ($count = 0; $count < self::session_max_creation_tries; $count++) { // Loop until a free session key is found
-            if ($hasCustomKey) {
-                $key = $this->customKey;
-                $array = null;
-            } else {
-                if (strlen($key) !== self::session_token_length) { // Check if length of key is correct
-                    $key = $this->refreshKey();
-                    continue;
-                }
-                $key = string_to_integer($key, true);
-                $array = get_sql_query(
-                    AccountVariables::SESSIONS_TABLE,
-                    array("id"),
-                    array(
-                        array("token", $key),
-                    ),
-                    null,
-                    1
-                );
+            if (strlen($key) !== self::session_token_length) { // Check if length of key is correct
+                $key = $this->refreshKey();
+                continue;
             }
+            $key = string_to_integer($key, true);
+            $array = get_sql_query(
+                AccountVariables::SESSIONS_TABLE,
+                array("id"),
+                array(
+                    array("token", $key)
+                ),
+                null,
+                1
+            );
 
             if (empty($array)) { // Check if session does not exist
                 if (!$allowMultiple) {
@@ -213,8 +179,7 @@ class AccountSession
                         array("id"),
                         array(
                             array("account_id", $this->account->getDetail("id")),
-                            array("expiration_date", ">", $date),
-                            array("type", $this->type)
+                            array("expiration_date", ">", $date)
                         )
                     ); // Search for existing sessions that may be valid
 
@@ -237,7 +202,6 @@ class AccountSession
                 if (sql_insert(
                     AccountVariables::SESSIONS_TABLE,
                     array(
-                        "type" => $this->type,
                         "token" => $key,
                         "ip_address" => get_client_ip_address(),
                         "account_id" => $this->account->getDetail("id"),
@@ -264,23 +228,23 @@ class AccountSession
     public function delete(): MethodReply
     {
         $key = $this->createKey();
-        $hasCustomKey = $this->isCustom();
         $this->refreshKey();
 
-        if ($hasCustomKey
-            || strlen($key) === self::session_token_length) { // Check if length of key is correct
-            $key = $hasCustomKey
-                ? $this->customKey
-                : string_to_integer($key, true);
+        if (strlen($key) === self::session_token_length) { // Check if length of key is correct
+            $key = string_to_integer($key, true);
             $date = get_current_date();
             $array = get_sql_query(
                 AccountVariables::SESSIONS_TABLE,
                 array("id"),
                 array(
-                    array("type", $this->type),
                     array("token", $key),
                     array("expiration_date", ">", $date)
-                )
+                ),
+                array(
+                    "DESC",
+                    "id"
+                ),
+                1
             );
             $this->account->getHistory()->add("log_out");
 
@@ -305,21 +269,4 @@ class AccountSession
         return new MethodReply(true, "You are not logged in.");
     }
 
-    public function getLastKnown(): ?object
-    {
-        $query = get_sql_query(
-            AccountVariables::SESSIONS_TABLE,
-            null,
-            array(
-                array("type", $this->type),
-                array("token", $this->customKey),
-            ),
-            array(
-                "DESC",
-                "id"
-            ),
-            1
-        );
-        return !empty($query) ? $query[0] : null;
-    }
 }

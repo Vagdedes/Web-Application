@@ -221,7 +221,7 @@ class Account implements JsonSerializable
                            ?string $identification = null,
                            bool    $checkDeletion = true): self
     {
-        $account = new self(
+        return new self(
             $this->getDetail("application_id"),
             $id,
             $email,
@@ -229,12 +229,6 @@ class Account implements JsonSerializable
             $identification,
             $checkDeletion,
         );
-
-        $account->getSession()->setCustomKey(
-            $this->session->getType(),
-            $this->session->getCustomKey()
-        );
-        return $account;
     }
 
     public function exists(): bool
@@ -395,19 +389,6 @@ class Account implements JsonSerializable
     }
 
     // Separator
-
-    public function refresh(): void
-    {
-        if ($this->exists()) {
-            if (isset($this->transactions)) {
-                $this->transactions->getSuccessful();
-            }
-            if (isset($this->email)
-                && !$this->email->isVerified()) {
-                $this->email->initiateVerification(null, $this->session->isCustom());
-            }
-        }
-    }
 
     public final function jsonSerialize(): array|object
     {

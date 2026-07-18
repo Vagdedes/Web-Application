@@ -46,8 +46,6 @@ class AccountVariables
         ADDED_ACCOUNTS_TABLE = "correlation.addedAccounts",
         ACCEPTED_ACCOUNTS_TABLE = "correlation.accounts",
 
-        TICKETS_EMAIL_TABLE = "tickets.email",
-
         EMAIL_VERIFICATIONS_TABLE = "verification.emailVerifications",
         CHANGE_PASSWORD_TABLE = "verification.changePassword",
 
