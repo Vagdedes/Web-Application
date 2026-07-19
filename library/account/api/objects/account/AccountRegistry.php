@@ -87,20 +87,6 @@ class AccountRegistry
             && $this->account->transform(null, null, $name)->exists()) {
             return new MethodReply(false, "Account with this name already exists.");
         }
-        if ($this->account->getSession()->isCustom() // Protected by captcha when not custom
-            && sizeof(get_sql_query(
-                AccountVariables::ACCOUNTS_TABLE,
-                array("id"),
-                array(
-                    array("application_id", $applicationID),
-                    array("deletion_date", null),
-                    array("creation_date", ">", get_past_date("1 day")),
-                ),
-                null,
-                2
-            )) === 2) {
-            return new MethodReply(false, "You cannot create more accounts for now, please try again later.");
-        }
         if (!sql_insert(
             AccountVariables::ACCOUNTS_TABLE,
             array(
