@@ -19,11 +19,6 @@ class AccountSession
         $this->account = $account;
     }
 
-    public function isCustom(): bool
-    {
-        return false;
-    }
-
     public function getAlive(?array $select = null, int $limit = 0): array
     {
         $date = get_current_date();

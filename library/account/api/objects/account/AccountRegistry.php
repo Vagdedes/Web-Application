@@ -26,7 +26,7 @@ class AccountRegistry
         ?string $firstName = null,
         ?string $middleName = null,
         ?string $lastName = null,
-        ?string $discordWebhook = null
+        bool    $codeVerification = false
     ): MethodReply
     {
         $applicationID = $this->account->getDetail("application_id");
@@ -110,7 +110,7 @@ class AccountRegistry
             return new MethodReply(false, "Failed to update user history.");
         }
         if ($hasEmail) {
-            $emailVerification = $this->account->getEmail()->initiateVerification($email, $this->account->getSession()->isCustom());
+            $emailVerification = $this->account->getEmail()->initiateVerification($email, $codeVerification);
 
             if (!$emailVerification->isPositiveOutcome()) {
                 $message = $emailVerification->getMessage();
@@ -124,13 +124,6 @@ class AccountRegistry
 
         if (!$session->isPositiveOutcome()) {
             return new MethodReply(false, $session->getMessage());
-        }
-        if ($discordWebhook !== null) {
-            send_discord_webhook_by_plan(
-                "new-account",
-                $discordWebhook,
-                array("websiteUsername" => $name)
-            );
         }
         return new MethodReply(true, "Account successfully registered.", $this->account);
     }
