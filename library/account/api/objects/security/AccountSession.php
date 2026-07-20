@@ -138,6 +138,45 @@ class AccountSession
         );
     }
 
+    public function switch(Account $account): MethodReply
+    {
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "Current account does not exist.");
+        }
+        if (!$account->exists()) {
+            return new MethodReply(false, "Account to switch to does not exist.");
+        }
+        $array = get_sql_query(
+            AccountVariables::SESSIONS_TABLE,
+            array("id"),
+            array(
+                array("account_id", $this->account->getDetail("id")),
+                array("expiration_date", ">", get_current_date())
+            )
+        );
+
+        if (!empty($array)) { // Check if session exists
+            foreach ($array as $object) {
+                if (!set_sql_query(
+                    AccountVariables::SESSIONS_TABLE,
+                    array(
+                        "account_id" => $account->getDetail("id")
+                    ),
+                    array(
+                        array("id", $object->id)
+                    ),
+                    null,
+                    1
+                )) {
+                    return new MethodReply(false, "Failed to switch account for session in the database.");
+                }
+            }
+            $this->account = $account;
+            return new MethodReply(true, "Account switched successfully.");
+        }
+        return new MethodReply(false, "No session found to switch.");
+    }
+
     public function create(bool $allowMultiple, ?string $key = null): MethodReply
     {
         $punishment = $this->account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
