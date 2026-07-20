@@ -731,11 +731,6 @@ class AccountTeam
                 return new MethodReply(false, "That member is already in a team.");
             }
         }
-        $rookie = $this->getRookie();
-
-        if ($rookie === null) {
-            return new MethodReply(false, "We couldn't determine the base rank for new members.");
-        }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
