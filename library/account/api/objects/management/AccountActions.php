@@ -107,7 +107,7 @@ class AccountActions
     public function deleteAccount(
         bool  $permanently = false,
         array $databases = ["account"],
-        array $columns = ["account_id"]
+        array $columns = ["account_id", "created_by", "deleted_by", "executed_by", "modified_by"]
     ): MethodReply
     {
         $functionality = $this->account->getFunctionality()->getResult(AccountFunctionality::DELETE_ACCOUNT);
