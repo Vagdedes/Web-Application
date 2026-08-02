@@ -83,7 +83,16 @@ class HetznerAction
                 $metrics = $metricsData->metrics?->time_series?->cpu?->values[0][1] ?? 0.0;
 
                 foreach ($networks as $network) {
-                    if (!$network->isServerIncluded($serverID) || !HetznerComparison::shouldConsiderServer($server->name)) {
+                    if (!$network->isServerIncluded($serverID)
+                        || !HetznerComparison::shouldConsiderServer($server->name)
+                        || !isset($server->datacenter->location->name)
+                        || !isset($server->server_type)
+                        || !isset($server->public_net->ipv4->ip)
+                        || !isset($server->name)
+                        || !isset($server->primary_disk_size)
+                        || !isset($server->locked)
+                        || !isset($server->image->status)
+                        || !isset($server->image->description)) {
                         continue;
                     }
 
