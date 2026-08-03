@@ -5,10 +5,13 @@ class TwoFactorAuthentication
     public const CODE_LENGTH = 32;
 
     private Account $account;
+    private ?string $lastCode, $lastToken;
 
     public function __construct(Account $account)
     {
         $this->account = $account;
+        $this->lastCode = null;
+        $this->lastToken = null;
     }
 
     public function initiate(?Account $account, bool $code = false): MethodReply
@@ -83,6 +86,9 @@ class TwoFactorAuthentication
                 }
             }
             if (!$account->getCooldowns()->has("two_factor_authentication", true, true, false)) {
+                $this->lastCode = $code ? $credential : null;
+                $this->lastToken = $code ? null : $credential;
+
                 if ($account->getEmail()->send(
                     "twoFactorAuthentication" . ($code ? "Code" : "Token"),
                     array(
@@ -187,4 +193,15 @@ class TwoFactorAuthentication
             1
         ));
     }
+
+    public function getLastCode(): ?string
+    {
+        return $this->lastCode;
+    }
+
+    public function getLastToken(): ?string
+    {
+        return $this->lastToken;
+    }
+
 }
