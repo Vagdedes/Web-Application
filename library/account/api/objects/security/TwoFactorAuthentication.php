@@ -24,96 +24,81 @@ class TwoFactorAuthentication
         }
         $accountID = $account->getDetail("id");
         $ipAddress = get_client_ip_address();
-        $array = empty($ipAddress) ? null : get_sql_query(
-            AccountVariables::SESSIONS_TABLE,
-            array("id"),
+        $date = date("Y-m-d H:i:s");
+        $array = get_sql_query(
+            AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
+            array("expiration_date", "token"),
             array(
                 array("account_id", $accountID),
                 array("ip_address", $ipAddress),
-            ),
-            null,
-            1
+                array("completion_date", null),
+            )
         );
+        $credential = null;
 
-        if (empty($array)) {
-            $date = date("Y-m-d H:i:s");
-            $array = get_sql_query(
-                AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
-                array("expiration_date", "token"),
-                array(
-                    array("account_id", $accountID),
-                    array("ip_address", $ipAddress),
-                    array("completion_date", null),
-                )
-            );
-            $credential = null;
-
-            if (!empty($array)) {
-                foreach ($array as $object) {
-                    if ($date <= $object->expiration_date) {
-                        $credential = $code ? $object->code : $object->token;
-                        break;
-                    }
+        if (!empty($array)) {
+            foreach ($array as $object) {
+                if ($date <= $object->expiration_date) {
+                    $credential = $code ? $object->code : $object->token;
+                    break;
                 }
             }
-
-            if ($credential === null) { // Create
-                $key = $this->account->getSession()->createKey();
-
-                if ($code) {
-                    $credential = random_string(self::CODE_LENGTH);
-                } else {
-                    $credential = random_string(AccountSession::session_token_length);
-
-                    if (strlen($key) !== AccountSession::session_token_length) {
-                        $key = $this->account->getSession()->refreshKey();
-                    }
-                }
-
-                // Separator
-                if (!sql_insert(
-                    AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
-                    array(
-                        "account_id" => $accountID,
-                        ($code ? "code" : "token") => $credential,
-                        "ip_address" => $ipAddress,
-                        "access_token" => $key,
-                        "creation_date" => $date,
-                        "expiration_date" => get_future_date("1 hour")
-                    )
-                )) {
-                    return new MethodReply(false, "Could not interact with database.");
-                }
-            }
-            if (!$account->getCooldowns()->has("two_factor_authentication", true, true, false)) {
-                $this->lastCode = $code ? $credential : null;
-                $this->lastToken = $code ? null : $credential;
-
-                if ($account->getEmail()->send(
-                    "twoFactorAuthentication" . ($code ? "Code" : "Token"),
-                    array(
-                        ($code ? "code" : "URL") =>
-                            ($code ? $credential : ("https://" . get_domain() . "/account/profile/twoFactorAuthentication/?token=" . $credential)),
-                    ),
-                    "account",
-                    false
-                )) {
-                    $account->getCooldowns()->addInstant("two_factor_authentication", "1 minute");
-                    return new MethodReply(
-                        true,
-                        "An authentication email has been sent as a security measurement."
-                    );
-                } else {
-                    return new MethodReply(false, "Failed to send authentication email.");
-                }
-            }
-            return new MethodReply(
-                true,
-                "An authentication email was recently sent as a security measurement."
-            );
-        } else {
-            return new MethodReply(false, "Cannot initiate two factor authentication.");
         }
+
+        if ($credential === null) { // Create
+            $key = $this->account->getSession()->createKey();
+
+            if ($code) {
+                $credential = random_string(self::CODE_LENGTH);
+            } else {
+                $credential = random_string(AccountSession::session_token_length);
+
+                if (strlen($key) !== AccountSession::session_token_length) {
+                    $key = $this->account->getSession()->refreshKey();
+                }
+            }
+
+            // Separator
+            if (!sql_insert(
+                AccountVariables::TWO_FACTOR_AUTHENTICATION_TABLE,
+                array(
+                    "account_id" => $accountID,
+                    ($code ? "code" : "token") => $credential,
+                    "ip_address" => $ipAddress,
+                    "access_token" => $key,
+                    "creation_date" => $date,
+                    "expiration_date" => get_future_date("1 hour")
+                )
+            )) {
+                return new MethodReply(false, "Could not interact with database.");
+            }
+        }
+        if (!$account->getCooldowns()->has("two_factor_authentication", true, true, false)) {
+            $this->lastCode = $code ? $credential : null;
+            $this->lastToken = $code ? null : $credential;
+
+            if ($account->getEmail()->send(
+                "twoFactorAuthentication" . ($code ? "Code" : "Token"),
+                array(
+                    ($code ? "code" : "URL") =>
+                        ($code ? $credential : ("https://" . get_domain() . "/account/profile/twoFactorAuthentication/?token=" . $credential)),
+                ),
+                "account",
+                false
+            )) {
+                $account->getCooldowns()->addInstant("two_factor_authentication", "1 minute");
+                return new MethodReply(
+                    true,
+                    "An authentication email has been sent as a security measurement."
+                );
+            } else {
+                return new MethodReply(false, "Failed to send authentication email.");
+            }
+        }
+        return new MethodReply(
+            true,
+            "An authentication email was recently sent as a security measurement."
+        );
     }
 
     public function verify(
