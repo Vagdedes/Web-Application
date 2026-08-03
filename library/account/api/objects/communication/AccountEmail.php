@@ -338,8 +338,8 @@ class AccountEmail
             return false;
         } else {
             $applicationID = $this->account->getDetail("application_id");
-            return $this->run
-                && $this->account->getSettings()->isEnabled(
+            return !$this->run
+                || $this->account->getSettings()->isEnabled(
                     "receive_" . $type . "_emails",
                     $type === "account"
                 )
