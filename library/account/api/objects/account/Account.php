@@ -237,9 +237,9 @@ class Account implements JsonSerializable
         return $this->exists;
     }
 
-    public function getCreationAttempt(): ?MethodReply
+    public function getCreationAttempt(): MethodReply
     {
-        return $this->creationAttempt;
+        return $this->creationAttempt ?? new MethodReply(false, "No creation attempt was made.");
     }
 
     public function getDetail(string $detail, string $def = null, bool $recursive = true): mixed
