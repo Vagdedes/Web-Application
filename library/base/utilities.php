@@ -517,6 +517,7 @@ function is_domain(?string $domain): bool
     }
     return filter_var($domain, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false;
 }
+
 function prepare_phone_number(string $number): string
 {
     return $number[0] === "+" ? $number : ("+" . $number);
