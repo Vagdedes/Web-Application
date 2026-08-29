@@ -167,8 +167,18 @@ class PhpAsync
 
     public static function logIncompleteClasses(mixed $value, string $path = "root"): void
     {
+        $seen = [];
+        self::logIncompleteClassesRecursive($value, $path, $seen, 0);
+    }
+
+    private static function logIncompleteClassesRecursive(mixed $value, string $path, array &$seen, int $depth): void
+    {
+        if ($depth > 50) {
+            return;
+        }
         if ($value instanceof __PHP_Incomplete_Class) {
-            $className = $value->__PHP_Incomplete_Class_Name ?? "unknown";
+            $vars = (array)$value;
+            $className = $vars['__PHP_Incomplete_Class_Name'] ?? "unknown";
             error_log(
                 "PhpAsync: blocked class '" . $className
                 . "' at " . $path . " (does not implement PhpAsyncSerializable)"
@@ -177,18 +187,24 @@ class PhpAsync
         }
         if (is_array($value)) {
             foreach ($value as $key => $item) {
-                self::logIncompleteClasses($item, $path . "[" . $key . "]");
+                self::logIncompleteClassesRecursive($item, $path . "[" . $key . "]", $seen, $depth + 1);
             }
             return;
         }
         if (is_object($value)) {
+            $id = spl_object_id($value);
+
+            if (isset($seen[$id])) {
+                return;
+            }
+            $seen[$id] = true;
             $reflection = new ReflectionObject($value);
 
             foreach ($reflection->getProperties() as $property) {
                 $property->setAccessible(true);
 
                 if ($property->isInitialized($value)) {
-                    self::logIncompleteClasses($property->getValue($value), $path . "->" . $property->getName());
+                    self::logIncompleteClassesRecursive($property->getValue($value), $path . "->" . $property->getName(), $seen, $depth + 1);
                 }
             }
         }
