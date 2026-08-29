@@ -6,7 +6,8 @@ class AccountSession
 
     private const
         session_key_name = "1brpfgiovljnklabu21p_account_session",
-        session_max_creation_tries = 100;
+        session_max_creation_tries = 100,
+        csrf_context = "csrf_token";
 
     public const
         session_account_refresh_expiration = "2 days",
@@ -82,6 +83,27 @@ class AccountSession
     public function refreshKey(): string
     {
         return $this->createKey(true);
+    }
+
+    /**
+     * Derives a CSRF token from the current session key rather than storing
+     * a separate one anywhere. Only the holder of the (secret, random)
+     * session cookie can reproduce this value, so it's safe to embed
+     * directly in server-rendered forms. The token changes automatically
+     * whenever the session key does (e.g. on refreshKey()/sign-out).
+     */
+    public function getCsrfToken(): string
+    {
+        $key = $this->createKey();
+        return hash_hmac('sha256', self::csrf_context, $key);
+    }
+
+    public function validateCsrfToken(?string $submittedToken): bool
+    {
+        if (empty($submittedToken)) {
+            return false;
+        }
+        return hash_equals($this->getCsrfToken(), (string)$submittedToken);
     }
 
     public function find(bool $checkIpAddress = true): MethodReply
