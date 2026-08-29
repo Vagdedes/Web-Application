@@ -1,5 +1,9 @@
 <?php
 
+interface PhpAsyncSerializable
+{
+}
+
 class PhpAsync
 {
 
@@ -58,7 +62,11 @@ class PhpAsync
         string $dependency
     ): void
     {
-        unset($this->dependencies[array_search($dependency, $this->dependencies)]);
+        $index = array_search($dependency, $this->dependencies, true);
+
+        if ($index !== false) {
+            unset($this->dependencies[$index]);
+        }
     }
 
     // Separator
@@ -106,9 +114,9 @@ class PhpAsync
                         );
                     } else {
                         $this->run(
-                            unserialize(base64_decode($row->method_name)),
-                            unserialize(base64_decode($row->method_parameters)),
-                            unserialize(base64_decode($row->code_dependencies)),
+                            self::safeUnserialize(base64_decode($row->method_name)),
+                            self::safeUnserialize(base64_decode($row->method_parameters)),
+                            self::safeUnserialize(base64_decode($row->code_dependencies)),
                             $debug
                         );
                     }
@@ -122,9 +130,9 @@ class PhpAsync
                         );
                     } else {
                         $result = $this->run(
-                            unserialize(base64_decode($row->method_name)),
-                            unserialize(base64_decode($row->method_parameters)),
-                            unserialize(base64_decode($row->code_dependencies)),
+                            self::safeUnserialize(base64_decode($row->method_name)),
+                            self::safeUnserialize(base64_decode($row->method_parameters)),
+                            self::safeUnserialize(base64_decode($row->code_dependencies)),
                             $debug
                         );
                         set_sql_query(
@@ -143,6 +151,23 @@ class PhpAsync
             }
         }
         return sizeof($query);
+    }
+
+    private static function allowedUnserializeClasses(): array
+    {
+        $allowed = [];
+
+        foreach (get_declared_classes() as $class) {
+            if (in_array(PhpAsyncSerializable::class, class_implements($class), true)) {
+                $allowed[] = $class;
+            }
+        }
+        return $allowed;
+    }
+
+    private static function safeUnserialize(string $data): mixed
+    {
+        return unserialize($data, ['allowed_classes' => self::allowedUnserializeClasses()]);
     }
 
     public function storeAndRun(
@@ -246,7 +271,8 @@ class PhpAsync
                             $dependency = str_replace($key, $value, $dependency);
                         }
                     }
-                    $total .= "require_once('" . $this->directory . $dependency . "');\n";
+                    $path = $this->directory . $dependency;
+                    $total .= "require_once(base64_decode('" . base64_encode($path) . "'));\n";
                 }
             }
             if (!empty($dependencies)) {
@@ -256,14 +282,17 @@ class PhpAsync
                             $dependency = str_replace($key, $value, $dependency);
                         }
                     }
-                    $total .= "require_once('" . $this->directory . $dependency . "');\n";
+                    $path = $this->directory . $dependency;
+                    $total .= "require_once(base64_decode('" . base64_encode($path) . "'));\n";
                 }
             }
             self::$files[$dependencyHash] = $total;
         }
-        $final = "call_user_func_array('"
-            . (is_array($method) ? implode("::", $method) : $method)
-            . "', unserialize(base64_decode('" . base64_encode(serialize($parameters)) . "')));";
+        $methodString = is_array($method) ? implode("::", $method) : $method;
+        $final = "call_user_func_array("
+            . "unserialize(base64_decode('" . base64_encode(serialize($methodString)) . "'), ['allowed_classes' => false]), "
+            . "unserialize(base64_decode('" . base64_encode(serialize($parameters)) . "'), ['allowed_classes' => array_values(array_filter(get_declared_classes(), function(\$c) { return in_array('PhpAsyncSerializable', class_implements(\$c) ?: [], true); }))])"
+            . ");";
 
         if ($debug === true) {
             $total .= "var_dump(" . substr($final, 0, -1) . ");";

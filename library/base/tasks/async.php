@@ -16,11 +16,35 @@ if (!empty($function)) {
         $dependencies = get_form_post("dependencies");
         $debug = strtolower(trim(get_form_post("debug")));
 
+        $trustedDependencyRoot = realpath('/var/www/.structure/library/');
+
+        $isAllowedDependency = static function (string $value) use ($trustedDependencyRoot): bool {
+            if ($trustedDependencyRoot === false || !str_ends_with(strtolower($value), '.php')) {
+                return false;
+            }
+            $resolved = realpath($value);
+
+            return $resolved !== false
+                && ($resolved === $trustedDependencyRoot
+                    || str_starts_with($resolved, $trustedDependencyRoot . DIRECTORY_SEPARATOR));
+        };
+
+        $allowedUnserializeClasses = static function (): array {
+            $allowed = [];
+
+            foreach (get_declared_classes() as $class) {
+                if (in_array(PhpAsyncSerializable::class, class_implements($class), true)) {
+                    $allowed[] = $class;
+                }
+            }
+            return $allowed;
+        };
+
         if (empty($function)) {
             error_log("PhpAsync (Website): Function is empty");
             return;
         } else {
-            $function = unserialize($function);
+            $function = unserialize($function, ['allowed_classes' => $allowedUnserializeClasses()]);
 
             if (!is_string($function)
                 && !is_array($function)
@@ -36,12 +60,14 @@ if (!empty($function)) {
         if (empty($dependencies)) {
             $dependencies = array();
         } else {
-            $dependencies = unserialize($dependencies);
+            $dependencies = unserialize($dependencies, ['allowed_classes' => $allowedUnserializeClasses()]);
 
             if (is_array($dependencies)) {
                 foreach ($dependencies as $key => $value) {
-                    if (is_string($value)) {
+                    if (is_string($value) && $isAllowedDependency($value)) {
                         require_once $value;
+                    } else if (is_string($value)) {
+                        error_log("PhpAsync (Website): Rejected dependency path outside trusted root: " . $value);
                     }
                 }
             }
@@ -49,7 +75,7 @@ if (!empty($function)) {
         if (empty($parameters)) {
             $parameters = array();
         } else {
-            $parameters = unserialize($parameters);
+            $parameters = unserialize($parameters, ['allowed_classes' => $allowedUnserializeClasses()]);
 
             if (!is_array($parameters)) {
                 $parameters = array();
@@ -72,4 +98,3 @@ if (!empty($function)) {
         }
     }
 }
-
