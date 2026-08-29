@@ -3,6 +3,7 @@
 // External
 require_once '/var/www/.structure/library/base/minecraft.php';
 require_once '/var/www/.structure/library/base/vector.php';
+require_once '/var/www/.structure/library/base/async.php';
 require_once '/var/www/.structure/library/base/communication.php';
 
 require_once '/var/www/.structure/library/base/objects/AbstractMethodReply.php';

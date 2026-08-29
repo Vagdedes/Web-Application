@@ -1,6 +1,6 @@
 <?php
 
-class Account implements JsonSerializable
+class Account implements JsonSerializable, PhpAsyncSerializable
 {
 
     // Application IDs required in: accounts, accepted-accounts, products, roles, moderations

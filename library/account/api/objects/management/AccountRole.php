@@ -1,6 +1,6 @@
 <?php
 
-class AccountRole
+class AccountRole implements PhpAsyncSerializable
 {
     private ?string $name, $prefix, $suffix, $creationDate, $creationReason;
     private ?int $id, $priority, $createdBy;

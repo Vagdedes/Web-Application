@@ -158,16 +158,46 @@ class PhpAsync
         $allowed = [];
 
         foreach (get_declared_classes() as $class) {
-            if (in_array(PhpAsyncSerializable::class, class_implements($class), true)) {
+            if (in_array(PhpAsyncSerializable::class, class_implements($class) ?: [], true)) {
                 $allowed[] = $class;
             }
         }
         return $allowed;
     }
 
+    public static function logIncompleteClasses(mixed $value, string $path = "root"): void
+    {
+        if ($value instanceof __PHP_Incomplete_Class) {
+            error_log(
+                "PhpAsync: blocked class '" . __PHP_Incomplete_Class_Name($value)
+                . "' at " . $path . " (does not implement PhpAsyncSerializable)"
+            );
+            return;
+        }
+        if (is_array($value)) {
+            foreach ($value as $key => $item) {
+                self::logIncompleteClasses($item, $path . "[" . $key . "]");
+            }
+            return;
+        }
+        if (is_object($value)) {
+            $reflection = new ReflectionObject($value);
+
+            foreach ($reflection->getProperties() as $property) {
+                $property->setAccessible(true);
+
+                if ($property->isInitialized($value)) {
+                    self::logIncompleteClasses($property->getValue($value), $path . "->" . $property->getName());
+                }
+            }
+        }
+    }
+
     private static function safeUnserialize(string $data): mixed
     {
-        return unserialize($data, ['allowed_classes' => self::allowedUnserializeClasses()]);
+        $result = unserialize($data, ['allowed_classes' => self::allowedUnserializeClasses()]);
+        self::logIncompleteClasses($result);
+        return $result;
     }
 
     public function storeAndRun(
@@ -289,10 +319,11 @@ class PhpAsync
             self::$files[$dependencyHash] = $total;
         }
         $methodString = is_array($method) ? implode("::", $method) : $method;
-        $final = "call_user_func_array("
-            . "unserialize(base64_decode('" . base64_encode(serialize($methodString)) . "'), ['allowed_classes' => false]), "
-            . "unserialize(base64_decode('" . base64_encode(serialize($parameters)) . "'), ['allowed_classes' => array_values(array_filter(get_declared_classes(), function(\$c) { return in_array('PhpAsyncSerializable', class_implements(\$c) ?: [], true); }))])"
-            . ");";
+        $setup = "\$phpAsyncMethod = unserialize(base64_decode('" . base64_encode(serialize($methodString)) . "'), ['allowed_classes' => false]);\n"
+            . "\$phpAsyncParams = unserialize(base64_decode('" . base64_encode(serialize($parameters)) . "'), ['allowed_classes' => array_values(array_filter(get_declared_classes(), function(\$c) { return in_array('PhpAsyncSerializable', class_implements(\$c) ?: [], true); }))]);\n"
+            . "PhpAsync::logIncompleteClasses(\$phpAsyncParams);\n";
+        $total .= $setup;
+        $final = "call_user_func_array(\$phpAsyncMethod, \$phpAsyncParams);";
 
         if ($debug === true) {
             $total .= "var_dump(" . substr($final, 0, -1) . ");";

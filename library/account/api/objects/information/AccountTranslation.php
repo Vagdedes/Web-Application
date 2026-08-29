@@ -1,6 +1,6 @@
 <?php
 
-class AccountTranslation
+class AccountTranslation implements PhpAsyncSerializable
 {
 
     private const AI_HASH = 532598406;

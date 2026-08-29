@@ -1,6 +1,6 @@
 <?php
 
-class AccountRegistry
+class AccountRegistry implements PhpAsyncSerializable
 {
 
     public const MAX_USERNAME_LENGTH = 512;

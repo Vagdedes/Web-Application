@@ -1,6 +1,6 @@
 <?php
 
-class AccountAccounts
+class AccountAccounts implements PhpAsyncSerializable
 {
     private Account $account;
     public const

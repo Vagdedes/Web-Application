@@ -1,6 +1,6 @@
 <?php
 
-class AccountActions
+class AccountActions implements PhpAsyncSerializable
 {
     private Account $account;
 

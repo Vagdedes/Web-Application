@@ -1,6 +1,6 @@
 <?php
 
-class AccountEmbeddings
+class AccountEmbeddings implements PhpAsyncSerializable
 {
 
     private const

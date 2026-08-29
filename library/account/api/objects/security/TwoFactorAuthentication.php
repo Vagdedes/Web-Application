@@ -1,6 +1,6 @@
 <?php
 
-class TwoFactorAuthentication
+class TwoFactorAuthentication implements PhpAsyncSerializable
 {
     public const CODE_LENGTH = 32;
 

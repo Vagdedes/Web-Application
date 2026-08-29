@@ -1,6 +1,6 @@
 <?php
 
-class AcceptedAccount
+class AcceptedAccount implements PhpAsyncSerializable
 {
     private array $objects;
 

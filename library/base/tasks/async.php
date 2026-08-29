@@ -33,7 +33,7 @@ if (!empty($function)) {
             $allowed = [];
 
             foreach (get_declared_classes() as $class) {
-                if (in_array(PhpAsyncSerializable::class, class_implements($class), true)) {
+                if (in_array(PhpAsyncSerializable::class, class_implements($class) ?: [], true)) {
                     $allowed[] = $class;
                 }
             }
@@ -45,6 +45,7 @@ if (!empty($function)) {
             return;
         } else {
             $function = unserialize($function, ['allowed_classes' => $allowedUnserializeClasses()]);
+            PhpAsync::logIncompleteClasses($function, "function");
 
             if (!is_string($function)
                 && !is_array($function)
@@ -61,6 +62,7 @@ if (!empty($function)) {
             $dependencies = array();
         } else {
             $dependencies = unserialize($dependencies, ['allowed_classes' => $allowedUnserializeClasses()]);
+            PhpAsync::logIncompleteClasses($dependencies, "dependencies");
 
             if (is_array($dependencies)) {
                 foreach ($dependencies as $key => $value) {
@@ -76,6 +78,7 @@ if (!empty($function)) {
             $parameters = array();
         } else {
             $parameters = unserialize($parameters, ['allowed_classes' => $allowedUnserializeClasses()]);
+            PhpAsync::logIncompleteClasses($parameters, "parameters");
 
             if (!is_array($parameters)) {
                 $parameters = array();

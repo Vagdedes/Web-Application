@@ -1,6 +1,6 @@
 <?php
 
-class AccountPatreon
+class AccountPatreon implements PhpAsyncSerializable
 {
     private Account $account;
     private ?MethodReply $retrieve;

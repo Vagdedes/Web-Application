@@ -1,6 +1,6 @@
 <?php
 
-class AccountHistory
+class AccountHistory implements PhpAsyncSerializable
 {
     private Account $account;
 

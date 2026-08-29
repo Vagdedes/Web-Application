@@ -1,6 +1,6 @@
 <?php
 
-class AccountEmail
+class AccountEmail implements PhpAsyncSerializable
 {
     private Account $account;
     private bool $run;

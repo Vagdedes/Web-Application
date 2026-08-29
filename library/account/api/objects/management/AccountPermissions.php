@@ -1,6 +1,6 @@
 <?php
 
-class AccountPermissions
+class AccountPermissions implements PhpAsyncSerializable
 {
     private const DEFAULT_ROLE_ID_PER_APPLICATION_ID = array(
         Account::DEFAULT_APPLICATION_ID => 10

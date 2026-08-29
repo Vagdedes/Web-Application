@@ -1,6 +1,6 @@
 <?php
 
-class AccountPhoneNumber
+class AccountPhoneNumber implements PhpAsyncSerializable
 {
     private Account $account;
 

@@ -1,6 +1,6 @@
 <?php
 
-class AccountTeam
+class AccountTeam implements PhpAsyncSerializable
 {
 
     private const MEMORY_CACHE_SECONDS = 5.0;

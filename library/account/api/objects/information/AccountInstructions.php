@@ -1,6 +1,6 @@
 <?php
 
-class AccountInstructions
+class AccountInstructions implements PhpAsyncSerializable
 {
 
     private const keepDatabaseKeys = [

@@ -1,6 +1,6 @@
 <?php
 
-class AccountCooldowns
+class AccountCooldowns implements PhpAsyncSerializable
 {
     private Account $account;
 
