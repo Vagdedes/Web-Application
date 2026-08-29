@@ -1,6 +1,6 @@
 <?php
 
-abstract class AbstractMethodReply
+abstract class AbstractMethodReply implements PhpAsyncSerializable
 {
 
     private ?bool $success;

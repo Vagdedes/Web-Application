@@ -1,6 +1,6 @@
 <?php
 
-class VectorMath
+class VectorMath implements PhpAsyncSerializable
 {
     private static ?\FFI $ffi = null;
 

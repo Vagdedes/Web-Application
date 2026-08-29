@@ -168,8 +168,9 @@ class PhpAsync
     public static function logIncompleteClasses(mixed $value, string $path = "root"): void
     {
         if ($value instanceof __PHP_Incomplete_Class) {
+            $className = $value->__PHP_Incomplete_Class_Name ?? "unknown";
             error_log(
-                "PhpAsync: blocked class '" . __PHP_Incomplete_Class_Name($value)
+                "PhpAsync: blocked class '" . $className
                 . "' at " . $path . " (does not implement PhpAsyncSerializable)"
             );
             return;

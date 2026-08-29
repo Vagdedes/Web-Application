@@ -1,6 +1,6 @@
 <?php
 
-class ParameterVerification
+class ParameterVerification implements PhpAsyncSerializable
 {
     public const
         TYPE_EMAIL = 0,
