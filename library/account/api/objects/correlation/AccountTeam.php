@@ -771,6 +771,17 @@ class AccountTeam
         if ($account->getDetail("id") === $this->account->getDetail("id")) {
             return new MethodReply(false, "You can't remove yourself using this action. Please use the 'Leave Team' option instead.");
         }
+        $owner = $this->getOwner();
+
+        if ($owner === null) {
+            return new MethodReply(false, "We couldn't identify the current team owner.");
+        }
+        $isOwner = $owner->account->getDetail("id") === $this->account->getDetail("id");
+
+        if (!$isOwner
+            && $this->getPosition() <= $this->getPosition($account)) {
+            return new MethodReply(false, "You can't remove a member who is ranked equal to or higher than your own.");
+        }
         $selfMemberID = $this->getMember()?->id;
 
         if ($selfMemberID === null) {
@@ -1023,7 +1034,7 @@ class AccountTeam
             global $max_32bit_Integer;
             return (int)round($max_32bit_Integer / 2.0);
         }
-        $member = $this->getMember($account)?->id;
+        $member = $this->getMember($account);
 
         if ($member === null) {
             return 0;
@@ -2147,7 +2158,6 @@ class AccountTeam
         $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
 
         if (!$owner
-            && $this->account->getDetail("id") !== $account->getDetail("id")
             && $this->getPosition() <= $this->getPosition($account)) {
             return new MethodReply(false, "You can't assign permissions to someone ranked equal to or higher than yourself.");
         }
@@ -2225,7 +2235,6 @@ class AccountTeam
         $owner = $owner->account->getDetail("id") === $this->account->getDetail("id");
 
         if (!$owner
-            && $this->account->getDetail("id") !== $account->getDetail("id")
             && $this->getPosition() <= $this->getPosition($account)) {
             return new MethodReply(false, "You can't remove permissions from someone ranked equal to or higher than yourself.");
         }
