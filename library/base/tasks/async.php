@@ -30,7 +30,7 @@ if (!empty($function)) {
         };
 
         $allowedUnserializeClasses = static function (): array {
-            $allowed = [];
+            $allowed = ['stdClass'];
 
             foreach (get_declared_classes() as $class) {
                 if (in_array(PhpAsyncSerializable::class, class_implements($class) ?: [], true)) {

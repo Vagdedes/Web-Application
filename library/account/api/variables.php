@@ -1,6 +1,6 @@
 <?php
 
-class AccountVariables
+class AccountVariables implements PhpAsyncSerializable
 {
 
     public const
