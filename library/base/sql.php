@@ -540,20 +540,24 @@ function sql_validate_identifier(string $identifier): string
 function properly_sql_encode(string $string, bool $partial = false): ?string
 {
     try {
-        $text = create_sql_connection()?->real_escape_string($partial ? $string : htmlspecialchars($string));
+        $connection = create_sql_connection();
 
-        if ($text == null) {
-            $text = $partial ? $string : htmlspecialchars($string);
+        if ($connection === null) {
+            log_sql_error(
+                null,
+                "properly_sql_encode() called with no active SQL connection; refusing to return unescaped data."
+            );
+            return null;
         }
+        return $connection->real_escape_string($partial ? $string : htmlspecialchars($string));
     } catch (Throwable $e) {
         if (__SqlDatabaseFields::$sql_credentials[0] === __SqlDatabaseFields::MEMORY_HOST_NAME) {
             __SqlDatabaseFields::$sql_global_memory = false;
         } else {
             log_sql_error(null, $e->getMessage(), $e->getTraceAsString());
-            $text = $partial ? $string : htmlspecialchars($string);
         }
+        return null;
     }
-    return $text;
 }
 
 function abstract_search_sql_encode(string $string): string
