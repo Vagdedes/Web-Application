@@ -82,7 +82,8 @@ class AccountSession implements PhpAsyncSerializable
         } else {
             $key = get_cookie(self::session_key_name);
 
-            if ($key === null) {
+            if ($key === null
+                || strlen($key) !== self::session_token_length) { // Check if length of key is correct
                 $key = random_string(self::session_token_length);
                 add_cookie(self::session_key_name, $key, self::session_cookie_expiration); // Create new cookie with strict requirements
             }
@@ -120,7 +121,8 @@ class AccountSession implements PhpAsyncSerializable
     {
         $key = $this->createKey();
 
-        if (strlen($key) === self::session_token_length) { // Check if length of key is correct
+        if ($this->customKey !== null
+            || strlen($key) === self::session_token_length) { // Check if length of key is correct
             $date = get_current_date();
             $key = string_to_integer($key, true);
             $array = get_sql_query(
@@ -223,7 +225,7 @@ class AccountSession implements PhpAsyncSerializable
             $key = $this->createKey();
         }
         for ($count = 0; $count < self::session_max_creation_tries; $count++) { // Loop until a free session key is found
-            if (strlen($key) !== self::session_token_length) { // Check if length of key is correct
+            if ($this->customKey === null && strlen($key) !== self::session_token_length) { // Check if length of key is correct
                 $key = $this->refreshKey();
                 continue;
             }
@@ -296,7 +298,8 @@ class AccountSession implements PhpAsyncSerializable
         $key = $this->createKey();
         $this->refreshKey();
 
-        if (strlen($key) === self::session_token_length) { // Check if length of key is correct
+        if ($this->customKey !== null
+            || strlen($key) === self::session_token_length) { // Check if length of key is correct
             $key = string_to_integer($key, true);
             $date = get_current_date();
             $array = get_sql_query(

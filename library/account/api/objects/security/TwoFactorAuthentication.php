@@ -52,10 +52,6 @@ class TwoFactorAuthentication implements PhpAsyncSerializable
                 $credential = random_string(self::CODE_LENGTH);
             } else {
                 $credential = random_string(AccountSession::session_token_length);
-
-                if (strlen($key) !== AccountSession::session_token_length) {
-                    $key = $this->account->getSession()->refreshKey();
-                }
             }
 
             // Separator
