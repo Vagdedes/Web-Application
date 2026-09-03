@@ -3,6 +3,7 @@
 class AccountSession implements PhpAsyncSerializable
 {
     private Account $account;
+    private ?string $customKey;
 
     private const
         session_key_name = "1brpfgiovljnklabu21p_account_session",
@@ -18,6 +19,12 @@ class AccountSession implements PhpAsyncSerializable
     public function __construct(Account $account)
     {
         $this->account = $account;
+        $this->customKey = null;
+    }
+
+    public function setCustomKey(?string $key): void
+    {
+        $this->customKey = $key;
     }
 
     public function getAlive(?array $select = null, int $limit = 0): array
@@ -66,6 +73,9 @@ class AccountSession implements PhpAsyncSerializable
 
     public function createKey(bool $force = false): string
     {
+        if ($this->customKey !== null) {
+            return $this->customKey;
+        }
         if ($force) {
             $key = random_string(self::session_token_length);
             add_cookie(self::session_key_name, $key, self::session_cookie_expiration); // Create new cookie with strict requirements
