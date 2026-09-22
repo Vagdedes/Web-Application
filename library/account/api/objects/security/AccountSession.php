@@ -117,6 +117,11 @@ class AccountSession implements PhpAsyncSerializable
         return hash_equals($this->getCsrfToken(), (string)$submittedToken);
     }
 
+    private function hashKey(int|string $key): int
+    {
+        return is_numeric($key) ? (int)$key : string_to_integer($key, true);
+    }
+
     public function find(bool $checkIpAddress = true): MethodReply
     {
         $key = $this->createKey();
@@ -124,7 +129,7 @@ class AccountSession implements PhpAsyncSerializable
         if ($this->customKey !== null
             || strlen($key) === self::session_token_length) { // Check if length of key is correct
             $date = get_current_date();
-            $key = string_to_integer($key, true);
+            $key = self::hashKey($key);
             $array = get_sql_query(
                 AccountVariables::SESSIONS_TABLE,
                 array("id", "account_id", "ip_address", "creation_date"),
@@ -229,7 +234,7 @@ class AccountSession implements PhpAsyncSerializable
                 $key = $this->refreshKey();
                 continue;
             }
-            $key = string_to_integer($key, true);
+            $key = self::hashKey($key);
             $array = get_sql_query(
                 AccountVariables::SESSIONS_TABLE,
                 array("id"),
@@ -300,7 +305,7 @@ class AccountSession implements PhpAsyncSerializable
 
         if ($this->customKey !== null
             || strlen($key) === self::session_token_length) { // Check if length of key is correct
-            $key = string_to_integer($key, true);
+            $key = self::hashKey($key);
             $date = get_current_date();
             $array = get_sql_query(
                 AccountVariables::SESSIONS_TABLE,
