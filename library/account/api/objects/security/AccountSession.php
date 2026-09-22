@@ -3,7 +3,7 @@
 class AccountSession implements PhpAsyncSerializable
 {
     private Account $account;
-    private ?string $customKey;
+    private string|int|null $customKey;
 
     private const
         session_key_name = "1brpfgiovljnklabu21p_account_session",
@@ -22,7 +22,7 @@ class AccountSession implements PhpAsyncSerializable
         $this->customKey = null;
     }
 
-    public function setCustomKey(?string $key): void
+    public function setCustomKey(string|int|null $key): void
     {
         $this->customKey = $key;
     }
