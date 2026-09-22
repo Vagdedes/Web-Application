@@ -218,6 +218,9 @@ class AccountSession implements PhpAsyncSerializable
 
     public function create(bool $allowMultiple, ?string $key = null): MethodReply
     {
+        if (!$this->account->exists()) {
+            return new MethodReply(false, "Current account does not exist.");
+        }
         $punishment = $this->account->getModerations()->getReceivedAction(AccountModerations::ACCOUNT_BAN);
 
         if ($punishment->isPositiveOutcome()) {
@@ -282,8 +285,7 @@ class AccountSession implements PhpAsyncSerializable
                         "expiration_date" => get_future_date(self::session_account_refresh_expiration),
                     )
                 )) { // Insert information into the database
-                    if ($this->account->exists()
-                        && !$this->account->getHistory()->add("instant_log_in")) {
+                    if (!$this->account->getHistory()->add("instant_log_in")) {
                         return new MethodReply(false, "Failed to update user history.");
                     }
                     return new MethodReply(true, "Session created successfully.");
